@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.2.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.3.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.2.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.3.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -75,6 +75,8 @@ type APIV1Client struct {
 	Search *SearchNamespace
 	// SFTP: `client.sftp`.
 	SFTP *SFTPNamespace
+	// Slack: `client.slack`.
+	Slack *SlackNamespace
 	// SQL: `client.sql`.
 	SQL *SQLNamespace
 	// SSHKeys: `client.sshKeys`.
@@ -115,6 +117,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Resources = newResourcesNamespace(t)
 	c.Search = newSearchNamespace(t)
 	c.SFTP = newSFTPNamespace(t)
+	c.Slack = newSlackNamespace(t)
 	c.SQL = newSQLNamespace(t)
 	c.SSHKeys = newSSHKeysNamespace(t)
 	c.SSHTunnels = newSSHTunnelsNamespace(t)
@@ -3775,6 +3778,282 @@ func (n *SFTPNamespace) Upload(ctx context.Context, params SFTPUploadParams, opt
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/v1/sftp/upload")
 	r.setPath("orgId", params.OrgID)
 	r.setFormBody(params.Body)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlackNamespace is `client.slack`.
+type SlackNamespace struct {
+	t *transport
+
+	// Channels: `client.slack.channels`.
+	Channels *SlackChannelsNamespace
+	// Installations: `client.slack.installations`.
+	Installations *SlackInstallationsNamespace
+}
+
+func newSlackNamespace(t *transport) *SlackNamespace {
+	n := &SlackNamespace{t: t}
+	n.Channels = newSlackChannelsNamespace(t)
+	n.Installations = newSlackInstallationsNamespace(t)
+	return n
+}
+
+// SlackInstallURLParams holds the parameters for `client.slack.installUrl`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SlackInstallURLParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// InstallURL: Get the Add to Slack URL
+//
+// Returns a slack.com/oauth/v2/authorize URL carrying a signed `state` that
+// binds the resulting install to this organization. Send the user's browser
+// there; Slack redirects back to /api/slack/oauth/callback.
+//
+// GET /api/org/{orgId}/slack/install-url
+//
+// Raises on 400: Bad request
+func (n *SlackNamespace) InstallURL(ctx context.Context, params *SlackInstallURLParams, opts ...RequestOption) (*SlackInstallUrlresponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/slack/install-url")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SlackInstallUrlresponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlackStatusParams holds the parameters for `client.slack.status`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SlackStatusParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Status: Get the organization's Slack connection
+//
+// Reports whether the server has a Slack app registered, which workspaces this
+// organization has connected, and which channels alerts are routed to.
+//
+// GET /api/org/{orgId}/slack/status
+func (n *SlackNamespace) Status(ctx context.Context, params *SlackStatusParams, opts ...RequestOption) (*SlackStatus, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/slack/status")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SlackStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlackTestParams holds the parameters for `client.slack.test`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SlackTestParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Test: Post a test message to every configured channel
+//
+// Ignores trigger opt-ins — every channel gets the test. Fails with the Slack
+// error when nothing could be delivered (`not_in_channel` means the bot needs
+// inviting to a private channel).
+//
+// POST /api/org/{orgId}/slack/test
+//
+// Raises on 400: Bad request
+func (n *SlackNamespace) Test(ctx context.Context, params *SlackTestParams, opts ...RequestOption) (*SlackTestResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/slack/test")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SlackTestResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlackChannelsNamespace is `client.slack.channels`.
+type SlackChannelsNamespace struct {
+	t *transport
+}
+
+func newSlackChannelsNamespace(t *transport) *SlackChannelsNamespace {
+	n := &SlackChannelsNamespace{t: t}
+	return n
+}
+
+// SlackChannelsCreateParams holds the parameters for
+// `client.slack.channels.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SlackChannelsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *SlackChannelCreate
+}
+
+// Create: Route alerts to a Slack channel
+//
+// Adds a channel, or updates the trigger opt-ins of one already added. Each
+// trigger defaults to enabled.
+//
+// POST /api/org/{orgId}/slack/channels
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *SlackChannelsNamespace) Create(ctx context.Context, params *SlackChannelsCreateParams, opts ...RequestOption) (*SlackChannel, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/slack/channels")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *SlackChannel
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlackChannelsDeleteParams holds the parameters for
+// `client.slack.channels.delete`.
+type SlackChannelsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Stop routing alerts to a channel
+//
+// DELETE /api/org/{orgId}/slack/channels/{id}
+//
+// Raises on 404: Not found
+func (n *SlackChannelsNamespace) Delete(ctx context.Context, params SlackChannelsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/slack/channels/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlackChannelsUpdateParams holds the parameters for
+// `client.slack.channels.update`.
+type SlackChannelsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *SlackChannelUpdate
+}
+
+// Update: Change which alerts a channel receives
+//
+// PATCH /api/org/{orgId}/slack/channels/{id}
+//
+// Raises on 404: Not found
+func (n *SlackChannelsNamespace) Update(ctx context.Context, params SlackChannelsUpdateParams, opts ...RequestOption) (*SlackChannel, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/slack/channels/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *SlackChannel
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlackInstallationsNamespace is `client.slack.installations`.
+type SlackInstallationsNamespace struct {
+	t *transport
+}
+
+func newSlackInstallationsNamespace(t *transport) *SlackInstallationsNamespace {
+	n := &SlackInstallationsNamespace{t: t}
+	return n
+}
+
+// SlackInstallationsAvailableChannelsParams holds the parameters for
+// `client.slack.installations.availableChannels`.
+type SlackInstallationsAvailableChannelsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	InstallationID string
+}
+
+// AvailableChannels: List channels the connected workspace can see
+//
+// Live call to Slack's conversations.list, for populating a channel picker.
+// Returns non-archived public and private channels visible to the bot.
+//
+// GET /api/org/{orgId}/slack/installations/{installationId}/available-channels
+//
+// Raises on 400: Bad request
+func (n *SlackInstallationsNamespace) AvailableChannels(ctx context.Context, params SlackInstallationsAvailableChannelsParams, opts ...RequestOption) (*SlackInstallationsAvailableChannelsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/slack/installations/{installationId}/available-channels")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("installationId", params.InstallationID)
+	var out *SlackInstallationsAvailableChannelsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlackInstallationsDeleteParams holds the parameters for
+// `client.slack.installations.delete`.
+type SlackInstallationsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	InstallationID string
+}
+
+// Delete: Disconnect a Slack workspace
+//
+// Stops all delivery to this workspace. The channel routing is retained, so
+// re-installing restores it.
+//
+// DELETE /api/org/{orgId}/slack/installations/{installationId}
+//
+// Raises on 404: Not found
+func (n *SlackInstallationsNamespace) Delete(ctx context.Context, params SlackInstallationsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/slack/installations/{installationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("installationId", params.InstallationID)
 	var out *OK
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err

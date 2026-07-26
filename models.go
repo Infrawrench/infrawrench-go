@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.2.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.3.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.2.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.3.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1792,6 +1792,63 @@ type SFTPUploadForm struct {
 	SSHUsername *string   `json:"sshUsername,omitempty"`
 }
 
+// SlackAvailableChannel is the `SlackAvailableChannel` schema.
+type SlackAvailableChannel struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	IsPrivate bool   `json:"isPrivate"`
+}
+
+// SlackChannel is the `SlackChannel` schema.
+type SlackChannel struct {
+	ID             string `json:"id"`
+	InstallationID string `json:"installationId"`
+	// ChannelID: Slack channel id (C…/G…)
+	ChannelID string `json:"channelId"`
+	// ChannelName: Channel name without the leading #
+	ChannelName   string `json:"channelName"`
+	IsPrivate     bool   `json:"isPrivate"`
+	SyncIncidents bool   `json:"syncIncidents"`
+	BudgetAlerts  bool   `json:"budgetAlerts"`
+	// WorkflowPages: Alerts raised by a workflow calling infra.page(...)
+	WorkflowPages bool `json:"workflowPages"`
+}
+
+// SlackChannelCreate is the `SlackChannelCreate` schema.
+type SlackChannelCreate struct {
+	InstallationID string `json:"installationId"`
+	ChannelID      string `json:"channelId"`
+	ChannelName    string `json:"channelName"`
+	IsPrivate      *bool  `json:"isPrivate,omitempty"`
+	SyncIncidents  *bool  `json:"syncIncidents,omitempty"`
+	BudgetAlerts   *bool  `json:"budgetAlerts,omitempty"`
+	WorkflowPages  *bool  `json:"workflowPages,omitempty"`
+}
+
+// SlackChannelUpdate is the `SlackChannelUpdate` schema.
+type SlackChannelUpdate struct {
+	SyncIncidents *bool `json:"syncIncidents,omitempty"`
+	BudgetAlerts  *bool `json:"budgetAlerts,omitempty"`
+	WorkflowPages *bool `json:"workflowPages,omitempty"`
+}
+
+// SlackInstallation is the `SlackInstallation` schema.
+type SlackInstallation struct {
+	// ID: Infrawrench id for this workspace connection
+	ID string `json:"id"`
+	// TeamID: Slack workspace id (T…)
+	TeamID   string  `json:"teamId"`
+	TeamName *string `json:"teamName"`
+}
+
+// SlackStatus is the `SlackStatus` schema.
+type SlackStatus struct {
+	// Configured: True when this deployment has a Slack app registered
+	Configured    bool                `json:"configured"`
+	Installations []SlackInstallation `json:"installations"`
+	Channels      []SlackChannel      `json:"channels"`
+}
+
 // SQLEstimateRequest is the `SqlEstimateRequest` schema.
 //
 // Spec schema: `SqlEstimateRequest`.
@@ -2340,6 +2397,25 @@ type ResourcesCreateCostEstimateResponse struct {
 // ResourcesNoSqlcommandResponse is an object the spec declares inline.
 type ResourcesNoSqlcommandResponse struct {
 	Result JSONObject `json:"result"`
+}
+
+// SlackInstallUrlresponse is an object the spec declares inline.
+type SlackInstallUrlresponse struct {
+	URL string `json:"url"`
+}
+
+// SlackTestResponse is an object the spec declares inline.
+type SlackTestResponse struct {
+	OK           bool  `json:"ok"`
+	ChannelCount int64 `json:"channelCount"`
+	Attempted    int64 `json:"attempted"`
+	Succeeded    int64 `json:"succeeded"`
+}
+
+// SlackInstallationsAvailableChannelsResponse is an object the spec declares
+// inline.
+type SlackInstallationsAvailableChannelsResponse struct {
+	Channels []SlackAvailableChannel `json:"channels"`
 }
 
 // SshtunnelsCloseRequest is an object the spec declares inline.
