@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.3.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.4.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.3.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.4.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -939,6 +939,46 @@ type MetricsRequest struct {
 // MetricsResponse is the `MetricsResponse` schema.
 type MetricsResponse struct {
 	Series []MetricSeries `json:"series"`
+}
+
+// MsTeamsStatus is the `MsTeamsStatus` schema.
+type MsTeamsStatus struct {
+	Webhooks []MsTeamsWebhook `json:"webhooks"`
+}
+
+// MsTeamsWebhook is the `MsTeamsWebhook` schema.
+type MsTeamsWebhook struct {
+	ID string `json:"id"`
+	// Label: Display name for the channel, e.g. #alerts
+	Label string `json:"label"`
+	// URLHint: Non-secret hint at the stored webhook URL (host and last four
+	// characters). The URL itself is never returned.
+	URLHint       string `json:"urlHint"`
+	SyncIncidents bool   `json:"syncIncidents"`
+	BudgetAlerts  bool   `json:"budgetAlerts"`
+	// WorkflowPages: Alerts raised by a workflow calling infra.page(...)
+	WorkflowPages bool `json:"workflowPages"`
+}
+
+// MsTeamsWebhookCreate is the `MsTeamsWebhookCreate` schema.
+type MsTeamsWebhookCreate struct {
+	Label string `json:"label"`
+	// URL: The webhook URL from a Teams 'Workflows' automation. Must be https
+	// and on a Microsoft-operated host (*.api.powerautomate.com,
+	// *.api.powerplatform.com, *.logic.azure.com, *.flow.microsoft.com, or a
+	// legacy *.webhook.office.com connector).
+	URL           string `json:"url"`
+	SyncIncidents *bool  `json:"syncIncidents,omitempty"`
+	BudgetAlerts  *bool  `json:"budgetAlerts,omitempty"`
+	WorkflowPages *bool  `json:"workflowPages,omitempty"`
+}
+
+// MsTeamsWebhookUpdate is the `MsTeamsWebhookUpdate` schema.
+type MsTeamsWebhookUpdate struct {
+	Label         *string `json:"label,omitempty"`
+	SyncIncidents *bool   `json:"syncIncidents,omitempty"`
+	BudgetAlerts  *bool   `json:"budgetAlerts,omitempty"`
+	WorkflowPages *bool   `json:"workflowPages,omitempty"`
 }
 
 // NoSQLCommandRequest is the `NoSqlCommandRequest` schema.
@@ -2333,6 +2373,14 @@ type DashboardsCreateRequest struct {
 // DashboardsRenameRequest is an object the spec declares inline.
 type DashboardsRenameRequest struct {
 	Name string `json:"name"`
+}
+
+// MsteamsTestResponse is an object the spec declares inline.
+type MsteamsTestResponse struct {
+	OK           bool  `json:"ok"`
+	WebhookCount int64 `json:"webhookCount"`
+	Attempted    int64 `json:"attempted"`
+	Succeeded    int64 `json:"succeeded"`
 }
 
 // ProfilePasswordResetResponse is an object the spec declares inline.

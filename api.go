@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.3.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.4.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.3.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.4.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -65,6 +65,8 @@ type APIV1Client struct {
 	Invitations *InvitationsNamespace
 	// KV: `client.kv`.
 	KV *KVNamespace
+	// Msteams: `client.msteams`.
+	Msteams *MsteamsNamespace
 	// Orgs: `client.orgs`.
 	Orgs *OrgsNamespace
 	// Profile: `client.profile`.
@@ -112,6 +114,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Docker = newDockerNamespace(t)
 	c.Invitations = newInvitationsNamespace(t)
 	c.KV = newKVNamespace(t)
+	c.Msteams = newMsteamsNamespace(t)
 	c.Orgs = newOrgsNamespace(t)
 	c.Profile = newProfileNamespace(t)
 	c.Resources = newResourcesNamespace(t)
@@ -2326,6 +2329,183 @@ func (n *KVNamespace) Command(ctx context.Context, params KVCommandParams, opts 
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *KVCommandResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MsteamsNamespace is `client.msteams`.
+type MsteamsNamespace struct {
+	t *transport
+
+	// Webhooks: `client.msteams.webhooks`.
+	Webhooks *MsteamsWebhooksNamespace
+}
+
+func newMsteamsNamespace(t *transport) *MsteamsNamespace {
+	n := &MsteamsNamespace{t: t}
+	n.Webhooks = newMsteamsWebhooksNamespace(t)
+	return n
+}
+
+// MsteamsStatusParams holds the parameters for `client.msteams.status`.
+//
+// Every field is optional; pass nil to take the defaults.
+type MsteamsStatusParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Status: List the organization's Teams channels
+//
+// Returns the Teams channels alerts are routed to and which triggers each takes.
+// Webhook URLs are never included.
+//
+// GET /api/org/{orgId}/msteams/status
+func (n *MsteamsNamespace) Status(ctx context.Context, params *MsteamsStatusParams, opts ...RequestOption) (*MsTeamsStatus, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/msteams/status")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *MsTeamsStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MsteamsTestParams holds the parameters for `client.msteams.test`.
+//
+// Every field is optional; pass nil to take the defaults.
+type MsteamsTestParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Test: Post a test card to every configured Teams channel
+//
+// Ignores trigger opt-ins — every channel gets the test. Fails with the error
+// Microsoft returned when nothing could be delivered (HTTP 404 usually means the
+// Workflow was deleted or turned off).
+//
+// POST /api/org/{orgId}/msteams/test
+//
+// Raises on 400: Bad request
+func (n *MsteamsNamespace) Test(ctx context.Context, params *MsteamsTestParams, opts ...RequestOption) (*MsteamsTestResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/msteams/test")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *MsteamsTestResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MsteamsWebhooksNamespace is `client.msteams.webhooks`.
+type MsteamsWebhooksNamespace struct {
+	t *transport
+}
+
+func newMsteamsWebhooksNamespace(t *transport) *MsteamsWebhooksNamespace {
+	n := &MsteamsWebhooksNamespace{t: t}
+	return n
+}
+
+// MsteamsWebhooksCreateParams holds the parameters for
+// `client.msteams.webhooks.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type MsteamsWebhooksCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *MsTeamsWebhookCreate
+}
+
+// Create: Route alerts to a Teams channel
+//
+// Adds a channel by webhook URL, or updates the one already holding that URL.
+// Each trigger defaults to enabled. Responds 400 when the URL is not https or
+// its host is not Microsoft-operated.
+//
+// POST /api/org/{orgId}/msteams/webhooks
+//
+// Raises on 400: Bad request
+func (n *MsteamsWebhooksNamespace) Create(ctx context.Context, params *MsteamsWebhooksCreateParams, opts ...RequestOption) (*MsTeamsWebhook, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/msteams/webhooks")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *MsTeamsWebhook
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MsteamsWebhooksDeleteParams holds the parameters for
+// `client.msteams.webhooks.delete`.
+type MsteamsWebhooksDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Stop routing alerts to a Teams channel
+//
+// DELETE /api/org/{orgId}/msteams/webhooks/{id}
+//
+// Raises on 404: Not found
+func (n *MsteamsWebhooksNamespace) Delete(ctx context.Context, params MsteamsWebhooksDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/msteams/webhooks/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MsteamsWebhooksUpdateParams holds the parameters for
+// `client.msteams.webhooks.update`.
+type MsteamsWebhooksUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *MsTeamsWebhookUpdate
+}
+
+// Update: Rename a Teams channel or change which alerts it receives
+//
+// The webhook URL is immutable — remove the channel and re-add it to change it.
+//
+// PATCH /api/org/{orgId}/msteams/webhooks/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *MsteamsWebhooksNamespace) Update(ctx context.Context, params MsteamsWebhooksUpdateParams, opts ...RequestOption) (*MsTeamsWebhook, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/msteams/webhooks/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *MsTeamsWebhook
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
