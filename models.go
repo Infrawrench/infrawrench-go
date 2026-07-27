@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.7.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.8.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.7.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.8.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -45,6 +45,24 @@ type Account struct {
 	// `null` ⇒ direct egress.
 	BastionID *string `json:"bastionId"`
 	CreatedAt string  `json:"createdAt"`
+}
+
+// AccountDeleted is the `AccountDeleted` schema.
+type AccountDeleted struct {
+	OK                   bool  `json:"ok"`
+	OrganizationsDeleted int64 `json:"organizationsDeleted"`
+}
+
+// AccountDeletionPreview is the `AccountDeletionPreview` schema.
+type AccountDeletionPreview struct {
+	// OrganizationsToDelete: Deleted with the account — the caller is their only
+	// member.
+	OrganizationsToDelete []OrganizationRef `json:"organizationsToDelete"`
+	// OrganizationsToLeave: Survive; the caller's membership is removed.
+	OrganizationsToLeave []OrganizationRef `json:"organizationsToLeave"`
+	// Blockers: Non-empty means DELETE /api/profile will refuse until another
+	// owner is promoted.
+	Blockers []OwnershipBlocker `json:"blockers"`
 }
 
 // AccountDetail is the `AccountDetail` schema.
@@ -1055,6 +1073,12 @@ type Organization struct {
 	DisplayName string `json:"displayName"`
 }
 
+// OrganizationRef is the `OrganizationRef` schema.
+type OrganizationRef struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // OrganizationRole is the `OrganizationRole` schema.
 type OrganizationRole = string
 
@@ -1064,6 +1088,22 @@ const (
 	OrganizationRoleAdmin  OrganizationRole = "admin"
 	OrganizationRoleMember OrganizationRole = "member"
 )
+
+// OwnershipBlocker is the `OwnershipBlocker` schema.
+type OwnershipBlocker struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// MemberCount: People in the organization
+	MemberCount int64 `json:"memberCount"`
+}
+
+// OwnershipTransferRequired is the `OwnershipTransferRequired` schema.
+type OwnershipTransferRequired struct {
+	Error string `json:"error"`
+	// Code: One of "transfer_ownership_required".
+	Code          string             `json:"code"`
+	Organizations []OwnershipBlocker `json:"organizations"`
+}
 
 // PageClearResponse is the `PageClearResponse` schema.
 type PageClearResponse struct {

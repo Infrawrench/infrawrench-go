@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.7.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.8.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.7.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.8.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2706,6 +2706,50 @@ func newProfileNamespace(t *transport) *ProfileNamespace {
 	n.MFA = newProfileMFANamespace(t)
 	n.Sessions = newProfileSessionsNamespace(t)
 	return n
+}
+
+// Delete: Delete the signed-in user's account
+//
+// Irreversible. Organizations where the caller is the only member are deleted
+// and their subscriptions cancelled; other memberships are simply removed.
+// Refuses with `transfer_ownership_required` while the caller is the only owner
+// of an organization other people belong to.
+//
+// DELETE /api/profile
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+//
+// Raises on 409: The caller still solely owns a shared organization; nothing was
+// deleted.
+//
+// Raises on 502: A subscription could not be cancelled; nothing was deleted.
+func (n *ProfileNamespace) Delete(ctx context.Context, opts ...RequestOption) (*AccountDeleted, error) {
+	r := newRequest(http.MethodDelete, "/api/profile")
+	var out *AccountDeleted
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DeletionPreview: What deleting this account would do
+//
+// Read-only. Lets a confirmation screen name the organizations that go with the
+// account, and the ones that must be handed over first.
+//
+// GET /api/profile/deletion-preview
+//
+// Raises on 401: Unauthenticated
+func (n *ProfileNamespace) DeletionPreview(ctx context.Context, opts ...RequestOption) (*AccountDeletionPreview, error) {
+	r := newRequest(http.MethodGet, "/api/profile/deletion-preview")
+	var out *AccountDeletionPreview
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // Get: The signed-in user's account profile
