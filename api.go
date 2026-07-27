@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.5.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.6.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.5.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.6.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -69,6 +69,8 @@ type APIV1Client struct {
 	Msteams *MsteamsNamespace
 	// Orgs: `client.orgs`.
 	Orgs *OrgsNamespace
+	// Pages: `client.pages`.
+	Pages *PagesNamespace
 	// Profile: `client.profile`.
 	Profile *ProfileNamespace
 	// Resources: `client.resources`.
@@ -116,6 +118,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.KV = newKVNamespace(t)
 	c.Msteams = newMsteamsNamespace(t)
 	c.Orgs = newOrgsNamespace(t)
+	c.Pages = newPagesNamespace(t)
 	c.Profile = newProfileNamespace(t)
 	c.Resources = newResourcesNamespace(t)
 	c.Search = newSearchNamespace(t)
@@ -1549,6 +1552,8 @@ type CostsDimensionsParams struct {
 // Feeds the filter and group-by pickers. Pass dimension=tag-keys for tag keys;
 // dimension=tag requires tagKey.
 //
+// _Requires permission: `costs:read`._
+//
 // GET /api/org/{orgId}/costs/dimensions
 //
 // Raises on 400: Bad request
@@ -1581,6 +1586,8 @@ type CostsQueryParams struct {
 // currency. Optionally returns a previous-period comparison and a trend
 // forecast.
 //
+// _Requires permission: `costs:read`._
+//
 // POST /api/org/{orgId}/costs/query
 //
 // Raises on 400: Bad request
@@ -1589,6 +1596,48 @@ func (n *CostsNamespace) Query(ctx context.Context, params CostsQueryParams, opt
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *CostQueryResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsRowsParams holds the parameters for `client.costs.rows`.
+type CostsRowsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostPushRequest
+}
+
+// Rows: Push cost rows from your own systems
+//
+// Reports spend Infrawrench has no provider plugin for — a parsed SaaS invoice,
+// an internal chargeback, a colo bill — into the same store the provider
+// collectors write to, so it appears in cost graphs, dimension filters, and
+// budgets alongside everything else.
+//
+// Rows are grouped under a caller-chosen `source`. Writes are idempotent per
+// `(source, day, service, region, resourceId, tags, currency)`: pushing the same
+// day again restates that day rather than adding to it, so a nightly job can
+// safely re-push a trailing window. Rows pushed under a source can never
+// overwrite rows a provider collector wrote.
+//
+// The whole batch is validated before anything is stored, so a 400 means nothing
+// was written.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/costs/rows
+//
+// Raises on 400: Bad request
+func (n *CostsNamespace) Rows(ctx context.Context, params CostsRowsParams, opts ...RequestOption) (*CostPushResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/costs/rows")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostPushResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -1609,6 +1658,8 @@ type CostsStatusParams struct {
 //
 // Which accounts support cost collection, whether their history backfill has
 // completed, and the ingested date coverage.
+//
+// _Requires permission: `costs:read`._
 //
 // GET /api/org/{orgId}/costs/status
 func (n *CostsNamespace) Status(ctx context.Context, params *CostsStatusParams, opts ...RequestOption) (*CostsStatusResponse, error) {
@@ -2541,6 +2592,96 @@ func (n *OrgsNamespace) Create(ctx context.Context, params OrgsCreateParams, opt
 	r := newRequest(http.MethodPost, "/api/orgs")
 	r.setJSONBody(params.Body)
 	var out *Organization
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagesNamespace is `client.pages`.
+type PagesNamespace struct {
+	t *transport
+}
+
+func newPagesNamespace(t *transport) *PagesNamespace {
+	n := &PagesNamespace{t: t}
+	return n
+}
+
+// PagesCreateParams holds the parameters for `client.pages.create`.
+type PagesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body PageRequest
+}
+
+// Create: Raise an alert to the organization's on-call transports
+//
+// Fans an alert out over whatever the org has configured — Twilio SMS (and voice
+// on request), mobile push, Slack channels, and Microsoft Teams webhooks —
+// honouring each recipient's opt-ins. This is the same alert a workflow raises
+// with `infra.page(...)`, for code that runs somewhere Infrawrench does not: a
+// health check, a deploy script, a cron on a box.
+//
+// Repeat pages under the same `(source, key)` are **suppressed, not rejected**:
+// a monitor that fires every minute pages once and then gets `200` with
+// `suppressed: true` and the `retryAt` at which the key can page again. A page
+// that reached nobody does not start a cooldown, so the next call tries again.
+//
+// Recipients opt in per channel under the same setting that covers workflow
+// pages.
+//
+// _Requires permission: `pages:write`._
+//
+// POST /api/org/{orgId}/pages
+//
+// Raises on 400: Bad request
+func (n *PagesNamespace) Create(ctx context.Context, params PagesCreateParams, opts ...RequestOption) (*PageResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/pages")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *PageResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagesDeleteParams holds the parameters for `client.pages.delete`.
+type PagesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Source: Stable name for the system raising the page: letters, digits, `.`,
+	// `_` and `-`. It is the notification's sender, and it scopes the cooldown —
+	// two services paging under the same key never throttle each other.
+	Source string
+	// Key: Defaults to `default`.
+	Key *string
+}
+
+// Delete: Clear a page key's cooldown
+//
+// Drops the cooldown for one `(source, key)` so the next page under it delivers
+// immediately. Call it when the condition you alerted on recovers — the workflow
+// equivalent is `infra.page.clear(key)`. Clearing a key that was never paged is
+// not an error.
+//
+// _Requires permission: `pages:write`._
+//
+// DELETE /api/org/{orgId}/pages
+//
+// Raises on 400: Bad request
+func (n *PagesNamespace) Delete(ctx context.Context, params PagesDeleteParams, opts ...RequestOption) (*PageClearResponse, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/pages")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("source", params.Source)
+	r.addQuery("key", params.Key)
+	var out *PageClearResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

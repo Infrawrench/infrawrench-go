@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.5.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.6.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.5.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.6.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -416,6 +416,21 @@ type CostFilter struct {
 	Op     string   `json:"op"`
 	Values []string `json:"values"`
 	TagKey *string  `json:"tagKey,omitempty"`
+}
+
+// CostPushRequest is the `CostPushRequest` schema.
+type CostPushRequest struct {
+	// Source: Stable slug naming the system that owns these rows: letters,
+	// digits, `.`, `_` and `-`. It groups the rows under an `External` provider
+	// and an `external:<source>` account, and re-pushing the same source over
+	// the same days restates only its own rows.
+	Source string          `json:"source"`
+	Rows   []PushedCostRow `json:"rows"`
+}
+
+// CostPushResponse is the `CostPushResponse` schema.
+type CostPushResponse struct {
+	Written int64 `json:"written"`
 }
 
 // CostQueryRequest is the `CostQueryRequest` schema.
@@ -1037,6 +1052,53 @@ const (
 	OrganizationRoleMember OrganizationRole = "member"
 )
 
+// PageClearResponse is the `PageClearResponse` schema.
+type PageClearResponse struct {
+	// Cleared: False when the key had no cooldown to clear.
+	Cleared bool `json:"cleared"`
+}
+
+// PageRequest is the `PageRequest` schema.
+type PageRequest struct {
+	// Source: Stable name for the system raising the page: letters, digits, `.`,
+	// `_` and `-`. It is the notification's sender, and it scopes the cooldown —
+	// two services paging under the same key never throttle each other.
+	Source string `json:"source"`
+	// Message: The alert text. Becomes the SMS and notification body.
+	Message string `json:"message"`
+	// Title: Short headline for the notification. Defaults to `source`.
+	Title *string `json:"title,omitempty"`
+	// Key: Throttle key, `default` when unset. Pages sharing a key are
+	// suppressed while that key is in cooldown, so a per-object key (a host, a
+	// cluster id) alerts per object while the default key alerts once for the
+	// whole source.
+	Key *string `json:"key,omitempty"`
+	// CooldownMinutes: Minutes to suppress repeat pages under the same key.
+	// Defaults to 60; `0` sends every time.
+	CooldownMinutes *int64 `json:"cooldownMinutes,omitempty"`
+	// Voice: Also place a voice call to recipients who opted into voice. Off by
+	// default — reserve it for things worth waking someone up for.
+	Voice *bool `json:"voice,omitempty"`
+}
+
+// PageResponse is the `PageResponse` schema.
+type PageResponse struct {
+	// Delivered: True when at least one recipient was reached on any transport.
+	Delivered bool `json:"delivered"`
+	// Suppressed: True when the key was still in cooldown, so nothing was sent.
+	Suppressed bool `json:"suppressed"`
+	// Sms: Twilio deliveries (SMS + voice) that Twilio accepted.
+	Sms int64 `json:"sms"`
+	// Push: Push notifications accepted by Expo.
+	Push int64 `json:"push"`
+	// Slack: Slack channel posts Slack accepted.
+	Slack int64 `json:"slack"`
+	// MsTeams: Microsoft Teams webhook posts Teams accepted.
+	MsTeams int64 `json:"msTeams"`
+	// RetryAt: When suppressed, the time at which this key can page again.
+	RetryAt *string `json:"retryAt,omitempty"`
+}
+
 // PeerPane is the `PeerPane` schema.
 type PeerPane struct {
 	TabLabel      string     `json:"tabLabel"`
@@ -1079,6 +1141,7 @@ const (
 	PermissionDashboardsRead   Permission = "dashboards:read"
 	PermissionDashboardsWrite  Permission = "dashboards:write"
 	PermissionCostsRead        Permission = "costs:read"
+	PermissionCostsWrite       Permission = "costs:write"
 	PermissionBudgetsRead      Permission = "budgets:read"
 	PermissionBudgetsWrite     Permission = "budgets:write"
 	PermissionAuditRead        Permission = "audit:read"
@@ -1096,6 +1159,7 @@ const (
 	PermissionBastionsWrite    Permission = "bastions:write"
 	PermissionChatRead         Permission = "chat:read"
 	PermissionChatWrite        Permission = "chat:write"
+	PermissionPagesWrite       Permission = "pages:write"
 	PermissionOrgSettingsWrite Permission = "org:settings:write"
 )
 
@@ -1246,6 +1310,29 @@ type ProfileSummary struct {
 	ProfilePictureURL *string `json:"profilePictureUrl"`
 	LastSignInAt      *string `json:"lastSignInAt"`
 	CreatedAt         string  `json:"createdAt"`
+}
+
+// PushedCostRow is the `PushedCostRow` schema.
+type PushedCostRow struct {
+	// Date: UTC day the spend belongs to.
+	Date     string `json:"date"`
+	Currency string `json:"currency"`
+	// Amount: Money for this day/dimension combination. Negative for credits.
+	Amount float64 `json:"amount"`
+	// Service: Becomes a group/filter value.
+	Service *string `json:"service,omitempty"`
+	Region  *string `json:"region,omitempty"`
+	// ResourceID: Opaque id of the thing being billed; groups the `resource`
+	// dimension.
+	ResourceID *string `json:"resourceId,omitempty"`
+	// Tags: Cost-allocation tags, at most 32. Keys starting with `infrawrench:`
+	// are reserved and rejected.
+	Tags        map[string]string `json:"tags,omitempty"`
+	UsageAmount *float64          `json:"usageAmount,omitempty"`
+	UsageUnit   *string           `json:"usageUnit,omitempty"`
+	// AccountID: Attribute this row to a connected account. Must belong to the
+	// calling organization. Omit to attribute it to the source itself.
+	AccountID *string `json:"accountId,omitempty"`
 }
 
 // ReauthenticationRequired is the `ReauthenticationRequired` schema.
