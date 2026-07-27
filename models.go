@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.4.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.5.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.4.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.5.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -302,6 +302,7 @@ type BudgetWithStatus struct {
 	ActualCents        int64                                `json:"actualCents"`
 	ForecastCents      *int64                               `json:"forecastCents"`
 	CurrentMonthEvents []BudgetWithStatusCurrentMonthEvents `json:"currentMonthEvents"`
+	Placements         []BudgetWithStatusPlacements         `json:"placements"`
 }
 
 // ChildResourceRef is the `ChildResourceRef` schema.
@@ -2073,8 +2074,8 @@ type SyncResponse struct {
 
 // TabTarget is the `TabTarget` schema.
 type TabTarget struct {
-	// Kind: One of "dashboard", "account", "resource", "agents", "workflows",
-	// "chat".
+	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
+	// "workflows", "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -2194,6 +2195,13 @@ type BudgetWithStatusCurrentMonthEvents struct {
 	ThresholdType    string `json:"thresholdType"`
 	ThresholdPercent int64  `json:"thresholdPercent"`
 	TriggeredAt      string `json:"triggeredAt"`
+}
+
+// BudgetWithStatusPlacements is an object the spec declares inline.
+type BudgetWithStatusPlacements struct {
+	WidgetID      string `json:"widgetId"`
+	DashboardID   string `json:"dashboardId"`
+	DashboardName string `json:"dashboardName"`
 }
 
 // CostAccountStatusCostPollError is an object the spec declares inline.
