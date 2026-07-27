@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.6.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.7.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.6.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.7.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -488,12 +488,12 @@ type AccountsSyncTypeCreateParams struct {
 // Raises on 404: Not found
 //
 // Raises on 500: Server error
-func (n *AccountsSyncTypeNamespace) Create(ctx context.Context, params AccountsSyncTypeCreateParams, opts ...RequestOption) ([]Resource, error) {
+func (n *AccountsSyncTypeNamespace) Create(ctx context.Context, params AccountsSyncTypeCreateParams, opts ...RequestOption) ([]SyncedResource, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/accounts/{id}/sync-type/{typeId}")
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
 	r.setPath("typeId", params.TypeID)
-	var out []Resource
+	var out []SyncedResource
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

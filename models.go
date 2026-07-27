@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.6.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.7.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.6.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.7.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -313,14 +313,16 @@ type ChildResourceRef struct {
 	PluginID       string     `json:"pluginId"`
 	AccountID      string     `json:"accountId"`
 	Status         *StatusDot `json:"status,omitempty"`
+	Fields         JSONObject `json:"fields,omitempty"`
 }
 
 // ChildTypeRef is the `ChildTypeRef` schema.
 type ChildTypeRef struct {
-	ID                string  `json:"id"`
-	DisplayName       string  `json:"displayName"`
-	PluralDisplayName *string `json:"pluralDisplayName,omitempty"`
-	SupportsCreate    bool    `json:"supportsCreate"`
+	ID                string       `json:"id"`
+	DisplayName       string       `json:"displayName"`
+	PluralDisplayName *string      `json:"pluralDisplayName,omitempty"`
+	SupportsCreate    bool         `json:"supportsCreate"`
+	Fields            []JSONObject `json:"fields,omitempty"`
 }
 
 // ConnectEnvDeployRequest is the `ConnectEnvDeployRequest` schema.
@@ -588,11 +590,11 @@ type CreatedAPIKey struct {
 
 // CredentialExport is the `CredentialExport` schema.
 type CredentialExport struct {
-	Content  string            `json:"content"`
-	Filename string            `json:"filename"`
-	MimeType string            `json:"mimeType"`
-	Fields   map[string]string `json:"fields,omitempty"`
-	Warning  *string           `json:"warning,omitempty"`
+	Content  string                   `json:"content"`
+	Filename string                   `json:"filename"`
+	MimeType string                   `json:"mimeType"`
+	Fields   []CredentialExportFields `json:"fields,omitempty"`
+	Warning  *string                  `json:"warning,omitempty"`
 }
 
 // CredentialField is the `CredentialField` schema.
@@ -618,11 +620,18 @@ type CredentialFieldRegion struct {
 
 // CredentialFormat is the `CredentialFormat` schema.
 type CredentialFormat struct {
-	ID            string  `json:"id"`
-	Label         string  `json:"label"`
-	Description   *string `json:"description,omitempty"`
-	FileExtension *string `json:"fileExtension,omitempty"`
-	MimeType      *string `json:"mimeType,omitempty"`
+	// ID: Passed back as `formatId` on export.
+	ID          string  `json:"id"`
+	Label       string  `json:"label"`
+	Description *string `json:"description,omitempty"`
+	// MediaType: How the credential body should be presented. `binary-base64`
+	// means `content` is base64.
+	//
+	// One of "json", "text", "ini", "binary-base64".
+	MediaType string `json:"mediaType"`
+	// FilenameTemplate: Suggested filename; `{resource}` is replaced with the
+	// resource's external id.
+	FilenameTemplate *string `json:"filenameTemplate,omitempty"`
 }
 
 // Dashboard is the `Dashboard` schema.
@@ -918,9 +927,13 @@ type LogsRequest struct {
 
 // LogsResponse is the `LogsResponse` schema.
 type LogsResponse struct {
-	Lines         []string `json:"lines"`
-	NextPageToken *string  `json:"nextPageToken,omitempty"`
-	Truncated     *bool    `json:"truncated,omitempty"`
+	// Text: Raw log text; each entry keeps its trailing newline.
+	Text string `json:"text"`
+	// Containers: Container names available for this resource — drives the
+	// container picker.
+	Containers []string `json:"containers"`
+	// ActiveContainer: Container `text` was read from.
+	ActiveContainer string `json:"activeContainer"`
 }
 
 // Manifest is the `Manifest` schema.
@@ -1181,9 +1194,10 @@ type PickerResource struct {
 
 // PickerResourcesRequest is the `PickerResourcesRequest` schema.
 type PickerResourcesRequest struct {
-	Sources    []PickerResourcesRequestSources `json:"sources"`
-	AccountID  string                          `json:"accountId"`
-	RegionHint *string                         `json:"regionHint,omitempty"`
+	Sources      []PickerResourcesRequestSources `json:"sources"`
+	AccountID    string                          `json:"accountId"`
+	RegionHint   *string                         `json:"regionHint,omitempty"`
+	CrossAccount *bool                           `json:"crossAccount,omitempty"`
 }
 
 // PinFull is the `PinFull` schema.
@@ -1277,7 +1291,7 @@ type ProbeRequest struct {
 
 // ProbeStatus is the `ProbeStatus` schema.
 type ProbeStatus struct {
-	// Phase: One of "ok", "loading", "error".
+	// Phase: One of "ok", "error".
 	Phase          string                      `json:"phase"`
 	Error          *string                     `json:"error,omitempty"`
 	Stats          []JSONObject                `json:"stats,omitempty"`
@@ -1413,12 +1427,12 @@ type ResourceStatus = string
 
 // The values ResourceStatus takes.
 const (
-	ResourceStatusHealthy ResourceStatus = "healthy"
-	ResourceStatusWarning ResourceStatus = "warning"
-	ResourceStatusError   ResourceStatus = "error"
-	ResourceStatusUnknown ResourceStatus = "unknown"
-	ResourceStatusPending ResourceStatus = "pending"
-	ResourceStatusStopped ResourceStatus = "stopped"
+	ResourceStatusHealthy      ResourceStatus = "healthy"
+	ResourceStatusDegraded     ResourceStatus = "degraded"
+	ResourceStatusError        ResourceStatus = "error"
+	ResourceStatusUnknown      ResourceStatus = "unknown"
+	ResourceStatusProvisioning ResourceStatus = "provisioning"
+	ResourceStatusInfo         ResourceStatus = "info"
 )
 
 // ResourceTypeID: Resource type id. Note: not every plugin exposes every type —
@@ -1842,9 +1856,13 @@ type SecretModifyRequest struct {
 // SecretVersion is the `SecretVersion` schema.
 type SecretVersion struct {
 	ID string `json:"id"`
-	// State: One of "ENABLED", "DISABLED", "DESTROYED".
-	State     string `json:"state"`
+	// State: One of "enabled", "disabled", "destroyed".
+	State string `json:"state"`
+	// CreatedAt: ISO-8601.
 	CreatedAt string `json:"createdAt"`
+	// DestroyedAt: Set only when destroyed.
+	DestroyedAt *string `json:"destroyedAt,omitempty"`
+	IsLatest    *bool   `json:"isLatest,omitempty"`
 }
 
 // SecretVersionResponse is the `SecretVersionResponse` schema.
@@ -1880,10 +1898,13 @@ type SFTPDeleteRequest struct {
 //
 // Spec schema: `SftpEntry`.
 type SFTPEntry struct {
-	Name       string  `json:"name"`
-	IsDir      bool    `json:"isDir"`
-	Size       *int64  `json:"size,omitempty"`
-	ModifiedAt *string `json:"modifiedAt,omitempty"`
+	// Key: Absolute remote path.
+	Key          string  `json:"key"`
+	Name         string  `json:"name"`
+	Size         float64 `json:"size"`
+	LastModified string  `json:"lastModified"`
+	IsDirectory  bool    `json:"isDirectory"`
+	ContentType  *string `json:"contentType,omitempty"`
 }
 
 // SFTPListRequest is the `SftpListRequest` schema.
@@ -2114,10 +2135,14 @@ type StorageListRequest struct {
 
 // StorageObject is the `StorageObject` schema.
 type StorageObject struct {
-	Key          string  `json:"key"`
-	Size         *int64  `json:"size,omitempty"`
-	IsFolder     *bool   `json:"isFolder,omitempty"`
-	LastModified *string `json:"lastModified,omitempty"`
+	// Key: Full path within the bucket.
+	Key string `json:"key"`
+	// Name: Last path segment — what the browser renders.
+	Name         string  `json:"name"`
+	Size         float64 `json:"size"`
+	LastModified string  `json:"lastModified"`
+	IsDirectory  bool    `json:"isDirectory"`
+	ContentType  *string `json:"contentType,omitempty"`
 }
 
 // StoragePathRequest is the `StoragePathRequest` schema.
@@ -2157,6 +2182,18 @@ type Subscription struct {
 // SyncResponse is the `SyncResponse` schema.
 type SyncResponse struct {
 	Synced int64 `json:"synced"`
+}
+
+// SyncedResource is the `SyncedResource` schema.
+type SyncedResource struct {
+	ID               ResourceID  `json:"id"`
+	PluginID         string      `json:"pluginId"`
+	ResourceTypeID   string      `json:"resourceTypeId"`
+	DisplayName      string      `json:"displayName"`
+	ExternalID       *string     `json:"externalId"`
+	FieldsJSON       JSONObject  `json:"fieldsJson"`
+	OutputsJSON      JSONObject  `json:"outputsJson"`
+	ParentResourceID *ResourceID `json:"parentResourceId"`
 }
 
 // TabTarget is the `TabTarget` schema.
@@ -2315,6 +2352,14 @@ type CreatePricingRequestSizes struct {
 	MemoryMb float64 `json:"memoryMb"`
 }
 
+// CredentialExportFields is an object the spec declares inline.
+type CredentialExportFields struct {
+	Label     string  `json:"label"`
+	Value     string  `json:"value"`
+	Sensitive *bool   `json:"sensitive,omitempty"`
+	Hint      *string `json:"hint,omitempty"`
+}
+
 // CredentialFieldHelpLink is an object the spec declares inline.
 type CredentialFieldHelpLink struct {
 	Label string `json:"label"`
@@ -2337,8 +2382,9 @@ type FieldActionResponseOption struct {
 
 // MetricSeriesPoints is an object the spec declares inline.
 type MetricSeriesPoints struct {
-	Ts    float64 `json:"ts"`
-	Value float64 `json:"value"`
+	// Timestamp: Unix epoch milliseconds.
+	Timestamp float64 `json:"timestamp"`
+	Value     float64 `json:"value"`
 }
 
 // PickerResourcesRequestSources is an object the spec declares inline.
@@ -2364,14 +2410,15 @@ type ProbeRequestItems struct {
 
 // ProbeStatusSparkline is an object the spec declares inline.
 type ProbeStatusSparkline struct {
-	Ts    float64 `json:"ts"`
-	Value float64 `json:"value"`
+	// Timestamp: Unix epoch milliseconds.
+	Timestamp float64 `json:"timestamp"`
+	Value     float64 `json:"value"`
 }
 
 // ProbeStatusResourceCounts is an object the spec declares inline.
 type ProbeStatusResourceCounts struct {
-	TypeID string `json:"typeId"`
-	Count  int64  `json:"count"`
+	TypeLabel string `json:"typeLabel"`
+	Count     int64  `json:"count"`
 }
 
 // ProfileIdentities is an object the spec declares inline.
