@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.9.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.11.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.9.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.11.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -740,6 +740,123 @@ type DashboardWorkflowPin struct {
 	Metrics    []DashboardWorkflowPinMetrics `json:"metrics"`
 }
 
+// DeployEnvs is the `DeployEnvs` schema.
+type DeployEnvs struct {
+	Envs   []string `json:"envs"`
+	Sha    string   `json:"sha"`
+	Repo   string   `json:"repo"`
+	Branch string   `json:"branch"`
+}
+
+// DeployEnvsInput is the `DeployEnvsInput` schema.
+type DeployEnvsInput struct {
+	Repo   string  `json:"repo"`
+	Branch *string `json:"branch,omitempty"`
+}
+
+// DeployPlanInput is the `DeployPlanInput` schema.
+type DeployPlanInput struct {
+	Repo    string            `json:"repo"`
+	Branch  *string           `json:"branch,omitempty"`
+	Env     *string           `json:"env,omitempty"`
+	Answers map[string]string `json:"answers,omitempty"`
+}
+
+// DeployPlanResult is the `DeployPlanResult` schema.
+type DeployPlanResult struct {
+	RunID  string                 `json:"runId"`
+	Result DeployPlanResultResult `json:"result"`
+}
+
+// DeployRepo is the `DeployRepo` schema.
+type DeployRepo struct {
+	FullName      string `json:"fullName"`
+	DefaultBranch string `json:"defaultBranch"`
+}
+
+// DeployRunLog is the `DeployRunLog` schema.
+type DeployRunLog struct {
+	At int64 `json:"at"`
+	// Level: One of "debug", "info", "warn", "error".
+	Level   string `json:"level"`
+	Message string `json:"message"`
+}
+
+// DeployStage is the `DeployStage` schema.
+type DeployStage = string
+
+// The values DeployStage takes.
+const (
+	DeployStagePlan       DeployStage = "plan"
+	DeployStageDockerfile DeployStage = "dockerfile"
+	DeployStageBuild      DeployStage = "build"
+	DeployStageDeploy     DeployStage = "deploy"
+)
+
+// DeployStatus is the `DeployStatus` schema.
+type DeployStatus = string
+
+// The values DeployStatus takes.
+const (
+	DeployStatusPending  DeployStatus = "pending"
+	DeployStatusRunning  DeployStatus = "running"
+	DeployStatusSuccess  DeployStatus = "success"
+	DeployStatusFailure  DeployStatus = "failure"
+	DeployStatusCanceled DeployStatus = "canceled"
+)
+
+// DeployTrigger is the `DeployTrigger` schema.
+type DeployTrigger struct {
+	ID        string  `json:"id"`
+	Repo      string  `json:"repo"`
+	Branch    string  `json:"branch"`
+	Env       string  `json:"env"`
+	Enabled   bool    `json:"enabled"`
+	LastSha   *string `json:"lastSha"`
+	LastRunAt *string `json:"lastRunAt"`
+}
+
+// DeployTriggerInput is the `DeployTriggerInput` schema.
+type DeployTriggerInput struct {
+	Repo    string            `json:"repo"`
+	Branch  string            `json:"branch"`
+	Env     string            `json:"env"`
+	Answers map[string]string `json:"answers,omitempty"`
+}
+
+// DeploymentRun is the `DeploymentRun` schema.
+type DeploymentRun struct {
+	ID     string       `json:"id"`
+	Env    string       `json:"env"`
+	Repo   *string      `json:"repo"`
+	Branch *string      `json:"branch"`
+	GitSha *string      `json:"gitSha"`
+	Image  *string      `json:"image"`
+	Status DeployStatus `json:"status"`
+	// Origin: One of "web", "cli", "trigger".
+	Origin       string       `json:"origin"`
+	Stage        *DeployStage `json:"stage"`
+	DurationMs   *int64       `json:"durationMs"`
+	BuildSeconds *int64       `json:"buildSeconds"`
+	// BuildRunner: One of "cloud-build", "ssh".
+	BuildRunner *string `json:"buildRunner"`
+	StartedAt   string  `json:"startedAt"`
+}
+
+// DeploymentRunInput is the `DeploymentRunInput` schema.
+type DeploymentRunInput struct {
+	Env        string                   `json:"env"`
+	Status     DeployStatus             `json:"status"`
+	Repo       *string                  `json:"repo,omitempty"`
+	Branch     *string                  `json:"branch,omitempty"`
+	GitSha     *string                  `json:"gitSha,omitempty"`
+	Image      *string                  `json:"image,omitempty"`
+	Stage      *DeployStage             `json:"stage,omitempty"`
+	Notes      []string                 `json:"notes,omitempty"`
+	DurationMs *int64                   `json:"durationMs,omitempty"`
+	Error      *DeploymentRunInputError `json:"error,omitempty"`
+}
+
 // DescribeRequest is the `DescribeRequest` schema.
 type DescribeRequest struct {
 	AccountID        string      `json:"accountId"`
@@ -1193,6 +1310,9 @@ const (
 	PermissionStorageWrite     Permission = "storage:write"
 	PermissionDashboardsRead   Permission = "dashboards:read"
 	PermissionDashboardsWrite  Permission = "dashboards:write"
+	PermissionDeploymentsRead  Permission = "deployments:read"
+	PermissionDeploymentsPlan  Permission = "deployments:plan"
+	PermissionDeploymentsWrite Permission = "deployments:write"
 	PermissionCostsRead        Permission = "costs:read"
 	PermissionCostsWrite       Permission = "costs:write"
 	PermissionBudgetsRead      Permission = "budgets:read"
@@ -2414,6 +2534,25 @@ type DashboardWorkflowPinMetrics struct {
 	Value any     `json:"value,omitempty"`
 }
 
+// DeployPlanResultResult is an object the spec declares inline.
+type DeployPlanResultResult struct {
+	Status       DeployStatus                 `json:"status"`
+	Env          string                       `json:"env"`
+	Plan         any                          `json:"plan,omitempty"`
+	Dockerfile   *string                      `json:"dockerfile,omitempty"`
+	Image        *string                      `json:"image,omitempty"`
+	Notes        []string                     `json:"notes"`
+	Logs         []DeployRunLog               `json:"logs"`
+	ReachedStage *DeployStage                 `json:"reachedStage,omitempty"`
+	Error        *DeployPlanResultResultError `json:"error,omitempty"`
+	DurationMs   int64                        `json:"durationMs"`
+}
+
+// DeploymentRunInputError is an object the spec declares inline.
+type DeploymentRunInputError struct {
+	Message string `json:"message"`
+}
+
 // FieldActionResponseOption is an object the spec declares inline.
 type FieldActionResponseOption struct {
 	ID    string `json:"id"`
@@ -2500,6 +2639,12 @@ type CostAccountStatusCostPollErrorHelpLink struct {
 	URL   string `json:"url"`
 }
 
+// DeployPlanResultResultError is an object the spec declares inline.
+type DeployPlanResultResultError struct {
+	Message string  `json:"message"`
+	Stack   *string `json:"stack,omitempty"`
+}
+
 // AccountsCreateRequest is an object the spec declares inline.
 type AccountsCreateRequest struct {
 	PluginID    *PluginID         `json:"pluginId,omitempty"`
@@ -2555,6 +2700,16 @@ type DashboardsCreateRequest struct {
 // DashboardsRenameRequest is an object the spec declares inline.
 type DashboardsRenameRequest struct {
 	Name string `json:"name"`
+}
+
+// DeploymentsRunsCreateResponse is an object the spec declares inline.
+type DeploymentsRunsCreateResponse struct {
+	ID string `json:"id"`
+}
+
+// DeploymentsTriggersUpdateRequest is an object the spec declares inline.
+type DeploymentsTriggersUpdateRequest struct {
+	Enabled bool `json:"enabled"`
 }
 
 // MsteamsTestResponse is an object the spec declares inline.
