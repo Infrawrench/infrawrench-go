@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.11.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.12.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.11.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.12.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1002,6 +1002,10 @@ type InviteRequest struct {
 	Email  string            `json:"email"`
 	Role   *OrganizationRole `json:"role,omitempty"`
 	RoleID *string           `json:"roleId,omitempty"`
+	// AddSeat: When the paid plan is full (409 seat_limit_reached), retry with
+	// this set to buy one more seat and send the invitation. Requires
+	// billing:write.
+	AddSeat *bool `json:"addSeat,omitempty"`
 }
 
 // InviteResponse is the `InviteResponse` schema.
@@ -1972,6 +1976,17 @@ type SearchHit struct {
 	AccountName       string     `json:"accountName"`
 	DisplayName       string     `json:"displayName"`
 	Subtitle          *string    `json:"subtitle,omitempty"`
+}
+
+// SeatLimitResponse is the `SeatLimitResponse` schema.
+type SeatLimitResponse struct {
+	Error string `json:"error"`
+	// Code: One of "seat_limit_reached".
+	Code string `json:"code"`
+	// SeatCount: Seats on the plan
+	SeatCount int64 `json:"seatCount"`
+	// SeatsUsed: Members plus pending unexpired invitations
+	SeatsUsed int64 `json:"seatsUsed"`
 }
 
 // SecretAccessRequest is the `SecretAccessRequest` schema.

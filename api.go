@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.11.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.12.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.11.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.12.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -5513,6 +5513,10 @@ type TeamInvitationsCreateParams struct {
 // _Requires permission: `team:invite`._
 //
 // POST /api/org/{orgId}/team/invitations
+//
+// Raises on 409: All seats are in use; retry with addSeat to buy one more
+//
+// Raises on 502: Buying the extra seat failed; the invitation was not sent
 func (n *TeamInvitationsNamespace) Create(ctx context.Context, params TeamInvitationsCreateParams, opts ...RequestOption) (*InviteResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/team/invitations")
 	r.setPath("orgId", params.OrgID)
