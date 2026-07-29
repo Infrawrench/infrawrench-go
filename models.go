@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.14.1 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.15.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.14.1).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.15.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -740,6 +740,17 @@ type DashboardWorkflowPin struct {
 	Metrics    []DashboardWorkflowPinMetrics `json:"metrics"`
 }
 
+// DeployCreatedResource is the `DeployCreatedResource` schema.
+type DeployCreatedResource struct {
+	PluginID       string                        `json:"pluginId"`
+	AccountID      string                        `json:"accountId"`
+	ResourceTypeID string                        `json:"resourceTypeId"`
+	ResourceID     string                        `json:"resourceId"`
+	ExternalID     *string                       `json:"externalId,omitempty"`
+	DisplayName    string                        `json:"displayName"`
+	Sidecar        *DeployCreatedResourceSidecar `json:"sidecar,omitempty"`
+}
+
 // DeployEnvs is the `DeployEnvs` schema.
 type DeployEnvs struct {
 	Envs   []string `json:"envs"`
@@ -768,10 +779,27 @@ type DeployPlanResult struct {
 	Result DeployPlanResultResult `json:"result"`
 }
 
+// DeployPlannedChange is the `DeployPlannedChange` schema.
+type DeployPlannedChange struct {
+	// Action: One of "create", "update", "delete".
+	Action         string                      `json:"action"`
+	AccountID      string                      `json:"accountId"`
+	ResourceTypeID string                      `json:"resourceTypeId"`
+	ResourceID     *string                     `json:"resourceId,omitempty"`
+	DisplayName    string                      `json:"displayName"`
+	Fields         map[string]string           `json:"fields,omitempty"`
+	Sidecar        *DeployPlannedChangeSidecar `json:"sidecar,omitempty"`
+}
+
 // DeployRepo is the `DeployRepo` schema.
 type DeployRepo struct {
 	FullName      string `json:"fullName"`
 	DefaultBranch string `json:"defaultBranch"`
+}
+
+// DeployRollbackInput is the `DeployRollbackInput` schema.
+type DeployRollbackInput struct {
+	DeleteCreated *bool `json:"deleteCreated,omitempty"`
 }
 
 // DeployRunLog is the `DeployRunLog` schema.
@@ -791,6 +819,7 @@ const (
 	DeployStageDockerfile DeployStage = "dockerfile"
 	DeployStageBuild      DeployStage = "build"
 	DeployStageDeploy     DeployStage = "deploy"
+	DeployStageDestroy    DeployStage = "destroy"
 )
 
 // DeployStatus is the `DeployStatus` schema.
@@ -845,16 +874,19 @@ type DeploymentRun struct {
 
 // DeploymentRunInput is the `DeploymentRunInput` schema.
 type DeploymentRunInput struct {
-	Env        string                   `json:"env"`
-	Status     DeployStatus             `json:"status"`
-	Repo       *string                  `json:"repo,omitempty"`
-	Branch     *string                  `json:"branch,omitempty"`
-	GitSha     *string                  `json:"gitSha,omitempty"`
-	Image      *string                  `json:"image,omitempty"`
-	Stage      *DeployStage             `json:"stage,omitempty"`
-	Notes      []string                 `json:"notes,omitempty"`
-	DurationMs *int64                   `json:"durationMs,omitempty"`
-	Error      *DeploymentRunInputError `json:"error,omitempty"`
+	Env              string                   `json:"env"`
+	Status           DeployStatus             `json:"status"`
+	Repo             *string                  `json:"repo,omitempty"`
+	Branch           *string                  `json:"branch,omitempty"`
+	GitSha           *string                  `json:"gitSha,omitempty"`
+	Image            *string                  `json:"image,omitempty"`
+	Stage            *DeployStage             `json:"stage,omitempty"`
+	Notes            []string                 `json:"notes,omitempty"`
+	Output           any                      `json:"output,omitempty"`
+	Plan             any                      `json:"plan,omitempty"`
+	CreatedResources []DeployCreatedResource  `json:"createdResources,omitempty"`
+	DurationMs       *int64                   `json:"durationMs,omitempty"`
+	Error            *DeploymentRunInputError `json:"error,omitempty"`
 }
 
 // DescribeRequest is the `DescribeRequest` schema.
@@ -1786,6 +1818,7 @@ const (
 	ResourceTypeIDGateway                        ResourceTypeID = "gateway"
 	ResourceTypeIDGceDisk                        ResourceTypeID = "gce-disk"
 	ResourceTypeIDGceInstance                    ResourceTypeID = "gce-instance"
+	ResourceTypeIDGCPProject                     ResourceTypeID = "gcp-project"
 	ResourceTypeIDGCPServiceAccount              ResourceTypeID = "gcp-service-account"
 	ResourceTypeIDGcsBucket                      ResourceTypeID = "gcs-bucket"
 	ResourceTypeIDGenAiAgent                     ResourceTypeID = "gen-ai-agent"
@@ -2627,18 +2660,32 @@ type DashboardWorkflowPinMetrics struct {
 	Value any     `json:"value,omitempty"`
 }
 
+// DeployCreatedResourceSidecar is an object the spec declares inline.
+type DeployCreatedResourceSidecar struct {
+	PluginID         string `json:"pluginId"`
+	ParentResourceID string `json:"parentResourceId"`
+}
+
 // DeployPlanResultResult is an object the spec declares inline.
 type DeployPlanResultResult struct {
-	Status       DeployStatus                 `json:"status"`
-	Env          string                       `json:"env"`
-	Plan         any                          `json:"plan,omitempty"`
-	Dockerfile   *string                      `json:"dockerfile,omitempty"`
-	Image        *string                      `json:"image,omitempty"`
-	Notes        []string                     `json:"notes"`
-	Logs         []DeployRunLog               `json:"logs"`
-	ReachedStage *DeployStage                 `json:"reachedStage,omitempty"`
-	Error        *DeployPlanResultResultError `json:"error,omitempty"`
-	DurationMs   int64                        `json:"durationMs"`
+	Status           DeployStatus                 `json:"status"`
+	Env              string                       `json:"env"`
+	Plan             any                          `json:"plan,omitempty"`
+	Dockerfile       *string                      `json:"dockerfile,omitempty"`
+	Image            *string                      `json:"image,omitempty"`
+	Notes            []string                     `json:"notes"`
+	CreatedResources []DeployCreatedResource      `json:"createdResources"`
+	PlannedChanges   []DeployPlannedChange        `json:"plannedChanges"`
+	Logs             []DeployRunLog               `json:"logs"`
+	ReachedStage     *DeployStage                 `json:"reachedStage,omitempty"`
+	Error            *DeployPlanResultResultError `json:"error,omitempty"`
+	DurationMs       int64                        `json:"durationMs"`
+}
+
+// DeployPlannedChangeSidecar is an object the spec declares inline.
+type DeployPlannedChangeSidecar struct {
+	PluginID         string `json:"pluginId"`
+	ParentResourceID string `json:"parentResourceId"`
 }
 
 // DeploymentRunInputError is an object the spec declares inline.

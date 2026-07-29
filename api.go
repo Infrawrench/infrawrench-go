@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.14.1 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.15.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.14.1).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.15.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2500,6 +2500,8 @@ type DeploymentsRunsRollbackParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	ID    string
+	// Body: the JSON request body.
+	Body *DeployRollbackInput
 }
 
 // Rollback: Roll back to a previous deployment
@@ -2507,7 +2509,11 @@ type DeploymentsRunsRollbackParams struct {
 // Re-runs that run's `deploy()` with the image and plan it recorded, building
 // nothing — the exact artifact that was known good ships again. The Infrafile is
 // read at the commit that run deployed, not at the branch head. Only a
-// successful run that produced an image can be rolled back to.
+// successful run that produced an image can be rolled back to. With
+// `deleteCreated`, resources that runs after the target created through
+// `infra.accounts` are deleted once the rollback has succeeded — undoing the
+// provisioning, not just the shipping. Deletions are best-effort and reported in
+// the result's notes.
 //
 // _Requires permission: `deployments:write`._
 //
@@ -2529,6 +2535,7 @@ func (n *DeploymentsRunsNamespace) Rollback(ctx context.Context, params Deployme
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/deployments/runs/{id}/rollback")
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
 	var out *DeployPlanResult
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
