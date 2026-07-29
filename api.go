@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.14.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.14.1 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.14.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.14.1).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -4012,6 +4012,10 @@ type ResourcesMetricsParams struct {
 }
 
 // Metrics: Fetch metric series for a resource
+//
+// Historical points from the metrics store when the resource has accumulated any
+// (resources pinned to a dashboard are polled continuously); otherwise the
+// series are fetched live from the provider on demand.
 //
 // _Requires permission: `resources:read`._
 //
