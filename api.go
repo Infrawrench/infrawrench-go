@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.17.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.18.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.17.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.18.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -180,6 +180,9 @@ type AccountsCreateParams struct {
 // POST /api/org/{orgId}/accounts
 //
 // Raises on 400: Bad request
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
 func (n *AccountsNamespace) Create(ctx context.Context, params AccountsCreateParams, opts ...RequestOption) (*CreateAccountResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/accounts")
 	r.setPath("orgId", params.OrgID)
@@ -5775,6 +5778,9 @@ type TeamInvitationsCreateParams struct {
 // _Requires permission: `team:invite`._
 //
 // POST /api/org/{orgId}/team/invitations
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
 //
 // Raises on 409: All seats are in use; retry with addSeat to buy one more
 //
