@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.15.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.16.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.15.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.16.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -652,6 +652,72 @@ type CredentialFormat struct {
 	FilenameTemplate *string `json:"filenameTemplate,omitempty"`
 }
 
+// CustomGraphCheckRequest is the `CustomGraphCheckRequest` schema.
+type CustomGraphCheckRequest struct {
+	Source string `json:"source"`
+}
+
+// CustomGraphCheckResult is the `CustomGraphCheckResult` schema.
+type CustomGraphCheckResult struct {
+	Diagnostics []CustomGraphCheckResultDiagnostics `json:"diagnostics"`
+	HasErrors   bool                                `json:"hasErrors"`
+	Degraded    bool                                `json:"degraded"`
+}
+
+// CustomGraphFull is the `CustomGraphFull` schema.
+type CustomGraphFull struct {
+	ID              string  `json:"id"`
+	OrganizationID  string  `json:"organizationId"`
+	Name            string  `json:"name"`
+	Description     *string `json:"description"`
+	Source          string  `json:"source"`
+	CreatedByUserID *string `json:"createdByUserId"`
+	DeletedAt       *string `json:"deletedAt"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// CustomGraphInput is the `CustomGraphInput` schema.
+type CustomGraphInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	Source      *string `json:"source,omitempty"`
+}
+
+// CustomGraphRenderRequest is the `CustomGraphRenderRequest` schema.
+type CustomGraphRenderRequest struct {
+	Controls map[string]any `json:"controls,omitempty"`
+	Button   *string        `json:"button,omitempty"`
+	// Trigger: One of "manual", "refresh", "interaction".
+	Trigger *string `json:"trigger,omitempty"`
+}
+
+// CustomGraphRenderResult is the `CustomGraphRenderResult` schema.
+type CustomGraphRenderResult struct {
+	OK         bool                          `json:"ok"`
+	Spec       JSONObject                    `json:"spec"`
+	Error      *string                       `json:"error"`
+	Logs       []CustomGraphRenderResultLogs `json:"logs"`
+	RenderedAt string                        `json:"renderedAt"`
+	DurationMs int64                         `json:"durationMs"`
+}
+
+// CustomGraphSummary is the `CustomGraphSummary` schema.
+type CustomGraphSummary struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	CreatedAt   string  `json:"createdAt"`
+	UpdatedAt   string  `json:"updatedAt"`
+}
+
+// CustomGraphUpdate is the `CustomGraphUpdate` schema.
+type CustomGraphUpdate struct {
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Source      *string `json:"source,omitempty"`
+}
+
 // Dashboard is the `Dashboard` schema.
 type Dashboard struct {
 	ID        string `json:"id"`
@@ -717,8 +783,9 @@ type DashboardWidgetKind = string
 
 // The values DashboardWidgetKind takes.
 const (
-	DashboardWidgetKindCostGraph DashboardWidgetKind = "cost_graph"
-	DashboardWidgetKindBudget    DashboardWidgetKind = "budget"
+	DashboardWidgetKindCostGraph   DashboardWidgetKind = "cost_graph"
+	DashboardWidgetKindBudget      DashboardWidgetKind = "budget"
+	DashboardWidgetKindCustomGraph DashboardWidgetKind = "custom_graph"
 )
 
 // DashboardWithPins is the `DashboardWithPins` schema.
@@ -1747,6 +1814,7 @@ const (
 	ResourceTypeIDCollection                     ResourceTypeID = "collection"
 	ResourceTypeIDComposerEnvironment            ResourceTypeID = "composer-environment"
 	ResourceTypeIDContainer                      ResourceTypeID = "container"
+	ResourceTypeIDContainerRegistry              ResourceTypeID = "container-registry"
 	ResourceTypeIDCustomHostname                 ResourceTypeID = "custom-hostname"
 	ResourceTypeIDCustomVoice                    ResourceTypeID = "custom-voice"
 	ResourceTypeIDD1Database                     ResourceTypeID = "d1-database"
@@ -1855,6 +1923,7 @@ const (
 	ResourceTypeIDK8sIngress                     ResourceTypeID = "k8s-ingress"
 	ResourceTypeIDK8sJob                         ResourceTypeID = "k8s-job"
 	ResourceTypeIDK8sNamespace                   ResourceTypeID = "k8s-namespace"
+	ResourceTypeIDK8sNode                        ResourceTypeID = "k8s-node"
 	ResourceTypeIDK8sPod                         ResourceTypeID = "k8s-pod"
 	ResourceTypeIDK8sSecret                      ResourceTypeID = "k8s-secret"
 	ResourceTypeIDK8sService                     ResourceTypeID = "k8s-service"
@@ -2650,6 +2719,22 @@ type CredentialExportFields struct {
 type CredentialFieldHelpLink struct {
 	Label string `json:"label"`
 	URL   string `json:"url"`
+}
+
+// CustomGraphCheckResultDiagnostics is an object the spec declares inline.
+type CustomGraphCheckResultDiagnostics struct {
+	Line     int64  `json:"line"`
+	Column   int64  `json:"column"`
+	Code     int64  `json:"code"`
+	Category string `json:"category"`
+	Message  string `json:"message"`
+}
+
+// CustomGraphRenderResultLogs is an object the spec declares inline.
+type CustomGraphRenderResultLogs struct {
+	// Level: One of "info", "warn", "error".
+	Level   string `json:"level"`
+	Message string `json:"message"`
 }
 
 // DashboardWorkflowPinMetrics is an object the spec declares inline.

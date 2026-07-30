@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.15.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.16.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.15.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.16.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -57,6 +57,8 @@ type APIV1Client struct {
 	Connect *ConnectNamespace
 	// Costs: `client.costs`.
 	Costs *CostsNamespace
+	// CustomGraphs: `client.customGraphs`.
+	CustomGraphs *CustomGraphsNamespace
 	// Dashboards: `client.dashboards`.
 	Dashboards *DashboardsNamespace
 	// Deployments: `client.deployments`.
@@ -114,6 +116,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Budgets = newBudgetsNamespace(t)
 	c.Connect = newConnectNamespace(t)
 	c.Costs = newCostsNamespace(t)
+	c.CustomGraphs = newCustomGraphsNamespace(t)
 	c.Dashboards = newDashboardsNamespace(t)
 	c.Deployments = newDeploymentsNamespace(t)
 	c.Docker = newDockerNamespace(t)
@@ -1671,6 +1674,254 @@ func (n *CostsNamespace) Status(ctx context.Context, params *CostsStatusParams, 
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *CostsStatusResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomGraphsNamespace is `client.customGraphs`.
+type CustomGraphsNamespace struct {
+	t *transport
+}
+
+func newCustomGraphsNamespace(t *transport) *CustomGraphsNamespace {
+	n := &CustomGraphsNamespace{t: t}
+	return n
+}
+
+// CustomGraphsCheckParams holds the parameters for `client.customGraphs.check`.
+type CustomGraphsCheckParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CustomGraphCheckRequest
+}
+
+// Check: Type-check custom-graph source without saving it
+//
+// _Requires permission: `dashboards:read`._
+//
+// POST /api/org/{orgId}/custom-graphs/check
+//
+// Raises on 400: Bad request
+func (n *CustomGraphsNamespace) Check(ctx context.Context, params CustomGraphsCheckParams, opts ...RequestOption) (*CustomGraphCheckResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/custom-graphs/check")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CustomGraphCheckResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomGraphsCreateParams holds the parameters for
+// `client.customGraphs.create`.
+type CustomGraphsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CustomGraphInput
+}
+
+// Create: Create a custom graph (paid plan required)
+//
+// _Requires permission: `dashboards:write`._
+//
+// POST /api/org/{orgId}/custom-graphs
+//
+// Raises on 400: Bad request
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
+func (n *CustomGraphsNamespace) Create(ctx context.Context, params CustomGraphsCreateParams, opts ...RequestOption) (*CustomGraphFull, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/custom-graphs")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CustomGraphFull
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomGraphsDeleteParams holds the parameters for
+// `client.customGraphs.delete`.
+type CustomGraphsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a custom graph (and its dashboard cards)
+//
+// _Requires permission: `dashboards:write`._
+//
+// DELETE /api/org/{orgId}/custom-graphs/{id}
+//
+// Raises on 404: Not found
+func (n *CustomGraphsNamespace) Delete(ctx context.Context, params CustomGraphsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/custom-graphs/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomGraphsGetParams holds the parameters for `client.customGraphs.get`.
+type CustomGraphsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get a custom graph (including source)
+//
+// _Requires permission: `dashboards:read`._
+//
+// GET /api/org/{orgId}/custom-graphs/{id}
+//
+// Raises on 404: Not found
+func (n *CustomGraphsNamespace) Get(ctx context.Context, params CustomGraphsGetParams, opts ...RequestOption) (*CustomGraphFull, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/custom-graphs/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CustomGraphFull
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomGraphsListParams holds the parameters for `client.customGraphs.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CustomGraphsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List custom graphs
+//
+// _Requires permission: `dashboards:read`._
+//
+// GET /api/org/{orgId}/custom-graphs
+func (n *CustomGraphsNamespace) List(ctx context.Context, params *CustomGraphsListParams, opts ...RequestOption) ([]CustomGraphSummary, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/custom-graphs")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []CustomGraphSummary
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomGraphsRenderParams holds the parameters for
+// `client.customGraphs.render`.
+type CustomGraphsRenderParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *CustomGraphRenderRequest
+}
+
+// Render: Run the graph's script and return its render spec (paid plan required)
+//
+// _Requires permission: `dashboards:read`._
+//
+// POST /api/org/{orgId}/custom-graphs/{id}/render
+//
+// Raises on 400: Bad request
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
+//
+// Raises on 404: Not found
+func (n *CustomGraphsNamespace) Render(ctx context.Context, params CustomGraphsRenderParams, opts ...RequestOption) (*CustomGraphRenderResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/custom-graphs/{id}/render")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CustomGraphRenderResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomGraphsTypingsParams holds the parameters for
+// `client.customGraphs.typings`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CustomGraphsTypingsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Typings: The ambient graph.d.ts for custom-graph source
+//
+// _Requires permission: `dashboards:read`._
+//
+// GET /api/org/{orgId}/custom-graphs/typings
+func (n *CustomGraphsNamespace) Typings(ctx context.Context, params *CustomGraphsTypingsParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/custom-graphs/typings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	return n.t.stream(ctx, r, opts)
+}
+
+// CustomGraphsUpdateParams holds the parameters for
+// `client.customGraphs.update`.
+type CustomGraphsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body CustomGraphUpdate
+}
+
+// Update: Update a custom graph (paid plan required)
+//
+// _Requires permission: `dashboards:write`._
+//
+// PUT /api/org/{orgId}/custom-graphs/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
+//
+// Raises on 404: Not found
+func (n *CustomGraphsNamespace) Update(ctx context.Context, params CustomGraphsUpdateParams, opts ...RequestOption) (*CustomGraphFull, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/custom-graphs/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CustomGraphFull
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
