@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.24.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.25.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.24.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.25.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -864,6 +864,39 @@ type DashboardWorkflowPin struct {
 	LastRunAt  *string                       `json:"lastRunAt"`
 	LastStatus *string                       `json:"lastStatus"`
 	Metrics    []DashboardWorkflowPinMetrics `json:"metrics"`
+}
+
+// DependencyGraphEdge is the `DependencyGraphEdge` schema.
+type DependencyGraphEdge struct {
+	ConsumerResourceID ResourceID `json:"consumerResourceId"`
+	// ConsumerFieldKey: The consumer field the reference fills.
+	ConsumerFieldKey   string     `json:"consumerFieldKey"`
+	ProviderResourceID ResourceID `json:"providerResourceId"`
+	// ProviderOutputKey: The provider output the reference reads.
+	ProviderOutputKey string `json:"providerOutputKey"`
+}
+
+// DependencyGraphNode is the `DependencyGraphNode` schema.
+type DependencyGraphNode struct {
+	ID                ResourceID `json:"id"`
+	DisplayName       string     `json:"displayName"`
+	PluginID          string     `json:"pluginId"`
+	PluginDisplayName string     `json:"pluginDisplayName"`
+	// PluginLogoSvg: Inline SVG markup; may be empty.
+	PluginLogoSvg     string `json:"pluginLogoSvg"`
+	ResourceTypeID    string `json:"resourceTypeId"`
+	ResourceTypeLabel string `json:"resourceTypeLabel"`
+	AccountID         string `json:"accountId"`
+	AccountName       string `json:"accountName"`
+}
+
+// DependencyGraphResponse is the `DependencyGraphResponse` schema.
+type DependencyGraphResponse struct {
+	// Nodes: Org resources that participate in at least one output reference.
+	Nodes []DependencyGraphNode `json:"nodes"`
+	// Edges: Directed depends-on edges (consumer → provider), deduped per
+	// consumer field.
+	Edges []DependencyGraphEdge `json:"edges"`
 }
 
 // DeployCreatedResource is the `DeployCreatedResource` schema.
@@ -2775,7 +2808,7 @@ type SyncedResource struct {
 // TabTarget is the `TabTarget` schema.
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
-	// "savings", "workflows", "deployments", "chat".
+	// "savings", "graph", "workflows", "deployments", "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`

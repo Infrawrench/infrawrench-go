@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.24.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.25.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.24.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.25.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -65,6 +65,8 @@ type APIV1Client struct {
 	CustomGraphs *CustomGraphsNamespace
 	// Dashboards: `client.dashboards`.
 	Dashboards *DashboardsNamespace
+	// DependencyGraph: `client.dependencyGraph`.
+	DependencyGraph *DependencyGraphNamespace
 	// Deployments: `client.deployments`.
 	Deployments *DeploymentsNamespace
 	// Digest: `client.digest`.
@@ -130,6 +132,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Costs = newCostsNamespace(t)
 	c.CustomGraphs = newCustomGraphsNamespace(t)
 	c.Dashboards = newDashboardsNamespace(t)
+	c.DependencyGraph = newDependencyGraphNamespace(t)
 	c.Deployments = newDeploymentsNamespace(t)
 	c.Digest = newDigestNamespace(t)
 	c.Docker = newDockerNamespace(t)
@@ -2820,6 +2823,46 @@ func (n *DashboardsWidgetsNamespace) Update(ctx context.Context, params Dashboar
 	r.setPath("widgetId", params.WidgetID)
 	r.setJSONBody(params.Body)
 	var out *DashboardWidgetFull
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DependencyGraphNamespace is `client.dependencyGraph`.
+type DependencyGraphNamespace struct {
+	t *transport
+}
+
+func newDependencyGraphNamespace(t *transport) *DependencyGraphNamespace {
+	n := &DependencyGraphNamespace{t: t}
+	return n
+}
+
+// DependencyGraphGetParams holds the parameters for
+// `client.dependencyGraph.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DependencyGraphGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ResourceID *ResourceID
+}
+
+// Get: The org's resource dependency graph, built from output references
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/dependency-graph
+func (n *DependencyGraphNamespace) Get(ctx context.Context, params *DependencyGraphGetParams, opts ...RequestOption) (*DependencyGraphResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/dependency-graph")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("resourceId", params.ResourceID)
+	}
+	var out *DependencyGraphResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
