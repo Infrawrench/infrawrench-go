@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.22.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.23.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.22.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.23.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -321,6 +321,41 @@ type BudgetWithStatus struct {
 	ForecastCents      *int64                               `json:"forecastCents"`
 	CurrentMonthEvents []BudgetWithStatusCurrentMonthEvents `json:"currentMonthEvents"`
 	Placements         []BudgetWithStatusPlacements         `json:"placements"`
+}
+
+// ChangeFreeze is the `ChangeFreeze` schema.
+type ChangeFreeze struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	Reason          *string `json:"reason"`
+	StartsAt        string  `json:"startsAt"`
+	EndsAt          *string `json:"endsAt"`
+	Active          bool    `json:"active"`
+	CreatedByUserID *string `json:"createdByUserId"`
+	EndedByUserID   *string `json:"endedByUserId"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// ChangeFreezeBlocked is the `ChangeFreezeBlocked` schema.
+type ChangeFreezeBlocked struct {
+	Error string `json:"error"`
+	// Code: One of "change_freeze_active".
+	Code   string                    `json:"code"`
+	Freeze ChangeFreezeBlockedFreeze `json:"freeze"`
+}
+
+// ChangeFreezeInput is the `ChangeFreezeInput` schema.
+type ChangeFreezeInput struct {
+	Name     string  `json:"name"`
+	Reason   *string `json:"reason,omitempty"`
+	StartsAt *string `json:"startsAt,omitempty"`
+	EndsAt   *string `json:"endsAt,omitempty"`
+}
+
+// ChangeFreezeStatus is the `ChangeFreezeStatus` schema.
+type ChangeFreezeStatus struct {
+	Freeze any `json:"freeze"`
 }
 
 // ChildResourceRef is the `ChildResourceRef` schema.
@@ -1499,6 +1534,9 @@ const (
 	PermissionCostsWrite       Permission = "costs:write"
 	PermissionBudgetsRead      Permission = "budgets:read"
 	PermissionBudgetsWrite     Permission = "budgets:write"
+	PermissionFreezesRead      Permission = "freezes:read"
+	PermissionFreezesWrite     Permission = "freezes:write"
+	PermissionFreezesOverride  Permission = "freezes:override"
 	PermissionAuditRead        Permission = "audit:read"
 	PermissionTeamRead         Permission = "team:read"
 	PermissionTeamInvite       Permission = "team:invite"
@@ -2859,6 +2897,15 @@ type BudgetWithStatusPlacements struct {
 	WidgetID      string `json:"widgetId"`
 	DashboardID   string `json:"dashboardId"`
 	DashboardName string `json:"dashboardName"`
+}
+
+// ChangeFreezeBlockedFreeze is an object the spec declares inline.
+type ChangeFreezeBlockedFreeze struct {
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Reason   *string `json:"reason"`
+	StartsAt string  `json:"startsAt"`
+	EndsAt   *string `json:"endsAt"`
 }
 
 // CostAccountStatusCostPollError is an object the spec declares inline.

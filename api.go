@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.22.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.23.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.22.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.23.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -53,6 +53,8 @@ type APIV1Client struct {
 	Billing *BillingNamespace
 	// Budgets: `client.budgets`.
 	Budgets *BudgetsNamespace
+	// ChangeFreezes: `client.changeFreezes`.
+	ChangeFreezes *ChangeFreezesNamespace
 	// Changes: `client.changes`.
 	Changes *ChangesNamespace
 	// Connect: `client.connect`.
@@ -122,6 +124,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Bastions = newBastionsNamespace(t)
 	c.Billing = newBillingNamespace(t)
 	c.Budgets = newBudgetsNamespace(t)
+	c.ChangeFreezes = newChangeFreezesNamespace(t)
 	c.Changes = newChangesNamespace(t)
 	c.Connect = newConnectNamespace(t)
 	c.Costs = newCostsNamespace(t)
@@ -1441,6 +1444,196 @@ func (n *BudgetsNamespace) Update(ctx context.Context, params BudgetsUpdateParam
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *BudgetFull
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChangeFreezesNamespace is `client.changeFreezes`.
+type ChangeFreezesNamespace struct {
+	t *transport
+}
+
+func newChangeFreezesNamespace(t *transport) *ChangeFreezesNamespace {
+	n := &ChangeFreezesNamespace{t: t}
+	return n
+}
+
+// ChangeFreezesCreateParams holds the parameters for
+// `client.changeFreezes.create`.
+type ChangeFreezesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body ChangeFreezeInput
+}
+
+// Create: Declare a change freeze window
+//
+// While the freeze is in effect, destructive actions (resource deletion,
+// destructive plugin actions, secret-version destroys, deployment rollbacks)
+// return `423` unless explicitly overridden by a caller with `freezes:override`.
+//
+// _Requires permission: `freezes:write`._
+//
+// POST /api/org/{orgId}/change-freezes
+//
+// Raises on 400: Bad request
+func (n *ChangeFreezesNamespace) Create(ctx context.Context, params ChangeFreezesCreateParams, opts ...RequestOption) (*ChangeFreeze, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/change-freezes")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *ChangeFreeze
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChangeFreezesDeleteParams holds the parameters for
+// `client.changeFreezes.delete`.
+type ChangeFreezesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a change freeze window
+//
+// _Requires permission: `freezes:write`._
+//
+// DELETE /api/org/{orgId}/change-freezes/{id}
+//
+// Raises on 404: Not found
+func (n *ChangeFreezesNamespace) Delete(ctx context.Context, params ChangeFreezesDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/change-freezes/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChangeFreezesEndParams holds the parameters for `client.changeFreezes.end`.
+type ChangeFreezesEndParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// End: End a change freeze now
+//
+// _Requires permission: `freezes:write`._
+//
+// POST /api/org/{orgId}/change-freezes/{id}/end
+//
+// Raises on 404: Not found
+func (n *ChangeFreezesNamespace) End(ctx context.Context, params ChangeFreezesEndParams, opts ...RequestOption) (*ChangeFreeze, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/change-freezes/{id}/end")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *ChangeFreeze
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChangeFreezesListParams holds the parameters for `client.changeFreezes.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ChangeFreezesListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List change freeze windows, newest first
+//
+// _Requires permission: `freezes:read`._
+//
+// GET /api/org/{orgId}/change-freezes
+func (n *ChangeFreezesNamespace) List(ctx context.Context, params *ChangeFreezesListParams, opts ...RequestOption) ([]ChangeFreeze, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/change-freezes")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []ChangeFreeze
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChangeFreezesStatusParams holds the parameters for
+// `client.changeFreezes.status`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ChangeFreezesStatusParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Status: The freeze currently in effect, if any
+//
+// Returns the active freeze window (active, started, not yet past its end time)
+// or `freeze: null`. Clients poll this to show the freeze banner and pre-warn
+// before destructive actions.
+//
+// _Requires permission: `freezes:read`._
+//
+// GET /api/org/{orgId}/change-freezes/status
+func (n *ChangeFreezesNamespace) Status(ctx context.Context, params *ChangeFreezesStatusParams, opts ...RequestOption) (*ChangeFreezeStatus, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/change-freezes/status")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ChangeFreezeStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChangeFreezesUpdateParams holds the parameters for
+// `client.changeFreezes.update`.
+type ChangeFreezesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body ChangeFreezeInput
+}
+
+// Update: Update a change freeze window
+//
+// _Requires permission: `freezes:write`._
+//
+// PUT /api/org/{orgId}/change-freezes/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ChangeFreezesNamespace) Update(ctx context.Context, params ChangeFreezesUpdateParams, opts ...RequestOption) (*ChangeFreeze, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/change-freezes/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *ChangeFreeze
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -2888,6 +3081,10 @@ type DeploymentsRunsRollbackParams struct {
 // Raises on 404: Not found
 //
 // Raises on 409: Conflict
+//
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
 func (n *DeploymentsRunsNamespace) Rollback(ctx context.Context, params DeploymentsRunsRollbackParams, opts ...RequestOption) (*DeployPlanResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/deployments/runs/{id}/rollback")
 	r.setPath("orgId", params.OrgID)
@@ -4249,6 +4446,10 @@ type ResourcesDeleteParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
 func (n *ResourcesNamespace) Delete(ctx context.Context, params ResourcesDeleteParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/resources/{pluginId}/{typeId}")
 	r.setPath("orgId", params.OrgID)
@@ -4459,6 +4660,9 @@ type ResourcesInvokeActionParams struct {
 
 // InvokeAction: Invoke a plugin-defined action on a resource
 //
+// Actions the plugin marks `destructive: true` in its detail schema are blocked
+// with `423` while an org change freeze is in effect.
+//
 // _Requires permission: `resources:write`._
 //
 // POST /api/org/{orgId}/resources/invoke-action
@@ -4466,6 +4670,10 @@ type ResourcesInvokeActionParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
 func (n *ResourcesNamespace) InvokeAction(ctx context.Context, params ResourcesInvokeActionParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/resources/invoke-action")
 	r.setPath("orgId", params.OrgID)
@@ -4895,6 +5103,10 @@ type ResourcesSecretVersionsModifyParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
 func (n *ResourcesSecretVersionsNamespace) Modify(ctx context.Context, params ResourcesSecretVersionsModifyParams, opts ...RequestOption) (*SecretVersionResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/resources/{pluginId}/{typeId}/secret-versions/modify")
 	r.setPath("orgId", params.OrgID)
