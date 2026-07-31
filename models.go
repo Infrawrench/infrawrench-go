@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.21.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.22.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.21.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.22.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1737,6 +1737,63 @@ type Resource struct {
 	ParentResourceID *ResourceID `json:"parentResourceId"`
 }
 
+// ResourceChangeEntry is the `ResourceChangeEntry` schema.
+type ResourceChangeEntry struct {
+	ID             string     `json:"id"`
+	ResourceID     ResourceID `json:"resourceId"`
+	AccountID      string     `json:"accountId"`
+	PluginID       string     `json:"pluginId"`
+	ResourceTypeID string     `json:"resourceTypeId"`
+	// DisplayName: Resource display name at the time of the change — survives
+	// deletion.
+	DisplayName string             `json:"displayName"`
+	ChangeKind  ResourceChangeKind `json:"changeKind"`
+	// Diff: Changed fields for `updated` events; empty for `created` and
+	// `deleted`.
+	Diff      []ResourceFieldChange `json:"diff"`
+	CreatedAt string                `json:"createdAt"`
+}
+
+// ResourceChangeFeedEntry is the `ResourceChangeFeedEntry` schema.
+type ResourceChangeFeedEntry struct {
+	ID             string     `json:"id"`
+	ResourceID     ResourceID `json:"resourceId"`
+	AccountID      string     `json:"accountId"`
+	PluginID       string     `json:"pluginId"`
+	ResourceTypeID string     `json:"resourceTypeId"`
+	// DisplayName: Resource display name at the time of the change — survives
+	// deletion.
+	DisplayName string             `json:"displayName"`
+	ChangeKind  ResourceChangeKind `json:"changeKind"`
+	// Diff: Changed fields for `updated` events; empty for `created` and
+	// `deleted`.
+	Diff        []ResourceFieldChange `json:"diff"`
+	CreatedAt   string                `json:"createdAt"`
+	AccountName *string               `json:"accountName"`
+}
+
+// ResourceChangeFeedResponse is the `ResourceChangeFeedResponse` schema.
+type ResourceChangeFeedResponse struct {
+	Entries []ResourceChangeFeedEntry `json:"entries"`
+	Total   int64                     `json:"total"`
+}
+
+// ResourceChangeKind: What happened between two consecutive syncs: the resource
+// appeared, a stored field changed, or the resource disappeared upstream.
+type ResourceChangeKind = string
+
+// The values ResourceChangeKind takes.
+const (
+	ResourceChangeKindCreated ResourceChangeKind = "created"
+	ResourceChangeKindUpdated ResourceChangeKind = "updated"
+	ResourceChangeKindDeleted ResourceChangeKind = "deleted"
+)
+
+// ResourceChangeListResponse is the `ResourceChangeListResponse` schema.
+type ResourceChangeListResponse struct {
+	Entries []ResourceChangeEntry `json:"entries"`
+}
+
 // ResourceDetail is the `ResourceDetail` schema.
 type ResourceDetail struct {
 	DetailSchema         JSONObject         `json:"detailSchema"`
@@ -1775,6 +1832,17 @@ type ResourceDetail struct {
 	DatabaseName         string             `json:"databaseName"`
 	StorageBucketName    string             `json:"storageBucketName"`
 	SupportsMetrics      bool               `json:"supportsMetrics"`
+}
+
+// ResourceFieldChange is the `ResourceFieldChange` schema.
+type ResourceFieldChange struct {
+	// Field: Top-level field key that changed. Resolved-output keys are prefixed
+	// `outputs.`.
+	Field string `json:"field"`
+	// From: Previous value (null when the field was absent).
+	From any `json:"from,omitempty"`
+	// To: New value.
+	To any `json:"to,omitempty"`
 }
 
 // ResourceID: Composite id `pluginId:accountId:externalId`.

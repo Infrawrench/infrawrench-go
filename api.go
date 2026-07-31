@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.21.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.22.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.21.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.22.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -53,6 +53,8 @@ type APIV1Client struct {
 	Billing *BillingNamespace
 	// Budgets: `client.budgets`.
 	Budgets *BudgetsNamespace
+	// Changes: `client.changes`.
+	Changes *ChangesNamespace
 	// Connect: `client.connect`.
 	Connect *ConnectNamespace
 	// Costs: `client.costs`.
@@ -120,6 +122,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Bastions = newBastionsNamespace(t)
 	c.Billing = newBillingNamespace(t)
 	c.Budgets = newBudgetsNamespace(t)
+	c.Changes = newChangesNamespace(t)
 	c.Connect = newConnectNamespace(t)
 	c.Costs = newCostsNamespace(t)
 	c.CustomGraphs = newCustomGraphsNamespace(t)
@@ -1438,6 +1441,97 @@ func (n *BudgetsNamespace) Update(ctx context.Context, params BudgetsUpdateParam
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *BudgetFull
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChangesNamespace is `client.changes`.
+type ChangesNamespace struct {
+	t *transport
+}
+
+func newChangesNamespace(t *transport) *ChangesNamespace {
+	n := &ChangesNamespace{t: t}
+	return n
+}
+
+// ChangesGetParams holds the parameters for `client.changes.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ChangesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	Page       *int64
+	PageSize   *int64
+	AccountID  *string
+	ResourceID *string
+	Kind       *ResourceChangeKind
+	From       *string
+	To         *string
+}
+
+// Get: Org-wide change timeline (paginated, filterable)
+//
+// Change events recorded by the resource poller: each poll cycle diffs the
+// freshly fetched state against the stored snapshot and records resources that
+// appeared, changed a stored field, or disappeared upstream. Cross-provider by
+// construction — the diff runs on the generic stored record, so every plugin's
+// resources show up here.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/changes
+//
+// Raises on 400: Bad request
+func (n *ChangesNamespace) Get(ctx context.Context, params *ChangesGetParams, opts ...RequestOption) (*ResourceChangeFeedResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/changes")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("page", params.Page)
+		r.addQuery("pageSize", params.PageSize)
+		r.addQuery("accountId", params.AccountID)
+		r.addQuery("resourceId", params.ResourceID)
+		r.addQuery("kind", params.Kind)
+		r.addQuery("from", params.From)
+		r.addQuery("to", params.To)
+	}
+	var out *ResourceChangeFeedResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChangesResourceParams holds the parameters for `client.changes.resource`.
+type ChangesResourceParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ResourceID string
+	Limit      *int64
+}
+
+// Resource: Change timeline for one resource
+//
+// Recent change events for a single resource, newest first. The resource id
+// travels as a query parameter because composite ids contain slashes and colons.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/changes/resource
+//
+// Raises on 400: Bad request
+func (n *ChangesNamespace) Resource(ctx context.Context, params ChangesResourceParams, opts ...RequestOption) (*ResourceChangeListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/changes/resource")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("resourceId", params.ResourceID)
+	r.addQuery("limit", params.Limit)
+	var out *ResourceChangeListResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
