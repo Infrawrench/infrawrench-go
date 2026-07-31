@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.20.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.21.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.20.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.21.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -99,6 +99,8 @@ type APIV1Client struct {
 	Storage *StorageNamespace
 	// Team: `client.team`.
 	Team *TeamNamespace
+	// WorkflowApprovals: `client.workflowApprovals`.
+	WorkflowApprovals *WorkflowApprovalsNamespace
 }
 
 // NewAPIV1Client builds a client. With no options it talks to
@@ -141,6 +143,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.SSHTunnels = newSSHTunnelsNamespace(t)
 	c.Storage = newStorageNamespace(t)
 	c.Team = newTeamNamespace(t)
+	c.WorkflowApprovals = newWorkflowApprovalsNamespace(t)
 	return c
 }
 
@@ -6216,6 +6219,119 @@ func (n *TeamRolesNamespace) Update(ctx context.Context, params TeamRolesUpdateP
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *Role
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowApprovalsNamespace is `client.workflowApprovals`.
+type WorkflowApprovalsNamespace struct {
+	t *transport
+}
+
+func newWorkflowApprovalsNamespace(t *transport) *WorkflowApprovalsNamespace {
+	n := &WorkflowApprovalsNamespace{t: t}
+	return n
+}
+
+// WorkflowApprovalsApproveParams holds the parameters for
+// `client.workflowApprovals.approve`.
+type WorkflowApprovalsApproveParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Approve: Approve a pending workflow approval request
+//
+// The suspended run resumes within a few seconds of the decision landing.
+//
+// _Requires permission: `dashboards:write`._
+//
+// POST /api/org/{orgId}/workflow-approvals/{id}/approve
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *WorkflowApprovalsNamespace) Approve(ctx context.Context, params WorkflowApprovalsApproveParams, opts ...RequestOption) (*WorkflowApproval, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/workflow-approvals/{id}/approve")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *WorkflowApproval
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowApprovalsDenyParams holds the parameters for
+// `client.workflowApprovals.deny`.
+type WorkflowApprovalsDenyParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Deny: Deny a pending workflow approval request
+//
+// Denial fails the waiting `infra.waitForApproval(...)` call in the run.
+//
+// _Requires permission: `dashboards:write`._
+//
+// POST /api/org/{orgId}/workflow-approvals/{id}/deny
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *WorkflowApprovalsNamespace) Deny(ctx context.Context, params WorkflowApprovalsDenyParams, opts ...RequestOption) (*WorkflowApproval, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/workflow-approvals/{id}/deny")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *WorkflowApproval
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowApprovalsListParams holds the parameters for
+// `client.workflowApprovals.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type WorkflowApprovalsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	Status     *WorkflowApprovalStatus
+	WorkflowID *string
+	RunID      *string
+}
+
+// List: List workflow approval requests
+//
+// Approval requests raised by `infra.waitForApproval(...)` inside workflow runs,
+// newest first. Filter with `status=pending` to build an approvals inbox.
+//
+// _Requires permission: `dashboards:read`._
+//
+// GET /api/org/{orgId}/workflow-approvals
+//
+// Raises on 400: Bad request
+func (n *WorkflowApprovalsNamespace) List(ctx context.Context, params *WorkflowApprovalsListParams, opts ...RequestOption) ([]WorkflowApproval, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/workflow-approvals")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("status", params.Status)
+		r.addQuery("workflowId", params.WorkflowID)
+		r.addQuery("runId", params.RunID)
+	}
+	var out []WorkflowApproval
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

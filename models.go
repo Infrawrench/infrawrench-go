@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.20.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.21.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.20.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.21.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2731,6 +2731,32 @@ type ValidateTabsRequest struct {
 type ValidateTabsResponse struct {
 	ValidTabIDs []string `json:"validTabIds"`
 }
+
+// WorkflowApproval is the `WorkflowApproval` schema.
+type WorkflowApproval struct {
+	ID            string                 `json:"id"`
+	WorkflowID    string                 `json:"workflowId"`
+	WorkflowName  *string                `json:"workflowName"`
+	RunID         string                 `json:"runId"`
+	Title         string                 `json:"title"`
+	Message       string                 `json:"message"`
+	Status        WorkflowApprovalStatus `json:"status"`
+	ExpiresAt     string                 `json:"expiresAt"`
+	DecidedAt     *string                `json:"decidedAt"`
+	DecidedByName *string                `json:"decidedByName"`
+	CreatedAt     string                 `json:"createdAt"`
+}
+
+// WorkflowApprovalStatus is the `WorkflowApprovalStatus` schema.
+type WorkflowApprovalStatus = string
+
+// The values WorkflowApprovalStatus takes.
+const (
+	WorkflowApprovalStatusPending  WorkflowApprovalStatus = "pending"
+	WorkflowApprovalStatusApproved WorkflowApprovalStatus = "approved"
+	WorkflowApprovalStatusDenied   WorkflowApprovalStatus = "denied"
+	WorkflowApprovalStatusExpired  WorkflowApprovalStatus = "expired"
+)
 
 // WorkflowPinRequest is the `WorkflowPinRequest` schema.
 type WorkflowPinRequest struct {
