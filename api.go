@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.18.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.19.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.18.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.19.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -73,6 +73,8 @@ type APIV1Client struct {
 	Msteams *MsteamsNamespace
 	// Orgs: `client.orgs`.
 	Orgs *OrgsNamespace
+	// Orphans: `client.orphans`.
+	Orphans *OrphansNamespace
 	// Pages: `client.pages`.
 	Pages *PagesNamespace
 	// Profile: `client.profile`.
@@ -124,6 +126,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.KV = newKVNamespace(t)
 	c.Msteams = newMsteamsNamespace(t)
 	c.Orgs = newOrgsNamespace(t)
+	c.Orphans = newOrphansNamespace(t)
 	c.Pages = newPagesNamespace(t)
 	c.Profile = newProfileNamespace(t)
 	c.Resources = newResourcesNamespace(t)
@@ -3302,6 +3305,51 @@ func (n *OrgsNamespace) Create(ctx context.Context, params OrgsCreateParams, opt
 	r := newRequest(http.MethodPost, "/api/orgs")
 	r.setJSONBody(params.Body)
 	var out *Organization
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OrphansNamespace is `client.orphans`.
+type OrphansNamespace struct {
+	t *transport
+}
+
+func newOrphansNamespace(t *transport) *OrphansNamespace {
+	n := &OrphansNamespace{t: t}
+	return n
+}
+
+// OrphansGetParams holds the parameters for `client.orphans.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OrphansGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List likely-orphaned and idle resources
+//
+// Scans the organization's already-synced resources against each plugin's
+// declarative orphan heuristics — unattached volumes, unassigned
+// floating/elastic IPs, reserved-but-unused static IPs — and returns the matches
+// grouped by account, each with the plugin's reason. Purely a read over stored
+// state: no provider API calls are made, so results reflect the last sync. Where
+// the org's collected cost data has per-resource rows, matches are annotated
+// with trailing spend.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/orphans
+func (n *OrphansNamespace) Get(ctx context.Context, params *OrphansGetParams, opts ...RequestOption) (*OrphanListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/orphans")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OrphanListResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

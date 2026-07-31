@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.18.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.19.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.18.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.19.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1310,6 +1310,52 @@ const (
 	OrganizationRoleMember OrganizationRole = "member"
 )
 
+// OrphanAccountGroup is the `OrphanAccountGroup` schema.
+type OrphanAccountGroup struct {
+	AccountID   string             `json:"accountId"`
+	AccountName string             `json:"accountName"`
+	PluginID    PluginID           `json:"pluginId"`
+	PluginName  string             `json:"pluginName"`
+	Resources   []OrphanedResource `json:"resources"`
+}
+
+// OrphanCostAnnotation: Best-effort trailing spend matched from collected
+// per-resource cost rows; null when the provider reports no per-resource cost.
+// The flag itself never depends on billing data.
+//
+// The API may send null in its place.
+type OrphanCostAnnotation struct {
+	// Amount: Spend over the trailing cost window.
+	Amount   float64 `json:"amount"`
+	Currency string  `json:"currency"`
+}
+
+// OrphanListResponse is the `OrphanListResponse` schema.
+type OrphanListResponse struct {
+	// Accounts: Groups sorted by account name.
+	Accounts   []OrphanAccountGroup `json:"accounts"`
+	TotalCount int64                `json:"totalCount"`
+	// CostWindowDays: Days of trailing spend the annotations cover.
+	CostWindowDays int64  `json:"costWindowDays"`
+	GeneratedAt    string `json:"generatedAt"`
+}
+
+// OrphanedResource is the `OrphanedResource` schema.
+type OrphanedResource struct {
+	// ID: Infrawrench resource id.
+	ID               string   `json:"id"`
+	PluginID         PluginID `json:"pluginId"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	DisplayName      string   `json:"displayName"`
+	// ExternalID: Provider-native id, when known.
+	ExternalID *string `json:"externalId"`
+	// Reason: Plugin-authored explanation of why this resource looks wasted.
+	Reason       string                `json:"reason"`
+	Cost         *OrphanCostAnnotation `json:"cost"`
+	LastSyncedAt *string               `json:"lastSyncedAt"`
+}
+
 // OwnershipBlocker is the `OwnershipBlocker` schema.
 type OwnershipBlocker struct {
 	ID   string `json:"id"`
@@ -2555,7 +2601,7 @@ type SyncedResource struct {
 // TabTarget is the `TabTarget` schema.
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
-	// "workflows", "deployments", "chat".
+	// "savings", "workflows", "deployments", "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
