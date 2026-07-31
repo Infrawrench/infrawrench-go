@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.25.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.26.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.25.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.26.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -869,11 +869,26 @@ type DashboardWorkflowPin struct {
 // DependencyGraphEdge is the `DependencyGraphEdge` schema.
 type DependencyGraphEdge struct {
 	ConsumerResourceID ResourceID `json:"consumerResourceId"`
-	// ConsumerFieldKey: The consumer field the reference fills.
+	// ConsumerFieldKey: The consumer field the reference fills. "parent" for
+	// containment edges, where the link is the resource hierarchy itself rather
+	// than a field.
 	ConsumerFieldKey   string     `json:"consumerFieldKey"`
 	ProviderResourceID ResourceID `json:"providerResourceId"`
-	// ProviderOutputKey: The provider output the reference reads.
+	// ProviderOutputKey: The provider output or identity the reference reads —
+	// an output key for output references, the matched identity ("externalId",
+	// "name", "endpoint"…) for inferred edges.
 	ProviderOutputKey string `json:"providerOutputKey"`
+	// Kind: Where the edge came from: `output-ref` is wired by hand, `declared`
+	// from the plugin's own `dependsOn` rule for the resource type,
+	// `containment` from the synced parent/child link, `field-match` from a
+	// field value that exactly matches another resource's identity. Absent means
+	// `output-ref`.
+	//
+	// One of "output-ref", "declared", "containment", "field-match".
+	Kind *string `json:"kind,omitempty"`
+	// Label: How the plugin words the relationship ("in VPC", "guarded by"),
+	// when it declared one.
+	Label *string `json:"label,omitempty"`
 }
 
 // DependencyGraphNode is the `DependencyGraphNode` schema.
@@ -892,11 +907,14 @@ type DependencyGraphNode struct {
 
 // DependencyGraphResponse is the `DependencyGraphResponse` schema.
 type DependencyGraphResponse struct {
-	// Nodes: Org resources that participate in at least one output reference.
+	// Nodes: Org resources that participate in at least one edge.
 	Nodes []DependencyGraphNode `json:"nodes"`
 	// Edges: Directed depends-on edges (consumer → provider), deduped per
-	// consumer field.
+	// consumer field and provider.
 	Edges []DependencyGraphEdge `json:"edges"`
+	// Truncated: True when inference hit its edge cap and the returned graph is
+	// a partial view of the org.
+	Truncated bool `json:"truncated"`
 }
 
 // DeployCreatedResource is the `DeployCreatedResource` schema.
@@ -1993,6 +2011,7 @@ const (
 	ResourceTypeIDAzureAppGateway                ResourceTypeID = "azure-app-gateway"
 	ResourceTypeIDAzureAppRegistration           ResourceTypeID = "azure-app-registration"
 	ResourceTypeIDAzureAppService                ResourceTypeID = "azure-app-service"
+	ResourceTypeIDAzureAppServicePlan            ResourceTypeID = "azure-app-service-plan"
 	ResourceTypeIDAzureContainerInstance         ResourceTypeID = "azure-container-instance"
 	ResourceTypeIDAzureContainerRegistry         ResourceTypeID = "azure-container-registry"
 	ResourceTypeIDAzureCosmosDB                  ResourceTypeID = "azure-cosmos-db"
@@ -2087,6 +2106,7 @@ const (
 	ResourceTypeIDDatabricksWorkspaceObject      ResourceTypeID = "databricks-workspace-object"
 	ResourceTypeIDDataflowJob                    ResourceTypeID = "dataflow-job"
 	ResourceTypeIDDataset                        ResourceTypeID = "dataset"
+	ResourceTypeIDDBSubnetGroup                  ResourceTypeID = "db-subnet-group"
 	ResourceTypeIDDBUser                         ResourceTypeID = "db-user"
 	ResourceTypeIDDedicatedInference             ResourceTypeID = "dedicated-inference"
 	ResourceTypeIDDeployedModel                  ResourceTypeID = "deployed-model"
