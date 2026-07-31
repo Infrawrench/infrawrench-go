@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.19.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.20.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.19.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.20.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -63,6 +63,8 @@ type APIV1Client struct {
 	Dashboards *DashboardsNamespace
 	// Deployments: `client.deployments`.
 	Deployments *DeploymentsNamespace
+	// Digest: `client.digest`.
+	Digest *DigestNamespace
 	// Docker: `client.docker`.
 	Docker *DockerNamespace
 	// Invitations: `client.invitations`.
@@ -121,6 +123,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.CustomGraphs = newCustomGraphsNamespace(t)
 	c.Dashboards = newDashboardsNamespace(t)
 	c.Deployments = newDeploymentsNamespace(t)
+	c.Digest = newDigestNamespace(t)
 	c.Docker = newDockerNamespace(t)
 	c.Invitations = newInvitationsNamespace(t)
 	c.KV = newKVNamespace(t)
@@ -2945,6 +2948,109 @@ func (n *DeploymentsTriggersNamespace) Update(ctx context.Context, params Deploy
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *DeployTrigger
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DigestNamespace is `client.digest`.
+type DigestNamespace struct {
+	t *transport
+}
+
+func newDigestNamespace(t *transport) *DigestNamespace {
+	n := &DigestNamespace{t: t}
+	return n
+}
+
+// DigestGetParams holds the parameters for `client.digest.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DigestGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the organization's weekly digest settings
+//
+// The weekly digest is a Monday-morning summary of last week's spend (with
+// week-over-week movers), sync incidents, and resource churn, delivered to the
+// Slack channels and Teams webhooks opted into the weeklyDigest trigger.
+//
+// GET /api/org/{orgId}/digest
+func (n *DigestNamespace) Get(ctx context.Context, params *DigestGetParams, opts ...RequestOption) (*DigestSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/digest")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *DigestSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DigestSendParams holds the parameters for `client.digest.send`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DigestSendParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Send: Compose and send last week's digest now
+//
+// Ignores the schedule and the enabled flag — composes the digest for the last
+// complete week and posts it to every opted-in channel. Fails when no Slack
+// channel or Teams webhook has the weeklyDigest trigger on.
+//
+// POST /api/org/{orgId}/digest/send
+//
+// Raises on 400: Bad request
+func (n *DigestNamespace) Send(ctx context.Context, params *DigestSendParams, opts ...RequestOption) (*DigestSendResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/digest/send")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *DigestSendResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DigestUpdateParams holds the parameters for `client.digest.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DigestUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *DigestSettingsUpdate
+}
+
+// Update: Enable or disable the weekly digest
+//
+// Enabling schedules the first digest for next Monday morning (07:00 UTC) rather
+// than sending immediately — use POST /digest/send for an immediate one.
+//
+// PUT /api/org/{orgId}/digest
+//
+// Raises on 400: Bad request
+func (n *DigestNamespace) Update(ctx context.Context, params *DigestUpdateParams, opts ...RequestOption) (*DigestSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/digest")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *DigestSettings
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

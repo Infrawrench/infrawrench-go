@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.19.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.20.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.19.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.20.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -969,6 +969,33 @@ type DescribeResponse struct {
 	Text string `json:"text"`
 }
 
+// DigestSendResult is the `DigestSendResult` schema.
+type DigestSendResult struct {
+	OK bool `json:"ok"`
+	// Attempted: Deliveries attempted across Slack channels and Teams webhooks.
+	Attempted int64 `json:"attempted"`
+	Succeeded int64 `json:"succeeded"`
+}
+
+// DigestSettings is the `DigestSettings` schema.
+type DigestSettings struct {
+	// Enabled: Whether the weekly digest is enabled for this organization.
+	// Delivery targets are the Slack channels and Teams webhooks whose
+	// weeklyDigest trigger is on.
+	Enabled bool `json:"enabled"`
+	// LastSentWeekStart: Monday (ISO date, UTC) of the last week a digest
+	// covered, or null when none has been sent.
+	LastSentWeekStart *string `json:"lastSentWeekStart"`
+	// LastSentAt: When the last digest was sent, or null when none has been
+	// sent.
+	LastSentAt *string `json:"lastSentAt"`
+}
+
+// DigestSettingsUpdate is the `DigestSettingsUpdate` schema.
+type DigestSettingsUpdate struct {
+	Enabled bool `json:"enabled"`
+}
+
 // DockerCommandRequest is the `DockerCommandRequest` schema.
 type DockerCommandRequest struct {
 	AccountID string     `json:"accountId"`
@@ -1226,6 +1253,9 @@ type MsTeamsWebhook struct {
 	BudgetAlerts  bool   `json:"budgetAlerts"`
 	// WorkflowPages: Alerts raised by a workflow calling infra.page(...)
 	WorkflowPages bool `json:"workflowPages"`
+	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
+	// organization has enabled the digest (see /digest).
+	WeeklyDigest bool `json:"weeklyDigest"`
 }
 
 // MsTeamsWebhookCreate is the `MsTeamsWebhookCreate` schema.
@@ -1239,6 +1269,7 @@ type MsTeamsWebhookCreate struct {
 	SyncIncidents *bool  `json:"syncIncidents,omitempty"`
 	BudgetAlerts  *bool  `json:"budgetAlerts,omitempty"`
 	WorkflowPages *bool  `json:"workflowPages,omitempty"`
+	WeeklyDigest  *bool  `json:"weeklyDigest,omitempty"`
 }
 
 // MsTeamsWebhookUpdate is the `MsTeamsWebhookUpdate` schema.
@@ -1247,6 +1278,7 @@ type MsTeamsWebhookUpdate struct {
 	SyncIncidents *bool   `json:"syncIncidents,omitempty"`
 	BudgetAlerts  *bool   `json:"budgetAlerts,omitempty"`
 	WorkflowPages *bool   `json:"workflowPages,omitempty"`
+	WeeklyDigest  *bool   `json:"weeklyDigest,omitempty"`
 }
 
 // NoSQLCommandRequest is the `NoSqlCommandRequest` schema.
@@ -2363,6 +2395,9 @@ type SlackChannel struct {
 	BudgetAlerts  bool   `json:"budgetAlerts"`
 	// WorkflowPages: Alerts raised by a workflow calling infra.page(...)
 	WorkflowPages bool `json:"workflowPages"`
+	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
+	// organization has enabled the digest (see /digest).
+	WeeklyDigest bool `json:"weeklyDigest"`
 }
 
 // SlackChannelCreate is the `SlackChannelCreate` schema.
@@ -2374,6 +2409,7 @@ type SlackChannelCreate struct {
 	SyncIncidents  *bool  `json:"syncIncidents,omitempty"`
 	BudgetAlerts   *bool  `json:"budgetAlerts,omitempty"`
 	WorkflowPages  *bool  `json:"workflowPages,omitempty"`
+	WeeklyDigest   *bool  `json:"weeklyDigest,omitempty"`
 }
 
 // SlackChannelUpdate is the `SlackChannelUpdate` schema.
@@ -2381,6 +2417,7 @@ type SlackChannelUpdate struct {
 	SyncIncidents *bool `json:"syncIncidents,omitempty"`
 	BudgetAlerts  *bool `json:"budgetAlerts,omitempty"`
 	WorkflowPages *bool `json:"workflowPages,omitempty"`
+	WeeklyDigest  *bool `json:"weeklyDigest,omitempty"`
 }
 
 // SlackInstallation is the `SlackInstallation` schema.
