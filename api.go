@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.26.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.27.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.26.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.27.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1646,10 +1646,14 @@ func (n *ChangeFreezesNamespace) Update(ctx context.Context, params ChangeFreeze
 // ChangesNamespace is `client.changes`.
 type ChangesNamespace struct {
 	t *transport
+
+	// AlertSettings: `client.changes.alertSettings`.
+	AlertSettings *ChangesAlertSettingsNamespace
 }
 
 func newChangesNamespace(t *transport) *ChangesNamespace {
 	n := &ChangesNamespace{t: t}
+	n.AlertSettings = newChangesAlertSettingsNamespace(t)
 	return n
 }
 
@@ -1728,6 +1732,84 @@ func (n *ChangesNamespace) Resource(ctx context.Context, params ChangesResourceP
 	r.addQuery("resourceId", params.ResourceID)
 	r.addQuery("limit", params.Limit)
 	var out *ResourceChangeListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChangesAlertSettingsNamespace is `client.changes.alertSettings`.
+type ChangesAlertSettingsNamespace struct {
+	t *transport
+}
+
+func newChangesAlertSettingsNamespace(t *transport) *ChangesAlertSettingsNamespace {
+	n := &ChangesAlertSettingsNamespace{t: t}
+	return n
+}
+
+// ChangesAlertSettingsGetParams holds the parameters for
+// `client.changes.alertSettings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ChangesAlertSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the organization's resource-drift alert filter
+//
+// Drift notifications are batched: at most one message per organization per
+// `cooldownMinutes`, covering every change since the previous one. These
+// settings decide which changes count and how often a message may go out. Who
+// receives it is the `resourceDrift` opt-in on push preferences, Slack channels
+// and Teams webhooks — off by default on all three.
+//
+// GET /api/org/{orgId}/changes/alert-settings
+func (n *ChangesAlertSettingsNamespace) Get(ctx context.Context, params *ChangesAlertSettingsGetParams, opts ...RequestOption) (*DriftAlertSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/changes/alert-settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *DriftAlertSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChangesAlertSettingsUpdateParams holds the parameters for
+// `client.changes.alertSettings.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ChangesAlertSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *DriftAlertSettingsUpdate
+}
+
+// Update: Update the organization's resource-drift alert filter
+//
+// Every field is optional so a single toggle can be saved on its own.
+// `cooldownMinutes` is floored at 5: below the poller's own cycle the
+// notification rate would follow the sync rate again, which is what the batching
+// exists to prevent.
+//
+// PUT /api/org/{orgId}/changes/alert-settings
+//
+// Raises on 400: Bad request
+func (n *ChangesAlertSettingsNamespace) Update(ctx context.Context, params *ChangesAlertSettingsUpdateParams, opts ...RequestOption) (*DriftAlertSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/changes/alert-settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *DriftAlertSettings
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -1836,10 +1918,14 @@ func (n *ConnectNamespace) Templates(ctx context.Context, params ConnectTemplate
 // CostsNamespace is `client.costs`.
 type CostsNamespace struct {
 	t *transport
+
+	// AnomalySettings: `client.costs.anomalySettings`.
+	AnomalySettings *CostsAnomalySettingsNamespace
 }
 
 func newCostsNamespace(t *transport) *CostsNamespace {
 	n := &CostsNamespace{t: t}
+	n.AnomalySettings = newCostsAnomalySettingsNamespace(t)
 	return n
 }
 
@@ -1857,10 +1943,15 @@ type CostsAnomaliesParams struct {
 
 // Anomalies: List recently detected cost anomalies
 //
-// Spend anomalies detected by the daily background pass: days where a provider's
-// or service's spend exceeded its trailing 28-day baseline by a statistical
-// threshold (mean + N·stddev, with an absolute floor to ignore penny-scale
-// noise). Newest day first, capped at 200 rows.
+// Spend anomalies detected by the daily background pass. Two kinds share the
+// list: a `spike`, where a provider's or service's spend exceeded its trailing
+// 28-day baseline by a statistical threshold (mean + N·stddev, with an absolute
+// floor to ignore penny-scale noise), and a `new_source`, where a provider or
+// service with no spend at all across that window suddenly billed a material
+// amount. Thresholds are per organization — see GET /costs/anomaly-settings.
+// Newest day first, capped at 200 rows.
+//
+// _Requires permission: `costs:read`._
 //
 // GET /api/org/{orgId}/costs/anomalies
 //
@@ -2011,6 +2102,86 @@ func (n *CostsNamespace) Status(ctx context.Context, params *CostsStatusParams, 
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *CostsStatusResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsAnomalySettingsNamespace is `client.costs.anomalySettings`.
+type CostsAnomalySettingsNamespace struct {
+	t *transport
+}
+
+func newCostsAnomalySettingsNamespace(t *transport) *CostsAnomalySettingsNamespace {
+	n := &CostsAnomalySettingsNamespace{t: t}
+	return n
+}
+
+// CostsAnomalySettingsGetParams holds the parameters for
+// `client.costs.anomalySettings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostsAnomalySettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the organization's anomaly detection thresholds
+//
+// The tunable part of cost anomaly detection. Everything else about the model —
+// the 28-day baseline, the 7-day notification cooldown, the minimum history a
+// baseline needs — is fixed. An organization that has never changed a threshold
+// reads back the defaults. The response also carries the derived, read-only
+// `smsConfigured`.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/costs/anomaly-settings
+func (n *CostsAnomalySettingsNamespace) Get(ctx context.Context, params *CostsAnomalySettingsGetParams, opts ...RequestOption) (*CostAnomalySettingsView, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/costs/anomaly-settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CostAnomalySettingsView
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsAnomalySettingsUpdateParams holds the parameters for
+// `client.costs.anomalySettings.update`.
+type CostsAnomalySettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostAnomalySettings
+}
+
+// Update: Update the organization's anomaly detection thresholds
+//
+// Takes effect on the next detection pass (which runs after each cost
+// collection). Anomalies already stored are not re-judged. All four fields are
+// required — this is a PUT of the whole settings object, not a patch — and
+// `smsAlerts` deliberately has no server-side default, so a client that omits it
+// is rejected rather than silently switching an organization's SMS paging back
+// off. `smsConfigured` is derived and is not accepted here.
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/costs/anomaly-settings
+//
+// Raises on 400: Bad request
+func (n *CostsAnomalySettingsNamespace) Update(ctx context.Context, params CostsAnomalySettingsUpdateParams, opts ...RequestOption) (*CostAnomalySettingsView, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/costs/anomaly-settings")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostAnomalySettingsView
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -3330,10 +3501,14 @@ func (n *DeploymentsTriggersNamespace) Update(ctx context.Context, params Deploy
 // DigestNamespace is `client.digest`.
 type DigestNamespace struct {
 	t *transport
+
+	// Recipients: `client.digest.recipients`.
+	Recipients *DigestRecipientsNamespace
 }
 
 func newDigestNamespace(t *transport) *DigestNamespace {
 	n := &DigestNamespace{t: t}
+	n.Recipients = newDigestRecipientsNamespace(t)
 	return n
 }
 
@@ -3349,9 +3524,12 @@ type DigestGetParams struct {
 
 // Get: Get the organization's weekly digest settings
 //
-// The weekly digest is a Monday-morning summary of last week's spend (with
-// week-over-week movers), sync incidents, and resource churn, delivered to the
-// Slack channels and Teams webhooks opted into the weeklyDigest trigger.
+// The weekly digest is a summary of the last complete Monday-to-Sunday week's
+// spend (with week-over-week movers), sync incidents, and resource churn,
+// delivered to the Slack channels and Teams webhooks opted into the weeklyDigest
+// trigger and to the organization's digest email recipients. The response also
+// carries the outcome of the most recent delivery attempt so a silently failing
+// digest is visible.
 //
 // GET /api/org/{orgId}/digest
 func (n *DigestNamespace) Get(ctx context.Context, params *DigestGetParams, opts ...RequestOption) (*DigestSettings, error) {
@@ -3379,8 +3557,10 @@ type DigestSendParams struct {
 // Send: Compose and send last week's digest now
 //
 // Ignores the schedule and the enabled flag — composes the digest for the last
-// complete week and posts it to every opted-in channel. Fails when no Slack
-// channel or Teams webhook has the weeklyDigest trigger on.
+// complete week and sends it to every opted-in channel and email recipient. This
+// is also the manual recovery for a partial delivery, which is never retried
+// automatically. Fails when nothing is routed to receive the digest, or when
+// every destination rejected it.
 //
 // POST /api/org/{orgId}/digest/send
 //
@@ -3409,10 +3589,14 @@ type DigestUpdateParams struct {
 	Body *DigestSettingsUpdate
 }
 
-// Update: Enable or disable the weekly digest
+// Update: Update the weekly digest settings
 //
-// Enabling schedules the first digest for next Monday morning (07:00 UTC) rather
-// than sending immediately — use POST /digest/send for an immediate one.
+// Every field is optional. Enabling schedules the first digest for the next
+// configured send time rather than sending immediately — use POST /digest/send
+// for an immediate one. The week boundary follows `timezone`, so the reported
+// window is always the organization's own local Monday-to-Sunday week. Changing
+// the schedule clears any parked failure state but never replays a week that
+// already went out.
 //
 // PUT /api/org/{orgId}/digest
 //
@@ -3424,6 +3608,107 @@ func (n *DigestNamespace) Update(ctx context.Context, params *DigestUpdateParams
 		r.setJSONBody(params.Body)
 	}
 	var out *DigestSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DigestRecipientsNamespace is `client.digest.recipients`.
+type DigestRecipientsNamespace struct {
+	t *transport
+}
+
+func newDigestRecipientsNamespace(t *transport) *DigestRecipientsNamespace {
+	n := &DigestRecipientsNamespace{t: t}
+	return n
+}
+
+// DigestRecipientsCreateParams holds the parameters for
+// `client.digest.recipients.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DigestRecipientsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *DigestEmailRecipientCreate
+}
+
+// Create: Add a digest email recipient
+//
+// Adding an address the organization already has is a no-op that returns the
+// existing entry, so a double submit cannot double-deliver.
+//
+// POST /api/org/{orgId}/digest/recipients
+//
+// Raises on 400: Bad request
+func (n *DigestRecipientsNamespace) Create(ctx context.Context, params *DigestRecipientsCreateParams, opts ...RequestOption) (*DigestEmailRecipient, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/digest/recipients")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *DigestEmailRecipient
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DigestRecipientsDeleteParams holds the parameters for
+// `client.digest.recipients.delete`.
+type DigestRecipientsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// RecipientID: Recipient id
+	RecipientID string
+}
+
+// Delete: Remove a digest email recipient
+//
+// DELETE /api/org/{orgId}/digest/recipients/{recipientId}
+//
+// Raises on 404: Not found
+func (n *DigestRecipientsNamespace) Delete(ctx context.Context, params DigestRecipientsDeleteParams, opts ...RequestOption) (*DigestRecipientsDeleteResponse, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/digest/recipients/{recipientId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("recipientId", params.RecipientID)
+	var out *DigestRecipientsDeleteResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DigestRecipientsGetParams holds the parameters for
+// `client.digest.recipients.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DigestRecipientsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List the organization's digest email recipients
+//
+// Email is a digest-only transport, so its destinations are an
+// organization-level address list rather than a per-channel trigger. Addresses
+// need not belong to Infrawrench users — a finance alias is a valid recipient.
+//
+// GET /api/org/{orgId}/digest/recipients
+func (n *DigestRecipientsNamespace) Get(ctx context.Context, params *DigestRecipientsGetParams, opts ...RequestOption) (*DigestEmailRecipientList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/digest/recipients")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *DigestEmailRecipientList
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -6634,7 +6919,7 @@ type WorkflowApprovalsApproveParams struct {
 //
 // The suspended run resumes within a few seconds of the decision landing.
 //
-// _Requires permission: `dashboards:write`._
+// _Requires permission: `workflows:approve`._
 //
 // POST /api/org/{orgId}/workflow-approvals/{id}/approve
 //
@@ -6666,7 +6951,7 @@ type WorkflowApprovalsDenyParams struct {
 //
 // Denial fails the waiting `infra.waitForApproval(...)` call in the run.
 //
-// _Requires permission: `dashboards:write`._
+// _Requires permission: `workflows:approve`._
 //
 // POST /api/org/{orgId}/workflow-approvals/{id}/deny
 //
@@ -6703,7 +6988,7 @@ type WorkflowApprovalsListParams struct {
 // Approval requests raised by `infra.waitForApproval(...)` inside workflow runs,
 // newest first. Filter with `status=pending` to build an approvals inbox.
 //
-// _Requires permission: `dashboards:read`._
+// _Requires permission: `workflows:read`._
 //
 // GET /api/org/{orgId}/workflow-approvals
 //

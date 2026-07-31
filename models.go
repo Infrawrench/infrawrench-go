@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.26.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.27.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.26.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.27.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -451,6 +451,15 @@ type CostAnomaly struct {
 	ID string `json:"id"`
 	// Day: The anomalous UTC day.
 	Day string `json:"day"`
+	// Kind: Which detection produced the row. `spike` is spend far above the
+	// key's own trailing baseline; `new_source` is a provider or service with no
+	// spend at all across the trailing window that suddenly has material spend —
+	// it can never be a `spike`, since a zero baseline has no mean or deviation
+	// to exceed. Rows written before new-source detection existed read as
+	// `spike`.
+	//
+	// One of "spike", "new_source".
+	Kind string `json:"kind"`
 	// Dimension: One of "provider", "service".
 	Dimension string `json:"dimension"`
 	// DimensionKey: The dimension's value — a plugin id or a service name.
@@ -458,15 +467,78 @@ type CostAnomaly struct {
 	Currency     string `json:"currency"`
 	ActualCents  int64  `json:"actualCents"`
 	// BaselineCents: Mean daily spend over the trailing 28-day baseline, in
-	// cents.
+	// cents. Zero, or near it, for a `new_source` — clients must not compute a
+	// percentage change from it.
 	BaselineCents int64 `json:"baselineCents"`
-	// ThresholdCents: The detection bar the day cleared (baseline mean +
-	// N·stddev), in cents.
+	// ThresholdCents: The detection bar the day cleared, in cents: baseline mean + N·stddev for a `spike`, the new-source floor for a `new_source`.
 	ThresholdCents int64  `json:"thresholdCents"`
 	DetectedAt     string `json:"detectedAt"`
 	// NotifiedAt: When the anomaly was delivered to a notification channel; null
 	// when delivery failed or a recent anomaly for the same key suppressed it.
 	NotifiedAt *string `json:"notifiedAt"`
+}
+
+// CostAnomalySettings is the `CostAnomalySettings` schema.
+type CostAnomalySettings struct {
+	// Sigmas: Standard deviations above a key's own trailing mean that count as
+	// a spike. Lower is more sensitive. Bounded at 1 — below that roughly a
+	// third of ordinary days clear the bar — and at 10, above which nothing
+	// short of a 10x jump fires. Defaults to 3.
+	Sigmas float64 `json:"sigmas"`
+	// MinDeltaCents: Minimum rise over the baseline mean before a spike alerts,
+	// in USD cents (converted per series, so it means the same real amount in
+	// every currency). Defaults to 1000 ($10).
+	MinDeltaCents int64 `json:"minDeltaCents"`
+	// NewSourceMinCents: Minimum first-day spend before a new spend source
+	// alerts, in USD cents. A key with no prior spend has no statistical bar to
+	// clear, so this absolute floor is the only thing keeping a new $0.02/day
+	// service quiet. Defaults to 2500 ($25).
+	NewSourceMinCents int64 `json:"newSourceMinCents"`
+	// SmsAlerts: Which anomalies also text the organization's Twilio recipients.
+	// Defaults to `off` — an organization with Twilio configured for budgets
+	// does not start receiving anomaly texts until it asks to. `new_source`
+	// texts only about spend appearing from nothing, which is what a leaked key
+	// looks like on a bill; `all` adds spikes on existing lines. Delivery is
+	// batched — one SMS per detection pass summarizing what it alerted on, at
+	// most one every six hours per organization — and never places a voice call.
+	// Push, Slack and Teams delivery is unaffected by this setting.
+	//
+	// One of "off", "new_source", "all".
+	SmsAlerts string `json:"smsAlerts"`
+}
+
+// CostAnomalySettingsView is the `CostAnomalySettingsView` schema.
+type CostAnomalySettingsView struct {
+	// Sigmas: Standard deviations above a key's own trailing mean that count as
+	// a spike. Lower is more sensitive. Bounded at 1 — below that roughly a
+	// third of ordinary days clear the bar — and at 10, above which nothing
+	// short of a 10x jump fires. Defaults to 3.
+	Sigmas float64 `json:"sigmas"`
+	// MinDeltaCents: Minimum rise over the baseline mean before a spike alerts,
+	// in USD cents (converted per series, so it means the same real amount in
+	// every currency). Defaults to 1000 ($10).
+	MinDeltaCents int64 `json:"minDeltaCents"`
+	// NewSourceMinCents: Minimum first-day spend before a new spend source
+	// alerts, in USD cents. A key with no prior spend has no statistical bar to
+	// clear, so this absolute floor is the only thing keeping a new $0.02/day
+	// service quiet. Defaults to 2500 ($25).
+	NewSourceMinCents int64 `json:"newSourceMinCents"`
+	// SmsAlerts: Which anomalies also text the organization's Twilio recipients.
+	// Defaults to `off` — an organization with Twilio configured for budgets
+	// does not start receiving anomaly texts until it asks to. `new_source`
+	// texts only about spend appearing from nothing, which is what a leaked key
+	// looks like on a bill; `all` adds spikes on existing lines. Delivery is
+	// batched — one SMS per detection pass summarizing what it alerted on, at
+	// most one every six hours per organization — and never places a voice call.
+	// Push, Slack and Teams delivery is unaffected by this setting.
+	//
+	// One of "off", "new_source", "all".
+	SmsAlerts string `json:"smsAlerts"`
+	// SmsConfigured: Whether an SMS raised right now could be delivered: paging
+	// enabled for the organization, Twilio credentials and a from-number stored,
+	// and at least one recipient opted into SMS. Read-only and derived — it is
+	// not accepted on PUT.
+	SmsConfigured bool `json:"smsConfigured"`
 }
 
 // CostDimension is the `CostDimension` schema.
@@ -1078,31 +1150,99 @@ type DescribeResponse struct {
 	Text string `json:"text"`
 }
 
+// DigestEmailRecipient is the `DigestEmailRecipient` schema.
+type DigestEmailRecipient struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+}
+
+// DigestEmailRecipientCreate is the `DigestEmailRecipientCreate` schema.
+type DigestEmailRecipientCreate struct {
+	Email string `json:"email"`
+}
+
+// DigestEmailRecipientList is the `DigestEmailRecipientList` schema.
+type DigestEmailRecipientList struct {
+	Recipients []DigestEmailRecipient `json:"recipients"`
+}
+
 // DigestSendResult is the `DigestSendResult` schema.
 type DigestSendResult struct {
 	OK bool `json:"ok"`
-	// Attempted: Deliveries attempted across Slack channels and Teams webhooks.
-	Attempted int64 `json:"attempted"`
-	Succeeded int64 `json:"succeeded"`
+	// Attempted: Deliveries attempted across Slack channels, Teams webhooks and
+	// email recipients.
+	Attempted int64                 `json:"attempted"`
+	Succeeded int64                 `json:"succeeded"`
+	Slack     DigestTransportResult `json:"slack"`
+	Teams     DigestTransportResult `json:"teams"`
+	Email     DigestTransportResult `json:"email"`
 }
 
 // DigestSettings is the `DigestSettings` schema.
 type DigestSettings struct {
 	// Enabled: Whether the weekly digest is enabled for this organization.
 	// Delivery targets are the Slack channels and Teams webhooks whose
-	// weeklyDigest trigger is on.
+	// weeklyDigest trigger is on, plus the organization's digest email
+	// recipients.
 	Enabled bool `json:"enabled"`
-	// LastSentWeekStart: Monday (ISO date, UTC) of the last week a digest
-	// covered, or null when none has been sent.
+	// LastSentWeekStart: Monday (ISO date, in the organization's timezone) of
+	// the last week a digest covered, or null when none has been sent.
 	LastSentWeekStart *string `json:"lastSentWeekStart"`
-	// LastSentAt: When the last digest was sent, or null when none has been
-	// sent.
+	// LastSentAt: When a digest last actually reached a destination, or null if
+	// none ever has.
 	LastSentAt *string `json:"lastSentAt"`
+	// Timezone: IANA time zone the schedule and the Monday-to-Sunday week
+	// boundary are expressed in. Defaults to UTC.
+	Timezone string `json:"timezone"`
+	// SendDay: ISO day of week the digest is sent on: 1 = Monday … 7 = Sunday.
+	SendDay int64 `json:"sendDay"`
+	// SendHour: Local hour (0–23) in `timezone` the digest is sent at.
+	SendHour int64 `json:"sendHour"`
+	// NarrativeEnabled: Whether an AI-written summary paragraph is placed above
+	// the deterministic content. Opt-in, default off. Failures are non-fatal:
+	// the digest still sends without the paragraph.
+	NarrativeEnabled bool `json:"narrativeEnabled"`
+	// NarrativeAvailable: Whether this deployment has an LLM API key configured.
+	// False means enabling the narrative has no effect.
+	NarrativeAvailable bool `json:"narrativeAvailable"`
+	// EmailAvailable: Whether this deployment has a mail provider configured.
+	// False means email recipients are never delivered to.
+	EmailAvailable bool `json:"emailAvailable"`
+	// AttemptCount: Delivery attempts made for lastSentWeekStart's window,
+	// including the first.
+	AttemptCount  int64   `json:"attemptCount"`
+	LastAttemptAt *string `json:"lastAttemptAt"`
+	// LastStatus: Outcome of the most recent delivery attempt. `partial` (some
+	// destinations took it, some failed) is deliberately never retried
+	// automatically — a retry would post the digest twice where it already
+	// landed. `failed` (nothing landed) is retried a bounded number of times
+	// with backoff, then parked until the next week.
+	//
+	// One of "pending", "succeeded", "partial", "failed", "no_targets".
+	LastStatus *string `json:"lastStatus"`
+	// LastError: Why the last attempt was not a clean success, for display in
+	// the settings UI.
+	LastError *string `json:"lastError"`
+	// NextAttemptAt: When the next automatic retry is due, or null when none is
+	// scheduled.
+	NextAttemptAt *string `json:"nextAttemptAt"`
 }
 
 // DigestSettingsUpdate is the `DigestSettingsUpdate` schema.
 type DigestSettingsUpdate struct {
-	Enabled bool `json:"enabled"`
+	Enabled *bool `json:"enabled,omitempty"`
+	// Timezone: IANA time zone name. Rejected with 400 if the server does not
+	// know the zone.
+	Timezone         *string `json:"timezone,omitempty"`
+	SendDay          *int64  `json:"sendDay,omitempty"`
+	SendHour         *int64  `json:"sendHour,omitempty"`
+	NarrativeEnabled *bool   `json:"narrativeEnabled,omitempty"`
+}
+
+// DigestTransportResult is the `DigestTransportResult` schema.
+type DigestTransportResult struct {
+	Attempted int64 `json:"attempted"`
+	Succeeded int64 `json:"succeeded"`
 }
 
 // DockerCommandRequest is the `DockerCommandRequest` schema.
@@ -1115,6 +1255,37 @@ type DockerCommandRequest struct {
 // DockerCommandResponse is the `DockerCommandResponse` schema.
 type DockerCommandResponse struct {
 	Result any `json:"result,omitempty"`
+}
+
+// DriftAlertSettings is the `DriftAlertSettings` schema.
+type DriftAlertSettings struct {
+	// NotifyCreated: Alert on resources that appeared.
+	NotifyCreated bool `json:"notifyCreated"`
+	// NotifyUpdated: Alert on field-level updates. Defaults to false — updates
+	// are the bulk of the volume and are usually a provider restating a value.
+	NotifyUpdated bool `json:"notifyUpdated"`
+	// NotifyDeleted: Alert on resources that disappeared.
+	NotifyDeleted bool `json:"notifyDeleted"`
+	// CooldownMinutes: Least time between drift notifications for this
+	// organization. One notification per window, no matter how many changes or
+	// accounts it covers.
+	CooldownMinutes int64 `json:"cooldownMinutes"`
+	// MinChanges: Fewest matching changes in a window worth notifying about.
+	MinChanges int64 `json:"minChanges"`
+	// AccountIDs: Accounts to alert on. An empty array means every account.
+	AccountIDs []string `json:"accountIds"`
+	// LastNotifiedAt: When this organization last had a drift digest delivered.
+	LastNotifiedAt *string `json:"lastNotifiedAt"`
+}
+
+// DriftAlertSettingsUpdate is the `DriftAlertSettingsUpdate` schema.
+type DriftAlertSettingsUpdate struct {
+	NotifyCreated   *bool    `json:"notifyCreated,omitempty"`
+	NotifyUpdated   *bool    `json:"notifyUpdated,omitempty"`
+	NotifyDeleted   *bool    `json:"notifyDeleted,omitempty"`
+	CooldownMinutes *int64   `json:"cooldownMinutes,omitempty"`
+	MinChanges      *int64   `json:"minChanges,omitempty"`
+	AccountIDs      []string `json:"accountIds,omitempty"`
 }
 
 // EditableField is the `EditableField` schema.
@@ -1362,7 +1533,12 @@ type MsTeamsWebhook struct {
 	BudgetAlerts  bool   `json:"budgetAlerts"`
 	// AnomalyAlerts: Statistical spend-spike (cost anomaly) alerts
 	AnomalyAlerts bool `json:"anomalyAlerts"`
-	// WorkflowPages: Alerts raised by a workflow calling infra.page(...)
+	// ResourceDrift: Batched resource-drift digests from the change timeline.
+	// Defaults to false when a channel is added — drift is continuous where the
+	// other triggers are exceptional.
+	ResourceDrift bool `json:"resourceDrift"`
+	// WorkflowPages: Pages and approval requests raised by a workflow
+	// (infra.page / infra.waitForApproval) or by POST /pages
 	WorkflowPages bool `json:"workflowPages"`
 	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
 	// organization has enabled the digest (see /digest).
@@ -1380,6 +1556,7 @@ type MsTeamsWebhookCreate struct {
 	SyncIncidents *bool  `json:"syncIncidents,omitempty"`
 	BudgetAlerts  *bool  `json:"budgetAlerts,omitempty"`
 	AnomalyAlerts *bool  `json:"anomalyAlerts,omitempty"`
+	ResourceDrift *bool  `json:"resourceDrift,omitempty"`
 	WorkflowPages *bool  `json:"workflowPages,omitempty"`
 	WeeklyDigest  *bool  `json:"weeklyDigest,omitempty"`
 }
@@ -1390,6 +1567,7 @@ type MsTeamsWebhookUpdate struct {
 	SyncIncidents *bool   `json:"syncIncidents,omitempty"`
 	BudgetAlerts  *bool   `json:"budgetAlerts,omitempty"`
 	AnomalyAlerts *bool   `json:"anomalyAlerts,omitempty"`
+	ResourceDrift *bool   `json:"resourceDrift,omitempty"`
 	WorkflowPages *bool   `json:"workflowPages,omitempty"`
 	WeeklyDigest  *bool   `json:"weeklyDigest,omitempty"`
 }
@@ -1605,6 +1783,9 @@ const (
 	PermissionStorageWrite     Permission = "storage:write"
 	PermissionDashboardsRead   Permission = "dashboards:read"
 	PermissionDashboardsWrite  Permission = "dashboards:write"
+	PermissionWorkflowsRead    Permission = "workflows:read"
+	PermissionWorkflowsWrite   Permission = "workflows:write"
+	PermissionWorkflowsApprove Permission = "workflows:approve"
 	PermissionDeploymentsRead  Permission = "deployments:read"
 	PermissionDeploymentsPlan  Permission = "deployments:plan"
 	PermissionDeploymentsWrite Permission = "deployments:write"
@@ -2289,6 +2470,7 @@ const (
 	ResourceTypeIDRedirectRule                   ResourceTypeID = "redirect-rule"
 	ResourceTypeIDRedisInstance                  ResourceTypeID = "redis-instance"
 	ResourceTypeIDRedshiftCluster                ResourceTypeID = "redshift-cluster"
+	ResourceTypeIDReservedIP                     ResourceTypeID = "reserved-ip"
 	ResourceTypeIDRouteTable                     ResourceTypeID = "route-table"
 	ResourceTypeIDRoute53HealthCheck             ResourceTypeID = "route53-health-check"
 	ResourceTypeIDRoute53HostedZone              ResourceTypeID = "route53-hosted-zone"
@@ -2581,7 +2763,12 @@ type SlackChannel struct {
 	BudgetAlerts  bool   `json:"budgetAlerts"`
 	// AnomalyAlerts: Statistical spend-spike (cost anomaly) alerts
 	AnomalyAlerts bool `json:"anomalyAlerts"`
-	// WorkflowPages: Alerts raised by a workflow calling infra.page(...)
+	// ResourceDrift: Batched resource-drift digests from the change timeline.
+	// Defaults to false when a channel is added — drift is continuous where the
+	// other triggers are exceptional.
+	ResourceDrift bool `json:"resourceDrift"`
+	// WorkflowPages: Pages and approval requests raised by a workflow
+	// (infra.page / infra.waitForApproval) or by POST /pages
 	WorkflowPages bool `json:"workflowPages"`
 	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
 	// organization has enabled the digest (see /digest).
@@ -2597,6 +2784,7 @@ type SlackChannelCreate struct {
 	SyncIncidents  *bool  `json:"syncIncidents,omitempty"`
 	BudgetAlerts   *bool  `json:"budgetAlerts,omitempty"`
 	AnomalyAlerts  *bool  `json:"anomalyAlerts,omitempty"`
+	ResourceDrift  *bool  `json:"resourceDrift,omitempty"`
 	WorkflowPages  *bool  `json:"workflowPages,omitempty"`
 	WeeklyDigest   *bool  `json:"weeklyDigest,omitempty"`
 }
@@ -2606,6 +2794,7 @@ type SlackChannelUpdate struct {
 	SyncIncidents *bool `json:"syncIncidents,omitempty"`
 	BudgetAlerts  *bool `json:"budgetAlerts,omitempty"`
 	AnomalyAlerts *bool `json:"anomalyAlerts,omitempty"`
+	ResourceDrift *bool `json:"resourceDrift,omitempty"`
 	WorkflowPages *bool `json:"workflowPages,omitempty"`
 	WeeklyDigest  *bool `json:"weeklyDigest,omitempty"`
 }
@@ -3249,6 +3438,11 @@ type DeploymentsRunsCreateResponse struct {
 // DeploymentsTriggersUpdateRequest is an object the spec declares inline.
 type DeploymentsTriggersUpdateRequest struct {
 	Enabled bool `json:"enabled"`
+}
+
+// DigestRecipientsDeleteResponse is an object the spec declares inline.
+type DigestRecipientsDeleteResponse struct {
+	OK bool `json:"ok"`
 }
 
 // MsteamsTestResponse is an object the spec declares inline.
