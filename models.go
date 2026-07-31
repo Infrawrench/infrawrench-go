@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.23.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.24.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.23.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.24.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -444,6 +444,29 @@ type CostAccountStatus struct {
 	// console).
 	CostPollError *CostAccountStatusCostPollError `json:"costPollError"`
 	Coverage      *CostAccountStatusCoverage      `json:"coverage"`
+}
+
+// CostAnomaly is the `CostAnomaly` schema.
+type CostAnomaly struct {
+	ID string `json:"id"`
+	// Day: The anomalous UTC day.
+	Day string `json:"day"`
+	// Dimension: One of "provider", "service".
+	Dimension string `json:"dimension"`
+	// DimensionKey: The dimension's value — a plugin id or a service name.
+	DimensionKey string `json:"dimensionKey"`
+	Currency     string `json:"currency"`
+	ActualCents  int64  `json:"actualCents"`
+	// BaselineCents: Mean daily spend over the trailing 28-day baseline, in
+	// cents.
+	BaselineCents int64 `json:"baselineCents"`
+	// ThresholdCents: The detection bar the day cleared (baseline mean +
+	// N·stddev), in cents.
+	ThresholdCents int64  `json:"thresholdCents"`
+	DetectedAt     string `json:"detectedAt"`
+	// NotifiedAt: When the anomaly was delivered to a notification channel; null
+	// when delivery failed or a recent anomaly for the same key suppressed it.
+	NotifiedAt *string `json:"notifiedAt"`
 }
 
 // CostDimension is the `CostDimension` schema.
@@ -1286,6 +1309,8 @@ type MsTeamsWebhook struct {
 	URLHint       string `json:"urlHint"`
 	SyncIncidents bool   `json:"syncIncidents"`
 	BudgetAlerts  bool   `json:"budgetAlerts"`
+	// AnomalyAlerts: Statistical spend-spike (cost anomaly) alerts
+	AnomalyAlerts bool `json:"anomalyAlerts"`
 	// WorkflowPages: Alerts raised by a workflow calling infra.page(...)
 	WorkflowPages bool `json:"workflowPages"`
 	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
@@ -1303,6 +1328,7 @@ type MsTeamsWebhookCreate struct {
 	URL           string `json:"url"`
 	SyncIncidents *bool  `json:"syncIncidents,omitempty"`
 	BudgetAlerts  *bool  `json:"budgetAlerts,omitempty"`
+	AnomalyAlerts *bool  `json:"anomalyAlerts,omitempty"`
 	WorkflowPages *bool  `json:"workflowPages,omitempty"`
 	WeeklyDigest  *bool  `json:"weeklyDigest,omitempty"`
 }
@@ -1312,6 +1338,7 @@ type MsTeamsWebhookUpdate struct {
 	Label         *string `json:"label,omitempty"`
 	SyncIncidents *bool   `json:"syncIncidents,omitempty"`
 	BudgetAlerts  *bool   `json:"budgetAlerts,omitempty"`
+	AnomalyAlerts *bool   `json:"anomalyAlerts,omitempty"`
 	WorkflowPages *bool   `json:"workflowPages,omitempty"`
 	WeeklyDigest  *bool   `json:"weeklyDigest,omitempty"`
 }
@@ -2499,6 +2526,8 @@ type SlackChannel struct {
 	IsPrivate     bool   `json:"isPrivate"`
 	SyncIncidents bool   `json:"syncIncidents"`
 	BudgetAlerts  bool   `json:"budgetAlerts"`
+	// AnomalyAlerts: Statistical spend-spike (cost anomaly) alerts
+	AnomalyAlerts bool `json:"anomalyAlerts"`
 	// WorkflowPages: Alerts raised by a workflow calling infra.page(...)
 	WorkflowPages bool `json:"workflowPages"`
 	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
@@ -2514,6 +2543,7 @@ type SlackChannelCreate struct {
 	IsPrivate      *bool  `json:"isPrivate,omitempty"`
 	SyncIncidents  *bool  `json:"syncIncidents,omitempty"`
 	BudgetAlerts   *bool  `json:"budgetAlerts,omitempty"`
+	AnomalyAlerts  *bool  `json:"anomalyAlerts,omitempty"`
 	WorkflowPages  *bool  `json:"workflowPages,omitempty"`
 	WeeklyDigest   *bool  `json:"weeklyDigest,omitempty"`
 }
@@ -2522,6 +2552,7 @@ type SlackChannelCreate struct {
 type SlackChannelUpdate struct {
 	SyncIncidents *bool `json:"syncIncidents,omitempty"`
 	BudgetAlerts  *bool `json:"budgetAlerts,omitempty"`
+	AnomalyAlerts *bool `json:"anomalyAlerts,omitempty"`
 	WorkflowPages *bool `json:"workflowPages,omitempty"`
 	WeeklyDigest  *bool `json:"weeklyDigest,omitempty"`
 }
@@ -3135,6 +3166,11 @@ type AgentsSessionsOpenResponse struct {
 type AgentsSessionsReconcileResponse struct {
 	BranchName string `json:"branchName"`
 	Message    string `json:"message"`
+}
+
+// CostsAnomaliesResponse is an object the spec declares inline.
+type CostsAnomaliesResponse struct {
+	Anomalies []CostAnomaly `json:"anomalies"`
 }
 
 // CostsStatusResponse is an object the spec declares inline.

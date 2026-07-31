@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.23.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.24.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.23.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.24.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1838,6 +1838,41 @@ type CostsNamespace struct {
 func newCostsNamespace(t *transport) *CostsNamespace {
 	n := &CostsNamespace{t: t}
 	return n
+}
+
+// CostsAnomaliesParams holds the parameters for `client.costs.anomalies`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostsAnomaliesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Days: Window in days over anomalous days, 1-90. Defaults to 30.
+	Days *string
+}
+
+// Anomalies: List recently detected cost anomalies
+//
+// Spend anomalies detected by the daily background pass: days where a provider's
+// or service's spend exceeded its trailing 28-day baseline by a statistical
+// threshold (mean + N·stddev, with an absolute floor to ignore penny-scale
+// noise). Newest day first, capped at 200 rows.
+//
+// GET /api/org/{orgId}/costs/anomalies
+//
+// Raises on 400: Bad request
+func (n *CostsNamespace) Anomalies(ctx context.Context, params *CostsAnomaliesParams, opts ...RequestOption) (*CostsAnomaliesResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/costs/anomalies")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("days", params.Days)
+	}
+	var out *CostsAnomaliesResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // CostsDimensionsParams holds the parameters for `client.costs.dimensions`.
