@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.28.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.29.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.28.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.29.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -73,6 +73,21 @@ type AccountDetail struct {
 	PluginLogoSvg     string                `json:"pluginLogoSvg"`
 }
 
+// AccountTagCompliance is the `AccountTagCompliance` schema.
+type AccountTagCompliance struct {
+	AccountID      string `json:"accountId"`
+	PluginID       string `json:"pluginId"`
+	DisplayName    string `json:"displayName"`
+	TotalResources int64  `json:"totalResources"`
+	// Evaluated: Resources whose stored record exposes a tag map (the scoreable
+	// set).
+	Evaluated int64 `json:"evaluated"`
+	Compliant int64 `json:"compliant"`
+	// Score: Percent of evaluated resources carrying every required tag; null
+	// when none.
+	Score *int64 `json:"score"`
+}
+
 // ActiveTunnel is the `ActiveTunnel` schema.
 type ActiveTunnel struct {
 	LocalPort  int64  `json:"localPort"`
@@ -129,6 +144,36 @@ type AgentVMAccount struct {
 	DefaultFieldLabels map[string]string `json:"defaultFieldLabels,omitempty"`
 	CreateFields       []JSONObject      `json:"createFields,omitempty"`
 	HiddenFieldKeys    []string          `json:"hiddenFieldKeys"`
+}
+
+// AllocationRule is the `AllocationRule` schema.
+type AllocationRule struct {
+	ID           string              `json:"id"`
+	CostCentreID string              `json:"costCentreId"`
+	Priority     int64               `json:"priority"`
+	Match        AllocationRuleMatch `json:"match"`
+	CreatedAt    string              `json:"createdAt"`
+	UpdatedAt    string              `json:"updatedAt"`
+}
+
+// AllocationRuleInput is the `AllocationRuleInput` schema.
+type AllocationRuleInput struct {
+	CostCentreID string `json:"costCentreId"`
+	// Priority: Lower fires first; the first matching rule wins.
+	Priority int64               `json:"priority"`
+	Match    AllocationRuleMatch `json:"match"`
+}
+
+// AllocationRuleMatch: All set fields must match (AND). A rule with no fields is
+// a catch-all that claims everything reaching it.
+type AllocationRuleMatch struct {
+	TagKey *string `json:"tagKey,omitempty"`
+	// TagValue: Only meaningful with tagKey; alone, tagKey matches rows carrying
+	// the key.
+	TagValue  *string `json:"tagValue,omitempty"`
+	AccountID *string `json:"accountId,omitempty"`
+	PluginID  *string `json:"pluginId,omitempty"`
+	Service   *string `json:"service,omitempty"`
 }
 
 // APIKey is the `ApiKey` schema.
@@ -539,6 +584,21 @@ type CostAnomalySettingsView struct {
 	// and at least one recipient opted into SMS. Read-only and derived — it is
 	// not accepted on PUT.
 	SmsConfigured bool `json:"smsConfigured"`
+}
+
+// CostCentre is the `CostCentre` schema.
+type CostCentre struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	CreatedAt   string  `json:"createdAt"`
+	UpdatedAt   string  `json:"updatedAt"`
+}
+
+// CostCentreInput is the `CostCentreInput` schema.
+type CostCentreInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
 }
 
 // CostDimension is the `CostDimension` schema.
@@ -1306,6 +1366,87 @@ type Error struct {
 	Error string `json:"error"`
 }
 
+// ExpiryAlertSettings is the `ExpiryAlertSettings` schema.
+type ExpiryAlertSettings struct {
+	// Enabled: Whether the poller sends expiry alerts for this organization at
+	// all.
+	Enabled bool `json:"enabled"`
+	// LeadDays: Days of lead time before a deadline counts as `upcoming` and
+	// alertable. Default 60.
+	LeadDays int64 `json:"leadDays"`
+	// LastNotifiedAt: When the organization's expiry alert scan last completed,
+	// or null before the first. Owned by the poller's cooldown claim; not
+	// writable through this API.
+	LastNotifiedAt *string `json:"lastNotifiedAt"`
+}
+
+// ExpiryAlertSettingsUpdate is the `ExpiryAlertSettingsUpdate` schema.
+type ExpiryAlertSettingsUpdate struct {
+	Enabled  *bool  `json:"enabled,omitempty"`
+	LeadDays *int64 `json:"leadDays,omitempty"`
+}
+
+// ExpiryItem is the `ExpiryItem` schema.
+type ExpiryItem struct {
+	// ResourceID: Infrawrench resource id.
+	ResourceID       string   `json:"resourceId"`
+	PluginID         PluginID `json:"pluginId"`
+	PluginName       string   `json:"pluginName"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	AccountID        string   `json:"accountId"`
+	AccountName      string   `json:"accountName"`
+	DisplayName      string   `json:"displayName"`
+	// ExternalID: Provider-native id, when known.
+	ExternalID *string `json:"externalId"`
+	// FieldKey: The declared field the deadline came from.
+	FieldKey string `json:"fieldKey"`
+	// Kind: Grouping bucket for the kind of deadline.
+	//
+	// One of "tls-cert", "domain", "api-token", "access-key", "k8s-cert",
+	// "ssh-key", "secret-version", "other".
+	Kind string `json:"kind"`
+	// Label: Plugin-authored caption for the deadline.
+	Label string `json:"label"`
+	// Basis: `expiry` — the field held the deadline itself; `age` — the deadline
+	// was derived from a creation/rotation date plus an age budget.
+	//
+	// One of "expiry", "age".
+	Basis string `json:"basis"`
+	// DueAt: The deadline.
+	DueAt string `json:"dueAt"`
+	// DaysRemaining: Whole days until dueAt (floor); negative once expired.
+	DaysRemaining int64 `json:"daysRemaining"`
+	// Severity: How close the deadline is: `expired` (in the past), `critical`
+	// (due within 7 days), `warning` (within 30 days), `upcoming` (within the
+	// organization's lead time), or `ok` (tracked, but further out than the lead
+	// time).
+	//
+	// One of "expired", "critical", "warning", "upcoming", "ok".
+	Severity string `json:"severity"`
+}
+
+// ExpiryListResponse is the `ExpiryListResponse` schema.
+type ExpiryListResponse struct {
+	// Items: All tracked deadlines, soonest first (`ok` items included).
+	Items      []ExpiryItem         `json:"items"`
+	TotalCount int64                `json:"totalCount"`
+	Counts     ExpirySeverityCounts `json:"counts"`
+	// LeadDays: The lead time the `upcoming` bucket was computed against.
+	LeadDays    int64  `json:"leadDays"`
+	GeneratedAt string `json:"generatedAt"`
+}
+
+// ExpirySeverityCounts: Item count per severity; every bucket present, zeros
+// included.
+type ExpirySeverityCounts struct {
+	Expired  int64 `json:"expired"`
+	Critical int64 `json:"critical"`
+	Warning  int64 `json:"warning"`
+	Upcoming int64 `json:"upcoming"`
+	OK       int64 `json:"ok"`
+}
+
 // ExportCredentialRequest is the `ExportCredentialRequest` schema.
 type ExportCredentialRequest struct {
 	ResourceID       ResourceID  `json:"resourceId"`
@@ -1516,6 +1657,125 @@ type MetricsResponse struct {
 	Series []MetricSeries `json:"series"`
 }
 
+// MomentEvent is the `MomentEvent` schema.
+type MomentEvent struct {
+	// ID: Stable synthetic id, unique within a response (`feed:rowId[:phase]`).
+	ID   string       `json:"id"`
+	Feed MomentFeedID `json:"feed"`
+	// Kind: Fine-grained `<noun>.<verb>` kind, e.g. `change.created`,
+	// `incident.started`, `workflow-run.failed`, `deployment.finished`,
+	// `freeze.started`, `drift-alert.sent`. Open set — render unknown kinds
+	// generically.
+	Kind      string `json:"kind"`
+	Timestamp string `json:"timestamp"`
+	// Title: One-line headline.
+	Title string `json:"title"`
+	// Detail: Optional second line — diff summary, actor, error text.
+	Detail         *string          `json:"detail,omitempty"`
+	Severity       MomentSeverity   `json:"severity"`
+	PluginID       *string          `json:"pluginId,omitempty"`
+	AccountID      *string          `json:"accountId,omitempty"`
+	AccountName    *string          `json:"accountName,omitempty"`
+	ResourceID     *string          `json:"resourceId,omitempty"`
+	ResourceTypeID *string          `json:"resourceTypeId,omitempty"`
+	ResourceName   *string          `json:"resourceName,omitempty"`
+	Link           *MomentEventLink `json:"link,omitempty"`
+}
+
+// MomentEventLink is the `MomentEventLink` schema.
+//
+// The API may send null in its place.
+type MomentEventLink struct {
+	// Kind: Which native screen the event deep-links to.
+	//
+	// One of "resource", "changes", "incident", "costs", "workflow-run",
+	// "deployment", "audit", "freeze", "expiring".
+	Kind string `json:"kind"`
+	// ID: Target id where the kind needs one (resource id, run id, freeze id…).
+	ID *string `json:"id,omitempty"`
+	// ParentID: Parent id where the target needs one (workflow id for a run).
+	ParentID *string `json:"parentId,omitempty"`
+	// URL: Absolute external URL — a provider's incident page. Wins when
+	// present.
+	URL *string `json:"url,omitempty"`
+}
+
+// MomentFeedID: One of the indexed feeds the moment union draws from.
+//
+// Spec schema: `MomentFeedId`.
+type MomentFeedID = string
+
+// The values MomentFeedID takes.
+const (
+	MomentFeedIDChanges         MomentFeedID = "changes"
+	MomentFeedIDStatusIncidents MomentFeedID = "statusIncidents"
+	MomentFeedIDCostAnomalies   MomentFeedID = "costAnomalies"
+	MomentFeedIDWorkflowRuns    MomentFeedID = "workflowRuns"
+	MomentFeedIDDeployments     MomentFeedID = "deployments"
+	MomentFeedIDAudit           MomentFeedID = "audit"
+	MomentFeedIDFreezes         MomentFeedID = "freezes"
+	MomentFeedIDDriftAlerts     MomentFeedID = "driftAlerts"
+	MomentFeedIDExpiryAlerts    MomentFeedID = "expiryAlerts"
+)
+
+// MomentFeedStatus is the `MomentFeedStatus` schema.
+type MomentFeedStatus struct {
+	Feed MomentFeedID `json:"feed"`
+	// Status: `omitted` = the caller lacks the feed's read permission; `error` =
+	// the feed's query failed but the rest of the response is still valid
+	// (partial-failure tolerance).
+	//
+	// One of "ok", "omitted", "error".
+	Status string `json:"status"`
+	// Error: Short failure reason when `status` is `error`.
+	Error *string `json:"error,omitempty"`
+	// Truncated: True when the feed hit its row cap and events were dropped.
+	Truncated *bool `json:"truncated,omitempty"`
+}
+
+// MomentIncidentSpan: A provider incident whose span overlaps the window —
+// returned alongside the events so clients can badge events that fall inside it
+// ("during DigitalOcean incident").
+type MomentIncidentSpan struct {
+	ID         string `json:"id"`
+	PluginID   string `json:"pluginId"`
+	PluginName string `json:"pluginName"`
+	Title      string `json:"title"`
+	// Impact: One of "maintenance", "minor", "major", "critical".
+	Impact     string  `json:"impact"`
+	StartedAt  string  `json:"startedAt"`
+	ResolvedAt *string `json:"resolvedAt,omitempty"`
+	URL        *string `json:"url,omitempty"`
+}
+
+// MomentResponse is the `MomentResponse` schema.
+type MomentResponse struct {
+	// At: The centre timestamp, normalized to ISO.
+	At   string `json:"at"`
+	From string `json:"from"`
+	To   string `json:"to"`
+	// WindowMinutes: The half-window actually applied, after clamping to 1–4320
+	// minutes.
+	WindowMinutes int64  `json:"windowMinutes"`
+	GeneratedAt   string `json:"generatedAt"`
+	// Feeds: One entry per feed, in canonical order — including omitted and
+	// errored feeds.
+	Feeds []MomentFeedStatus `json:"feeds"`
+	// Events: Chronological, oldest first.
+	Events    []MomentEvent        `json:"events"`
+	Incidents []MomentIncidentSpan `json:"incidents"`
+}
+
+// MomentSeverity is the `MomentSeverity` schema.
+type MomentSeverity = string
+
+// The values MomentSeverity takes.
+const (
+	MomentSeverityInfo     MomentSeverity = "info"
+	MomentSeverityWarning  MomentSeverity = "warning"
+	MomentSeverityCritical MomentSeverity = "critical"
+)
+
 // MsTeamsStatus is the `MsTeamsStatus` schema.
 type MsTeamsStatus struct {
 	Webhooks []MsTeamsWebhook `json:"webhooks"`
@@ -1540,6 +1800,12 @@ type MsTeamsWebhook struct {
 	// WorkflowPages: Pages and approval requests raised by a workflow
 	// (infra.page / infra.waitForApproval) or by POST /pages
 	WorkflowPages bool `json:"workflowPages"`
+	// ProviderIncidents: A provider status-page incident overlaps resources you
+	// hold.
+	ProviderIncidents bool `json:"providerIncidents"`
+	// ExpiryAlerts: Daily digests of approaching resource deadlines — expiring
+	// certificates, domains, tokens and keys past their rotation budget.
+	ExpiryAlerts bool `json:"expiryAlerts"`
 	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
 	// organization has enabled the digest (see /digest).
 	WeeklyDigest bool `json:"weeklyDigest"`
@@ -1552,24 +1818,28 @@ type MsTeamsWebhookCreate struct {
 	// and on a Microsoft-operated host (*.api.powerautomate.com,
 	// *.api.powerplatform.com, *.logic.azure.com, *.flow.microsoft.com, or a
 	// legacy *.webhook.office.com connector).
-	URL           string `json:"url"`
-	SyncIncidents *bool  `json:"syncIncidents,omitempty"`
-	BudgetAlerts  *bool  `json:"budgetAlerts,omitempty"`
-	AnomalyAlerts *bool  `json:"anomalyAlerts,omitempty"`
-	ResourceDrift *bool  `json:"resourceDrift,omitempty"`
-	WorkflowPages *bool  `json:"workflowPages,omitempty"`
-	WeeklyDigest  *bool  `json:"weeklyDigest,omitempty"`
+	URL               string `json:"url"`
+	SyncIncidents     *bool  `json:"syncIncidents,omitempty"`
+	BudgetAlerts      *bool  `json:"budgetAlerts,omitempty"`
+	AnomalyAlerts     *bool  `json:"anomalyAlerts,omitempty"`
+	ResourceDrift     *bool  `json:"resourceDrift,omitempty"`
+	WorkflowPages     *bool  `json:"workflowPages,omitempty"`
+	ProviderIncidents *bool  `json:"providerIncidents,omitempty"`
+	ExpiryAlerts      *bool  `json:"expiryAlerts,omitempty"`
+	WeeklyDigest      *bool  `json:"weeklyDigest,omitempty"`
 }
 
 // MsTeamsWebhookUpdate is the `MsTeamsWebhookUpdate` schema.
 type MsTeamsWebhookUpdate struct {
-	Label         *string `json:"label,omitempty"`
-	SyncIncidents *bool   `json:"syncIncidents,omitempty"`
-	BudgetAlerts  *bool   `json:"budgetAlerts,omitempty"`
-	AnomalyAlerts *bool   `json:"anomalyAlerts,omitempty"`
-	ResourceDrift *bool   `json:"resourceDrift,omitempty"`
-	WorkflowPages *bool   `json:"workflowPages,omitempty"`
-	WeeklyDigest  *bool   `json:"weeklyDigest,omitempty"`
+	Label             *string `json:"label,omitempty"`
+	SyncIncidents     *bool   `json:"syncIncidents,omitempty"`
+	BudgetAlerts      *bool   `json:"budgetAlerts,omitempty"`
+	AnomalyAlerts     *bool   `json:"anomalyAlerts,omitempty"`
+	ResourceDrift     *bool   `json:"resourceDrift,omitempty"`
+	WorkflowPages     *bool   `json:"workflowPages,omitempty"`
+	ProviderIncidents *bool   `json:"providerIncidents,omitempty"`
+	ExpiryAlerts      *bool   `json:"expiryAlerts,omitempty"`
+	WeeklyDigest      *bool   `json:"weeklyDigest,omitempty"`
 }
 
 // NoSQLCommandRequest is the `NoSqlCommandRequest` schema.
@@ -1609,6 +1879,48 @@ type OrgMembership struct {
 	ID          string           `json:"id"`
 	DisplayName string           `json:"displayName"`
 	Role        OrganizationRole `json:"role"`
+}
+
+// OrgStatusIncident is the `OrgStatusIncident` schema.
+type OrgStatusIncident struct {
+	// ID: Cached incident row id.
+	ID       string `json:"id"`
+	PluginID string `json:"pluginId"`
+	// PluginName: Provider display name, e.g. "DigitalOcean".
+	PluginName string                 `json:"pluginName"`
+	Title      string                 `json:"title"`
+	State      ProviderIncidentState  `json:"state"`
+	Impact     ProviderIncidentImpact `json:"impact"`
+	// URL: Deep link to the provider's incident page or status page.
+	URL          *string `json:"url"`
+	StartedAt    string  `json:"startedAt"`
+	ResolvedAt   *string `json:"resolvedAt"`
+	LastUpdateAt *string `json:"lastUpdateAt"`
+	// LastUpdateText: Plain-text body of the provider's most recent update.
+	LastUpdateText *string `json:"lastUpdateText"`
+	// Regions: Plugin-native region ids the provider reports as affected.
+	Regions []string `json:"regions"`
+	// Services: Human-readable affected provider services/products.
+	Services []string `json:"services"`
+	// ProviderWide: True when the incident affects the provider as a whole.
+	ProviderWide bool `json:"providerWide"`
+	// AffectedResourceCount: How many of the organization's resources the
+	// incident overlaps.
+	AffectedResourceCount int64 `json:"affectedResourceCount"`
+	// AffectedRegions: The subset of `regions` where the organization actually
+	// holds resources.
+	AffectedRegions []string `json:"affectedRegions"`
+	// SampleResources: Up to five of the overlapped resources, for display.
+	SampleResources []ProviderIncidentResourceSample `json:"sampleResources"`
+	// OverlappingChangeCount: Change-timeline events recorded on this provider
+	// during the incident window — "these N changes happened during an
+	// incident".
+	OverlappingChangeCount int64 `json:"overlappingChangeCount"`
+}
+
+// OrgStatusIncidentsResponse is the `OrgStatusIncidentsResponse` schema.
+type OrgStatusIncidentsResponse struct {
+	Incidents []OrgStatusIncident `json:"incidents"`
 }
 
 // Organization is the `Organization` schema.
@@ -1677,6 +1989,64 @@ type OrphanedResource struct {
 	Reason       string                `json:"reason"`
 	Cost         *OrphanCostAnnotation `json:"cost"`
 	LastSyncedAt *string               `json:"lastSyncedAt"`
+}
+
+// OversizedAccountGroup is the `OversizedAccountGroup` schema.
+type OversizedAccountGroup struct {
+	AccountID   string              `json:"accountId"`
+	AccountName string              `json:"accountName"`
+	PluginID    PluginID            `json:"pluginId"`
+	PluginName  string              `json:"pluginName"`
+	Resources   []OversizedResource `json:"resources"`
+}
+
+// OversizedResource is the `OversizedResource` schema.
+type OversizedResource struct {
+	// ID: Infrawrench resource id.
+	ID               string   `json:"id"`
+	PluginID         PluginID `json:"pluginId"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	DisplayName      string   `json:"displayName"`
+	// ExternalID: Provider-native id, when known.
+	ExternalID *string `json:"externalId"`
+	// SizeFieldKey: Field to submit through the resource-update endpoint to
+	// apply the recommended size.
+	SizeFieldKey string `json:"sizeFieldKey"`
+	// Region: Provider region/zone/location the resource lives in.
+	Region          *string              `json:"region"`
+	CurrentSize     OversizedSizeSummary `json:"currentSize"`
+	RecommendedSize OversizedSizeSummary `json:"recommendedSize"`
+	// CPUP95: p95 CPU utilisation over the window, percent of the current size.
+	CPUP95 float64 `json:"cpuP95"`
+	// MemoryP95: p95 memory utilisation, percent of the current size; null when
+	// unmeasured.
+	MemoryP95 *float64 `json:"memoryP95"`
+	// MemoryMeasured: False when the provider stores no memory series for this
+	// resource.
+	MemoryMeasured bool `json:"memoryMeasured"`
+	// ProjectedCPUP95: Projected p95 CPU on the recommended size, for the
+	// confirm dialog.
+	ProjectedCPUP95 float64 `json:"projectedCpuP95"`
+	// Currency: ISO 4217 code the size prices are quoted in.
+	Currency string `json:"currency"`
+	// MonthlySaving: Current minus recommended monthly price; null when either
+	// side is unpriced.
+	MonthlySaving *float64 `json:"monthlySaving"`
+	// ResizeNote: Plugin-authored caveat (e.g. the provider requires the machine
+	// stopped).
+	ResizeNote   *string `json:"resizeNote"`
+	LastSyncedAt *string `json:"lastSyncedAt"`
+}
+
+// OversizedSizeSummary is the `OversizedSizeSummary` schema.
+type OversizedSizeSummary struct {
+	ID       string `json:"id"`
+	Label    string `json:"label"`
+	Vcpus    int64  `json:"vcpus"`
+	MemoryMb int64  `json:"memoryMb"`
+	// PriceMonthly: Monthly catalog price in `currency`; null when unpriced.
+	PriceMonthly *float64 `json:"priceMonthly"`
 }
 
 // OwnershipBlocker is the `OwnershipBlocker` schema.
@@ -1770,49 +2140,50 @@ type Permission = string
 
 // The values Permission takes.
 const (
-	PermissionAccountsRead     Permission = "accounts:read"
-	PermissionAccountsWrite    Permission = "accounts:write"
-	PermissionAccountsDelete   Permission = "accounts:delete"
-	PermissionResourcesRead    Permission = "resources:read"
-	PermissionResourcesWrite   Permission = "resources:write"
-	PermissionResourcesDelete  Permission = "resources:delete"
-	PermissionResourcesExecute Permission = "resources:execute"
-	PermissionSecretsRead      Permission = "secrets:read"
-	PermissionSecretsWrite     Permission = "secrets:write"
-	PermissionStorageRead      Permission = "storage:read"
-	PermissionStorageWrite     Permission = "storage:write"
-	PermissionDashboardsRead   Permission = "dashboards:read"
-	PermissionDashboardsWrite  Permission = "dashboards:write"
-	PermissionWorkflowsRead    Permission = "workflows:read"
-	PermissionWorkflowsWrite   Permission = "workflows:write"
-	PermissionWorkflowsApprove Permission = "workflows:approve"
-	PermissionDeploymentsRead  Permission = "deployments:read"
-	PermissionDeploymentsPlan  Permission = "deployments:plan"
-	PermissionDeploymentsWrite Permission = "deployments:write"
-	PermissionCostsRead        Permission = "costs:read"
-	PermissionCostsWrite       Permission = "costs:write"
-	PermissionBudgetsRead      Permission = "budgets:read"
-	PermissionBudgetsWrite     Permission = "budgets:write"
-	PermissionFreezesRead      Permission = "freezes:read"
-	PermissionFreezesWrite     Permission = "freezes:write"
-	PermissionFreezesOverride  Permission = "freezes:override"
-	PermissionAuditRead        Permission = "audit:read"
-	PermissionTeamRead         Permission = "team:read"
-	PermissionTeamInvite       Permission = "team:invite"
-	PermissionTeamRoleWrite    Permission = "team:role:write"
-	PermissionTeamRemove       Permission = "team:remove"
-	PermissionApikeysRead      Permission = "apikeys:read"
-	PermissionApikeysWrite     Permission = "apikeys:write"
-	PermissionBillingRead      Permission = "billing:read"
-	PermissionBillingWrite     Permission = "billing:write"
-	PermissionSSHKeysRead      Permission = "ssh-keys:read"
-	PermissionSSHKeysWrite     Permission = "ssh-keys:write"
-	PermissionBastionsRead     Permission = "bastions:read"
-	PermissionBastionsWrite    Permission = "bastions:write"
-	PermissionChatRead         Permission = "chat:read"
-	PermissionChatWrite        Permission = "chat:write"
-	PermissionPagesWrite       Permission = "pages:write"
-	PermissionOrgSettingsWrite Permission = "org:settings:write"
+	PermissionAccountsRead      Permission = "accounts:read"
+	PermissionAccountsWrite     Permission = "accounts:write"
+	PermissionAccountsDelete    Permission = "accounts:delete"
+	PermissionResourcesRead     Permission = "resources:read"
+	PermissionResourcesWrite    Permission = "resources:write"
+	PermissionResourcesDelete   Permission = "resources:delete"
+	PermissionResourcesExecute  Permission = "resources:execute"
+	PermissionSecretsRead       Permission = "secrets:read"
+	PermissionSecretsWrite      Permission = "secrets:write"
+	PermissionStorageRead       Permission = "storage:read"
+	PermissionStorageWrite      Permission = "storage:write"
+	PermissionDashboardsRead    Permission = "dashboards:read"
+	PermissionDashboardsWrite   Permission = "dashboards:write"
+	PermissionWorkflowsRead     Permission = "workflows:read"
+	PermissionWorkflowsWrite    Permission = "workflows:write"
+	PermissionWorkflowsApprove  Permission = "workflows:approve"
+	PermissionDeploymentsRead   Permission = "deployments:read"
+	PermissionDeploymentsPlan   Permission = "deployments:plan"
+	PermissionDeploymentsWrite  Permission = "deployments:write"
+	PermissionCostsRead         Permission = "costs:read"
+	PermissionCostsWrite        Permission = "costs:write"
+	PermissionBudgetsRead       Permission = "budgets:read"
+	PermissionBudgetsWrite      Permission = "budgets:write"
+	PermissionFreezesRead       Permission = "freezes:read"
+	PermissionFreezesWrite      Permission = "freezes:write"
+	PermissionFreezesOverride   Permission = "freezes:override"
+	PermissionTagPolicyOverride Permission = "tag-policy:override"
+	PermissionAuditRead         Permission = "audit:read"
+	PermissionTeamRead          Permission = "team:read"
+	PermissionTeamInvite        Permission = "team:invite"
+	PermissionTeamRoleWrite     Permission = "team:role:write"
+	PermissionTeamRemove        Permission = "team:remove"
+	PermissionApikeysRead       Permission = "apikeys:read"
+	PermissionApikeysWrite      Permission = "apikeys:write"
+	PermissionBillingRead       Permission = "billing:read"
+	PermissionBillingWrite      Permission = "billing:write"
+	PermissionSSHKeysRead       Permission = "ssh-keys:read"
+	PermissionSSHKeysWrite      Permission = "ssh-keys:write"
+	PermissionBastionsRead      Permission = "bastions:read"
+	PermissionBastionsWrite     Permission = "bastions:write"
+	PermissionChatRead          Permission = "chat:read"
+	PermissionChatWrite         Permission = "chat:write"
+	PermissionPagesWrite        Permission = "pages:write"
+	PermissionOrgSettingsWrite  Permission = "org:settings:write"
 )
 
 // PermissionCatalog is the `PermissionCatalog` schema.
@@ -1984,6 +2355,39 @@ type ProfileSummary struct {
 	CreatedAt         string  `json:"createdAt"`
 }
 
+// ProviderIncidentImpact: Normalized incident severity, least to most severe.
+type ProviderIncidentImpact = string
+
+// The values ProviderIncidentImpact takes.
+const (
+	ProviderIncidentImpactMaintenance ProviderIncidentImpact = "maintenance"
+	ProviderIncidentImpactMinor       ProviderIncidentImpact = "minor"
+	ProviderIncidentImpactMajor       ProviderIncidentImpact = "major"
+	ProviderIncidentImpactCritical    ProviderIncidentImpact = "critical"
+)
+
+// ProviderIncidentResourceSample is the `ProviderIncidentResourceSample` schema.
+type ProviderIncidentResourceSample struct {
+	// ID: Resource id.
+	ID             string `json:"id"`
+	DisplayName    string `json:"displayName"`
+	ResourceTypeID string `json:"resourceTypeId"`
+	// Region: The resource's region field, when it has one.
+	Region *string `json:"region,omitempty"`
+}
+
+// ProviderIncidentState: Normalized incident lifecycle state as the provider
+// reports it.
+type ProviderIncidentState = string
+
+// The values ProviderIncidentState takes.
+const (
+	ProviderIncidentStateInvestigating ProviderIncidentState = "investigating"
+	ProviderIncidentStateIdentified    ProviderIncidentState = "identified"
+	ProviderIncidentStateMonitoring    ProviderIncidentState = "monitoring"
+	ProviderIncidentStateResolved      ProviderIncidentState = "resolved"
+)
+
 // PushedCostRow is the `PushedCostRow` schema.
 type PushedCostRow struct {
 	// Date: UTC day the spend belongs to.
@@ -2021,6 +2425,14 @@ type ReorderRequest struct {
 	ResourceIDs []ResourceID          `json:"resourceIds,omitempty"`
 }
 
+// RequiredTag is the `RequiredTag` schema.
+type RequiredTag struct {
+	Key string `json:"key"`
+	// AllowedValues: When set, the tag's value must be one of these (compared
+	// exactly).
+	AllowedValues []string `json:"allowedValues,omitempty"`
+}
+
 // Resource is the `Resource` schema.
 type Resource struct {
 	ID               ResourceID  `json:"id"`
@@ -2047,8 +2459,13 @@ type ResourceChangeEntry struct {
 	ChangeKind  ResourceChangeKind `json:"changeKind"`
 	// Diff: Changed fields for `updated` events; empty for `created` and
 	// `deleted`.
-	Diff      []ResourceFieldChange `json:"diff"`
-	CreatedAt string                `json:"createdAt"`
+	Diff []ResourceFieldChange `json:"diff"`
+	// Origin: Who caused the change when a non-sync writer knows: `schedule` for
+	// sleep/wake schedule transitions. Absent/null = observed by sync.
+	//
+	// One of "schedule".
+	Origin    *string `json:"origin,omitempty"`
+	CreatedAt string  `json:"createdAt"`
 }
 
 // ResourceChangeFeedEntry is the `ResourceChangeFeedEntry` schema.
@@ -2064,9 +2481,14 @@ type ResourceChangeFeedEntry struct {
 	ChangeKind  ResourceChangeKind `json:"changeKind"`
 	// Diff: Changed fields for `updated` events; empty for `created` and
 	// `deleted`.
-	Diff        []ResourceFieldChange `json:"diff"`
-	CreatedAt   string                `json:"createdAt"`
-	AccountName *string               `json:"accountName"`
+	Diff []ResourceFieldChange `json:"diff"`
+	// Origin: Who caused the change when a non-sync writer knows: `schedule` for
+	// sleep/wake schedule transitions. Absent/null = observed by sync.
+	//
+	// One of "schedule".
+	Origin      *string `json:"origin,omitempty"`
+	CreatedAt   string  `json:"createdAt"`
+	AccountName *string `json:"accountName"`
 }
 
 // ResourceChangeFeedResponse is the `ResourceChangeFeedResponse` schema.
@@ -2129,6 +2551,9 @@ type ResourceDetail struct {
 	DatabaseName         string             `json:"databaseName"`
 	StorageBucketName    string             `json:"storageBucketName"`
 	SupportsMetrics      bool               `json:"supportsMetrics"`
+	// Schedulable: The type declares lifecycle start/stop actions, so this
+	// resource can carry a sleep/wake schedule.
+	Schedulable bool `json:"schedulable"`
 }
 
 // ResourceFieldChange is the `ResourceFieldChange` schema.
@@ -2548,6 +2973,19 @@ type ResourceTypeSummary struct {
 	AttachTargets         []ResourceTypeSummaryAttachTargets `json:"attachTargets,omitempty"`
 	IsSSHHost             *bool                              `json:"isSshHost,omitempty"`
 	SSHTunnelAttachSource *bool                              `json:"sshTunnelAttachSource,omitempty"`
+	// Schedulable: The type declares lifecycle start/stop actions, so its
+	// resources can carry a sleep/wake schedule.
+	Schedulable *bool `json:"schedulable,omitempty"`
+}
+
+// RightsizingListResponse is the `RightsizingListResponse` schema.
+type RightsizingListResponse struct {
+	// Accounts: Groups sorted by account name.
+	Accounts   []OversizedAccountGroup `json:"accounts"`
+	TotalCount int64                   `json:"totalCount"`
+	// WindowDays: Days of stored metrics the percentiles cover.
+	WindowDays  int64  `json:"windowDays"`
+	GeneratedAt string `json:"generatedAt"`
 }
 
 // Role is the `Role` schema.
@@ -2589,6 +3027,21 @@ type RoleUpdateRequest struct {
 	Name        *string      `json:"name,omitempty"`
 	Description *string      `json:"description,omitempty"`
 	Permissions []Permission `json:"permissions,omitempty"`
+}
+
+// ScheduleConflict is the `ScheduleConflict` schema.
+type ScheduleConflict struct {
+	Error string `json:"error"`
+}
+
+// ScheduleTransition is the `ScheduleTransition` schema.
+type ScheduleTransition struct {
+	At string `json:"at"`
+	// Action: A schedule transition: `stop` powers the resource off, `start`
+	// powers it on.
+	//
+	// One of "stop", "start".
+	Action string `json:"action"`
 }
 
 // SearchHit is the `SearchHit` schema.
@@ -2743,6 +3196,14 @@ type SFTPUploadForm struct {
 	SSHUsername *string   `json:"sshUsername,omitempty"`
 }
 
+// ShowbackReport is the `ShowbackReport` schema.
+type ShowbackReport struct {
+	From       string                  `json:"from"`
+	To         string                  `json:"to"`
+	Currencies []string                `json:"currencies"`
+	Centres    []ShowbackReportCentres `json:"centres"`
+}
+
 // SlackAvailableChannel is the `SlackAvailableChannel` schema.
 type SlackAvailableChannel struct {
 	ID        string `json:"id"`
@@ -2770,6 +3231,12 @@ type SlackChannel struct {
 	// WorkflowPages: Pages and approval requests raised by a workflow
 	// (infra.page / infra.waitForApproval) or by POST /pages
 	WorkflowPages bool `json:"workflowPages"`
+	// ProviderIncidents: A provider status-page incident overlaps resources you
+	// hold.
+	ProviderIncidents bool `json:"providerIncidents"`
+	// ExpiryAlerts: Daily digests of approaching resource deadlines — expiring
+	// certificates, domains, tokens and keys past their rotation budget.
+	ExpiryAlerts bool `json:"expiryAlerts"`
 	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
 	// organization has enabled the digest (see /digest).
 	WeeklyDigest bool `json:"weeklyDigest"`
@@ -2777,26 +3244,30 @@ type SlackChannel struct {
 
 // SlackChannelCreate is the `SlackChannelCreate` schema.
 type SlackChannelCreate struct {
-	InstallationID string `json:"installationId"`
-	ChannelID      string `json:"channelId"`
-	ChannelName    string `json:"channelName"`
-	IsPrivate      *bool  `json:"isPrivate,omitempty"`
-	SyncIncidents  *bool  `json:"syncIncidents,omitempty"`
-	BudgetAlerts   *bool  `json:"budgetAlerts,omitempty"`
-	AnomalyAlerts  *bool  `json:"anomalyAlerts,omitempty"`
-	ResourceDrift  *bool  `json:"resourceDrift,omitempty"`
-	WorkflowPages  *bool  `json:"workflowPages,omitempty"`
-	WeeklyDigest   *bool  `json:"weeklyDigest,omitempty"`
+	InstallationID    string `json:"installationId"`
+	ChannelID         string `json:"channelId"`
+	ChannelName       string `json:"channelName"`
+	IsPrivate         *bool  `json:"isPrivate,omitempty"`
+	SyncIncidents     *bool  `json:"syncIncidents,omitempty"`
+	BudgetAlerts      *bool  `json:"budgetAlerts,omitempty"`
+	AnomalyAlerts     *bool  `json:"anomalyAlerts,omitempty"`
+	ResourceDrift     *bool  `json:"resourceDrift,omitempty"`
+	WorkflowPages     *bool  `json:"workflowPages,omitempty"`
+	ProviderIncidents *bool  `json:"providerIncidents,omitempty"`
+	ExpiryAlerts      *bool  `json:"expiryAlerts,omitempty"`
+	WeeklyDigest      *bool  `json:"weeklyDigest,omitempty"`
 }
 
 // SlackChannelUpdate is the `SlackChannelUpdate` schema.
 type SlackChannelUpdate struct {
-	SyncIncidents *bool `json:"syncIncidents,omitempty"`
-	BudgetAlerts  *bool `json:"budgetAlerts,omitempty"`
-	AnomalyAlerts *bool `json:"anomalyAlerts,omitempty"`
-	ResourceDrift *bool `json:"resourceDrift,omitempty"`
-	WorkflowPages *bool `json:"workflowPages,omitempty"`
-	WeeklyDigest  *bool `json:"weeklyDigest,omitempty"`
+	SyncIncidents     *bool `json:"syncIncidents,omitempty"`
+	BudgetAlerts      *bool `json:"budgetAlerts,omitempty"`
+	AnomalyAlerts     *bool `json:"anomalyAlerts,omitempty"`
+	ResourceDrift     *bool `json:"resourceDrift,omitempty"`
+	WorkflowPages     *bool `json:"workflowPages,omitempty"`
+	ProviderIncidents *bool `json:"providerIncidents,omitempty"`
+	ExpiryAlerts      *bool `json:"expiryAlerts,omitempty"`
+	WeeklyDigest      *bool `json:"weeklyDigest,omitempty"`
 }
 
 // SlackInstallation is the `SlackInstallation` schema.
@@ -2814,6 +3285,134 @@ type SlackStatus struct {
 	Configured    bool                `json:"configured"`
 	Installations []SlackInstallation `json:"installations"`
 	Channels      []SlackChannel      `json:"channels"`
+}
+
+// SleepSchedule is the `SleepSchedule` schema.
+type SleepSchedule struct {
+	ID string `json:"id"`
+	// ResourceID: Infrawrench resource id the schedule powers on and off.
+	ResourceID     string   `json:"resourceId"`
+	AccountID      string   `json:"accountId"`
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	// ResourceName: Resource display name at read time.
+	ResourceName string `json:"resourceName"`
+	AccountName  string `json:"accountName"`
+	// DaysOfWeek: ISO weekdays the resource is worked on: 1 = Monday … 7 =
+	// Sunday.
+	DaysOfWeek []int64 `json:"daysOfWeek"`
+	// StopTime: Wall-clock time of day, 24-hour `"HH:MM"`, in the schedule's
+	// timezone.
+	StopTime string `json:"stopTime"`
+	// StartTime: Wall-clock time of day, 24-hour `"HH:MM"`, in the schedule's
+	// timezone.
+	StartTime string `json:"startTime"`
+	// Timezone: IANA timezone the wall-clock times are computed in (DST-safe).
+	Timezone string `json:"timezone"`
+	// Paused: Paused schedules keep their timing but never fire.
+	Paused bool `json:"paused"`
+	// NextTransitionAt: Next due transition; null while paused.
+	NextTransitionAt *string `json:"nextTransitionAt"`
+	// NextTransitionAction: A schedule transition: `stop` powers the resource
+	// off, `start` powers it on.
+	//
+	// One of "stop", "start".
+	NextTransitionAction *string `json:"nextTransitionAction"`
+	LastRunAt            *string `json:"lastRunAt"`
+	// LastRunAction: A schedule transition: `stop` powers the resource off,
+	// `start` powers it on.
+	//
+	// One of "stop", "start".
+	LastRunAction *string `json:"lastRunAction"`
+	// LastRunStatus: Outcome of the last executed transition: `ok`, `failed`
+	// (see `lastRunError`), or `skipped_freeze` (an org change freeze was in
+	// effect, so the transition was skipped).
+	//
+	// One of "ok", "failed", "skipped_freeze".
+	LastRunStatus *string `json:"lastRunStatus"`
+	// LastRunError: Failure detail for a failed run.
+	LastRunError *string `json:"lastRunError"`
+	// ProjectedMonthlySaving: Projected monthly saving from trailing
+	// per-resource spend × the weekly off-hours fraction; null when billing
+	// holds no rows for the resource.
+	ProjectedMonthlySaving *float64 `json:"projectedMonthlySaving"`
+	// Currency: Currency of the projection, when present.
+	Currency  *string `json:"currency"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt string  `json:"updatedAt"`
+}
+
+// SleepScheduleCreate is the `SleepScheduleCreate` schema.
+type SleepScheduleCreate struct {
+	ResourceID string `json:"resourceId"`
+	AccountID  string `json:"accountId"`
+	// DaysOfWeek: ISO weekdays the resource is worked on: 1 = Monday … 7 =
+	// Sunday.
+	DaysOfWeek []int64 `json:"daysOfWeek"`
+	// StopTime: Wall-clock time of day, 24-hour `"HH:MM"`, in the schedule's
+	// timezone.
+	StopTime string `json:"stopTime"`
+	// StartTime: Wall-clock time of day, 24-hour `"HH:MM"`, in the schedule's
+	// timezone.
+	StartTime string `json:"startTime"`
+	// Timezone: IANA timezone the wall-clock times are computed in (DST-safe).
+	Timezone string `json:"timezone"`
+}
+
+// SleepScheduleList is the `SleepScheduleList` schema.
+type SleepScheduleList struct {
+	Schedules []SleepSchedule `json:"schedules"`
+}
+
+// SleepSchedulePreview is the `SleepSchedulePreview` schema.
+type SleepSchedulePreview struct {
+	// OffFraction: Fraction of the week (0–1) the schedule keeps the resource
+	// stopped.
+	OffFraction float64 `json:"offFraction"`
+	// MonthlyCost: Trailing spend normalized to a month; null when billing holds
+	// no rows.
+	MonthlyCost            *float64 `json:"monthlyCost"`
+	ProjectedMonthlySaving *float64 `json:"projectedMonthlySaving"`
+	Currency               *string  `json:"currency"`
+	// CostWindowDays: Days of billing data the estimate was computed over (0 =
+	// none found).
+	CostWindowDays int64 `json:"costWindowDays"`
+	// NextTransitions: The next few transitions, soonest first — a timezone
+	// sanity check.
+	NextTransitions []ScheduleTransition `json:"nextTransitions"`
+}
+
+// SleepSchedulePreviewRequest is the `SleepSchedulePreviewRequest` schema.
+type SleepSchedulePreviewRequest struct {
+	ResourceID string `json:"resourceId"`
+	AccountID  string `json:"accountId"`
+	// DaysOfWeek: ISO weekdays the resource is worked on: 1 = Monday … 7 =
+	// Sunday.
+	DaysOfWeek []int64 `json:"daysOfWeek"`
+	// StopTime: Wall-clock time of day, 24-hour `"HH:MM"`, in the schedule's
+	// timezone.
+	StopTime string `json:"stopTime"`
+	// StartTime: Wall-clock time of day, 24-hour `"HH:MM"`, in the schedule's
+	// timezone.
+	StartTime string `json:"startTime"`
+	// Timezone: IANA timezone the wall-clock times are computed in (DST-safe).
+	Timezone string `json:"timezone"`
+}
+
+// SleepScheduleUpdate is the `SleepScheduleUpdate` schema.
+type SleepScheduleUpdate struct {
+	// DaysOfWeek: ISO weekdays the resource is worked on: 1 = Monday … 7 =
+	// Sunday.
+	DaysOfWeek []int64 `json:"daysOfWeek,omitempty"`
+	// StopTime: Wall-clock time of day, 24-hour `"HH:MM"`, in the schedule's
+	// timezone.
+	StopTime *string `json:"stopTime,omitempty"`
+	// StartTime: Wall-clock time of day, 24-hour `"HH:MM"`, in the schedule's
+	// timezone.
+	StartTime *string `json:"startTime,omitempty"`
+	// Timezone: IANA timezone the wall-clock times are computed in (DST-safe).
+	Timezone *string `json:"timezone,omitempty"`
+	Paused   *bool   `json:"paused,omitempty"`
 }
 
 // SQLEstimateRequest is the `SqlEstimateRequest` schema.
@@ -2997,6 +3596,13 @@ type Subscription struct {
 	StripeCustomerID string  `json:"stripeCustomerId"`
 }
 
+// SwapAllocationRulesBody: Two allocation rule ids in the same org whose
+// priorities should be swapped.
+type SwapAllocationRulesBody struct {
+	AID string `json:"aId"`
+	BID string `json:"bId"`
+}
+
 // SyncResponse is the `SyncResponse` schema.
 type SyncResponse struct {
 	Synced int64 `json:"synced"`
@@ -3025,6 +3631,40 @@ type TabTarget struct {
 	ConversationID *string     `json:"conversationId,omitempty"`
 }
 
+// TagComplianceReport is the `TagComplianceReport` schema.
+type TagComplianceReport struct {
+	Policy   TagPolicy              `json:"policy"`
+	Accounts []AccountTagCompliance `json:"accounts"`
+}
+
+// TagPolicy is the `TagPolicy` schema.
+type TagPolicy struct {
+	RequiredTags []RequiredTag `json:"requiredTags"`
+	// EnforceOnCreate: When true, resource creation is rejected with a 422
+	// (`tag_policy_unmet`) if the submitted fields carry a tag map missing a
+	// required tag. Types whose create form has no `tags`/`labels` field are
+	// exempt.
+	EnforceOnCreate bool `json:"enforceOnCreate"`
+}
+
+// TagPolicyBlocked is the `TagPolicyBlocked` schema.
+type TagPolicyBlocked struct {
+	Error string `json:"error"`
+	// Code: One of "tag_policy_unmet".
+	Code         string               `json:"code"`
+	Violations   []TagPolicyViolation `json:"violations"`
+	RequiredTags []RequiredTag        `json:"requiredTags"`
+}
+
+// TagPolicyViolation is the `TagPolicyViolation` schema.
+type TagPolicyViolation struct {
+	Key string `json:"key"`
+	// Reason: One of "missing", "value_not_allowed".
+	Reason        string   `json:"reason"`
+	Value         *string  `json:"value,omitempty"`
+	AllowedValues []string `json:"allowedValues,omitempty"`
+}
+
 // TOTPEnrollment is the `TotpEnrollment` schema.
 //
 // Spec schema: `TotpEnrollment`.
@@ -3043,6 +3683,21 @@ type TOTPEnrollment struct {
 type UnpinRequest struct {
 	DashboardID string     `json:"dashboardId"`
 	ResourceID  ResourceID `json:"resourceId"`
+}
+
+// UntaggedSpendReport is the `UntaggedSpendReport` schema.
+type UntaggedSpendReport struct {
+	From         string   `json:"from"`
+	To           string   `json:"to"`
+	RequiredKeys []string `json:"requiredKeys"`
+	Currencies   []string `json:"currencies"`
+	// Totals: Currency code → amount in the currency's major unit.
+	Totals map[string]float64 `json:"totals"`
+	// UntaggedTotals: Spend on rows missing at least one required tag key, per
+	// currency.
+	UntaggedTotals map[string]float64               `json:"untaggedTotals"`
+	ByKey          []UntaggedSpendReportByKey       `json:"byKey"`
+	TopUntagged    []UntaggedSpendReportTopUntagged `json:"topUntagged"`
 }
 
 // UpdateAccountRequest is the `UpdateAccountRequest` schema.
@@ -3390,6 +4045,31 @@ type ResourceTypeSummaryAttachTargets struct {
 type SecretExportTemplateEntries struct {
 	OutputKey string `json:"outputKey"`
 	EnvKey    string `json:"envKey"`
+}
+
+// ShowbackReportCentres is an object the spec declares inline.
+type ShowbackReportCentres struct {
+	// CostCentreID: Null for the synthetic "Unallocated" bucket.
+	CostCentreID *string `json:"costCentreId"`
+	Name         string  `json:"name"`
+	// Totals: Currency code → amount in the currency's major unit.
+	Totals map[string]float64 `json:"totals"`
+}
+
+// UntaggedSpendReportByKey is an object the spec declares inline.
+type UntaggedSpendReportByKey struct {
+	Key string `json:"key"`
+	// Untagged: Currency code → amount in the currency's major unit.
+	Untagged map[string]float64 `json:"untagged"`
+}
+
+// UntaggedSpendReportTopUntagged is an object the spec declares inline.
+type UntaggedSpendReportTopUntagged struct {
+	AccountID    string  `json:"accountId"`
+	AccountLabel string  `json:"accountLabel"`
+	Service      string  `json:"service"`
+	Currency     string  `json:"currency"`
+	Amount       float64 `json:"amount"`
 }
 
 // ValidateTabsRequestTabs is an object the spec declares inline.
