@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.27.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.28.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.27.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.28.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3141,6 +3141,48 @@ const (
 type WorkflowPinRequest struct {
 	DashboardID string `json:"dashboardId"`
 	WorkflowID  string `json:"workflowId"`
+}
+
+// WorkflowSchedule is the `WorkflowSchedule` schema.
+type WorkflowSchedule struct {
+	// Expression: Standard 5-field cron expression (minute hour day-of-month
+	// month day-of-week). Supports `*`, lists, ranges, and steps; 3-letter
+	// month/weekday names; `7` as Sunday. When both day fields are restricted, a
+	// date matches if either does (POSIX).
+	Expression string `json:"expression"`
+	// Timezone: IANA timezone the expression's wall times are evaluated in. Omit
+	// or null for UTC.
+	Timezone *string `json:"timezone"`
+	// Enabled: Mirrors the workflow's enabled flag — a disabled workflow's
+	// schedule never fires.
+	Enabled bool `json:"enabled"`
+	// LastRunAt: When the workflow last finished a run (any trigger source).
+	LastRunAt *string `json:"lastRunAt"`
+	// NextRunAt: The persisted next fire time the scheduler will claim. Null
+	// while disabled, or when the expression never matches.
+	NextRunAt *string `json:"nextRunAt"`
+	// NextRuns: Preview of the next few fire times, computed at read time.
+	NextRuns []string `json:"nextRuns"`
+}
+
+// WorkflowScheduleInput is the `WorkflowScheduleInput` schema.
+type WorkflowScheduleInput struct {
+	// Expression: Standard 5-field cron expression (minute hour day-of-month
+	// month day-of-week). Supports `*`, lists, ranges, and steps; 3-letter
+	// month/weekday names; `7` as Sunday. When both day fields are restricted, a
+	// date matches if either does (POSIX).
+	Expression string `json:"expression"`
+	// Timezone: IANA timezone the expression's wall times are evaluated in. Omit
+	// or null for UTC.
+	Timezone *string `json:"timezone,omitempty"`
+	// Enabled: Also set the workflow's enabled flag. Omit to leave it unchanged.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// WorkflowScheduleResponse is the `WorkflowScheduleResponse` schema.
+type WorkflowScheduleResponse struct {
+	// Schedule: Null when the workflow's trigger is not cron.
+	Schedule *WorkflowSchedule `json:"schedule"`
 }
 
 // AcceptInvitationResponseOrganization is an object the spec declares inline.

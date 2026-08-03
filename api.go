@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.27.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.28.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.27.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.28.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -107,6 +107,8 @@ type APIV1Client struct {
 	Team *TeamNamespace
 	// WorkflowApprovals: `client.workflowApprovals`.
 	WorkflowApprovals *WorkflowApprovalsNamespace
+	// Workflows: `client.workflows`.
+	Workflows *WorkflowsNamespace
 }
 
 // NewAPIV1Client builds a client. With no options it talks to
@@ -153,6 +155,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Storage = newStorageNamespace(t)
 	c.Team = newTeamNamespace(t)
 	c.WorkflowApprovals = newWorkflowApprovalsNamespace(t)
+	c.Workflows = newWorkflowsNamespace(t)
 	return c
 }
 
@@ -7002,6 +7005,133 @@ func (n *WorkflowApprovalsNamespace) List(ctx context.Context, params *WorkflowA
 		r.addQuery("runId", params.RunID)
 	}
 	var out []WorkflowApproval
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsNamespace is `client.workflows`.
+type WorkflowsNamespace struct {
+	t *transport
+
+	// Schedule: `client.workflows.schedule`.
+	Schedule *WorkflowsScheduleNamespace
+}
+
+func newWorkflowsNamespace(t *transport) *WorkflowsNamespace {
+	n := &WorkflowsNamespace{t: t}
+	n.Schedule = newWorkflowsScheduleNamespace(t)
+	return n
+}
+
+// WorkflowsScheduleNamespace is `client.workflows.schedule`.
+type WorkflowsScheduleNamespace struct {
+	t *transport
+}
+
+func newWorkflowsScheduleNamespace(t *transport) *WorkflowsScheduleNamespace {
+	n := &WorkflowsScheduleNamespace{t: t}
+	return n
+}
+
+// WorkflowsScheduleDeleteParams holds the parameters for
+// `client.workflows.schedule.delete`.
+type WorkflowsScheduleDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+}
+
+// Delete: Remove a workflow's cron schedule
+//
+// Reverts the workflow's trigger to manual and clears the pending fire time. A
+// no-op when the trigger is not cron.
+//
+// _Requires permission: `dashboards:write`._
+//
+// DELETE /api/org/{orgId}/workflows/{id}/schedule
+//
+// Raises on 404: Not found
+func (n *WorkflowsScheduleNamespace) Delete(ctx context.Context, params WorkflowsScheduleDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/workflows/{id}/schedule")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsScheduleGetParams holds the parameters for
+// `client.workflows.schedule.get`.
+type WorkflowsScheduleGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+}
+
+// Get: Get a workflow's cron schedule
+//
+// The schedule view of the workflow's trigger, with the next few computed fire
+// times. `schedule` is null when the workflow is triggered some other way
+// (manual, git, budget).
+//
+// _Requires permission: `dashboards:read`._
+//
+// GET /api/org/{orgId}/workflows/{id}/schedule
+//
+// Raises on 404: Not found
+func (n *WorkflowsScheduleNamespace) Get(ctx context.Context, params WorkflowsScheduleGetParams, opts ...RequestOption) (*WorkflowScheduleResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/workflows/{id}/schedule")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *WorkflowScheduleResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsScheduleUpdateParams holds the parameters for
+// `client.workflows.schedule.update`.
+type WorkflowsScheduleUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+	// Body: the JSON request body.
+	Body WorkflowScheduleInput
+}
+
+// Update: Create or replace a workflow's cron schedule
+//
+// Sets the workflow's trigger to cron with the given expression and timezone,
+// validating both, and computes the next fire time. The workflow fires at the
+// schedule's next occurrence — never immediately on save.
+//
+// _Requires permission: `dashboards:write`._
+//
+// PUT /api/org/{orgId}/workflows/{id}/schedule
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *WorkflowsScheduleNamespace) Update(ctx context.Context, params WorkflowsScheduleUpdateParams, opts ...RequestOption) (*WorkflowScheduleResponse, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/workflows/{id}/schedule")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *WorkflowScheduleResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
