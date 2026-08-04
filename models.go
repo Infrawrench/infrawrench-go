@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.29.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.30.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.29.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.30.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -521,6 +521,13 @@ type CostAnomaly struct {
 	// NotifiedAt: When the anomaly was delivered to a notification channel; null
 	// when delivery failed or a recent anomaly for the same key suppressed it.
 	NotifiedAt *string `json:"notifiedAt"`
+	// Hints: Root-cause hints computed when the anomaly fired: human-readable
+	// facts from the change timeline and audit log for the anomalous day and the
+	// day before (e.g. "12 gce-instance resources appeared", a workflow run, a
+	// lifted change freeze), ranked by likely relevance and capped at three.
+	// Empty when nothing notable happened in the window or the anomaly predates
+	// hint collection.
+	Hints []string `json:"hints"`
 }
 
 // CostAnomalySettings is the `CostAnomalySettings` schema.
@@ -1602,6 +1609,101 @@ type LiteralAssociationRequest struct {
 	PlaintextValue string     `json:"plaintextValue"`
 }
 
+// LogCapableResource is the `LogCapableResource` schema.
+type LogCapableResource struct {
+	ResourceID     string   `json:"resourceId"`
+	AccountID      string   `json:"accountId"`
+	AccountName    string   `json:"accountName"`
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	DisplayName    string   `json:"displayName"`
+}
+
+// LogCapableResourceList is the `LogCapableResourceList` schema.
+type LogCapableResourceList struct {
+	Resources []LogCapableResource `json:"resources"`
+}
+
+// LogStreamSelector is the `LogStreamSelector` schema.
+type LogStreamSelector struct {
+	// ResourceID: Infrawrench resource id of the stream to tail.
+	ResourceID     string   `json:"resourceId"`
+	AccountID      string   `json:"accountId"`
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	// Container: Container to fetch when the resource has more than one; omit
+	// for the default.
+	Container *string `json:"container,omitempty"`
+}
+
+// LogWorkspaceQuery is the `LogWorkspaceQuery` schema.
+type LogWorkspaceQuery struct {
+	ID        string              `json:"id"`
+	Name      string              `json:"name"`
+	Resources []LogStreamSelector `json:"resources"`
+	// Search: The search expression. Empty matches every line; `/pattern/`
+	// (optionally `/pattern/i`) is a regular expression; otherwise
+	// whitespace-separated terms that must ALL appear in a line
+	// (case-insensitive), with `"quoted phrases"` and `-term` negation.
+	Search string `json:"search"`
+	// AlertEnabled: When true the poller periodically evaluates the query and
+	// alerts on match.
+	AlertEnabled bool `json:"alertEnabled"`
+	// LastEvalAt: Last time the alert pass evaluated this query; null until it
+	// has run.
+	LastEvalAt *string `json:"lastEvalAt"`
+	// LastMatchAt: Last evaluation that found at least one matching line.
+	LastMatchAt *string `json:"lastMatchAt"`
+	// LastAlertedAt: Last dispatched notification — the cooldown anchor.
+	LastAlertedAt *string `json:"lastAlertedAt"`
+	// LastEvalError: Failure detail from the last evaluation.
+	LastEvalError *string `json:"lastEvalError"`
+	// LastMatchSample: Truncated sample of the most recent matching line.
+	LastMatchSample *string `json:"lastMatchSample"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// LogWorkspaceQueryConflict is the `LogWorkspaceQueryConflict` schema.
+type LogWorkspaceQueryConflict struct {
+	Error string `json:"error"`
+}
+
+// LogWorkspaceQueryCreate is the `LogWorkspaceQueryCreate` schema.
+type LogWorkspaceQueryCreate struct {
+	Name      string              `json:"name"`
+	Resources []LogStreamSelector `json:"resources"`
+	// Search: The search expression. Empty matches every line; `/pattern/`
+	// (optionally `/pattern/i`) is a regular expression; otherwise
+	// whitespace-separated terms that must ALL appear in a line
+	// (case-insensitive), with `"quoted phrases"` and `-term` negation.
+	Search       string `json:"search"`
+	AlertEnabled *bool  `json:"alertEnabled,omitempty"`
+}
+
+// LogWorkspaceQueryList is the `LogWorkspaceQueryList` schema.
+type LogWorkspaceQueryList struct {
+	Queries []LogWorkspaceQuery `json:"queries"`
+}
+
+// LogWorkspaceQueryUpdate is the `LogWorkspaceQueryUpdate` schema.
+type LogWorkspaceQueryUpdate struct {
+	Name      *string             `json:"name,omitempty"`
+	Resources []LogStreamSelector `json:"resources,omitempty"`
+	// Search: The search expression. Empty matches every line; `/pattern/`
+	// (optionally `/pattern/i`) is a regular expression; otherwise
+	// whitespace-separated terms that must ALL appear in a line
+	// (case-insensitive), with `"quoted phrases"` and `-term` negation.
+	Search       *string `json:"search,omitempty"`
+	AlertEnabled *bool   `json:"alertEnabled,omitempty"`
+}
+
+// LogWorkspaceQueryUpdateConflict is the `LogWorkspaceQueryUpdateConflict`
+// schema.
+type LogWorkspaceQueryUpdateConflict struct {
+	Error string `json:"error"`
+}
+
 // LogsRequest is the `LogsRequest` schema.
 type LogsRequest struct {
 	AccountID        string      `json:"accountId"`
@@ -1636,11 +1738,155 @@ type MeResponse struct {
 	Permissions []Permission `json:"permissions"`
 }
 
+// MetricAlertEvent is the `MetricAlertEvent` schema.
+type MetricAlertEvent struct {
+	ID           string `json:"id"`
+	RuleID       string `json:"ruleId"`
+	RuleName     string `json:"ruleName"`
+	ResourceID   string `json:"resourceId"`
+	ResourceName string `json:"resourceName"`
+	// Status: One of "firing", "resolved".
+	Status string `json:"status"`
+	// ObservedValue: Worst sample observed in the breaching window, in the
+	// metric's unit.
+	ObservedValue float64 `json:"observedValue"`
+	FiredAt       string  `json:"firedAt"`
+	ResolvedAt    *string `json:"resolvedAt"`
+}
+
+// MetricAlertRule is the `MetricAlertRule` schema.
+type MetricAlertRule struct {
+	Name string `json:"name"`
+	// PluginID: Selector: plugin the resource must belong to. Null matches any
+	// plugin.
+	PluginID *string `json:"pluginId"`
+	// ResourceTypeID: Selector: resource type within the plugin. Null matches
+	// any type.
+	ResourceTypeID *string `json:"resourceTypeId"`
+	// TagKey: Selector: tag key the resource must carry (matched
+	// case-insensitively). Null applies no tag filter. Resources are always
+	// selected by this query, never by id, so rules cover resources created
+	// later.
+	TagKey *string `json:"tagKey"`
+	// TagValue: Selector: exact value tagKey must have. Null matches any value.
+	TagValue *string `json:"tagValue"`
+	// MetricKey: The metric series label as the resource's charts report it (see
+	// /metric-alerts/metric-keys).
+	MetricKey string `json:"metricKey"`
+	// Comparator: One of ">", ">=", "<", "<=".
+	Comparator string  `json:"comparator"`
+	Threshold  float64 `json:"threshold"`
+	// ForMinutes: Trailing window (minutes) the condition must hold for before
+	// firing.
+	ForMinutes int64 `json:"forMinutes"`
+	// CooldownMinutes: Least minutes between notified firings for one (rule,
+	// resource).
+	CooldownMinutes int64   `json:"cooldownMinutes"`
+	Enabled         bool    `json:"enabled"`
+	ID              string  `json:"id"`
+	LastEvalAt      *string `json:"lastEvalAt"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// MetricAlertRuleInput is the `MetricAlertRuleInput` schema.
+type MetricAlertRuleInput struct {
+	Name string `json:"name"`
+	// PluginID: Selector: plugin the resource must belong to. Null matches any
+	// plugin.
+	PluginID *string `json:"pluginId"`
+	// ResourceTypeID: Selector: resource type within the plugin. Null matches
+	// any type.
+	ResourceTypeID *string `json:"resourceTypeId"`
+	// TagKey: Selector: tag key the resource must carry (matched
+	// case-insensitively). Null applies no tag filter. Resources are always
+	// selected by this query, never by id, so rules cover resources created
+	// later.
+	TagKey *string `json:"tagKey"`
+	// TagValue: Selector: exact value tagKey must have. Null matches any value.
+	TagValue *string `json:"tagValue"`
+	// MetricKey: The metric series label as the resource's charts report it (see
+	// /metric-alerts/metric-keys).
+	MetricKey string `json:"metricKey"`
+	// Comparator: One of ">", ">=", "<", "<=".
+	Comparator string  `json:"comparator"`
+	Threshold  float64 `json:"threshold"`
+	// ForMinutes: Trailing window (minutes) the condition must hold for before
+	// firing.
+	ForMinutes int64 `json:"forMinutes"`
+	// CooldownMinutes: Least minutes between notified firings for one (rule,
+	// resource).
+	CooldownMinutes int64 `json:"cooldownMinutes"`
+	Enabled         bool  `json:"enabled"`
+}
+
+// MetricAlertRuleWithStatus is the `MetricAlertRuleWithStatus` schema.
+type MetricAlertRuleWithStatus struct {
+	Name string `json:"name"`
+	// PluginID: Selector: plugin the resource must belong to. Null matches any
+	// plugin.
+	PluginID *string `json:"pluginId"`
+	// ResourceTypeID: Selector: resource type within the plugin. Null matches
+	// any type.
+	ResourceTypeID *string `json:"resourceTypeId"`
+	// TagKey: Selector: tag key the resource must carry (matched
+	// case-insensitively). Null applies no tag filter. Resources are always
+	// selected by this query, never by id, so rules cover resources created
+	// later.
+	TagKey *string `json:"tagKey"`
+	// TagValue: Selector: exact value tagKey must have. Null matches any value.
+	TagValue *string `json:"tagValue"`
+	// MetricKey: The metric series label as the resource's charts report it (see
+	// /metric-alerts/metric-keys).
+	MetricKey string `json:"metricKey"`
+	// Comparator: One of ">", ">=", "<", "<=".
+	Comparator string  `json:"comparator"`
+	Threshold  float64 `json:"threshold"`
+	// ForMinutes: Trailing window (minutes) the condition must hold for before
+	// firing.
+	ForMinutes int64 `json:"forMinutes"`
+	// CooldownMinutes: Least minutes between notified firings for one (rule,
+	// resource).
+	CooldownMinutes int64   `json:"cooldownMinutes"`
+	Enabled         bool    `json:"enabled"`
+	ID              string  `json:"id"`
+	LastEvalAt      *string `json:"lastEvalAt"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+	// FiringCount: Resources currently in breach of this rule.
+	FiringCount int64 `json:"firingCount"`
+	// MatchingResourceCount: Resources the selector matches right now.
+	MatchingResourceCount int64 `json:"matchingResourceCount"`
+}
+
+// MetricAlertSelectorOptions is the `MetricAlertSelectorOptions` schema.
+type MetricAlertSelectorOptions struct {
+	Plugins []MetricAlertSelectorOptionsPlugins `json:"plugins"`
+	TagKeys []string                            `json:"tagKeys"`
+}
+
+// MetricAlertSelectorPreview is the `MetricAlertSelectorPreview` schema.
+type MetricAlertSelectorPreview struct {
+	MatchingResourceCount int64 `json:"matchingResourceCount"`
+	// SampleResourceNames: Up to 10 matching display names, for a live form
+	// preview.
+	SampleResourceNames []string `json:"sampleResourceNames"`
+}
+
 // MetricSeries is the `MetricSeries` schema.
 type MetricSeries struct {
 	Label  string               `json:"label"`
 	Unit   *string              `json:"unit,omitempty"`
 	Points []MetricSeriesPoints `json:"points"`
+}
+
+// MetricSeriesKey is the `MetricSeriesKey` schema.
+type MetricSeriesKey struct {
+	Label string `json:"label"`
+	Unit  string `json:"unit"`
+	// ResourceCount: Distinct resources that reported this series in the last 7
+	// days.
+	ResourceCount int64 `json:"resourceCount"`
 }
 
 // MetricsRequest is the `MetricsRequest` schema.
@@ -1793,6 +2039,8 @@ type MsTeamsWebhook struct {
 	BudgetAlerts  bool   `json:"budgetAlerts"`
 	// AnomalyAlerts: Statistical spend-spike (cost anomaly) alerts
 	AnomalyAlerts bool `json:"anomalyAlerts"`
+	// MetricAlerts: Metric threshold rule firings and recoveries
+	MetricAlerts bool `json:"metricAlerts"`
 	// ResourceDrift: Batched resource-drift digests from the change timeline.
 	// Defaults to false when a channel is added — drift is continuous where the
 	// other triggers are exceptional.
@@ -1806,6 +2054,9 @@ type MsTeamsWebhook struct {
 	// ExpiryAlerts: Daily digests of approaching resource deadlines — expiring
 	// certificates, domains, tokens and keys past their rotation budget.
 	ExpiryAlerts bool `json:"expiryAlerts"`
+	// LogMatchAlerts: A saved log-workspace query with alerting enabled found
+	// matching log lines.
+	LogMatchAlerts bool `json:"logMatchAlerts"`
 	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
 	// organization has enabled the digest (see /digest).
 	WeeklyDigest bool `json:"weeklyDigest"`
@@ -1822,10 +2073,12 @@ type MsTeamsWebhookCreate struct {
 	SyncIncidents     *bool  `json:"syncIncidents,omitempty"`
 	BudgetAlerts      *bool  `json:"budgetAlerts,omitempty"`
 	AnomalyAlerts     *bool  `json:"anomalyAlerts,omitempty"`
+	MetricAlerts      *bool  `json:"metricAlerts,omitempty"`
 	ResourceDrift     *bool  `json:"resourceDrift,omitempty"`
 	WorkflowPages     *bool  `json:"workflowPages,omitempty"`
 	ProviderIncidents *bool  `json:"providerIncidents,omitempty"`
 	ExpiryAlerts      *bool  `json:"expiryAlerts,omitempty"`
+	LogMatchAlerts    *bool  `json:"logMatchAlerts,omitempty"`
 	WeeklyDigest      *bool  `json:"weeklyDigest,omitempty"`
 }
 
@@ -1835,10 +2088,12 @@ type MsTeamsWebhookUpdate struct {
 	SyncIncidents     *bool   `json:"syncIncidents,omitempty"`
 	BudgetAlerts      *bool   `json:"budgetAlerts,omitempty"`
 	AnomalyAlerts     *bool   `json:"anomalyAlerts,omitempty"`
+	MetricAlerts      *bool   `json:"metricAlerts,omitempty"`
 	ResourceDrift     *bool   `json:"resourceDrift,omitempty"`
 	WorkflowPages     *bool   `json:"workflowPages,omitempty"`
 	ProviderIncidents *bool   `json:"providerIncidents,omitempty"`
 	ExpiryAlerts      *bool   `json:"expiryAlerts,omitempty"`
+	LogMatchAlerts    *bool   `json:"logMatchAlerts,omitempty"`
 	WeeklyDigest      *bool   `json:"weeklyDigest,omitempty"`
 }
 
@@ -2163,6 +2418,8 @@ const (
 	PermissionCostsWrite        Permission = "costs:write"
 	PermissionBudgetsRead       Permission = "budgets:read"
 	PermissionBudgetsWrite      Permission = "budgets:write"
+	PermissionMetricAlertsRead  Permission = "metric-alerts:read"
+	PermissionMetricAlertsWrite Permission = "metric-alerts:write"
 	PermissionFreezesRead       Permission = "freezes:read"
 	PermissionFreezesWrite      Permission = "freezes:write"
 	PermissionFreezesOverride   Permission = "freezes:override"
@@ -2307,10 +2564,80 @@ const (
 
 // PluginSummary is the `PluginSummary` schema.
 type PluginSummary struct {
-	ID               string            `json:"id"`
-	DisplayName      string            `json:"displayName"`
-	LogoSvg          string            `json:"logoSvg"`
-	CredentialFields []CredentialField `json:"credentialFields"`
+	ID               string                `json:"id"`
+	DisplayName      string                `json:"displayName"`
+	LogoSvg          string                `json:"logoSvg"`
+	CredentialFields []CredentialField     `json:"credentialFields"`
+	Preflight        *PreflightDeclaration `json:"preflight"`
+}
+
+// PolicyTemplate is the `PolicyTemplate` schema.
+type PolicyTemplate struct {
+	FormatLabel string `json:"formatLabel"`
+	// Language: One of "json", "yaml", "text".
+	Language     string                  `json:"language"`
+	Document     string                  `json:"document"`
+	Instructions *string                 `json:"instructions,omitempty"`
+	HelpLink     *PolicyTemplateHelpLink `json:"helpLink,omitempty"`
+}
+
+// PolicyTemplateResponse is the `PolicyTemplateResponse` schema.
+type PolicyTemplateResponse struct {
+	Template PolicyTemplate `json:"template"`
+}
+
+// PreflightCapability is the `PreflightCapability` schema.
+type PreflightCapability struct {
+	ID                  string                `json:"id"`
+	Label               string                `json:"label"`
+	Description         *string               `json:"description,omitempty"`
+	RequiredPermissions []PreflightPermission `json:"requiredPermissions"`
+	Essential           *bool                 `json:"essential,omitempty"`
+}
+
+// PreflightCheck is the `PreflightCheck` schema.
+type PreflightCheck struct {
+	CapabilityID string `json:"capabilityId"`
+	// Status: One of "ok", "missing", "unknown".
+	Status             string                  `json:"status"`
+	MissingPermissions []PreflightPermission   `json:"missingPermissions"`
+	Message            *string                 `json:"message"`
+	HelpLink           *PreflightCheckHelpLink `json:"helpLink"`
+}
+
+// PreflightDeclaration: Declared when the plugin supports credential preflight
+// (per-capability permission checks). `null` for plugins without it.
+//
+// The API may send null in its place.
+type PreflightDeclaration struct {
+	Capabilities   []PreflightCapability               `json:"capabilities"`
+	TemplateFormat *PreflightDeclarationTemplateFormat `json:"templateFormat,omitempty"`
+}
+
+// PreflightPermission is the `PreflightPermission` schema.
+type PreflightPermission struct {
+	// ID: Provider-native permission string, e.g. `ce:GetCostAndUsage`.
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// PreflightReport is the `PreflightReport` schema.
+type PreflightReport struct {
+	PluginID  string `json:"pluginId"`
+	Supported bool   `json:"supported"`
+	// Identity: Provider-side identity the credential resolved to (ARN, service
+	// account…).
+	Identity *string          `json:"identity"`
+	Checks   []PreflightCheck `json:"checks"`
+}
+
+// PreflightRequest is the `PreflightRequest` schema.
+type PreflightRequest struct {
+	PluginID    string            `json:"pluginId"`
+	Credentials map[string]string `json:"credentials"`
+	// BastionID: Probe through this bastion, matching how the account will
+	// egress once created.
+	BastionID *string `json:"bastionId,omitempty"`
 }
 
 // ProbeRequest is the `ProbeRequest` schema.
@@ -3224,6 +3551,8 @@ type SlackChannel struct {
 	BudgetAlerts  bool   `json:"budgetAlerts"`
 	// AnomalyAlerts: Statistical spend-spike (cost anomaly) alerts
 	AnomalyAlerts bool `json:"anomalyAlerts"`
+	// MetricAlerts: Metric threshold rule firings and recoveries
+	MetricAlerts bool `json:"metricAlerts"`
 	// ResourceDrift: Batched resource-drift digests from the change timeline.
 	// Defaults to false when a channel is added — drift is continuous where the
 	// other triggers are exceptional.
@@ -3237,6 +3566,9 @@ type SlackChannel struct {
 	// ExpiryAlerts: Daily digests of approaching resource deadlines — expiring
 	// certificates, domains, tokens and keys past their rotation budget.
 	ExpiryAlerts bool `json:"expiryAlerts"`
+	// LogMatchAlerts: A saved log-workspace query with alerting enabled found
+	// matching log lines.
+	LogMatchAlerts bool `json:"logMatchAlerts"`
 	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
 	// organization has enabled the digest (see /digest).
 	WeeklyDigest bool `json:"weeklyDigest"`
@@ -3251,10 +3583,12 @@ type SlackChannelCreate struct {
 	SyncIncidents     *bool  `json:"syncIncidents,omitempty"`
 	BudgetAlerts      *bool  `json:"budgetAlerts,omitempty"`
 	AnomalyAlerts     *bool  `json:"anomalyAlerts,omitempty"`
+	MetricAlerts      *bool  `json:"metricAlerts,omitempty"`
 	ResourceDrift     *bool  `json:"resourceDrift,omitempty"`
 	WorkflowPages     *bool  `json:"workflowPages,omitempty"`
 	ProviderIncidents *bool  `json:"providerIncidents,omitempty"`
 	ExpiryAlerts      *bool  `json:"expiryAlerts,omitempty"`
+	LogMatchAlerts    *bool  `json:"logMatchAlerts,omitempty"`
 	WeeklyDigest      *bool  `json:"weeklyDigest,omitempty"`
 }
 
@@ -3263,10 +3597,12 @@ type SlackChannelUpdate struct {
 	SyncIncidents     *bool `json:"syncIncidents,omitempty"`
 	BudgetAlerts      *bool `json:"budgetAlerts,omitempty"`
 	AnomalyAlerts     *bool `json:"anomalyAlerts,omitempty"`
+	MetricAlerts      *bool `json:"metricAlerts,omitempty"`
 	ResourceDrift     *bool `json:"resourceDrift,omitempty"`
 	WorkflowPages     *bool `json:"workflowPages,omitempty"`
 	ProviderIncidents *bool `json:"providerIncidents,omitempty"`
 	ExpiryAlerts      *bool `json:"expiryAlerts,omitempty"`
+	LogMatchAlerts    *bool `json:"logMatchAlerts,omitempty"`
 	WeeklyDigest      *bool `json:"weeklyDigest,omitempty"`
 }
 
@@ -3480,6 +3816,67 @@ type SSHExecResponse struct {
 	Code   int64   `json:"code"`
 }
 
+// SSHFanoutHostResult is the `SshFanoutHostResult` schema.
+//
+// Spec schema: `SshFanoutHostResult`.
+type SSHFanoutHostResult struct {
+	// Kind: One of "account", "resource".
+	Kind     string `json:"kind"`
+	TargetID string `json:"targetId"`
+	Label    string `json:"label"`
+	// Status: One of "done", "error", "blocked".
+	Status       string                           `json:"status"`
+	ExitCode     *int64                           `json:"exitCode"`
+	Stdout       string                           `json:"stdout"`
+	Stderr       string                           `json:"stderr"`
+	Error        *string                          `json:"error,omitempty"`
+	DurationMs   float64                          `json:"durationMs"`
+	HostKeyTrust *SshfanoutHostResultHostKeyTrust `json:"hostKeyTrust,omitempty"`
+}
+
+// SSHFanoutRunRequest is the `SshFanoutRunRequest` schema.
+//
+// Spec schema: `SshFanoutRunRequest`.
+type SSHFanoutRunRequest struct {
+	Command     string                       `json:"command"`
+	Targets     []SshfanoutRunRequestTargets `json:"targets"`
+	SSHKeyID    *string                      `json:"sshKeyId,omitempty"`
+	Username    *string                      `json:"username,omitempty"`
+	Concurrency *int64                       `json:"concurrency,omitempty"`
+}
+
+// SSHFanoutRunResponse is the `SshFanoutRunResponse` schema.
+//
+// Spec schema: `SshFanoutRunResponse`.
+type SSHFanoutRunResponse struct {
+	Results []SSHFanoutHostResult `json:"results"`
+}
+
+// SSHFanoutTarget is the `SshFanoutTarget` schema.
+//
+// Spec schema: `SshFanoutTarget`.
+type SSHFanoutTarget struct {
+	// Kind: One of "account", "resource".
+	Kind            string   `json:"kind"`
+	ID              string   `json:"id"`
+	AccountID       string   `json:"accountId"`
+	Label           string   `json:"label"`
+	PluginID        string   `json:"pluginId"`
+	ResourceTypeID  *string  `json:"resourceTypeId,omitempty"`
+	Host            *string  `json:"host,omitempty"`
+	DefaultUsername *string  `json:"defaultUsername,omitempty"`
+	Running         bool     `json:"running"`
+	NeedsKey        bool     `json:"needsKey"`
+	Tags            []string `json:"tags"`
+}
+
+// SSHFanoutTargetsResponse is the `SshFanoutTargetsResponse` schema.
+//
+// Spec schema: `SshFanoutTargetsResponse`.
+type SSHFanoutTargetsResponse struct {
+	Targets []SSHFanoutTarget `json:"targets"`
+}
+
 // SSHKey is the `SshKey` schema.
 //
 // Spec schema: `SshKey`.
@@ -3512,6 +3909,27 @@ const (
 	SSHKeyTypeSkSSHEd25519OpensshCom        SSHKeyType = "sk-ssh-ed25519@openssh.com"
 	SSHKeyTypeSkEcdsaSha2Nistp256OpensshCom SSHKeyType = "sk-ecdsa-sha2-nistp256@openssh.com"
 )
+
+// SSHSnippet is the `SshSnippet` schema.
+//
+// Spec schema: `SshSnippet`.
+type SSHSnippet struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Command     string  `json:"command"`
+	Description *string `json:"description"`
+	CreatedAt   string  `json:"createdAt"`
+	UpdatedAt   string  `json:"updatedAt"`
+}
+
+// SSHSnippetInput is the `SshSnippetInput` schema.
+//
+// Spec schema: `SshSnippetInput`.
+type SSHSnippetInput struct {
+	Name        string  `json:"name"`
+	Command     string  `json:"command"`
+	Description *string `json:"description,omitempty"`
+}
 
 // SSHTunnelCreateAccountRequest is the `SshTunnelCreateAccountRequest` schema.
 //
@@ -3979,6 +4397,12 @@ type FieldActionResponseOption struct {
 	Label string `json:"label"`
 }
 
+// MetricAlertSelectorOptionsPlugins is an object the spec declares inline.
+type MetricAlertSelectorOptionsPlugins struct {
+	PluginID        string   `json:"pluginId"`
+	ResourceTypeIDs []string `json:"resourceTypeIds"`
+}
+
 // MetricSeriesPoints is an object the spec declares inline.
 type MetricSeriesPoints struct {
 	// Timestamp: Unix epoch milliseconds.
@@ -3997,6 +4421,25 @@ type PickerResourcesRequestSources struct {
 type PinRangeMetricSeriesPoints struct {
 	Timestamp float64 `json:"timestamp"`
 	Value     float64 `json:"value"`
+}
+
+// PolicyTemplateHelpLink is an object the spec declares inline.
+type PolicyTemplateHelpLink struct {
+	Label string `json:"label"`
+	URL   string `json:"url"`
+}
+
+// PreflightCheckHelpLink is an object the spec declares inline.
+type PreflightCheckHelpLink struct {
+	Label string `json:"label"`
+	URL   string `json:"url"`
+}
+
+// PreflightDeclarationTemplateFormat is an object the spec declares inline.
+type PreflightDeclarationTemplateFormat struct {
+	Label string `json:"label"`
+	// Language: One of "json", "yaml", "text".
+	Language string `json:"language"`
 }
 
 // ProbeRequestItems is an object the spec declares inline.
@@ -4054,6 +4497,23 @@ type ShowbackReportCentres struct {
 	Name         string  `json:"name"`
 	// Totals: Currency code → amount in the currency's major unit.
 	Totals map[string]float64 `json:"totals"`
+}
+
+// SshfanoutHostResultHostKeyTrust is an object the spec declares inline.
+type SshfanoutHostResultHostKeyTrust struct {
+	// Kind: One of "unknown", "mismatch".
+	Kind                 string  `json:"kind"`
+	Host                 string  `json:"host"`
+	Port                 int64   `json:"port"`
+	PresentedFingerprint string  `json:"presentedFingerprint"`
+	StoredFingerprint    *string `json:"storedFingerprint"`
+}
+
+// SshfanoutRunRequestTargets is an object the spec declares inline.
+type SshfanoutRunRequestTargets struct {
+	// Kind: One of "account", "resource".
+	Kind string `json:"kind"`
+	ID   string `json:"id"`
 }
 
 // UntaggedSpendReportByKey is an object the spec declares inline.
@@ -4256,6 +4716,16 @@ type SlackTestResponse struct {
 // inline.
 type SlackInstallationsAvailableChannelsResponse struct {
 	Channels []SlackAvailableChannel `json:"channels"`
+}
+
+// SshfanoutSnippetsCreateResponse is an object the spec declares inline.
+type SshfanoutSnippetsCreateResponse struct {
+	ID string `json:"id"`
+}
+
+// SshfanoutSnippetsGetResponse is an object the spec declares inline.
+type SshfanoutSnippetsGetResponse struct {
+	Snippets []SSHSnippet `json:"snippets"`
 }
 
 // SshtunnelsCloseRequest is an object the spec declares inline.

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.29.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.30.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.29.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.30.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -81,6 +81,10 @@ type APIV1Client struct {
 	Invitations *InvitationsNamespace
 	// KV: `client.kv`.
 	KV *KVNamespace
+	// LogWorkspaces: `client.logWorkspaces`.
+	LogWorkspaces *LogWorkspacesNamespace
+	// MetricAlerts: `client.metricAlerts`.
+	MetricAlerts *MetricAlertsNamespace
 	// Moment: `client.moment`.
 	Moment *MomentNamespace
 	// Msteams: `client.msteams`.
@@ -107,6 +111,8 @@ type APIV1Client struct {
 	Slack *SlackNamespace
 	// SQL: `client.sql`.
 	SQL *SQLNamespace
+	// SSHFanout: `client.sshFanout`.
+	SSHFanout *SSHFanoutNamespace
 	// SSHKeys: `client.sshKeys`.
 	SSHKeys *SSHKeysNamespace
 	// SSHTunnels: `client.sshTunnels`.
@@ -156,6 +162,8 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Expiring = newExpiringNamespace(t)
 	c.Invitations = newInvitationsNamespace(t)
 	c.KV = newKVNamespace(t)
+	c.LogWorkspaces = newLogWorkspacesNamespace(t)
+	c.MetricAlerts = newMetricAlertsNamespace(t)
 	c.Moment = newMomentNamespace(t)
 	c.Msteams = newMsteamsNamespace(t)
 	c.Orgs = newOrgsNamespace(t)
@@ -169,6 +177,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.SFTP = newSFTPNamespace(t)
 	c.Slack = newSlackNamespace(t)
 	c.SQL = newSQLNamespace(t)
+	c.SSHFanout = newSSHFanoutNamespace(t)
 	c.SSHKeys = newSSHKeysNamespace(t)
 	c.SSHTunnels = newSSHTunnelsNamespace(t)
 	c.StatusIncidents = newStatusIncidentsNamespace(t)
@@ -191,6 +200,10 @@ type AccountsNamespace struct {
 
 	// Credentials: `client.accounts.credentials`.
 	Credentials *AccountsCredentialsNamespace
+	// Plugins: `client.accounts.plugins`.
+	Plugins *AccountsPluginsNamespace
+	// Preflight: `client.accounts.preflight`.
+	Preflight *AccountsPreflightNamespace
 	// SyncType: `client.accounts.syncType`.
 	SyncType *AccountsSyncTypeNamespace
 }
@@ -198,6 +211,8 @@ type AccountsNamespace struct {
 func newAccountsNamespace(t *transport) *AccountsNamespace {
 	n := &AccountsNamespace{t: t}
 	n.Credentials = newAccountsCredentialsNamespace(t)
+	n.Plugins = newAccountsPluginsNamespace(t)
+	n.Preflight = newAccountsPreflightNamespace(t)
 	n.SyncType = newAccountsSyncTypeNamespace(t)
 	return n
 }
@@ -309,33 +324,6 @@ func (n *AccountsNamespace) List(ctx context.Context, params *AccountsListParams
 		r.setPath("orgId", params.OrgID)
 	}
 	var out []Account
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// AccountsPluginsParams holds the parameters for `client.accounts.plugins`.
-//
-// Every field is optional; pass nil to take the defaults.
-type AccountsPluginsParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-}
-
-// Plugins: List installed plugins and their credential fields
-//
-// _Requires permission: `accounts:read`._
-//
-// GET /api/org/{orgId}/accounts/plugins
-func (n *AccountsNamespace) Plugins(ctx context.Context, params *AccountsPluginsParams, opts ...RequestOption) ([]PluginSummary, error) {
-	r := newRequest(http.MethodGet, "/api/org/{orgId}/accounts/plugins")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-	}
-	var out []PluginSummary
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -503,6 +491,159 @@ func (n *AccountsCredentialsNamespace) Update(ctx context.Context, params Accoun
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *AccountsCredentialsUpdateResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccountsPluginsNamespace is `client.accounts.plugins`.
+type AccountsPluginsNamespace struct {
+	t *transport
+}
+
+func newAccountsPluginsNamespace(t *transport) *AccountsPluginsNamespace {
+	n := &AccountsPluginsNamespace{t: t}
+	return n
+}
+
+// AccountsPluginsListParams holds the parameters for
+// `client.accounts.plugins.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AccountsPluginsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List installed plugins and their credential fields
+//
+// _Requires permission: `accounts:read`._
+//
+// GET /api/org/{orgId}/accounts/plugins
+func (n *AccountsPluginsNamespace) List(ctx context.Context, params *AccountsPluginsListParams, opts ...RequestOption) ([]PluginSummary, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/accounts/plugins")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []PluginSummary
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccountsPluginsPolicyTemplateParams holds the parameters for
+// `client.accounts.plugins.policyTemplate`.
+type AccountsPluginsPolicyTemplateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	PluginID PluginID
+	// Capabilities: Comma-separated capability ids, e.g. `resources,costs`.
+	Capabilities *string
+}
+
+// PolicyTemplate: Generate a least-privilege credential template for a plugin
+//
+// Returns the paste-ready credential document (IAM policy JSON, custom role
+// YAML, token template…) scoped to the requested capability ids. Omitting
+// `capabilities` (or sending it empty) selects every declared capability; any
+// unknown capability id is rejected with 400. 400 also for plugins that don't
+// provide a template.
+//
+// _Requires permission: `accounts:read`._
+//
+// GET /api/org/{orgId}/accounts/plugins/{pluginId}/policy-template
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *AccountsPluginsNamespace) PolicyTemplate(ctx context.Context, params AccountsPluginsPolicyTemplateParams, opts ...RequestOption) (*PolicyTemplateResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/accounts/plugins/{pluginId}/policy-template")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("pluginId", params.PluginID)
+	r.addQuery("capabilities", params.Capabilities)
+	var out *PolicyTemplateResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccountsPreflightNamespace is `client.accounts.preflight`.
+type AccountsPreflightNamespace struct {
+	t *transport
+}
+
+func newAccountsPreflightNamespace(t *transport) *AccountsPreflightNamespace {
+	n := &AccountsPreflightNamespace{t: t}
+	return n
+}
+
+// AccountsPreflightCreateParams holds the parameters for
+// `client.accounts.preflight.create`.
+type AccountsPreflightCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body PreflightRequest
+}
+
+// Create: Probe credentials before creating an account
+//
+// Runs the plugin's per-capability permission checks against the submitted
+// credentials. Nothing is stored — use it from the add-account flow before
+// committing.
+//
+// _Requires permission: `accounts:write`._
+//
+// POST /api/org/{orgId}/accounts/preflight
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *AccountsPreflightNamespace) Create(ctx context.Context, params AccountsPreflightCreateParams, opts ...RequestOption) (*PreflightReport, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/accounts/preflight")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *PreflightReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccountsPreflightPostOrgOrgIDAccountsIDPreflightParams holds the parameters
+// for `client.accounts.preflight.postOrgOrgIdAccountsIdPreflight`.
+type AccountsPreflightPostOrgOrgIDAccountsIDPreflightParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// PostOrgOrgIDAccountsIDPreflight: Re-run credential preflight on a stored
+// account
+//
+// _Requires permission: `accounts:write`._
+//
+// POST /api/org/{orgId}/accounts/{id}/preflight
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *AccountsPreflightNamespace) PostOrgOrgIDAccountsIDPreflight(ctx context.Context, params AccountsPreflightPostOrgOrgIDAccountsIDPreflightParams, opts ...RequestOption) (*PreflightReport, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/accounts/{id}/preflight")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *PreflightReport
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -4388,6 +4529,464 @@ func (n *KVNamespace) Command(ctx context.Context, params KVCommandParams, opts 
 	return out, nil
 }
 
+// LogWorkspacesNamespace is `client.logWorkspaces`.
+type LogWorkspacesNamespace struct {
+	t *transport
+}
+
+func newLogWorkspacesNamespace(t *transport) *LogWorkspacesNamespace {
+	n := &LogWorkspacesNamespace{t: t}
+	return n
+}
+
+// LogWorkspacesCreateParams holds the parameters for
+// `client.logWorkspaces.create`.
+type LogWorkspacesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body LogWorkspaceQueryCreate
+}
+
+// Create: Save a log workspace query
+//
+// Save a named multi-resource tail: up to 8 log streams plus a search
+// expression, so the workspace can be reopened. With `alertEnabled` the poller
+// evaluates the query every few minutes over a bounded tail window and notifies
+// (push/Slack/Teams, `logMatchAlerts` trigger) when a line matches, with a
+// cooldown between alerts. Alerting requires a non-empty search expression.
+// Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/log-workspaces
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: A saved query with this name already exists
+func (n *LogWorkspacesNamespace) Create(ctx context.Context, params LogWorkspacesCreateParams, opts ...RequestOption) (*LogWorkspaceQuery, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/log-workspaces")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *LogWorkspaceQuery
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LogWorkspacesDeleteParams holds the parameters for
+// `client.logWorkspaces.delete`.
+type LogWorkspacesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	QueryID string
+}
+
+// Delete: Delete a saved log query
+//
+// Remove the saved query and stop any alerting it carried. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/log-workspaces/{queryId}
+//
+// Raises on 404: Not found
+func (n *LogWorkspacesNamespace) Delete(ctx context.Context, params LogWorkspacesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/log-workspaces/{queryId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("queryId", params.QueryID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// LogWorkspacesGetParams holds the parameters for `client.logWorkspaces.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LogWorkspacesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List saved log queries
+//
+// Every saved log-workspace query in the organization: its name, the set of log
+// streams it tails, the search expression, the alert flag and the alert pass's
+// last evaluation state. Log text itself is fetched per resource via `POST
+// /api/org/{orgId}/resources/{pluginId}/{typeId}/logs`.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/log-workspaces
+func (n *LogWorkspacesNamespace) Get(ctx context.Context, params *LogWorkspacesGetParams, opts ...RequestOption) (*LogWorkspaceQueryList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/log-workspaces")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *LogWorkspaceQueryList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LogWorkspacesResourcesParams holds the parameters for
+// `client.logWorkspaces.resources`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LogWorkspacesResourcesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Resources: List log-capable resources
+//
+// Synced resources whose rendered detail declares the logs capability — the
+// candidates a log workspace can tail. Discovered from the plugin contract
+// (never a hardcoded provider list), capped at 500 results.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/log-workspaces/resources
+func (n *LogWorkspacesNamespace) Resources(ctx context.Context, params *LogWorkspacesResourcesParams, opts ...RequestOption) (*LogCapableResourceList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/log-workspaces/resources")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *LogCapableResourceList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LogWorkspacesUpdateParams holds the parameters for
+// `client.logWorkspaces.update`.
+type LogWorkspacesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	QueryID string
+	// Body: the JSON request body.
+	Body LogWorkspaceQueryUpdate
+}
+
+// Update: Update a saved log query
+//
+// Edit the name, resource set, search expression and/or the alert toggle.
+// Changing the search or the resources resets the alert pass's evaluation state;
+// turning the alert on makes the query due for evaluation immediately.
+// Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// PUT /api/org/{orgId}/log-workspaces/{queryId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: A saved query with this name already exists
+func (n *LogWorkspacesNamespace) Update(ctx context.Context, params LogWorkspacesUpdateParams, opts ...RequestOption) (*LogWorkspaceQuery, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/log-workspaces/{queryId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("queryId", params.QueryID)
+	r.setJSONBody(params.Body)
+	var out *LogWorkspaceQuery
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MetricAlertsNamespace is `client.metricAlerts`.
+type MetricAlertsNamespace struct {
+	t *transport
+}
+
+func newMetricAlertsNamespace(t *transport) *MetricAlertsNamespace {
+	n := &MetricAlertsNamespace{t: t}
+	return n
+}
+
+// MetricAlertsCreateParams holds the parameters for
+// `client.metricAlerts.create`.
+type MetricAlertsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body MetricAlertRuleInput
+}
+
+// Create: Create a metric alert rule
+//
+// Rules select resources by query (plugin + resource type + tag), never by id
+// list, so a rule automatically covers resources created after it was written.
+// The poller evaluates enabled rules about once a minute and alerts when the
+// condition held for the whole trailing window.
+//
+// POST /api/org/{orgId}/metric-alerts
+//
+// Raises on 400: Bad request
+func (n *MetricAlertsNamespace) Create(ctx context.Context, params MetricAlertsCreateParams, opts ...RequestOption) (*MetricAlertRule, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/metric-alerts")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *MetricAlertRule
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MetricAlertsDeleteParams holds the parameters for
+// `client.metricAlerts.delete`.
+type MetricAlertsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a metric alert rule
+//
+// Soft delete. The rule's firing history stays readable via
+// /metric-alerts/events.
+//
+// DELETE /api/org/{orgId}/metric-alerts/{id}
+//
+// Raises on 404: Not found
+func (n *MetricAlertsNamespace) Delete(ctx context.Context, params MetricAlertsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/metric-alerts/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MetricAlertsEventsParams holds the parameters for
+// `client.metricAlerts.events`.
+//
+// Every field is optional; pass nil to take the defaults.
+type MetricAlertsEventsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID  *string
+	RuleID *string
+	Limit  *int64
+}
+
+// Events: Recent metric alert firings
+//
+// GET /api/org/{orgId}/metric-alerts/events
+func (n *MetricAlertsNamespace) Events(ctx context.Context, params *MetricAlertsEventsParams, opts ...RequestOption) ([]MetricAlertEvent, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/metric-alerts/events")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("ruleId", params.RuleID)
+		r.addQuery("limit", params.Limit)
+	}
+	var out []MetricAlertEvent
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MetricAlertsGetParams holds the parameters for `client.metricAlerts.get`.
+type MetricAlertsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get a metric alert rule
+//
+// GET /api/org/{orgId}/metric-alerts/{id}
+//
+// Raises on 404: Not found
+func (n *MetricAlertsNamespace) Get(ctx context.Context, params MetricAlertsGetParams, opts ...RequestOption) (*MetricAlertRule, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/metric-alerts/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *MetricAlertRule
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MetricAlertsListParams holds the parameters for `client.metricAlerts.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type MetricAlertsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List metric alert rules with live firing status
+//
+// GET /api/org/{orgId}/metric-alerts
+func (n *MetricAlertsNamespace) List(ctx context.Context, params *MetricAlertsListParams, opts ...RequestOption) ([]MetricAlertRuleWithStatus, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/metric-alerts")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []MetricAlertRuleWithStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MetricAlertsMetricKeysParams holds the parameters for
+// `client.metricAlerts.metricKeys`.
+//
+// Every field is optional; pass nil to take the defaults.
+type MetricAlertsMetricKeysParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	PluginID       *string
+	ResourceTypeID *string
+}
+
+// MetricKeys: List metric series that actually exist
+//
+// The series labels resources reported in the last 7 days, optionally narrowed
+// to one plugin and resource type — what the rule builder's metric picker is fed
+// from.
+//
+// GET /api/org/{orgId}/metric-alerts/metric-keys
+func (n *MetricAlertsNamespace) MetricKeys(ctx context.Context, params *MetricAlertsMetricKeysParams, opts ...RequestOption) ([]MetricSeriesKey, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/metric-alerts/metric-keys")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("pluginId", params.PluginID)
+		r.addQuery("resourceTypeId", params.ResourceTypeID)
+	}
+	var out []MetricSeriesKey
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MetricAlertsSelectorOptionsParams holds the parameters for
+// `client.metricAlerts.selectorOptions`.
+//
+// Every field is optional; pass nil to take the defaults.
+type MetricAlertsSelectorOptionsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// SelectorOptions: List what the organization's resources offer to select on
+//
+// GET /api/org/{orgId}/metric-alerts/selector-options
+func (n *MetricAlertsNamespace) SelectorOptions(ctx context.Context, params *MetricAlertsSelectorOptionsParams, opts ...RequestOption) (*MetricAlertSelectorOptions, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/metric-alerts/selector-options")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *MetricAlertSelectorOptions
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MetricAlertsSelectorPreviewParams holds the parameters for
+// `client.metricAlerts.selectorPreview`.
+//
+// Every field is optional; pass nil to take the defaults.
+type MetricAlertsSelectorPreviewParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	PluginID       *string
+	ResourceTypeID *string
+	TagKey         *string
+	TagValue       *string
+}
+
+// SelectorPreview: Preview which resources a selector matches right now
+//
+// GET /api/org/{orgId}/metric-alerts/selector-preview
+//
+// Raises on 400: Bad request
+func (n *MetricAlertsNamespace) SelectorPreview(ctx context.Context, params *MetricAlertsSelectorPreviewParams, opts ...RequestOption) (*MetricAlertSelectorPreview, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/metric-alerts/selector-preview")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("pluginId", params.PluginID)
+		r.addQuery("resourceTypeId", params.ResourceTypeID)
+		r.addQuery("tagKey", params.TagKey)
+		r.addQuery("tagValue", params.TagValue)
+	}
+	var out *MetricAlertSelectorPreview
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MetricAlertsUpdateParams holds the parameters for
+// `client.metricAlerts.update`.
+type MetricAlertsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body MetricAlertRuleInput
+}
+
+// Update: Update a metric alert rule
+//
+// PUT /api/org/{orgId}/metric-alerts/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *MetricAlertsNamespace) Update(ctx context.Context, params MetricAlertsUpdateParams, opts ...RequestOption) (*MetricAlertRule, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/metric-alerts/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *MetricAlertRule
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // MomentNamespace is `client.moment`.
 type MomentNamespace struct {
 	t *transport
@@ -6892,6 +7491,221 @@ func (n *SQLNamespace) Query(ctx context.Context, params SQLQueryParams, opts ..
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out any
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SSHFanoutNamespace is `client.sshFanout`.
+type SSHFanoutNamespace struct {
+	t *transport
+
+	// Snippets: `client.sshFanout.snippets`.
+	Snippets *SSHFanoutSnippetsNamespace
+}
+
+func newSSHFanoutNamespace(t *transport) *SSHFanoutNamespace {
+	n := &SSHFanoutNamespace{t: t}
+	n.Snippets = newSSHFanoutSnippetsNamespace(t)
+	return n
+}
+
+// SSHFanoutRunParams holds the parameters for `client.sshFanout.run`.
+type SSHFanoutRunParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body SSHFanoutRunRequest
+}
+
+// Run: Run one command across many SSH hosts
+//
+// Executes the command on every selected target under a concurrency cap (default
+// 8, max 16). Per-host results carry stdout, stderr, and exit code; transport
+// failures (unreachable, untrusted host key, blocked internal host) are per-host
+// too. Resource targets need `sshKeyId` (an org SSH key owned by the caller).
+// Blocked with HTTP 423 while a change freeze is in effect; audit-logged.
+//
+// _Requires permission: `resources:execute`._
+//
+// POST /api/org/{orgId}/ssh-fanout/run
+//
+// Raises on 400: Bad request
+//
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
+func (n *SSHFanoutNamespace) Run(ctx context.Context, params SSHFanoutRunParams, opts ...RequestOption) (*SSHFanoutRunResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ssh-fanout/run")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *SSHFanoutRunResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SSHFanoutTargetsParams holds the parameters for `client.sshFanout.targets`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SSHFanoutTargetsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Targets: List SSH-capable fan-out targets
+//
+// Every SSH-capable target in the org: `ssh` plugin accounts (native
+// credentials) plus resources whose type declares an sshEndpoint with a
+// resolvable host (EC2 instances, droplets, Hetzner servers, …).
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/ssh-fanout/targets
+func (n *SSHFanoutNamespace) Targets(ctx context.Context, params *SSHFanoutTargetsParams, opts ...RequestOption) (*SSHFanoutTargetsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ssh-fanout/targets")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SSHFanoutTargetsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SSHFanoutSnippetsNamespace is `client.sshFanout.snippets`.
+type SSHFanoutSnippetsNamespace struct {
+	t *transport
+}
+
+func newSSHFanoutSnippetsNamespace(t *transport) *SSHFanoutSnippetsNamespace {
+	n := &SSHFanoutSnippetsNamespace{t: t}
+	return n
+}
+
+// SSHFanoutSnippetsCreateParams holds the parameters for
+// `client.sshFanout.snippets.create`.
+type SSHFanoutSnippetsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body SSHSnippetInput
+}
+
+// Create: Save a command snippet
+//
+// _Requires permission: `resources:execute`._
+//
+// POST /api/org/{orgId}/ssh-fanout/snippets
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: Conflict
+func (n *SSHFanoutSnippetsNamespace) Create(ctx context.Context, params SSHFanoutSnippetsCreateParams, opts ...RequestOption) (*SshfanoutSnippetsCreateResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ssh-fanout/snippets")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *SshfanoutSnippetsCreateResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SSHFanoutSnippetsDeleteParams holds the parameters for
+// `client.sshFanout.snippets.delete`.
+type SSHFanoutSnippetsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a saved command snippet
+//
+// _Requires permission: `resources:execute`._
+//
+// DELETE /api/org/{orgId}/ssh-fanout/snippets/{id}
+//
+// Raises on 404: Not found
+func (n *SSHFanoutSnippetsNamespace) Delete(ctx context.Context, params SSHFanoutSnippetsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/ssh-fanout/snippets/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SSHFanoutSnippetsGetParams holds the parameters for
+// `client.sshFanout.snippets.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SSHFanoutSnippetsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List saved command snippets
+//
+// Org-shared saved commands for reuse from the fan-out screen and CLI.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/ssh-fanout/snippets
+func (n *SSHFanoutSnippetsNamespace) Get(ctx context.Context, params *SSHFanoutSnippetsGetParams, opts ...RequestOption) (*SshfanoutSnippetsGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ssh-fanout/snippets")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SshfanoutSnippetsGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SSHFanoutSnippetsUpdateParams holds the parameters for
+// `client.sshFanout.snippets.update`.
+type SSHFanoutSnippetsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body SSHSnippetInput
+}
+
+// Update: Update a saved command snippet
+//
+// _Requires permission: `resources:execute`._
+//
+// PUT /api/org/{orgId}/ssh-fanout/snippets/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *SSHFanoutSnippetsNamespace) Update(ctx context.Context, params SSHFanoutSnippetsUpdateParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/ssh-fanout/snippets/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *OK
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
