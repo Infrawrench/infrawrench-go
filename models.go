@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.30.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.31.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.30.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.31.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1617,6 +1617,10 @@ type LogCapableResource struct {
 	PluginID       PluginID `json:"pluginId"`
 	ResourceTypeID string   `json:"resourceTypeId"`
 	DisplayName    string   `json:"displayName"`
+	// ParentResourceID: Set for sidecar streams: the stored parent resource the
+	// peer client is built through.
+	ParentResourceID  *string `json:"parentResourceId,omitempty"`
+	ParentDisplayName *string `json:"parentDisplayName,omitempty"`
 }
 
 // LogCapableResourceList is the `LogCapableResourceList` schema.
@@ -1626,11 +1630,17 @@ type LogCapableResourceList struct {
 
 // LogStreamSelector is the `LogStreamSelector` schema.
 type LogStreamSelector struct {
-	// ResourceID: Infrawrench resource id of the stream to tail.
+	// ResourceID: Infrawrench resource id of the stream to tail — or, for a
+	// sidecar stream, the peer plugin's own resource id (not a stored row).
 	ResourceID     string   `json:"resourceId"`
 	AccountID      string   `json:"accountId"`
 	PluginID       PluginID `json:"pluginId"`
 	ResourceTypeID string   `json:"resourceTypeId"`
+	// ParentResourceID: Set for sidecar streams (e.g. a pod inside a managed
+	// cluster): the stored parent resource whose outputs mint the peer plugin's
+	// credentials. The logs endpoint routes through the peer client when
+	// present.
+	ParentResourceID *string `json:"parentResourceId,omitempty"`
 	// Container: Container to fetch when the resource has more than one; omit
 	// for the default.
 	Container *string `json:"container,omitempty"`
