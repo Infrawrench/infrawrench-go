@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.32.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.33.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.32.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.33.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1602,6 +1602,11 @@ type KVCommandResponse struct {
 	Result any `json:"result,omitempty"`
 }
 
+// LeaseConflict is the `LeaseConflict` schema.
+type LeaseConflict struct {
+	Error string `json:"error"`
+}
+
 // LiteralAssociationRequest is the `LiteralAssociationRequest` schema.
 type LiteralAssociationRequest struct {
 	ResourceID     ResourceID `json:"resourceId"`
@@ -2067,6 +2072,12 @@ type MsTeamsWebhook struct {
 	// LogMatchAlerts: A saved log-workspace query with alerting enabled found
 	// matching log lines.
 	LogMatchAlerts bool `json:"logMatchAlerts"`
+	// PostureAlerts: Daily digests of critical/high security posture findings on
+	// synced resources — public buckets, world-open ingress, unencrypted disks.
+	PostureAlerts bool `json:"postureAlerts"`
+	// ProbeAlerts: A synthetic probe crossed its consecutive-failure threshold
+	// (down) or answered again (recovered).
+	ProbeAlerts bool `json:"probeAlerts"`
 	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
 	// organization has enabled the digest (see /digest).
 	WeeklyDigest bool `json:"weeklyDigest"`
@@ -2089,6 +2100,8 @@ type MsTeamsWebhookCreate struct {
 	ProviderIncidents *bool  `json:"providerIncidents,omitempty"`
 	ExpiryAlerts      *bool  `json:"expiryAlerts,omitempty"`
 	LogMatchAlerts    *bool  `json:"logMatchAlerts,omitempty"`
+	PostureAlerts     *bool  `json:"postureAlerts,omitempty"`
+	ProbeAlerts       *bool  `json:"probeAlerts,omitempty"`
 	WeeklyDigest      *bool  `json:"weeklyDigest,omitempty"`
 }
 
@@ -2104,6 +2117,8 @@ type MsTeamsWebhookUpdate struct {
 	ProviderIncidents *bool   `json:"providerIncidents,omitempty"`
 	ExpiryAlerts      *bool   `json:"expiryAlerts,omitempty"`
 	LogMatchAlerts    *bool   `json:"logMatchAlerts,omitempty"`
+	PostureAlerts     *bool   `json:"postureAlerts,omitempty"`
+	ProbeAlerts       *bool   `json:"probeAlerts,omitempty"`
 	WeeklyDigest      *bool   `json:"weeklyDigest,omitempty"`
 }
 
@@ -2596,6 +2611,72 @@ type PolicyTemplateResponse struct {
 	Template PolicyTemplate `json:"template"`
 }
 
+// PostureAlertSettings is the `PostureAlertSettings` schema.
+type PostureAlertSettings struct {
+	// Enabled: Whether the poller sends posture alerts for this organization at
+	// all.
+	Enabled bool `json:"enabled"`
+	// LastNotifiedAt: When the organization's posture alert scan last completed,
+	// or null before the first. Owned by the poller's cooldown claim; not
+	// writable through this API.
+	LastNotifiedAt *string `json:"lastNotifiedAt"`
+}
+
+// PostureAlertSettingsUpdate is the `PostureAlertSettingsUpdate` schema.
+type PostureAlertSettingsUpdate struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// PostureFinding is the `PostureFinding` schema.
+type PostureFinding struct {
+	// ResourceID: Infrawrench resource id.
+	ResourceID       string   `json:"resourceId"`
+	PluginID         PluginID `json:"pluginId"`
+	PluginName       string   `json:"pluginName"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	AccountID        string   `json:"accountId"`
+	AccountName      string   `json:"accountName"`
+	DisplayName      string   `json:"displayName"`
+	// ExternalID: Provider-native id, when known.
+	ExternalID *string `json:"externalId"`
+	// RuleID: The matched rule's stable id, unique within the plugin.
+	RuleID string `json:"ruleId"`
+	// Title: Short rule title.
+	Title string `json:"title"`
+	// Severity: How bad the finding is. `critical` and `high` findings feed the
+	// posture alerts; `medium` and `low` are hygiene work surfaced on the
+	// posture screen only.
+	//
+	// One of "critical", "high", "medium", "low".
+	Severity string `json:"severity"`
+	// Category: Grouping bucket for what kind of exposure the finding describes.
+	//
+	// One of "public-exposure", "encryption", "credential-age",
+	// "data-protection", "other".
+	Category string `json:"category"`
+	// Reason: Plugin-authored explanation of why this is a finding.
+	Reason string `json:"reason"`
+}
+
+// PostureListResponse is the `PostureListResponse` schema.
+type PostureListResponse struct {
+	// Findings: All findings, worst severity first.
+	Findings    []PostureFinding      `json:"findings"`
+	TotalCount  int64                 `json:"totalCount"`
+	Counts      PostureSeverityCounts `json:"counts"`
+	GeneratedAt string                `json:"generatedAt"`
+}
+
+// PostureSeverityCounts: Finding count per severity; every bucket present, zeros
+// included.
+type PostureSeverityCounts struct {
+	Critical int64 `json:"critical"`
+	High     int64 `json:"high"`
+	Medium   int64 `json:"medium"`
+	Low      int64 `json:"low"`
+}
+
 // PreflightCapability is the `PreflightCapability` schema.
 type PreflightCapability struct {
 	ID                  string                `json:"id"`
@@ -2650,6 +2731,19 @@ type PreflightRequest struct {
 	BastionID *string `json:"bastionId,omitempty"`
 }
 
+// ProbeMetricSeries is the `ProbeMetricSeries` schema.
+type ProbeMetricSeries struct {
+	// Label: "Latency" (ms) or "Up" (1/0).
+	Label  string                    `json:"label"`
+	Unit   *string                   `json:"unit,omitempty"`
+	Points []ProbeMetricSeriesPoints `json:"points"`
+}
+
+// ProbeMetrics is the `ProbeMetrics` schema.
+type ProbeMetrics struct {
+	Series []ProbeMetricSeries `json:"series"`
+}
+
 // ProbeRequest is the `ProbeRequest` schema.
 type ProbeRequest struct {
 	Items []ProbeRequestItems `json:"items"`
@@ -2664,6 +2758,24 @@ type ProbeStatus struct {
 	Sparkline      []ProbeStatusSparkline      `json:"sparkline,omitempty"`
 	SparklineLabel *string                     `json:"sparklineLabel,omitempty"`
 	ResourceCounts []ProbeStatusResourceCounts `json:"resourceCounts,omitempty"`
+}
+
+// ProbeSuggestion is the `ProbeSuggestion` schema.
+type ProbeSuggestion struct {
+	// URL: Normalized to an absolute URL — bare hosts get https://.
+	URL            string   `json:"url"`
+	ResourceID     string   `json:"resourceId"`
+	DisplayName    string   `json:"displayName"`
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	AccountID      string   `json:"accountId"`
+	// OutputKey: The output/field key the URL was mined from.
+	OutputKey string `json:"outputKey"`
+}
+
+// ProbeSuggestions is the `ProbeSuggestions` schema.
+type ProbeSuggestions struct {
+	Suggestions []ProbeSuggestion `json:"suggestions"`
 }
 
 // Profile is the `Profile` schema.
@@ -2908,6 +3020,78 @@ type ResourceFieldChange struct {
 //
 // Spec schema: `ResourceId`.
 type ResourceID = string
+
+// ResourceLease is the `ResourceLease` schema.
+type ResourceLease struct {
+	ID string `json:"id"`
+	// ResourceID: Infrawrench resource id the lease is attached to.
+	ResourceID     string   `json:"resourceId"`
+	AccountID      string   `json:"accountId"`
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	// ResourceName: Resource display name (denormalized at lease time, so it
+	// survives deletion).
+	ResourceName string `json:"resourceName"`
+	AccountName  string `json:"accountName"`
+	// ExpiresAt: The lease deadline.
+	ExpiresAt string `json:"expiresAt"`
+	// AutoDelete: Whether the resource is deleted at expiry. Auto-delete is
+	// announced twice before it fires and deferred while an org change freeze is
+	// in effect.
+	AutoDelete bool `json:"autoDelete"`
+	// Note: Why/who-for; shown on the expiry radar.
+	Note *string `json:"note"`
+	// Status: Lease lifecycle: `active` (counting down), `deleted` (auto-delete
+	// completed), `failed` (auto-delete was retried and given up on — see
+	// `lastError`), or `canceled` (called off; the resource stays).
+	//
+	// One of "active", "deleted", "failed", "canceled".
+	Status string `json:"status"`
+	// FirstWarningAt: When the first auto-delete announcement went out; null
+	// until sent.
+	FirstWarningAt *string `json:"firstWarningAt"`
+	// FinalWarningAt: When the final auto-delete announcement went out; null
+	// until sent.
+	FinalWarningAt *string `json:"finalWarningAt"`
+	DeleteAttempts int64   `json:"deleteAttempts"`
+	// LastError: Last auto-delete failure or freeze-deferral detail; never
+	// silent.
+	LastError *string `json:"lastError"`
+	// CompletedAt: When the lease reached a terminal status.
+	CompletedAt *string `json:"completedAt"`
+	CreatedAt   string  `json:"createdAt"`
+	UpdatedAt   string  `json:"updatedAt"`
+}
+
+// ResourceLeaseCreate is the `ResourceLeaseCreate` schema.
+type ResourceLeaseCreate struct {
+	ResourceID string `json:"resourceId"`
+	AccountID  string `json:"accountId"`
+	// ExpiresAt: Must be in the future, at most 365 days out.
+	ExpiresAt string `json:"expiresAt"`
+	// AutoDelete: Requires the `resources:delete` permission when true.
+	AutoDelete *bool   `json:"autoDelete,omitempty"`
+	Note       *string `json:"note,omitempty"`
+}
+
+// ResourceLeaseList is the `ResourceLeaseList` schema.
+type ResourceLeaseList struct {
+	Leases []ResourceLease `json:"leases"`
+}
+
+// ResourceLeaseLookup is the `ResourceLeaseLookup` schema.
+type ResourceLeaseLookup struct {
+	Lease any `json:"lease"`
+}
+
+// ResourceLeaseUpdate is the `ResourceLeaseUpdate` schema.
+type ResourceLeaseUpdate struct {
+	ExpiresAt *string `json:"expiresAt,omitempty"`
+	// AutoDelete: Requires the `resources:delete` permission when set to true.
+	AutoDelete *bool `json:"autoDelete,omitempty"`
+	// Note: `null` clears the note.
+	Note *string `json:"note,omitempty"`
+}
 
 // ResourceStatus: Normalized status reported by a plugin's
 // renderSidebarItem/renderDetail.
@@ -3579,6 +3763,12 @@ type SlackChannel struct {
 	// LogMatchAlerts: A saved log-workspace query with alerting enabled found
 	// matching log lines.
 	LogMatchAlerts bool `json:"logMatchAlerts"`
+	// PostureAlerts: Daily digests of critical/high security posture findings on
+	// synced resources — public buckets, world-open ingress, unencrypted disks.
+	PostureAlerts bool `json:"postureAlerts"`
+	// ProbeAlerts: A synthetic probe crossed its consecutive-failure threshold
+	// (down) or answered again (recovered).
+	ProbeAlerts bool `json:"probeAlerts"`
 	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
 	// organization has enabled the digest (see /digest).
 	WeeklyDigest bool `json:"weeklyDigest"`
@@ -3599,6 +3789,8 @@ type SlackChannelCreate struct {
 	ProviderIncidents *bool  `json:"providerIncidents,omitempty"`
 	ExpiryAlerts      *bool  `json:"expiryAlerts,omitempty"`
 	LogMatchAlerts    *bool  `json:"logMatchAlerts,omitempty"`
+	PostureAlerts     *bool  `json:"postureAlerts,omitempty"`
+	ProbeAlerts       *bool  `json:"probeAlerts,omitempty"`
 	WeeklyDigest      *bool  `json:"weeklyDigest,omitempty"`
 }
 
@@ -3613,6 +3805,8 @@ type SlackChannelUpdate struct {
 	ProviderIncidents *bool `json:"providerIncidents,omitempty"`
 	ExpiryAlerts      *bool `json:"expiryAlerts,omitempty"`
 	LogMatchAlerts    *bool `json:"logMatchAlerts,omitempty"`
+	PostureAlerts     *bool `json:"postureAlerts,omitempty"`
+	ProbeAlerts       *bool `json:"probeAlerts,omitempty"`
 	WeeklyDigest      *bool `json:"weeklyDigest,omitempty"`
 }
 
@@ -4048,11 +4242,103 @@ type SyncedResource struct {
 	ParentResourceID *ResourceID `json:"parentResourceId"`
 }
 
+// SyntheticProbe is the `SyntheticProbe` schema.
+type SyntheticProbe struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// URL: Absolute http(s) URL the check hits from the edge proxy.
+	URL string `json:"url"`
+	// Method: HTTP method the probe uses — GET, HEAD or OPTIONS. Unknown values
+	// become GET.
+	Method string `json:"method"`
+	// IntervalSeconds: Seconds between checks. Clamped server-side to 60–86400.
+	IntervalSeconds int64 `json:"intervalSeconds"`
+	// TimeoutMs: Per-check timeout in milliseconds. Clamped server-side to
+	// 1000–60000.
+	TimeoutMs int64 `json:"timeoutMs"`
+	// FailureThreshold: Consecutive failures before the probe flips to `down`
+	// and notifies. Clamped 1–20.
+	FailureThreshold int64 `json:"failureThreshold"`
+	Enabled          bool  `json:"enabled"`
+	// AccountID: Account of the linked resource, when the URL came from one.
+	AccountID *string `json:"accountId"`
+	// ResourceID: Linked resource id; advisory, not a foreign key.
+	ResourceID     *string   `json:"resourceId"`
+	PluginID       *PluginID `json:"pluginId"`
+	ResourceTypeID *string   `json:"resourceTypeId"`
+	// OutputKey: The resource output/field key the URL was suggested from.
+	OutputKey *string `json:"outputKey"`
+	// Status: The probe's state machine: `unknown` until the first result,
+	// `down` after `failureThreshold` consecutive failures, `up` on any success.
+	//
+	// One of "up", "down", "unknown".
+	Status              string  `json:"status"`
+	ConsecutiveFailures int64   `json:"consecutiveFailures"`
+	LastProbeAt         *string `json:"lastProbeAt"`
+	LastStatusCode      *int64  `json:"lastStatusCode"`
+	LastLatencyMs       *int64  `json:"lastLatencyMs"`
+	// LastError: Failure detail; null after a success.
+	LastError *string `json:"lastError"`
+	// LastStateChangeAt: When status last flipped up/down.
+	LastStateChangeAt *string `json:"lastStateChangeAt"`
+	// Uptime24h: Fraction (0–1) of the trailing 24h the endpoint was up, from
+	// the recorded series; null before the first result lands in the metric
+	// store.
+	Uptime24h *float64 `json:"uptime24h"`
+	CreatedAt string   `json:"createdAt"`
+	UpdatedAt string   `json:"updatedAt"`
+}
+
+// SyntheticProbeCreate is the `SyntheticProbeCreate` schema.
+type SyntheticProbeCreate struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+	// Method: HTTP method the probe uses — GET, HEAD or OPTIONS. Unknown values
+	// become GET.
+	Method *string `json:"method,omitempty"`
+	// IntervalSeconds: Seconds between checks. Clamped server-side to 60–86400.
+	IntervalSeconds *int64 `json:"intervalSeconds,omitempty"`
+	// TimeoutMs: Per-check timeout in milliseconds. Clamped server-side to
+	// 1000–60000.
+	TimeoutMs *int64 `json:"timeoutMs,omitempty"`
+	// FailureThreshold: Consecutive failures before the probe flips to `down`
+	// and notifies. Clamped 1–20.
+	FailureThreshold *int64 `json:"failureThreshold,omitempty"`
+	Enabled          *bool  `json:"enabled,omitempty"`
+	// ResourceID: Link the probe to the resource whose output suggested the URL.
+	ResourceID *string `json:"resourceId,omitempty"`
+	OutputKey  *string `json:"outputKey,omitempty"`
+}
+
+// SyntheticProbeList is the `SyntheticProbeList` schema.
+type SyntheticProbeList struct {
+	Probes []SyntheticProbe `json:"probes"`
+}
+
+// SyntheticProbeUpdate is the `SyntheticProbeUpdate` schema.
+type SyntheticProbeUpdate struct {
+	Name *string `json:"name,omitempty"`
+	URL  *string `json:"url,omitempty"`
+	// Method: HTTP method the probe uses — GET, HEAD or OPTIONS. Unknown values
+	// become GET.
+	Method *string `json:"method,omitempty"`
+	// IntervalSeconds: Seconds between checks. Clamped server-side to 60–86400.
+	IntervalSeconds *int64 `json:"intervalSeconds,omitempty"`
+	// TimeoutMs: Per-check timeout in milliseconds. Clamped server-side to
+	// 1000–60000.
+	TimeoutMs *int64 `json:"timeoutMs,omitempty"`
+	// FailureThreshold: Consecutive failures before the probe flips to `down`
+	// and notifies. Clamped 1–20.
+	FailureThreshold *int64 `json:"failureThreshold,omitempty"`
+	Enabled          *bool  `json:"enabled,omitempty"`
+}
+
 // TabTarget is the `TabTarget` schema.
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
-	// "savings", "graph", "logs", "changes", "expiring", "ssh-fanout",
-	// "metric-alerts", "workflows", "deployments", "chat".
+	// "savings", "graph", "logs", "changes", "expiring", "posture",
+	// "ssh-fanout", "metric-alerts", "probes", "workflows", "deployments",
+	// "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -4451,6 +4737,13 @@ type PreflightDeclarationTemplateFormat struct {
 	Label string `json:"label"`
 	// Language: One of "json", "yaml", "text".
 	Language string `json:"language"`
+}
+
+// ProbeMetricSeriesPoints is an object the spec declares inline.
+type ProbeMetricSeriesPoints struct {
+	// Timestamp: Unix epoch milliseconds.
+	Timestamp float64 `json:"timestamp"`
+	Value     float64 `json:"value"`
 }
 
 // ProbeRequestItems is an object the spec declares inline.

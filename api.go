@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.32.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.33.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.32.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.33.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -81,6 +81,8 @@ type APIV1Client struct {
 	Invitations *InvitationsNamespace
 	// KV: `client.kv`.
 	KV *KVNamespace
+	// Leases: `client.leases`.
+	Leases *LeasesNamespace
 	// LogWorkspaces: `client.logWorkspaces`.
 	LogWorkspaces *LogWorkspacesNamespace
 	// MetricAlerts: `client.metricAlerts`.
@@ -95,6 +97,10 @@ type APIV1Client struct {
 	Orphans *OrphansNamespace
 	// Pages: `client.pages`.
 	Pages *PagesNamespace
+	// Posture: `client.posture`.
+	Posture *PostureNamespace
+	// Probes: `client.probes`.
+	Probes *ProbesNamespace
 	// Profile: `client.profile`.
 	Profile *ProfileNamespace
 	// Resources: `client.resources`.
@@ -162,6 +168,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Expiring = newExpiringNamespace(t)
 	c.Invitations = newInvitationsNamespace(t)
 	c.KV = newKVNamespace(t)
+	c.Leases = newLeasesNamespace(t)
 	c.LogWorkspaces = newLogWorkspacesNamespace(t)
 	c.MetricAlerts = newMetricAlertsNamespace(t)
 	c.Moment = newMomentNamespace(t)
@@ -169,6 +176,8 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Orgs = newOrgsNamespace(t)
 	c.Orphans = newOrphansNamespace(t)
 	c.Pages = newPagesNamespace(t)
+	c.Posture = newPostureNamespace(t)
+	c.Probes = newProbesNamespace(t)
 	c.Profile = newProfileNamespace(t)
 	c.Resources = newResourcesNamespace(t)
 	c.Rightsizing = newRightsizingNamespace(t)
@@ -4529,6 +4538,212 @@ func (n *KVNamespace) Command(ctx context.Context, params KVCommandParams, opts 
 	return out, nil
 }
 
+// LeasesNamespace is `client.leases`.
+type LeasesNamespace struct {
+	t *transport
+}
+
+func newLeasesNamespace(t *transport) *LeasesNamespace {
+	n := &LeasesNamespace{t: t}
+	return n
+}
+
+// LeasesCancelParams holds the parameters for `client.leases.cancel`.
+type LeasesCancelParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	LeaseID string
+}
+
+// Cancel: Cancel a lease
+//
+// Stop the countdown — the resource stays, the lease goes `canceled` and leaves
+// the expiry radar. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/leases/{leaseId}/cancel
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *LeasesNamespace) Cancel(ctx context.Context, params LeasesCancelParams, opts ...RequestOption) (*ResourceLease, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/leases/{leaseId}/cancel")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("leaseId", params.LeaseID)
+	var out *ResourceLease
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LeasesCreateParams holds the parameters for `client.leases.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LeasesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *ResourceLeaseCreate
+}
+
+// Create: Create a resource lease
+//
+// Attach an expiry to a resource — 'give me a test cluster for 3 days'. One
+// lease per resource (an active lease conflicts; a terminal one is replaced).
+// `autoDelete: true` opts into deletion at expiry — the poller announces it
+// twice first, defers during change freezes, and requires the caller to hold
+// `resources:delete`. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/leases
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: The resource already has an active lease
+func (n *LeasesNamespace) Create(ctx context.Context, params *LeasesCreateParams, opts ...RequestOption) (*ResourceLease, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/leases")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *ResourceLease
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LeasesDeleteParams holds the parameters for `client.leases.delete`.
+type LeasesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	LeaseID string
+}
+
+// Delete: Delete a lease row
+//
+// Remove the lease record entirely (including terminal rows). The resource is
+// not touched. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/leases/{leaseId}
+//
+// Raises on 404: Not found
+func (n *LeasesNamespace) Delete(ctx context.Context, params LeasesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/leases/{leaseId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("leaseId", params.LeaseID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// LeasesGetParams holds the parameters for `client.leases.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LeasesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List resource leases
+//
+// Every lease in the organization, soonest deadline first. Active leases also
+// appear on the expiry radar (`GET /expiring`) as kind `lease` items, so the
+// owner is nagged through the existing expiry alerts.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/leases
+func (n *LeasesNamespace) Get(ctx context.Context, params *LeasesGetParams, opts ...RequestOption) (*ResourceLeaseList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/leases")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ResourceLeaseList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LeasesResourceParams holds the parameters for `client.leases.resource`.
+type LeasesResourceParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ResourceID string
+}
+
+// Resource: Get one resource's lease
+//
+// The (unique) lease on a resource, whatever its status, or null.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/leases/resource
+//
+// Raises on 400: Bad request
+func (n *LeasesNamespace) Resource(ctx context.Context, params LeasesResourceParams, opts ...RequestOption) (*ResourceLeaseLookup, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/leases/resource")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("resourceId", params.ResourceID)
+	var out *ResourceLeaseLookup
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LeasesUpdateParams holds the parameters for `client.leases.update`.
+type LeasesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	LeaseID string
+	// Body: the JSON request body.
+	Body *ResourceLeaseUpdate
+}
+
+// Update: Update a lease
+//
+// Edit the deadline, the auto-delete opt-in and/or the note of an active lease.
+// Changing the deadline or the auto-delete flag re-arms the two-announcement
+// schedule. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// PUT /api/org/{orgId}/leases/{leaseId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *LeasesNamespace) Update(ctx context.Context, params LeasesUpdateParams, opts ...RequestOption) (*ResourceLease, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/leases/{leaseId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("leaseId", params.LeaseID)
+	r.setJSONBody(params.Body)
+	var out *ResourceLease
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // LogWorkspacesNamespace is `client.logWorkspaces`.
 type LogWorkspacesNamespace struct {
 	t *transport
@@ -5386,6 +5601,342 @@ func (n *PagesNamespace) Delete(ctx context.Context, params PagesDeleteParams, o
 	r.addQuery("source", params.Source)
 	r.addQuery("key", params.Key)
 	var out *PageClearResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PostureNamespace is `client.posture`.
+type PostureNamespace struct {
+	t *transport
+
+	// Settings: `client.posture.settings`.
+	Settings *PostureSettingsNamespace
+}
+
+func newPostureNamespace(t *transport) *PostureNamespace {
+	n := &PostureNamespace{t: t}
+	n.Settings = newPostureSettingsNamespace(t)
+	return n
+}
+
+// PostureGetParams holds the parameters for `client.posture.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PostureGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List security posture findings on synced resources
+//
+// Plugin-declared security checks evaluated over already-synced resource state:
+// public buckets, 0.0.0.0/0 ingress rules, unencrypted disks, publicly reachable
+// database endpoints, stale credentials, missing deletion/backup protection. No
+// provider API calls are made and results reflect the last sync. Findings are
+// sorted worst severity first, with per-severity counts.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/posture
+func (n *PostureNamespace) Get(ctx context.Context, params *PostureGetParams, opts ...RequestOption) (*PostureListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/posture")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *PostureListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PostureSettingsNamespace is `client.posture.settings`.
+type PostureSettingsNamespace struct {
+	t *transport
+}
+
+func newPostureSettingsNamespace(t *transport) *PostureSettingsNamespace {
+	n := &PostureSettingsNamespace{t: t}
+	return n
+}
+
+// PostureSettingsGetParams holds the parameters for
+// `client.posture.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PostureSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the organization's posture alert settings
+//
+// Whether the poller's daily posture alert scan is enabled. An organization that
+// never saved reads the shipped defaults (enabled).
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/posture/settings
+func (n *PostureSettingsNamespace) Get(ctx context.Context, params *PostureSettingsGetParams, opts ...RequestOption) (*PostureAlertSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/posture/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *PostureAlertSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PostureSettingsUpdateParams holds the parameters for
+// `client.posture.settings.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PostureSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *PostureAlertSettingsUpdate
+}
+
+// Update: Update the posture alert settings
+//
+// Saving never resets the alert cooldown.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/posture/settings
+//
+// Raises on 400: Bad request
+func (n *PostureSettingsNamespace) Update(ctx context.Context, params *PostureSettingsUpdateParams, opts ...RequestOption) (*PostureAlertSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/posture/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *PostureAlertSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ProbesNamespace is `client.probes`.
+type ProbesNamespace struct {
+	t *transport
+}
+
+func newProbesNamespace(t *transport) *ProbesNamespace {
+	n := &ProbesNamespace{t: t}
+	return n
+}
+
+// ProbesCreateParams holds the parameters for `client.probes.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ProbesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *SyntheticProbeCreate
+}
+
+// Create: Create a probe
+//
+// Point an uptime/latency check at an endpoint. Numeric inputs are clamped into
+// their allowed ranges rather than rejected; the first check runs within one
+// poller tick. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/probes
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ProbesNamespace) Create(ctx context.Context, params *ProbesCreateParams, opts ...RequestOption) (*SyntheticProbe, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/probes")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *SyntheticProbe
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ProbesDeleteParams holds the parameters for `client.probes.delete`.
+type ProbesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	ProbeID string
+}
+
+// Delete: Delete a probe
+//
+// Remove the probe. Recorded series age out of the metric store. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/probes/{probeId}
+//
+// Raises on 404: Not found
+func (n *ProbesNamespace) Delete(ctx context.Context, params ProbesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/probes/{probeId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("probeId", params.ProbeID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// ProbesGetParams holds the parameters for `client.probes.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ProbesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List synthetic probes
+//
+// Every probe in the organization with its live status, consecutive-failure
+// count, last latency and trailing-24h uptime. Probes run on an interval from an
+// edge proxy outside the cluster, so results reflect what an internet client
+// would see.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/probes
+func (n *ProbesNamespace) Get(ctx context.Context, params *ProbesGetParams, opts ...RequestOption) (*SyntheticProbeList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/probes")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SyntheticProbeList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ProbesMetricsParams holds the parameters for `client.probes.metrics`.
+type ProbesMetricsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	ProbeID string
+	// StartMs: Range start, Unix epoch ms.
+	StartMs *string
+	// EndMs: Range end, Unix epoch ms.
+	EndMs *string
+}
+
+// Metrics: Read a probe's recorded series
+//
+// The "Latency" (ms) and "Up" (1/0) series over a time range, from the shared
+// metric store. Resolution auto-selects raw/1-minute/1-hour rollups by span.
+// Defaults to the trailing 24 hours.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/probes/{probeId}/metrics
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+func (n *ProbesNamespace) Metrics(ctx context.Context, params ProbesMetricsParams, opts ...RequestOption) (*ProbeMetrics, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/probes/{probeId}/metrics")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("probeId", params.ProbeID)
+	r.addQuery("startMs", params.StartMs)
+	r.addQuery("endMs", params.EndMs)
+	var out *ProbeMetrics
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ProbesSuggestionsParams holds the parameters for `client.probes.suggestions`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ProbesSuggestionsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Suggestions: Suggest endpoints from synced resources
+//
+// Endpoint candidates mined from the organization's synced resource outputs and
+// fields (keys like url, endpoint, host, domain, publicIp). A cheap read over
+// stored state — no provider API calls. Deduplicated by URL.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/probes/suggestions
+func (n *ProbesNamespace) Suggestions(ctx context.Context, params *ProbesSuggestionsParams, opts ...RequestOption) (*ProbeSuggestions, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/probes/suggestions")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ProbeSuggestions
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ProbesUpdateParams holds the parameters for `client.probes.update`.
+type ProbesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	ProbeID string
+	// Body: the JSON request body.
+	Body *SyntheticProbeUpdate
+}
+
+// Update: Update or disable a probe
+//
+// Edit settings and/or toggle `enabled`. Changing the URL or method resets the
+// probe's state to `unknown` — the history belongs to the old endpoint.
+// Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// PUT /api/org/{orgId}/probes/{probeId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ProbesNamespace) Update(ctx context.Context, params ProbesUpdateParams, opts ...RequestOption) (*SyntheticProbe, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/probes/{probeId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("probeId", params.ProbeID)
+	r.setJSONBody(params.Body)
+	var out *SyntheticProbe
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
