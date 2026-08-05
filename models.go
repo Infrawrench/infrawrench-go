@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.34.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.35.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.34.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.35.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2584,6 +2584,7 @@ const (
 	PluginIDTogether     PluginID = "together"
 	PluginIDTurso        PluginID = "turso"
 	PluginIDVercel       PluginID = "vercel"
+	PluginIDWorkos       PluginID = "workos"
 	PluginIDXai          PluginID = "xai"
 )
 
@@ -3204,6 +3205,7 @@ const (
 	ResourceTypeIDCognitoUserPool                ResourceTypeID = "cognito-user-pool"
 	ResourceTypeIDCollection                     ResourceTypeID = "collection"
 	ResourceTypeIDComposerEnvironment            ResourceTypeID = "composer-environment"
+	ResourceTypeIDConnection                     ResourceTypeID = "connection"
 	ResourceTypeIDContainer                      ResourceTypeID = "container"
 	ResourceTypeIDContainerRegistry              ResourceTypeID = "container-registry"
 	ResourceTypeIDCustomHostname                 ResourceTypeID = "custom-hostname"
@@ -3238,6 +3240,9 @@ const (
 	ResourceTypeIDDedicatedInference             ResourceTypeID = "dedicated-inference"
 	ResourceTypeIDDeployedModel                  ResourceTypeID = "deployed-model"
 	ResourceTypeIDDeployment                     ResourceTypeID = "deployment"
+	ResourceTypeIDDirectory                      ResourceTypeID = "directory"
+	ResourceTypeIDDirectoryGroup                 ResourceTypeID = "directory-group"
+	ResourceTypeIDDirectoryUser                  ResourceTypeID = "directory-user"
 	ResourceTypeIDDNSRecord                      ResourceTypeID = "dns-record"
 	ResourceTypeIDDockerContainer                ResourceTypeID = "docker-container"
 	ResourceTypeIDDockerImage                    ResourceTypeID = "docker-image"
@@ -3303,6 +3308,7 @@ const (
 	ResourceTypeIDInstanceGroup                  ResourceTypeID = "instance-group"
 	ResourceTypeIDInstanceTemplate               ResourceTypeID = "instance-template"
 	ResourceTypeIDInternetGateway                ResourceTypeID = "internet-gateway"
+	ResourceTypeIDInvitation                     ResourceTypeID = "invitation"
 	ResourceTypeIDInvite                         ResourceTypeID = "invite"
 	ResourceTypeIDIPAccessRule                   ResourceTypeID = "ip-access-rule"
 	ResourceTypeIDIPAllocation                   ResourceTypeID = "ip-allocation"
@@ -3386,6 +3392,8 @@ const (
 	ResourceTypeIDObjectStorageBucket            ResourceTypeID = "object-storage-bucket"
 	ResourceTypeIDOpensearchCluster              ResourceTypeID = "opensearch-cluster"
 	ResourceTypeIDOpensearchDomain               ResourceTypeID = "opensearch-domain"
+	ResourceTypeIDOrganization                   ResourceTypeID = "organization"
+	ResourceTypeIDOrganizationMembership         ResourceTypeID = "organization-membership"
 	ResourceTypeIDOrganizationUser               ResourceTypeID = "organization-user"
 	ResourceTypeIDPageRule                       ResourceTypeID = "page-rule"
 	ResourceTypeIDPgDatabase                     ResourceTypeID = "pg-database"
@@ -3417,6 +3425,7 @@ const (
 	ResourceTypeIDRedisInstance                  ResourceTypeID = "redis-instance"
 	ResourceTypeIDRedshiftCluster                ResourceTypeID = "redshift-cluster"
 	ResourceTypeIDReservedIP                     ResourceTypeID = "reserved-ip"
+	ResourceTypeIDRole                           ResourceTypeID = "role"
 	ResourceTypeIDRouteTable                     ResourceTypeID = "route-table"
 	ResourceTypeIDRoute53HealthCheck             ResourceTypeID = "route53-health-check"
 	ResourceTypeIDRoute53HostedZone              ResourceTypeID = "route53-hosted-zone"
@@ -3460,6 +3469,7 @@ const (
 	ResourceTypeIDTursoOrganizationInvite        ResourceTypeID = "turso-organization-invite"
 	ResourceTypeIDTursoOrganizationMember        ResourceTypeID = "turso-organization-member"
 	ResourceTypeIDUploadPreset                   ResourceTypeID = "upload-preset"
+	ResourceTypeIDUser                           ResourceTypeID = "user"
 	ResourceTypeIDVectorStore                    ResourceTypeID = "vector-store"
 	ResourceTypeIDVectorizeIndex                 ResourceTypeID = "vectorize-index"
 	ResourceTypeIDVercelDeployment               ResourceTypeID = "vercel-deployment"
@@ -3476,6 +3486,7 @@ const (
 	ResourceTypeIDVpcNetwork                     ResourceTypeID = "vpc-network"
 	ResourceTypeIDWafWebACL                      ResourceTypeID = "waf-web-acl"
 	ResourceTypeIDWaitingRoom                    ResourceTypeID = "waiting-room"
+	ResourceTypeIDWebhookEndpoint                ResourceTypeID = "webhook-endpoint"
 	ResourceTypeIDWorker                         ResourceTypeID = "worker"
 	ResourceTypeIDWorkerRoute                    ResourceTypeID = "worker-route"
 	ResourceTypeIDWorkersAiModel                 ResourceTypeID = "workers-ai-model"
