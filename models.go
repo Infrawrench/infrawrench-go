@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.36.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.37.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.36.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.37.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -295,8 +295,9 @@ const (
 type BillingStatus struct {
 	// Complimentary: Platform-granted complimentary access: all paid perks,
 	// uncapped AI chat, never billed.
-	Complimentary bool          `json:"complimentary"`
-	Subscription  *Subscription `json:"subscription"`
+	Complimentary bool           `json:"complimentary"`
+	Subscription  *Subscription  `json:"subscription"`
+	Capacity      CapacityStatus `json:"capacity"`
 }
 
 // BudgetAlertEvent is the `BudgetAlertEvent` schema.
@@ -366,6 +367,47 @@ type BudgetWithStatus struct {
 	ForecastCents      *int64                               `json:"forecastCents"`
 	CurrentMonthEvents []BudgetWithStatusCurrentMonthEvents `json:"currentMonthEvents"`
 	Placements         []BudgetWithStatusPlacements         `json:"placements"`
+}
+
+// CapacityCheckoutRequest is the `CapacityCheckoutRequest` schema.
+type CapacityCheckoutRequest struct {
+	// Quantity: Slots to buy. Defaults to 1. The buyer can still adjust it in
+	// Checkout.
+	Quantity *int64 `json:"quantity,omitempty"`
+}
+
+// CapacitySlot is the `CapacitySlot` schema.
+type CapacitySlot struct {
+	ID string `json:"id"`
+	// Quantity: Seats this purchase grants for the whole of its term.
+	Quantity int64 `json:"quantity"`
+	// Status: A slot is only granting capacity when it is `active` AND
+	// `expiresAt` is still in the future.
+	//
+	// One of "active", "refunded".
+	Status          string `json:"status"`
+	StartsAt        string `json:"startsAt"`
+	ExpiresAt       string `json:"expiresAt"`
+	TermMonths      int64  `json:"termMonths"`
+	AmountPaidCents *int64 `json:"amountPaidCents"`
+}
+
+// CapacityStatus is the `CapacityStatus` schema.
+type CapacityStatus struct {
+	// Purchasable: False when this deployment has no one-time capacity price
+	// configured; the purchase route returns 503 and clients should hide the
+	// offer.
+	Purchasable bool  `json:"purchasable"`
+	TermMonths  int64 `json:"termMonths"`
+	// PriceUsd: List price of one slot in whole dollars, for display copy.
+	PriceUsd int64 `json:"priceUsd"`
+	// Seats: Seats from slots still inside their term, excluding lapsed and
+	// refunded. ADDITIONAL to `subscription.seatCount` — an org's capacity is
+	// the two summed, and an org can hold slots with no subscription at all.
+	Seats int64 `json:"seats"`
+	// Slots: Every purchase ever made, newest first, including lapsed and
+	// refunded.
+	Slots []CapacitySlot `json:"slots"`
 }
 
 // ChangeFreeze is the `ChangeFreeze` schema.
@@ -1558,8 +1600,10 @@ type InviteRequest struct {
 	Role   *OrganizationRole `json:"role,omitempty"`
 	RoleID *string           `json:"roleId,omitempty"`
 	// AddSeat: When the paid plan is full (409 seat_limit_reached), retry with
-	// this set to buy one more seat and send the invitation. Requires
-	// billing:write.
+	// this set to buy one more monthly seat and send the invitation. Requires
+	// billing:write. Only works when the 409 reported `canAddSeat: true` — an
+	// org whose capacity is entirely prepaid capacity slots has no monthly seat
+	// to add.
 	AddSeat *bool `json:"addSeat,omitempty"`
 }
 
@@ -3595,10 +3639,15 @@ type SeatLimitResponse struct {
 	Error string `json:"error"`
 	// Code: One of "seat_limit_reached".
 	Code string `json:"code"`
-	// SeatCount: Seats on the plan
+	// SeatCount: Total capacity: monthly subscription seats plus prepaid
+	// capacity-slot seats
 	SeatCount int64 `json:"seatCount"`
 	// SeatsUsed: Members plus pending unexpired invitations
 	SeatsUsed int64 `json:"seatsUsed"`
+	// CanAddSeat: Whether retrying with `addSeat: true` can succeed. False when
+	// the org's capacity is entirely prepaid capacity slots: there is no monthly
+	// seat to buy, so the only remedy is another capacity slot.
+	CanAddSeat bool `json:"canAddSeat"`
 }
 
 // SecretAccessRequest is the `SecretAccessRequest` schema.
