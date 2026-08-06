@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.35.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.36.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.35.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.36.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -4349,7 +4349,7 @@ type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "graph", "logs", "changes", "expiring", "posture",
 	// "ssh-fanout", "metric-alerts", "probes", "workflows", "deployments",
-	// "chat".
+	// "settings", "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
