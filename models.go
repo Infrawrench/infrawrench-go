@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.37.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.38.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.37.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.38.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -105,8 +105,10 @@ type AgentSession struct {
 	PluginID       string `json:"pluginId"`
 	ResourceTypeID string `json:"resourceTypeId"`
 	// Tool: One of "codex", "claude-code".
-	Tool       string `json:"tool"`
-	BranchName string `json:"branchName"`
+	Tool string `json:"tool"`
+	// Surface: One of "terminal", "t3-code".
+	Surface    *string `json:"surface,omitempty"`
+	BranchName string  `json:"branchName"`
 	// Status: One of "pending", "provisioning", "setting-up", "up", "failed",
 	// "stopped".
 	Status       string   `json:"status"`
@@ -124,8 +126,10 @@ type AgentSettings struct {
 	PluginID       string `json:"pluginId"`
 	ResourceTypeID string `json:"resourceTypeId"`
 	// Tool: One of "codex", "claude-code".
-	Tool   string            `json:"tool"`
-	Fields map[string]string `json:"fields"`
+	Tool string `json:"tool"`
+	// Surface: One of "terminal", "t3-code".
+	Surface *string           `json:"surface,omitempty"`
+	Fields  map[string]string `json:"fields"`
 }
 
 // AgentVMAccount is the `AgentVmAccount` schema.
@@ -750,7 +754,7 @@ type CreateAccountResponse struct {
 
 // CreateAgentSession is the `CreateAgentSession` schema.
 type CreateAgentSession struct {
-	Repo          string         `json:"repo"`
+	Repo          *string        `json:"repo,omitempty"`
 	ProjectName   *string        `json:"projectName,omitempty"`
 	WorkspaceName *string        `json:"workspaceName,omitempty"`
 	Settings      *AgentSettings `json:"settings"`
