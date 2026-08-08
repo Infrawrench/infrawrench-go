@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.43.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.44.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.43.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.44.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -103,6 +103,8 @@ type APIV1Client struct {
 	Orgs *OrgsNamespace
 	// Orphans: `client.orphans`.
 	Orphans *OrphansNamespace
+	// Ownership: `client.ownership`.
+	Ownership *OwnershipNamespace
 	// Pages: `client.pages`.
 	Pages *PagesNamespace
 	// Posture: `client.posture`.
@@ -133,8 +135,12 @@ type APIV1Client struct {
 	SSHKeys *SSHKeysNamespace
 	// SSHTunnels: `client.sshTunnels`.
 	SSHTunnels *SSHTunnelsNamespace
+	// Status: `client.status`.
+	Status *StatusNamespace
 	// StatusIncidents: `client.statusIncidents`.
 	StatusIncidents *StatusIncidentsNamespace
+	// StatusPages: `client.statusPages`.
+	StatusPages *StatusPagesNamespace
 	// Storage: `client.storage`.
 	Storage *StorageNamespace
 	// TagPolicy: `client.tagPolicy`.
@@ -189,6 +195,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Msteams = newMsteamsNamespace(t)
 	c.Orgs = newOrgsNamespace(t)
 	c.Orphans = newOrphansNamespace(t)
+	c.Ownership = newOwnershipNamespace(t)
 	c.Pages = newPagesNamespace(t)
 	c.Posture = newPostureNamespace(t)
 	c.Probes = newProbesNamespace(t)
@@ -204,7 +211,9 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.SSHFanout = newSSHFanoutNamespace(t)
 	c.SSHKeys = newSSHKeysNamespace(t)
 	c.SSHTunnels = newSSHTunnelsNamespace(t)
+	c.Status = newStatusNamespace(t)
 	c.StatusIncidents = newStatusIncidentsNamespace(t)
+	c.StatusPages = newStatusPagesNamespace(t)
 	c.Storage = newStorageNamespace(t)
 	c.TagPolicy = newTagPolicyNamespace(t)
 	c.Team = newTeamNamespace(t)
@@ -6033,6 +6042,176 @@ func (n *OrphansNamespace) Get(ctx context.Context, params *OrphansGetParams, op
 	return out, nil
 }
 
+// OwnershipNamespace is `client.ownership`.
+type OwnershipNamespace struct {
+	t *transport
+}
+
+func newOwnershipNamespace(t *transport) *OwnershipNamespace {
+	n := &OwnershipNamespace{t: t}
+	return n
+}
+
+// OwnershipDeleteParams holds the parameters for `client.ownership.delete`.
+type OwnershipDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ResourceID string
+}
+
+// Delete: Clear a resource's ownership
+//
+// Removes the ownership record. The resource itself is untouched.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/ownership
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *OwnershipNamespace) Delete(ctx context.Context, params OwnershipDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/ownership")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("resourceId", params.ResourceID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// OwnershipGetParams holds the parameters for `client.ownership.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OwnershipGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List resource ownership records
+//
+// Every ownership record in the organization — owner, purpose and authorizing
+// ticket, per resource. Only resources somebody has recorded something about
+// appear; an absent record means the resource is unowned.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/ownership
+func (n *OwnershipNamespace) Get(ctx context.Context, params *OwnershipGetParams, opts ...RequestOption) (*ResourceOwnershipListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ownership")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ResourceOwnershipListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OwnershipMembersParams holds the parameters for `client.ownership.members`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OwnershipMembersParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Members: List people an owner can be set to
+//
+// Org members, as a minimal id/name/email projection for the owner picker.
+// Requires only `resources:read`, deliberately not `team:read`: recording who
+// owns a resource must not be reserved for whoever can also read roles and
+// membership.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/ownership/members
+func (n *OwnershipNamespace) Members(ctx context.Context, params *OwnershipMembersParams, opts ...RequestOption) (*OwnerCandidateListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ownership/members")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OwnerCandidateListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OwnershipResourceParams holds the parameters for `client.ownership.resource`.
+type OwnershipResourceParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ResourceID string
+}
+
+// Resource: Get one resource's ownership
+//
+// The ownership record for a single resource, or null when none is recorded.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/ownership/resource
+//
+// Raises on 400: Bad request
+func (n *OwnershipNamespace) Resource(ctx context.Context, params OwnershipResourceParams, opts ...RequestOption) (*ResourceOwnershipEnvelope, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ownership/resource")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("resourceId", params.ResourceID)
+	var out *ResourceOwnershipEnvelope
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OwnershipUpdateParams holds the parameters for `client.ownership.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OwnershipUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *ResourceOwnershipPatch
+}
+
+// Update: Set a resource's ownership
+//
+// Upsert keyed by `resourceId` — ownership is a property of the resource, so
+// there is no separate create and update. Omitted fields keep their value and
+// `null` clears one. Clearing every field removes the record entirely and the
+// response is `null`, which is the new truth rather than an empty record. An
+// `ownerUserId` must be a member of this organization: ownership that looks
+// routable but reaches nobody is worse than none.
+//
+// _Requires permission: `resources:write`._
+//
+// PUT /api/org/{orgId}/ownership
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *OwnershipNamespace) Update(ctx context.Context, params *OwnershipUpdateParams, opts ...RequestOption) (any, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/ownership")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out any
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // PagesNamespace is `client.pages`.
 type PagesNamespace struct {
 	t *transport
@@ -9396,6 +9575,43 @@ func (n *SSHTunnelsNamespace) Open(ctx context.Context, params SSHTunnelsOpenPar
 	return out, nil
 }
 
+// StatusNamespace is `client.status`.
+type StatusNamespace struct {
+	t *transport
+}
+
+func newStatusNamespace(t *transport) *StatusNamespace {
+	n := &StatusNamespace{t: t}
+	return n
+}
+
+// StatusGetParams holds the parameters for `client.status.get`.
+type StatusGetParams struct {
+	Slug string
+}
+
+// Get: Read a public status page
+//
+// **Unauthenticated.** The only endpoint in this API that takes no credentials —
+// a status page exists for people with no account. The payload carries labels,
+// states and uptime history only: probe URLs, resource and account ids, the
+// organization id and error detail are never included. An unpublished page and
+// an unknown slug both answer 404, so the endpoint cannot be used to confirm
+// that a slug is real.
+//
+// GET /api/status/{slug}
+//
+// Raises on 404: Not found
+func (n *StatusNamespace) Get(ctx context.Context, params StatusGetParams, opts ...RequestOption) (*PublicStatusPage, error) {
+	r := newRequest(http.MethodGet, "/api/status/{slug}")
+	r.setPath("slug", params.Slug)
+	var out *PublicStatusPage
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // StatusIncidentsNamespace is `client.statusIncidents`.
 type StatusIncidentsNamespace struct {
 	t *transport
@@ -9438,6 +9654,175 @@ func (n *StatusIncidentsNamespace) Get(ctx context.Context, params *StatusIncide
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *OrgStatusIncidentsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// StatusPagesNamespace is `client.statusPages`.
+type StatusPagesNamespace struct {
+	t *transport
+}
+
+func newStatusPagesNamespace(t *transport) *StatusPagesNamespace {
+	n := &StatusPagesNamespace{t: t}
+	return n
+}
+
+// StatusPagesCreateParams holds the parameters for `client.statusPages.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type StatusPagesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *StatusPageCreate
+}
+
+// Create: Create a status page
+//
+// Creates a page with a freshly generated slug. `published` defaults to false,
+// so creating a page never exposes anything — publish it as a separate,
+// deliberate step.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/status-pages
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *StatusPagesNamespace) Create(ctx context.Context, params *StatusPagesCreateParams, opts ...RequestOption) (*StatusPage, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/status-pages")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *StatusPage
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// StatusPagesDeleteParams holds the parameters for `client.statusPages.delete`.
+type StatusPagesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a status page
+//
+// The page's link stops working. The probes it published are untouched.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/status-pages/{id}
+//
+// Raises on 404: Not found
+func (n *StatusPagesNamespace) Delete(ctx context.Context, params StatusPagesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/status-pages/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// StatusPagesGetParams holds the parameters for `client.statusPages.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type StatusPagesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List status pages
+//
+// Every status page in the organization, with the probes each publishes and
+// whether it is currently reachable.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/status-pages
+func (n *StatusPagesNamespace) Get(ctx context.Context, params *StatusPagesGetParams, opts ...RequestOption) (*StatusPageListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/status-pages")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *StatusPageListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// StatusPagesRotateSlugParams holds the parameters for
+// `client.statusPages.rotateSlug`.
+type StatusPagesRotateSlugParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// RotateSlug: Issue a new public link
+//
+// Replaces the slug, revoking the current public URL immediately — the reroll
+// for a link that ended up somewhere unintended. The page stays published.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/status-pages/{id}/rotate-slug
+//
+// Raises on 404: Not found
+func (n *StatusPagesNamespace) RotateSlug(ctx context.Context, params StatusPagesRotateSlugParams, opts ...RequestOption) (*StatusPage, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/status-pages/{id}/rotate-slug")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *StatusPage
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// StatusPagesUpdateParams holds the parameters for `client.statusPages.update`.
+type StatusPagesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *StatusPagePatch
+}
+
+// Update: Update a status page
+//
+// Omitted fields keep their value. `components`, when present, replaces the
+// whole ordered set — which is also how a reorder is expressed.
+//
+// _Requires permission: `resources:write`._
+//
+// PUT /api/org/{orgId}/status-pages/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *StatusPagesNamespace) Update(ctx context.Context, params StatusPagesUpdateParams, opts ...RequestOption) (*StatusPage, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/status-pages/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *StatusPage
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

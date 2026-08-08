@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.43.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.44.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.43.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.44.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2685,6 +2685,9 @@ type OrphanListResponse struct {
 	// Accounts: Groups sorted by account name.
 	Accounts   []OrphanAccountGroup `json:"accounts"`
 	TotalCount int64                `json:"totalCount"`
+	// UnownedCount: Flagged resources with no recorded owner — the 'nobody to
+	// ask' count.
+	UnownedCount int64 `json:"unownedCount"`
 	// CostWindowDays: Days of trailing spend the annotations cover.
 	CostWindowDays int64  `json:"costWindowDays"`
 	GeneratedAt    string `json:"generatedAt"`
@@ -2701,9 +2704,10 @@ type OrphanedResource struct {
 	// ExternalID: Provider-native id, when known.
 	ExternalID *string `json:"externalId"`
 	// Reason: Plugin-authored explanation of why this resource looks wasted.
-	Reason       string                `json:"reason"`
-	Cost         *OrphanCostAnnotation `json:"cost"`
-	LastSyncedAt *string               `json:"lastSyncedAt"`
+	Reason       string                   `json:"reason"`
+	Cost         *OrphanCostAnnotation    `json:"cost"`
+	Owner        *ResourceOwnerAnnotation `json:"owner"`
+	LastSyncedAt *string                  `json:"lastSyncedAt"`
 }
 
 // OversizedAccountGroup is the `OversizedAccountGroup` schema.
@@ -2762,6 +2766,19 @@ type OversizedSizeSummary struct {
 	MemoryMb int64  `json:"memoryMb"`
 	// PriceMonthly: Monthly catalog price in `currency`; null when unpriced.
 	PriceMonthly *float64 `json:"priceMonthly"`
+}
+
+// OwnerCandidate is the `OwnerCandidate` schema.
+type OwnerCandidate struct {
+	UserID string `json:"userId"`
+	// Name: Display name, falling back to the email.
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+// OwnerCandidateListResponse is the `OwnerCandidateListResponse` schema.
+type OwnerCandidateListResponse struct {
+	Members []OwnerCandidate `json:"members"`
 }
 
 // OwnershipBlocker is the `OwnershipBlocker` schema.
@@ -3309,6 +3326,43 @@ const (
 	ProviderIncidentStateResolved      ProviderIncidentState = "resolved"
 )
 
+// PublicStatusComponent is the `PublicStatusComponent` schema.
+type PublicStatusComponent struct {
+	// ID: Stable per page. Deliberately not the probe id.
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	GroupName *string `json:"groupName"`
+	// State: A component's public state. A paused probe reads `unknown`
+	// regardless of its last result — the page is a claim about what is being
+	// checked now.
+	//
+	// One of "operational", "degraded", "down", "unknown".
+	State     string   `json:"state"`
+	Uptime24h *float64 `json:"uptime24h"`
+	// History: Oldest first; empty when history is hidden.
+	History []StatusHistoryDay `json:"history"`
+}
+
+// PublicStatusPage is the `PublicStatusPage` schema.
+type PublicStatusPage struct {
+	Title       string  `json:"title"`
+	Description *string `json:"description"`
+	// State: Rollup over the components. `degraded` means some but not all are
+	// down; components with no data are ignored rather than dragging the page to
+	// unknown.
+	//
+	// One of "operational", "degraded", "major_outage", "unknown".
+	State string `json:"state"`
+	// Summary: One sentence describing `state`.
+	Summary     string                  `json:"summary"`
+	Components  []PublicStatusComponent `json:"components"`
+	SupportURL  *string                 `json:"supportUrl"`
+	ShowHistory bool                    `json:"showHistory"`
+	ShowUptime  bool                    `json:"showUptime"`
+	HistoryDays int64                   `json:"historyDays"`
+	GeneratedAt string                  `json:"generatedAt"`
+}
+
 // PushedCostRow is the `PushedCostRow` schema.
 type PushedCostRow struct {
 	// Date: UTC day the spend belongs to.
@@ -3563,6 +3617,73 @@ type ResourceLeaseUpdate struct {
 	AutoDelete *bool `json:"autoDelete,omitempty"`
 	// Note: `null` clears the note.
 	Note *string `json:"note,omitempty"`
+}
+
+// ResourceOwnerAnnotation: Who owns this resource, or null when nobody has
+// claimed it. Present only when the owner can be named: a resource carrying a
+// purpose but no owner reads as null, because the question this answers is who
+// to tell.
+//
+// The API may send null in its place.
+type ResourceOwnerAnnotation struct {
+	// UserID: Set when a routable org member owns it.
+	UserID *string `json:"userId"`
+	// DisplayName: The member's name, or the free-text owner.
+	DisplayName string `json:"displayName"`
+	// IsLabel: True when the owner is free text — nothing can be routed to it.
+	IsLabel   bool    `json:"isLabel"`
+	TicketURL *string `json:"ticketUrl"`
+	Purpose   *string `json:"purpose"`
+}
+
+// ResourceOwnership is the `ResourceOwnership` schema.
+type ResourceOwnership struct {
+	ID             string   `json:"id"`
+	ResourceID     string   `json:"resourceId"`
+	AccountID      string   `json:"accountId"`
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	// ResourceName: Resource display name, denormalized so a report can name a
+	// deleted resource.
+	ResourceName string `json:"resourceName"`
+	// OwnerUserID: The routable owner — an org member. Alerts about this
+	// resource reach them.
+	OwnerUserID *string `json:"ownerUserId"`
+	// OwnerName: Resolved server-side; null when unset or removed.
+	OwnerName  *string `json:"ownerName"`
+	OwnerEmail *string `json:"ownerEmail"`
+	// OwnerLabel: Free-text owner (a team, a rota, a contractor). Display-only,
+	// never routed.
+	OwnerLabel *string `json:"ownerLabel"`
+	// Purpose: What this resource is for.
+	Purpose *string `json:"purpose"`
+	// TicketURL: Link to the ticket that authorized it.
+	TicketURL *string `json:"ticketUrl"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt string  `json:"updatedAt"`
+}
+
+// ResourceOwnershipEnvelope is the `ResourceOwnershipEnvelope` schema.
+type ResourceOwnershipEnvelope struct {
+	Ownership any `json:"ownership"`
+}
+
+// ResourceOwnershipListResponse is the `ResourceOwnershipListResponse` schema.
+type ResourceOwnershipListResponse struct {
+	Ownership []ResourceOwnership `json:"ownership"`
+}
+
+// ResourceOwnershipPatch is the `ResourceOwnershipPatch` schema.
+type ResourceOwnershipPatch struct {
+	ResourceID string `json:"resourceId"`
+	// OwnerUserID: Omit to keep, null to clear.
+	OwnerUserID *string `json:"ownerUserId,omitempty"`
+	// OwnerLabel: Omit to keep, null to clear.
+	OwnerLabel *string `json:"ownerLabel,omitempty"`
+	// Purpose: Omit to keep, null to clear.
+	Purpose *string `json:"purpose,omitempty"`
+	// TicketURL: Omit to keep, null to clear.
+	TicketURL *string `json:"ticketUrl,omitempty"`
 }
 
 // ResourceStatus: Normalized status reported by a plugin's
@@ -4715,6 +4836,88 @@ type StatusDot struct {
 	Kind   string         `json:"kind"`
 	Status ResourceStatus `json:"status"`
 	Label  *string        `json:"label,omitempty"`
+}
+
+// StatusHistoryDay is the `StatusHistoryDay` schema.
+type StatusHistoryDay struct {
+	// Day: `YYYY-MM-DD`, UTC.
+	Day string `json:"day"`
+	// Uptime: Fraction of the day the endpoint was up (0–1), or null when
+	// nothing was recorded.
+	Uptime *float64 `json:"uptime"`
+}
+
+// StatusPage is the `StatusPage` schema.
+type StatusPage struct {
+	ID string `json:"id"`
+	// Slug: The public URL segment, and the page's only access credential.
+	// Generated with real entropy rather than derived from the title.
+	Slug        string  `json:"slug"`
+	Title       string  `json:"title"`
+	Description *string `json:"description"`
+	// Published: False until deliberately published; a fresh page is never
+	// reachable.
+	Published   bool                  `json:"published"`
+	ShowHistory bool                  `json:"showHistory"`
+	ShowUptime  bool                  `json:"showUptime"`
+	SupportURL  *string               `json:"supportUrl"`
+	Components  []StatusPageComponent `json:"components"`
+	CreatedAt   string                `json:"createdAt"`
+	UpdatedAt   string                `json:"updatedAt"`
+}
+
+// StatusPageComponent is the `StatusPageComponent` schema.
+type StatusPageComponent struct {
+	ID      string `json:"id"`
+	ProbeID string `json:"probeId"`
+	// Label: Public name; null falls back to the probe's own name.
+	Label     *string `json:"label"`
+	GroupName *string `json:"groupName"`
+	// Position: Ascending display order.
+	Position int64 `json:"position"`
+	// ProbeName: The probe's internal name — editor-only.
+	ProbeName string `json:"probeName"`
+	// ProbeStatus: One of "up", "down", "unknown".
+	ProbeStatus string `json:"probeStatus"`
+	// ProbeEnabled: False when the probe is paused.
+	ProbeEnabled bool `json:"probeEnabled"`
+}
+
+// StatusPageComponentInput is the `StatusPageComponentInput` schema.
+type StatusPageComponentInput struct {
+	ProbeID   string  `json:"probeId"`
+	Label     *string `json:"label,omitempty"`
+	GroupName *string `json:"groupName,omitempty"`
+}
+
+// StatusPageCreate is the `StatusPageCreate` schema.
+type StatusPageCreate struct {
+	Title       string  `json:"title"`
+	Description *string `json:"description,omitempty"`
+	// Published: Defaults to false.
+	Published   *bool   `json:"published,omitempty"`
+	ShowHistory *bool   `json:"showHistory,omitempty"`
+	ShowUptime  *bool   `json:"showUptime,omitempty"`
+	SupportURL  *string `json:"supportUrl,omitempty"`
+	// Components: Order is significant — it is the public render order.
+	Components []StatusPageComponentInput `json:"components,omitempty"`
+}
+
+// StatusPageListResponse is the `StatusPageListResponse` schema.
+type StatusPageListResponse struct {
+	Pages []StatusPage `json:"pages"`
+}
+
+// StatusPagePatch is the `StatusPagePatch` schema.
+type StatusPagePatch struct {
+	Title       *string `json:"title,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Published   *bool   `json:"published,omitempty"`
+	ShowHistory *bool   `json:"showHistory,omitempty"`
+	ShowUptime  *bool   `json:"showUptime,omitempty"`
+	SupportURL  *string `json:"supportUrl,omitempty"`
+	// Components: When present, replaces the whole set.
+	Components []StatusPageComponentInput `json:"components,omitempty"`
 }
 
 // StorageListRequest is the `StorageListRequest` schema.
