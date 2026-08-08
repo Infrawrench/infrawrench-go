@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.0.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.1.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.0.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.1.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1866,6 +1866,121 @@ type EditableField struct {
 	Required    bool     `json:"required"`
 	Description *string  `json:"description,omitempty"`
 	EnumValues  []string `json:"enumValues,omitempty"`
+}
+
+// EnvironmentDiffEntry is the `EnvironmentDiffEntry` schema.
+type EnvironmentDiffEntry struct {
+	// Key: The pairing key both sides matched on — the resource type plus the
+	// resource name with environment words removed. Stable across runs.
+	Key              string `json:"key"`
+	ResourceTypeID   string `json:"resourceTypeId"`
+	ResourceTypeName string `json:"resourceTypeName"`
+	// Status: Whether the slot exists on side A only, side B only, or on both
+	// with a field divergence. Matched pairs that agree are counted in the type
+	// summary rather than listed.
+	//
+	// One of "only-in-a", "only-in-b", "changed".
+	Status string                      `json:"status"`
+	A      *EnvironmentDiffResourceRef `json:"a"`
+	B      *EnvironmentDiffResourceRef `json:"b"`
+	// Changes: Field divergences. Empty unless `status` is `changed`.
+	Changes []EnvironmentDiffFieldChange `json:"changes"`
+	// SuppressedCount: Divergences hidden by the identity filter (ids, links,
+	// addresses, timestamps). Always 0 when `includeIdentityFields` was
+	// requested.
+	SuppressedCount int64 `json:"suppressedCount"`
+}
+
+// EnvironmentDiffFieldChange is the `EnvironmentDiffFieldChange` schema.
+type EnvironmentDiffFieldChange struct {
+	// Field: Field key; resolved-output keys are prefixed `outputs.`.
+	Field string `json:"field"`
+	// A: Value on side A; null when the key is absent there.
+	A any `json:"a,omitempty"`
+	// B: Value on side B.
+	B any `json:"b,omitempty"`
+}
+
+// EnvironmentDiffResourceRef: Null when the resource exists only on B.
+//
+// The API may send null in its place.
+type EnvironmentDiffResourceRef struct {
+	// ResourceID: Infrawrench resource id.
+	ResourceID  string `json:"resourceId"`
+	AccountID   string `json:"accountId"`
+	DisplayName string `json:"displayName"`
+	// ExternalID: Provider-native id, when known.
+	ExternalID *string `json:"externalId"`
+}
+
+// EnvironmentDiffResponse is the `EnvironmentDiffResponse` schema.
+type EnvironmentDiffResponse struct {
+	A          EnvironmentDiffSideSummary `json:"a"`
+	B          EnvironmentDiffSideSummary `json:"b"`
+	PluginID   PluginID                   `json:"pluginId"`
+	PluginName string                     `json:"pluginName"`
+	// Types: Every resource type present on either side, most-divergent first.
+	Types []EnvironmentDiffTypeSummary `json:"types"`
+	// Entries: Only the slots that differ; identical pairs are counted, not
+	// listed.
+	Entries []EnvironmentDiffEntry `json:"entries"`
+	Totals  EnvironmentDiffTotals  `json:"totals"`
+	// UnavailableTypes: Resource types excluded because they could not be
+	// listed. Always empty over this API — it reads already-synced rows, which
+	// cannot half-fail — and populated only by the desktop and CLI local modes,
+	// which list live.
+	UnavailableTypes      []EnvironmentDiffUnavailableType `json:"unavailableTypes"`
+	IncludeIdentityFields bool                             `json:"includeIdentityFields"`
+	GeneratedAt           string                           `json:"generatedAt"`
+}
+
+// EnvironmentDiffSideSummary is the `EnvironmentDiffSideSummary` schema.
+type EnvironmentDiffSideSummary struct {
+	AccountID   string `json:"accountId"`
+	AccountName string `json:"accountName"`
+	// ResourceCount: Resources compared on this side.
+	ResourceCount int64 `json:"resourceCount"`
+}
+
+// EnvironmentDiffTotals is the `EnvironmentDiffTotals` schema.
+type EnvironmentDiffTotals struct {
+	OnlyInA      int64 `json:"onlyInA"`
+	OnlyInB      int64 `json:"onlyInB"`
+	Changed      int64 `json:"changed"`
+	Identical    int64 `json:"identical"`
+	TypesOnlyInA int64 `json:"typesOnlyInA"`
+	TypesOnlyInB int64 `json:"typesOnlyInB"`
+	// SuppressedFieldChanges: Field divergences the identity filter hid across
+	// every pair.
+	SuppressedFieldChanges int64 `json:"suppressedFieldChanges"`
+}
+
+// EnvironmentDiffTypeSummary is the `EnvironmentDiffTypeSummary` schema.
+type EnvironmentDiffTypeSummary struct {
+	ResourceTypeID   string `json:"resourceTypeId"`
+	ResourceTypeName string `json:"resourceTypeName"`
+	CountA           int64  `json:"countA"`
+	CountB           int64  `json:"countB"`
+	// Delta: `countB - countA`.
+	Delta   int64 `json:"delta"`
+	OnlyInA int64 `json:"onlyInA"`
+	OnlyInB int64 `json:"onlyInB"`
+	// Changed: Matched pairs that disagree on at least one field.
+	Changed int64 `json:"changed"`
+	// Identical: Matched pairs with no visible divergence.
+	Identical int64 `json:"identical"`
+	// MissingFrom: Set when the resource type is absent from that side entirely.
+	//
+	// One of "a", "b".
+	MissingFrom *string `json:"missingFrom"`
+}
+
+// EnvironmentDiffUnavailableType is the `EnvironmentDiffUnavailableType` schema.
+type EnvironmentDiffUnavailableType struct {
+	ResourceTypeID   string `json:"resourceTypeId"`
+	ResourceTypeName string `json:"resourceTypeName"`
+	// Message: The provider's complaint, as the lister reported it.
+	Message string `json:"message"`
 }
 
 // Error is the `Error` schema.
@@ -5117,8 +5232,8 @@ type SyntheticProbeUpdate struct {
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "graph", "logs", "changes", "expiring", "posture", "dns",
-	// "ssh-fanout", "metric-alerts", "probes", "workflows", "deployments",
-	// "settings", "chat".
+	// "environment-diff", "ssh-fanout", "metric-alerts", "probes", "workflows",
+	// "deployments", "settings", "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`

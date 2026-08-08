@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.0.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.1.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.0.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.1.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -85,6 +85,8 @@ type APIV1Client struct {
 	DNS *DNSNamespace
 	// Docker: `client.docker`.
 	Docker *DockerNamespace
+	// EnvironmentDiff: `client.environmentDiff`.
+	EnvironmentDiff *EnvironmentDiffNamespace
 	// Expiring: `client.expiring`.
 	Expiring *ExpiringNamespace
 	// Invitations: `client.invitations`.
@@ -188,6 +190,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Digest = newDigestNamespace(t)
 	c.DNS = newDNSNamespace(t)
 	c.Docker = newDockerNamespace(t)
+	c.EnvironmentDiff = newEnvironmentDiffNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
 	c.Invitations = newInvitationsNamespace(t)
 	c.KV = newKVNamespace(t)
@@ -5048,6 +5051,75 @@ func (n *DockerNamespace) Command(ctx context.Context, params DockerCommandParam
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *DockerCommandResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentDiffNamespace is `client.environmentDiff`.
+type EnvironmentDiffNamespace struct {
+	t *transport
+}
+
+func newEnvironmentDiffNamespace(t *transport) *EnvironmentDiffNamespace {
+	n := &EnvironmentDiffNamespace{t: t}
+	return n
+}
+
+// EnvironmentDiffGetParams holds the parameters for
+// `client.environmentDiff.get`.
+type EnvironmentDiffGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// A: Baseline account id — by convention the environment that works.
+	A string
+	// B: Compared account id. Must differ from `a` and use the same provider.
+	B string
+	// ResourceTypeID: Compare one resource type only.
+	ResourceTypeID *string
+	// IncludeIdentityFields: Compare identity and timestamp fields too, instead
+	// of filtering them out.
+	//
+	// One of "true", "false".
+	IncludeIdentityFields *string
+}
+
+// Get: Compare two accounts' resource inventories
+//
+// Compares two accounts of the same provider — typically staging against
+// production — over already-synced state: which resource types exist in one and
+// not the other, the per-type count deltas, and the fields on which two
+// corresponding resources disagree (instance class, engine version, feature
+// flags).
+//
+// Resources are paired by resource type plus name with environment words
+// removed, so `api-staging` lines up with `api-prod` without any naming
+// convention to configure. By default the comparison hides divergences that are
+// artefacts of being two different resources — ids, links, network addresses and
+// timestamps — because every resource has different ones; pass
+// `includeIdentityFields=true` to see them.
+//
+// Read-only and cheap: no provider API calls are made, so results reflect the
+// last sync.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/environment-diff
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *EnvironmentDiffNamespace) Get(ctx context.Context, params EnvironmentDiffGetParams, opts ...RequestOption) (*EnvironmentDiffResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/environment-diff")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("a", params.A)
+	r.addQuery("b", params.B)
+	r.addQuery("resourceTypeId", params.ResourceTypeID)
+	r.addQuery("includeIdentityFields", params.IncludeIdentityFields)
+	var out *EnvironmentDiffResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
