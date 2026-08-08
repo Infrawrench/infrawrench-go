@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.44.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.0.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.44.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.0.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -230,6 +230,112 @@ type AgentVMAccount struct {
 	CreateFields       []JSONObject      `json:"createFields,omitempty"`
 	HiddenFieldKeys    []string          `json:"hiddenFieldKeys"`
 }
+
+// AlertCondition: One clause of a rule. A rule matches when every condition
+// matches; 'or' is expressed by writing a second rule. A condition on a fact the
+// alert does not carry never matches — in either direction, so `accountId notIn
+// [x]` does not match an alert with no account.
+type AlertCondition = any
+
+// AlertDelivery is the `AlertDelivery` schema.
+type AlertDelivery struct {
+	ID       string        `json:"id"`
+	Trigger  AlertTrigger  `json:"trigger"`
+	Severity AlertSeverity `json:"severity"`
+	Title    string        `json:"title"`
+	Body     string        `json:"body"`
+	RuleName *string       `json:"ruleName"`
+	// State: One of "held", "awaiting_ack", "sent", "acknowledged", "escalated",
+	// "expired".
+	State     string `json:"state"`
+	CreatedAt string `json:"createdAt"`
+	// DeliverAfter: When a quiet-hours hold is released.
+	DeliverAfter *string `json:"deliverAfter"`
+	// EscalateAt: When an unacknowledged alert escalates.
+	EscalateAt           *string `json:"escalateAt"`
+	AcknowledgedAt       *string `json:"acknowledgedAt"`
+	AcknowledgedByUserID *string `json:"acknowledgedByUserId"`
+}
+
+// AlertDestination: One place a matched alert goes. `push` reaches the
+// organization's phones, still filtered by each member's own mutes — an
+// organization rule decides whether the org is told, a member decides whether
+// their phone rings.
+type AlertDestination = any
+
+// AlertRule is the `AlertRule` schema.
+type AlertRule struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Enabled bool   `json:"enabled"`
+	// Position: Ascending evaluation order
+	Position   int64            `json:"position"`
+	Conditions []AlertCondition `json:"conditions"`
+	// Destinations: Empty is legal and meaningful: an enabled rule with no
+	// destinations swallows matching alerts and shadows the rules below it.
+	Destinations []AlertDestination `json:"destinations"`
+	// ContinueOnMatch: False (the default) makes the list first-match-wins,
+	// which is what lets a narrow rule sit above a broad one. True makes the
+	// rule a tee that copies without shadowing.
+	ContinueOnMatch bool              `json:"continueOnMatch"`
+	QuietHours      *QuietHours       `json:"quietHours"`
+	Escalation      *EscalationPolicy `json:"escalation"`
+}
+
+// AlertRuleInput is the `AlertRuleInput` schema.
+type AlertRuleInput struct {
+	// ID: Send the existing id to preserve it, which keeps in-flight held and
+	// escalating deliveries pointing at their rule.
+	ID              *string            `json:"id,omitempty"`
+	Name            string             `json:"name"`
+	Enabled         *bool              `json:"enabled,omitempty"`
+	Conditions      []AlertCondition   `json:"conditions,omitempty"`
+	Destinations    []AlertDestination `json:"destinations,omitempty"`
+	ContinueOnMatch *bool              `json:"continueOnMatch,omitempty"`
+	QuietHours      *QuietHours        `json:"quietHours,omitempty"`
+	Escalation      *EscalationPolicy  `json:"escalation,omitempty"`
+}
+
+// AlertRulesResponse is the `AlertRulesResponse` schema.
+type AlertRulesResponse struct {
+	Rules []AlertRule `json:"rules"`
+	// UsingDefaults: True when the organization has saved no rules and `rules`
+	// is the synthesized default — everything except drift, to every connected
+	// channel and to mobile push.
+	UsingDefaults   bool                                `json:"usingDefaults"`
+	SlackChannels   []AlertRulesResponseSlackChannels   `json:"slackChannels"`
+	MsTeamsWebhooks []AlertRulesResponseMsTeamsWebhooks `json:"msTeamsWebhooks"`
+	Accounts        []AlertRulesResponseAccounts        `json:"accounts"`
+}
+
+// AlertSeverity: Alert severity, ordered info < warning < critical.
+type AlertSeverity = string
+
+// The values AlertSeverity takes.
+const (
+	AlertSeverityInfo     AlertSeverity = "info"
+	AlertSeverityWarning  AlertSeverity = "warning"
+	AlertSeverityCritical AlertSeverity = "critical"
+)
+
+// AlertTrigger: A kind of alert that can be routed.
+type AlertTrigger = string
+
+// The values AlertTrigger takes.
+const (
+	AlertTriggerSyncIncidents     AlertTrigger = "syncIncidents"
+	AlertTriggerBudgetAlerts      AlertTrigger = "budgetAlerts"
+	AlertTriggerAnomalyAlerts     AlertTrigger = "anomalyAlerts"
+	AlertTriggerMetricAlerts      AlertTrigger = "metricAlerts"
+	AlertTriggerResourceDrift     AlertTrigger = "resourceDrift"
+	AlertTriggerWorkflowPages     AlertTrigger = "workflowPages"
+	AlertTriggerProviderIncidents AlertTrigger = "providerIncidents"
+	AlertTriggerExpiryAlerts      AlertTrigger = "expiryAlerts"
+	AlertTriggerLogMatchAlerts    AlertTrigger = "logMatchAlerts"
+	AlertTriggerPostureAlerts     AlertTrigger = "postureAlerts"
+	AlertTriggerProbeAlerts       AlertTrigger = "probeAlerts"
+	AlertTriggerWeeklyDigest      AlertTrigger = "weeklyDigest"
+)
 
 // AllocationRule is the `AllocationRule` schema.
 type AllocationRule struct {
@@ -1768,6 +1874,16 @@ type Error struct {
 	Error string `json:"error"`
 }
 
+// EscalationPolicy: Notify these destinations too if nobody acknowledges within
+// afterMinutes. Acknowledgement comes from the button on the Slack message, so
+// an alert routed only to Teams or push will always escalate.
+//
+// The API may send null in its place.
+type EscalationPolicy struct {
+	AfterMinutes int64              `json:"afterMinutes"`
+	Destinations []AlertDestination `json:"destinations"`
+}
+
 // ExpiryAlertSettings is the `ExpiryAlertSettings` schema.
 type ExpiryAlertSettings struct {
 	// Enabled: Whether the poller sends expiry alerts for this organization at
@@ -2484,38 +2600,7 @@ type MsTeamsWebhook struct {
 	Label string `json:"label"`
 	// URLHint: Non-secret hint at the stored webhook URL (host and last four
 	// characters). The URL itself is never returned.
-	URLHint       string `json:"urlHint"`
-	SyncIncidents bool   `json:"syncIncidents"`
-	BudgetAlerts  bool   `json:"budgetAlerts"`
-	// AnomalyAlerts: Statistical spend-spike (cost anomaly) alerts
-	AnomalyAlerts bool `json:"anomalyAlerts"`
-	// MetricAlerts: Metric threshold rule firings and recoveries
-	MetricAlerts bool `json:"metricAlerts"`
-	// ResourceDrift: Batched resource-drift digests from the change timeline.
-	// Defaults to false when a channel is added — drift is continuous where the
-	// other triggers are exceptional.
-	ResourceDrift bool `json:"resourceDrift"`
-	// WorkflowPages: Pages and approval requests raised by a workflow
-	// (infra.page / infra.waitForApproval) or by POST /pages
-	WorkflowPages bool `json:"workflowPages"`
-	// ProviderIncidents: A provider status-page incident overlaps resources you
-	// hold.
-	ProviderIncidents bool `json:"providerIncidents"`
-	// ExpiryAlerts: Daily digests of approaching resource deadlines — expiring
-	// certificates, domains, tokens and keys past their rotation budget.
-	ExpiryAlerts bool `json:"expiryAlerts"`
-	// LogMatchAlerts: A saved log-workspace query with alerting enabled found
-	// matching log lines.
-	LogMatchAlerts bool `json:"logMatchAlerts"`
-	// PostureAlerts: Daily digests of critical/high security posture findings on
-	// synced resources — public buckets, world-open ingress, unencrypted disks.
-	PostureAlerts bool `json:"postureAlerts"`
-	// ProbeAlerts: A synthetic probe crossed its consecutive-failure threshold
-	// (down) or answered again (recovered).
-	ProbeAlerts bool `json:"probeAlerts"`
-	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
-	// organization has enabled the digest (see /digest).
-	WeeklyDigest bool `json:"weeklyDigest"`
+	URLHint string `json:"urlHint"`
 }
 
 // MsTeamsWebhookCreate is the `MsTeamsWebhookCreate` schema.
@@ -2525,36 +2610,12 @@ type MsTeamsWebhookCreate struct {
 	// and on a Microsoft-operated host (*.api.powerautomate.com,
 	// *.api.powerplatform.com, *.logic.azure.com, *.flow.microsoft.com, or a
 	// legacy *.webhook.office.com connector).
-	URL               string `json:"url"`
-	SyncIncidents     *bool  `json:"syncIncidents,omitempty"`
-	BudgetAlerts      *bool  `json:"budgetAlerts,omitempty"`
-	AnomalyAlerts     *bool  `json:"anomalyAlerts,omitempty"`
-	MetricAlerts      *bool  `json:"metricAlerts,omitempty"`
-	ResourceDrift     *bool  `json:"resourceDrift,omitempty"`
-	WorkflowPages     *bool  `json:"workflowPages,omitempty"`
-	ProviderIncidents *bool  `json:"providerIncidents,omitempty"`
-	ExpiryAlerts      *bool  `json:"expiryAlerts,omitempty"`
-	LogMatchAlerts    *bool  `json:"logMatchAlerts,omitempty"`
-	PostureAlerts     *bool  `json:"postureAlerts,omitempty"`
-	ProbeAlerts       *bool  `json:"probeAlerts,omitempty"`
-	WeeklyDigest      *bool  `json:"weeklyDigest,omitempty"`
+	URL string `json:"url"`
 }
 
 // MsTeamsWebhookUpdate is the `MsTeamsWebhookUpdate` schema.
 type MsTeamsWebhookUpdate struct {
-	Label             *string `json:"label,omitempty"`
-	SyncIncidents     *bool   `json:"syncIncidents,omitempty"`
-	BudgetAlerts      *bool   `json:"budgetAlerts,omitempty"`
-	AnomalyAlerts     *bool   `json:"anomalyAlerts,omitempty"`
-	MetricAlerts      *bool   `json:"metricAlerts,omitempty"`
-	ResourceDrift     *bool   `json:"resourceDrift,omitempty"`
-	WorkflowPages     *bool   `json:"workflowPages,omitempty"`
-	ProviderIncidents *bool   `json:"providerIncidents,omitempty"`
-	ExpiryAlerts      *bool   `json:"expiryAlerts,omitempty"`
-	LogMatchAlerts    *bool   `json:"logMatchAlerts,omitempty"`
-	PostureAlerts     *bool   `json:"postureAlerts,omitempty"`
-	ProbeAlerts       *bool   `json:"probeAlerts,omitempty"`
-	WeeklyDigest      *bool   `json:"weeklyDigest,omitempty"`
+	Label string `json:"label"`
 }
 
 // NoSQLCommandRequest is the `NoSqlCommandRequest` schema.
@@ -3384,6 +3445,24 @@ type PushedCostRow struct {
 	// AccountID: Attribute this row to a connected account. Must belong to the
 	// calling organization. Omit to attribute it to the source itself.
 	AccountID *string `json:"accountId,omitempty"`
+}
+
+// QuietHours: A recurring local-time window during which the rule holds its
+// alerts. Held, not dropped — a held alert is queued and delivered when the
+// window closes.
+//
+// The API may send null in its place.
+type QuietHours struct {
+	// Timezone: IANA zone, e.g. Europe/Berlin
+	Timezone    string `json:"timezone"`
+	StartMinute int64  `json:"startMinute"`
+	// EndMinute: May be less than startMinute for an overnight window. Equal
+	// means empty.
+	EndMinute int64 `json:"endMinute"`
+	// Days: ISO weekdays the window applies on, matched against the day the
+	// window opened. Empty means every day.
+	Days           []int64        `json:"days"`
+	UrgentOverride *AlertSeverity `json:"urgentOverride"`
 }
 
 // ReauthenticationRequired is the `ReauthenticationRequired` schema.
@@ -4412,75 +4491,21 @@ type SlackChannel struct {
 	// ChannelID: Slack channel id (C…/G…)
 	ChannelID string `json:"channelId"`
 	// ChannelName: Channel name without the leading #
-	ChannelName   string `json:"channelName"`
-	IsPrivate     bool   `json:"isPrivate"`
-	SyncIncidents bool   `json:"syncIncidents"`
-	BudgetAlerts  bool   `json:"budgetAlerts"`
-	// AnomalyAlerts: Statistical spend-spike (cost anomaly) alerts
-	AnomalyAlerts bool `json:"anomalyAlerts"`
-	// MetricAlerts: Metric threshold rule firings and recoveries
-	MetricAlerts bool `json:"metricAlerts"`
-	// ResourceDrift: Batched resource-drift digests from the change timeline.
-	// Defaults to false when a channel is added — drift is continuous where the
-	// other triggers are exceptional.
-	ResourceDrift bool `json:"resourceDrift"`
-	// WorkflowPages: Pages and approval requests raised by a workflow
-	// (infra.page / infra.waitForApproval) or by POST /pages
-	WorkflowPages bool `json:"workflowPages"`
-	// ProviderIncidents: A provider status-page incident overlaps resources you
-	// hold.
-	ProviderIncidents bool `json:"providerIncidents"`
-	// ExpiryAlerts: Daily digests of approaching resource deadlines — expiring
-	// certificates, domains, tokens and keys past their rotation budget.
-	ExpiryAlerts bool `json:"expiryAlerts"`
-	// LogMatchAlerts: A saved log-workspace query with alerting enabled found
-	// matching log lines.
-	LogMatchAlerts bool `json:"logMatchAlerts"`
-	// PostureAlerts: Daily digests of critical/high security posture findings on
-	// synced resources — public buckets, world-open ingress, unencrypted disks.
-	PostureAlerts bool `json:"postureAlerts"`
-	// ProbeAlerts: A synthetic probe crossed its consecutive-failure threshold
-	// (down) or answered again (recovered).
-	ProbeAlerts bool `json:"probeAlerts"`
-	// WeeklyDigest: The Monday-morning weekly digest. Only sends when the
-	// organization has enabled the digest (see /digest).
-	WeeklyDigest bool `json:"weeklyDigest"`
+	ChannelName string `json:"channelName"`
+	IsPrivate   bool   `json:"isPrivate"`
 }
 
 // SlackChannelCreate is the `SlackChannelCreate` schema.
 type SlackChannelCreate struct {
-	InstallationID    string `json:"installationId"`
-	ChannelID         string `json:"channelId"`
-	ChannelName       string `json:"channelName"`
-	IsPrivate         *bool  `json:"isPrivate,omitempty"`
-	SyncIncidents     *bool  `json:"syncIncidents,omitempty"`
-	BudgetAlerts      *bool  `json:"budgetAlerts,omitempty"`
-	AnomalyAlerts     *bool  `json:"anomalyAlerts,omitempty"`
-	MetricAlerts      *bool  `json:"metricAlerts,omitempty"`
-	ResourceDrift     *bool  `json:"resourceDrift,omitempty"`
-	WorkflowPages     *bool  `json:"workflowPages,omitempty"`
-	ProviderIncidents *bool  `json:"providerIncidents,omitempty"`
-	ExpiryAlerts      *bool  `json:"expiryAlerts,omitempty"`
-	LogMatchAlerts    *bool  `json:"logMatchAlerts,omitempty"`
-	PostureAlerts     *bool  `json:"postureAlerts,omitempty"`
-	ProbeAlerts       *bool  `json:"probeAlerts,omitempty"`
-	WeeklyDigest      *bool  `json:"weeklyDigest,omitempty"`
+	InstallationID string `json:"installationId"`
+	ChannelID      string `json:"channelId"`
+	ChannelName    string `json:"channelName"`
+	IsPrivate      *bool  `json:"isPrivate,omitempty"`
 }
 
 // SlackChannelUpdate is the `SlackChannelUpdate` schema.
 type SlackChannelUpdate struct {
-	SyncIncidents     *bool `json:"syncIncidents,omitempty"`
-	BudgetAlerts      *bool `json:"budgetAlerts,omitempty"`
-	AnomalyAlerts     *bool `json:"anomalyAlerts,omitempty"`
-	MetricAlerts      *bool `json:"metricAlerts,omitempty"`
-	ResourceDrift     *bool `json:"resourceDrift,omitempty"`
-	WorkflowPages     *bool `json:"workflowPages,omitempty"`
-	ProviderIncidents *bool `json:"providerIncidents,omitempty"`
-	ExpiryAlerts      *bool `json:"expiryAlerts,omitempty"`
-	LogMatchAlerts    *bool `json:"logMatchAlerts,omitempty"`
-	PostureAlerts     *bool `json:"postureAlerts,omitempty"`
-	ProbeAlerts       *bool `json:"probeAlerts,omitempty"`
-	WeeklyDigest      *bool `json:"weeklyDigest,omitempty"`
+	ChannelName string `json:"channelName"`
 }
 
 // SlackInstallation is the `SlackInstallation` schema.
@@ -5323,6 +5348,26 @@ type AccountDetailAccount struct {
 	DisplayName string `json:"displayName"`
 }
 
+// AlertRulesResponseSlackChannels is an object the spec declares inline.
+type AlertRulesResponseSlackChannels struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	IsPrivate bool   `json:"isPrivate"`
+}
+
+// AlertRulesResponseMsTeamsWebhooks is an object the spec declares inline.
+type AlertRulesResponseMsTeamsWebhooks struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// AlertRulesResponseAccounts is an object the spec declares inline.
+type AlertRulesResponseAccounts struct {
+	ID          string `json:"id"`
+	DisplayName string `json:"displayName"`
+	PluginID    string `json:"pluginId"`
+}
+
 // BudgetWithStatusCurrentMonthEvents is an object the spec declares inline.
 type BudgetWithStatusCurrentMonthEvents struct {
 	ID string `json:"id"`
@@ -5657,6 +5702,45 @@ type AgentsSessionsOpenResponse struct {
 type AgentsSessionsReconcileResponse struct {
 	BranchName string `json:"branchName"`
 	Message    string `json:"message"`
+}
+
+// AlertRulesAdoptDefaultsResponse is an object the spec declares inline.
+type AlertRulesAdoptDefaultsResponse struct {
+	Rules   []AlertRule `json:"rules"`
+	Adopted bool        `json:"adopted"`
+}
+
+// AlertRulesUpdateRequest is an object the spec declares inline.
+type AlertRulesUpdateRequest struct {
+	Rules []AlertRuleInput `json:"rules"`
+}
+
+// AlertRulesUpdateResponse is an object the spec declares inline.
+type AlertRulesUpdateResponse struct {
+	Rules []AlertRule `json:"rules"`
+}
+
+// AlertRulesDeliveriesAckResponse is an object the spec declares inline.
+type AlertRulesDeliveriesAckResponse struct {
+	Acknowledged          bool    `json:"acknowledged"`
+	AlreadyAcknowledgedBy *string `json:"alreadyAcknowledgedBy,omitempty"`
+	// Reason: Why the acknowledgement did not take. `not_pending` means the
+	// delivery exists but was never awaiting one — still held, already sent, or
+	// expired.
+	//
+	// One of "not_pending", "already_escalated", "already_acknowledged".
+	Reason *string `json:"reason,omitempty"`
+	Title  *string `json:"title,omitempty"`
+}
+
+// AlertRulesDeliveriesCancelRequest is an object the spec declares inline.
+type AlertRulesDeliveriesCancelRequest struct {
+	IDs []string `json:"ids"`
+}
+
+// AlertRulesDeliveriesCancelResponse is an object the spec declares inline.
+type AlertRulesDeliveriesCancelResponse struct {
+	Cancelled int64 `json:"cancelled"`
 }
 
 // CostsAnomaliesResponse is an object the spec declares inline.

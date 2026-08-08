@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.44.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.0.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.44.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.0.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -39,6 +39,8 @@ type APIV1Client struct {
 	Accounts *AccountsNamespace
 	// Agents: `client.agents`.
 	Agents *AgentsNamespace
+	// AlertRules: `client.alertRules`.
+	AlertRules *AlertRulesNamespace
 	// APIKeys: `client.apiKeys`.
 	APIKeys *APIKeysNamespace
 	// Artifacts: `client.artifacts`.
@@ -163,6 +165,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.AccessRequests = newAccessRequestsNamespace(t)
 	c.Accounts = newAccountsNamespace(t)
 	c.Agents = newAgentsNamespace(t)
+	c.AlertRules = newAlertRulesNamespace(t)
 	c.APIKeys = newAPIKeysNamespace(t)
 	c.Artifacts = newArtifactsNamespace(t)
 	c.Associations = newAssociationsNamespace(t)
@@ -1268,6 +1271,229 @@ func (n *AgentsSettingsNamespace) Update(ctx context.Context, params AgentsSetti
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *AgentSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AlertRulesNamespace is `client.alertRules`.
+type AlertRulesNamespace struct {
+	t *transport
+
+	// Deliveries: `client.alertRules.deliveries`.
+	Deliveries *AlertRulesDeliveriesNamespace
+}
+
+func newAlertRulesNamespace(t *transport) *AlertRulesNamespace {
+	n := &AlertRulesNamespace{t: t}
+	n.Deliveries = newAlertRulesDeliveriesNamespace(t)
+	return n
+}
+
+// AlertRulesAdoptDefaultsParams holds the parameters for
+// `client.alertRules.adoptDefaults`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AlertRulesAdoptDefaultsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// AdoptDefaults: Persist the default rule so it can be edited
+//
+// A no-op when the organization already has rules.
+//
+// POST /api/org/{orgId}/alert-rules/adopt-defaults
+//
+// Raises on 403: Forbidden
+func (n *AlertRulesNamespace) AdoptDefaults(ctx context.Context, params *AlertRulesAdoptDefaultsParams, opts ...RequestOption) (*AlertRulesAdoptDefaultsResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/alert-rules/adopt-defaults")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *AlertRulesAdoptDefaultsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AlertRulesGetParams holds the parameters for `client.alertRules.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AlertRulesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the organization's alert routing rules
+//
+// Returns the rules in evaluation order, plus the channels and accounts a rule
+// can name so a client can render destinations by name. An organization that has
+// saved no rules gets the synthesized default with `usingDefaults: true`.
+//
+// GET /api/org/{orgId}/alert-rules
+//
+// Raises on 403: Forbidden
+func (n *AlertRulesNamespace) Get(ctx context.Context, params *AlertRulesGetParams, opts ...RequestOption) (*AlertRulesResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/alert-rules")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *AlertRulesResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AlertRulesUpdateParams holds the parameters for `client.alertRules.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AlertRulesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *AlertRulesUpdateRequest
+}
+
+// Update: Replace the organization's alert routing rules
+//
+// Whole-list replacement in one transaction. Order is part of the meaning — a
+// rule is only correct relative to the ones above it — so a reorder applied as
+// several requests would leave a window in which alerts route somewhere nobody
+// asked for. Positions are re-derived from array order.
+//
+// PUT /api/org/{orgId}/alert-rules
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+func (n *AlertRulesNamespace) Update(ctx context.Context, params *AlertRulesUpdateParams, opts ...RequestOption) (*AlertRulesUpdateResponse, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/alert-rules")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *AlertRulesUpdateResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AlertRulesDeliveriesNamespace is `client.alertRules.deliveries`.
+type AlertRulesDeliveriesNamespace struct {
+	t *transport
+}
+
+func newAlertRulesDeliveriesNamespace(t *transport) *AlertRulesDeliveriesNamespace {
+	n := &AlertRulesDeliveriesNamespace{t: t}
+	return n
+}
+
+// AlertRulesDeliveriesAckParams holds the parameters for
+// `client.alertRules.deliveries.ack`.
+type AlertRulesDeliveriesAckParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Ack: Acknowledge an alert, cancelling its escalation
+//
+// A conditional update: only a delivery still in `awaiting_ack` can move, so two
+// people pressing at once produce one acknowledgement and an alert that already
+// escalated cannot be retroactively silenced.
+//
+// POST /api/org/{orgId}/alert-rules/deliveries/{id}/ack
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *AlertRulesDeliveriesNamespace) Ack(ctx context.Context, params AlertRulesDeliveriesAckParams, opts ...RequestOption) (*AlertRulesDeliveriesAckResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/alert-rules/deliveries/{id}/ack")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *AlertRulesDeliveriesAckResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AlertRulesDeliveriesCancelParams holds the parameters for
+// `client.alertRules.deliveries.cancel`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AlertRulesDeliveriesCancelParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *AlertRulesDeliveriesCancelRequest
+}
+
+// Cancel: Drop held or awaiting-acknowledgement deliveries
+//
+// POST /api/org/{orgId}/alert-rules/deliveries/cancel
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+func (n *AlertRulesDeliveriesNamespace) Cancel(ctx context.Context, params *AlertRulesDeliveriesCancelParams, opts ...RequestOption) (*AlertRulesDeliveriesCancelResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/alert-rules/deliveries/cancel")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *AlertRulesDeliveriesCancelResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AlertRulesDeliveriesListParams holds the parameters for
+// `client.alertRules.deliveries.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AlertRulesDeliveriesListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	Limit *int64
+}
+
+// List: List recent held and escalating alerts
+//
+// Only alerts a rule created follow-up work for appear here: one held by quiet
+// hours, or one waiting on an acknowledgement. An alert that went straight out
+// leaves no row.
+//
+// GET /api/org/{orgId}/alert-rules/deliveries
+//
+// Raises on 403: Forbidden
+func (n *AlertRulesDeliveriesNamespace) List(ctx context.Context, params *AlertRulesDeliveriesListParams, opts ...RequestOption) ([]AlertDelivery, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/alert-rules/deliveries")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("limit", params.Limit)
+	}
+	var out []AlertDelivery
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -5811,8 +6037,8 @@ type MsteamsStatusParams struct {
 
 // Status: List the organization's Teams channels
 //
-// Returns the Teams channels alerts are routed to and which triggers each takes.
-// Webhook URLs are never included.
+// Returns the Teams channels alerts can be routed to. Which alerts reach each
+// one is decided by /alert-rules. Webhook URLs are never included.
 //
 // GET /api/org/{orgId}/msteams/status
 func (n *MsteamsNamespace) Status(ctx context.Context, params *MsteamsStatusParams, opts ...RequestOption) (*MsTeamsStatus, error) {
@@ -5839,7 +6065,7 @@ type MsteamsTestParams struct {
 
 // Test: Post a test card to every configured Teams channel
 //
-// Ignores trigger opt-ins — every channel gets the test. Fails with the error
+// Ignores routing rules — every channel gets the test. Fails with the error
 // Microsoft returned when nothing could be delivered (HTTP 404 usually means the
 // Workflow was deleted or turned off).
 //
@@ -5881,11 +6107,12 @@ type MsteamsWebhooksCreateParams struct {
 	Body *MsTeamsWebhookCreate
 }
 
-// Create: Route alerts to a Teams channel
+// Create: Connect a Teams channel as an alert destination
 //
 // Adds a channel by webhook URL, or updates the one already holding that URL.
-// Each trigger defaults to enabled. Responds 400 when the URL is not https or
-// its host is not Microsoft-operated.
+// Which alerts reach it is decided by /alert-rules — connecting a channel routes
+// nothing to it on its own. Responds 400 when the URL is not https or its host
+// is not Microsoft-operated.
 //
 // POST /api/org/{orgId}/msteams/webhooks
 //
@@ -5913,7 +6140,7 @@ type MsteamsWebhooksDeleteParams struct {
 	ID    string
 }
 
-// Delete: Stop routing alerts to a Teams channel
+// Delete: Disconnect a Teams channel
 //
 // DELETE /api/org/{orgId}/msteams/webhooks/{id}
 //
@@ -5941,7 +6168,7 @@ type MsteamsWebhooksUpdateParams struct {
 	Body *MsTeamsWebhookUpdate
 }
 
-// Update: Rename a Teams channel or change which alerts it receives
+// Update: Rename a Teams channel
 //
 // The webhook URL is immutable — remove the channel and re-add it to change it.
 //
@@ -8796,7 +9023,7 @@ type SlackTestParams struct {
 
 // Test: Post a test message to every configured channel
 //
-// Ignores trigger opt-ins — every channel gets the test. Fails with the Slack
+// Ignores routing rules — every channel gets the test. Fails with the Slack
 // error when nothing could be delivered (`not_in_channel` means the bot needs
 // inviting to a private channel).
 //
@@ -8838,10 +9065,13 @@ type SlackChannelsCreateParams struct {
 	Body *SlackChannelCreate
 }
 
-// Create: Route alerts to a Slack channel
+// Create: Connect a Slack channel as an alert destination
 //
-// Adds a channel, or updates the trigger opt-ins of one already added. Each
-// trigger defaults to enabled.
+// Adds a channel as a possible destination, or refreshes the cached name of one
+// already added. Which alerts reach it is decided by /alert-rules; an
+// organization with no rules falls back to the default (everything except drift,
+// everywhere), so a freshly added channel starts receiving alerts without a
+// second step.
 //
 // POST /api/org/{orgId}/slack/channels
 //
@@ -8871,7 +9101,7 @@ type SlackChannelsDeleteParams struct {
 	ID    string
 }
 
-// Delete: Stop routing alerts to a channel
+// Delete: Disconnect a channel
 //
 // DELETE /api/org/{orgId}/slack/channels/{id}
 //
@@ -8899,7 +9129,7 @@ type SlackChannelsUpdateParams struct {
 	Body *SlackChannelUpdate
 }
 
-// Update: Change which alerts a channel receives
+// Update: Refresh a channel's cached name
 //
 // PATCH /api/org/{orgId}/slack/channels/{id}
 //
