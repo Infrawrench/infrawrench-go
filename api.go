@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.39.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.43.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.39.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.43.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -33,6 +33,8 @@ func WithOrgID(orgID string) ClientOption {
 type APIV1Client struct {
 	t *transport
 
+	// AccessRequests: `client.accessRequests`.
+	AccessRequests *AccessRequestsNamespace
 	// Accounts: `client.accounts`.
 	Accounts *AccountsNamespace
 	// Agents: `client.agents`.
@@ -63,6 +65,10 @@ type APIV1Client struct {
 	CostCentres *CostCentresNamespace
 	// Costs: `client.costs`.
 	Costs *CostsNamespace
+	// CredentialHygiene: `client.credentialHygiene`.
+	CredentialHygiene *CredentialHygieneNamespace
+	// Credits: `client.credits`.
+	Credits *CreditsNamespace
 	// CustomGraphs: `client.customGraphs`.
 	CustomGraphs *CustomGraphsNamespace
 	// Dashboards: `client.dashboards`.
@@ -73,6 +79,8 @@ type APIV1Client struct {
 	Deployments *DeploymentsNamespace
 	// Digest: `client.digest`.
 	Digest *DigestNamespace
+	// DNS: `client.dns`.
+	DNS *DNSNamespace
 	// Docker: `client.docker`.
 	Docker *DockerNamespace
 	// Expiring: `client.expiring`.
@@ -111,6 +119,8 @@ type APIV1Client struct {
 	Schedules *SchedulesNamespace
 	// Search: `client.search`.
 	Search *SearchNamespace
+	// SessionRecordings: `client.sessionRecordings`.
+	SessionRecordings *SessionRecordingsNamespace
 	// SFTP: `client.sftp`.
 	SFTP *SFTPNamespace
 	// Slack: `client.slack`.
@@ -144,6 +154,7 @@ type APIV1Client struct {
 func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	t := newTransport(opts)
 	c := &APIV1Client{t: t}
+	c.AccessRequests = newAccessRequestsNamespace(t)
 	c.Accounts = newAccountsNamespace(t)
 	c.Agents = newAgentsNamespace(t)
 	c.APIKeys = newAPIKeysNamespace(t)
@@ -159,11 +170,14 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Connect = newConnectNamespace(t)
 	c.CostCentres = newCostCentresNamespace(t)
 	c.Costs = newCostsNamespace(t)
+	c.CredentialHygiene = newCredentialHygieneNamespace(t)
+	c.Credits = newCreditsNamespace(t)
 	c.CustomGraphs = newCustomGraphsNamespace(t)
 	c.Dashboards = newDashboardsNamespace(t)
 	c.DependencyGraph = newDependencyGraphNamespace(t)
 	c.Deployments = newDeploymentsNamespace(t)
 	c.Digest = newDigestNamespace(t)
+	c.DNS = newDNSNamespace(t)
 	c.Docker = newDockerNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
 	c.Invitations = newInvitationsNamespace(t)
@@ -183,6 +197,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Rightsizing = newRightsizingNamespace(t)
 	c.Schedules = newSchedulesNamespace(t)
 	c.Search = newSearchNamespace(t)
+	c.SessionRecordings = newSessionRecordingsNamespace(t)
 	c.SFTP = newSFTPNamespace(t)
 	c.Slack = newSlackNamespace(t)
 	c.SQL = newSQLNamespace(t)
@@ -201,6 +216,294 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 // BaseURL reports the normalized base URL every call is sent to.
 func (c *APIV1Client) BaseURL() string {
 	return c.t.baseURL()
+}
+
+// AccessRequestsNamespace is `client.accessRequests`.
+type AccessRequestsNamespace struct {
+	t *transport
+}
+
+func newAccessRequestsNamespace(t *transport) *AccessRequestsNamespace {
+	n := &AccessRequestsNamespace{t: t}
+	return n
+}
+
+// AccessRequestsApproveParams holds the parameters for
+// `client.accessRequests.approve`.
+type AccessRequestsApproveParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RequestID string
+	// Body: the JSON request body.
+	Body *AccessDecision
+}
+
+// Approve: Approve an access request
+//
+// Opens the elevation window: the requester holds the requested permissions from
+// now until `grantExpiresAt`, on every surface at once (HTTP, the WebSocket
+// gateway, chat, MCP tools). Two rules are enforced here and cannot be bypassed:
+// you cannot decide your own request (403 `self_approval`), and you cannot grant
+// a permission you do not hold yourself (403 `exceeds_approver`) — denying
+// something aimed higher than you is allowed. Deciding a request that has
+// already been decided or has timed out is a 409. Audit-logged.
+//
+// _Requires permission: `access:approve`._
+//
+// POST /api/org/{orgId}/access-requests/{requestId}/approve
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Self-approval, or granting beyond the approver's own
+// permissions
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Already decided, or the request timed out
+func (n *AccessRequestsNamespace) Approve(ctx context.Context, params AccessRequestsApproveParams, opts ...RequestOption) (*AccessRequest, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/access-requests/{requestId}/approve")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("requestId", params.RequestID)
+	r.setJSONBody(params.Body)
+	var out *AccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccessRequestsCatalogParams holds the parameters for
+// `client.accessRequests.catalog`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AccessRequestsCatalogParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Catalog: Permissions a request may ask for
+//
+// The server's permission catalog plus the subset the caller already holds and
+// the bounds on grant length. Served rather than hard-coded in clients so a
+// picker cannot drift from what the server will accept.
+//
+// _Requires permission: `access:read`._
+//
+// GET /api/org/{orgId}/access-requests/catalog
+func (n *AccessRequestsNamespace) Catalog(ctx context.Context, params *AccessRequestsCatalogParams, opts ...RequestOption) (*AccessRequestCatalog, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/access-requests/catalog")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *AccessRequestCatalog
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccessRequestsCreateParams holds the parameters for
+// `client.accessRequests.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AccessRequestsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *AccessRequestCreate
+}
+
+// Create: Request elevated access
+//
+// Ask for specific permissions, for a specific number of minutes, with a reason.
+// Rejected with 400 when the caller's role already grants every permission asked
+// for — that is almost always a wrong permission string rather than a real
+// request. Fans out to push, Slack (with Approve/Deny buttons) and Microsoft
+// Teams under the Pages opt-in. Audit-logged.
+//
+// _Requires permission: `access:request`._
+//
+// POST /api/org/{orgId}/access-requests
+//
+// Raises on 400: Bad request
+func (n *AccessRequestsNamespace) Create(ctx context.Context, params *AccessRequestsCreateParams, opts ...RequestOption) (*AccessRequest, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/access-requests")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *AccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccessRequestsDenyParams holds the parameters for
+// `client.accessRequests.deny`.
+type AccessRequestsDenyParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RequestID string
+	// Body: the JSON request body.
+	Body *AccessDecision
+}
+
+// Deny: Deny an access request
+//
+// Records the refusal. Two rules are enforced here and cannot be bypassed: you
+// cannot decide your own request (403 `self_approval`), and you cannot grant a
+// permission you do not hold yourself (403 `exceeds_approver`) — denying
+// something aimed higher than you is allowed. Deciding a request that has
+// already been decided or has timed out is a 409. Audit-logged.
+//
+// _Requires permission: `access:approve`._
+//
+// POST /api/org/{orgId}/access-requests/{requestId}/deny
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Self-approval, or granting beyond the approver's own
+// permissions
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Already decided, or the request timed out
+func (n *AccessRequestsNamespace) Deny(ctx context.Context, params AccessRequestsDenyParams, opts ...RequestOption) (*AccessRequest, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/access-requests/{requestId}/deny")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("requestId", params.RequestID)
+	r.setJSONBody(params.Body)
+	var out *AccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccessRequestsListParams holds the parameters for
+// `client.accessRequests.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AccessRequestsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Status: `pending` (awaiting a decision), `approved`, `denied`, or
+	// `expired` (nobody decided in time, or the requester withdrew it). An
+	// approved row is only *granting* permissions while `active` is true.
+	//
+	// One of "pending", "approved", "denied", "expired".
+	Status *string
+	// Mine: Only the caller's own requests.
+	//
+	// One of "1".
+	Mine *string
+	// Active: Only rows granting permissions right now.
+	//
+	// One of "1".
+	Active *string
+}
+
+// List: List access requests
+//
+// The organization's break-glass requests, newest first. A `pending` listing
+// hides rows whose timeout has already passed, so the queue never offers a
+// decision that would immediately be refused.
+//
+// _Requires permission: `access:read`._
+//
+// GET /api/org/{orgId}/access-requests
+//
+// Raises on 400: Bad request
+func (n *AccessRequestsNamespace) List(ctx context.Context, params *AccessRequestsListParams, opts ...RequestOption) ([]AccessRequest, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/access-requests")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("status", params.Status)
+		r.addQuery("mine", params.Mine)
+		r.addQuery("active", params.Active)
+	}
+	var out []AccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccessRequestsRevokeParams holds the parameters for
+// `client.accessRequests.revoke`.
+type AccessRequestsRevokeParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RequestID string
+}
+
+// Revoke: End a live elevation early
+//
+// Allowed for anyone with `access:approve` and for the holder — giving back an
+// elevation you no longer need must never require finding an approver. Applies
+// from the next permission resolution; nothing is cached. Audit-logged.
+//
+// POST /api/org/{orgId}/access-requests/{requestId}/revoke
+//
+// Raises on 404: Not found
+//
+// Raises on 409: The grant is not active
+func (n *AccessRequestsNamespace) Revoke(ctx context.Context, params AccessRequestsRevokeParams, opts ...RequestOption) (*AccessRequest, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/access-requests/{requestId}/revoke")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("requestId", params.RequestID)
+	var out *AccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccessRequestsWithdrawParams holds the parameters for
+// `client.accessRequests.withdraw`.
+type AccessRequestsWithdrawParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RequestID string
+}
+
+// Withdraw: Withdraw your own pending request
+//
+// Its own operation rather than a self-denial, so the audit trail distinguishes
+// 'nobody would approve this' from 'they decided they didn't need it'.
+// Audit-logged.
+//
+// _Requires permission: `access:request`._
+//
+// POST /api/org/{orgId}/access-requests/{requestId}/withdraw
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Already decided or expired
+func (n *AccessRequestsNamespace) Withdraw(ctx context.Context, params AccessRequestsWithdrawParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/access-requests/{requestId}/withdraw")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("requestId", params.RequestID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // AccountsNamespace is `client.accounts`.
@@ -2792,6 +3095,115 @@ func (n *CostsAnomalySettingsNamespace) Update(ctx context.Context, params Costs
 	return out, nil
 }
 
+// CredentialHygieneNamespace is `client.credentialHygiene`.
+type CredentialHygieneNamespace struct {
+	t *transport
+}
+
+func newCredentialHygieneNamespace(t *transport) *CredentialHygieneNamespace {
+	n := &CredentialHygieneNamespace{t: t}
+	return n
+}
+
+// CredentialHygieneGetParams holds the parameters for
+// `client.credentialHygiene.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CredentialHygieneGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// WindowDays: Activity window. Defaults to 90.
+	WindowDays *int64
+}
+
+// Get: Credential hygiene report
+//
+// API keys nobody uses, SSH keys nothing references, and members holding write
+// permissions they have never exercised — derived entirely from data the server
+// already holds. No provider call and nothing to enable.
+//
+// **The audit log only witnesses writes.** Reading a resource list or a cost
+// graph leaves no audit row by design, so this report draws no conclusion about
+// read permissions: an absence of evidence about them proves nothing.
+// `permissionFindingsWithheld` is set when the organization does not yet have
+// enough audit history for the unused-permission finding to be meaningful. Both
+// are load-bearing — a governance report that overclaims is worse than none.
+//
+// Gated on `audit:read` rather than a permission of its own: every fact here is
+// already reachable by anyone who can read the audit log, so this is a lens
+// rather than a new disclosure.
+//
+// _Requires permission: `audit:read`._
+//
+// GET /api/org/{orgId}/credential-hygiene
+//
+// Raises on 400: Bad request
+func (n *CredentialHygieneNamespace) Get(ctx context.Context, params *CredentialHygieneGetParams, opts ...RequestOption) (*HygieneReport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/credential-hygiene")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("windowDays", params.WindowDays)
+	}
+	var out *HygieneReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CreditsNamespace is `client.credits`.
+type CreditsNamespace struct {
+	t *transport
+}
+
+func newCreditsNamespace(t *transport) *CreditsNamespace {
+	n := &CreditsNamespace{t: t}
+	return n
+}
+
+// CreditsGetParams holds the parameters for `client.credits.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CreditsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Prepaid credit balances, burn rate and runway
+//
+// Every prepaid pot the organization holds, most urgent first. A provider that
+// bills in arrears sends an invoice you can argue with; a prepaid pot that
+// empties simply stops answering — so this is an availability number as much as
+// a finance one.
+//
+// The burn rate is measured from the server's own series of readings rather than
+// reported by the provider, and it is the sum of the **decreases** between
+// consecutive readings: a top-up inside the window is recorded separately, never
+// netted off. The runway is bounded by both the burn and the credit's own
+// expiry, whichever comes first.
+//
+// Only providers that expose a balance appear here; most bill in arrears and
+// have no pot.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/credits
+func (n *CreditsNamespace) Get(ctx context.Context, params *CreditsGetParams, opts ...RequestOption) (*CreditBurndown, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/credits")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CreditBurndown
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // CustomGraphsNamespace is `client.customGraphs`.
 type CustomGraphsNamespace struct {
 	t *transport
@@ -4319,6 +4731,54 @@ func (n *DigestRecipientsNamespace) Get(ctx context.Context, params *DigestRecip
 	return out, nil
 }
 
+// DNSNamespace is `client.dns`.
+type DNSNamespace struct {
+	t *transport
+}
+
+func newDNSNamespace(t *transport) *DNSNamespace {
+	n := &DNSNamespace{t: t}
+	return n
+}
+
+// DNSGetParams holds the parameters for `client.dns.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DNSGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List every DNS zone and record, with dangling targets flagged
+//
+// One view over every zone and record across the connected DNS providers
+// (Cloudflare, Route 53, Cloud DNS, DigitalOcean, Netlify, Azure DNS, Vercel),
+// with each record target classified against the rest of the workspace. No
+// provider API calls are made and no DNS is resolved — results reflect the last
+// sync.
+//
+// A `dangling` target is a subdomain-takeover candidate: the record points into
+// a provider namespace this workspace manages and nothing synced claims it. The
+// same records surface as `dns-dangling-target` findings on `GET /posture` and
+// alert through the posture channel, so there is no separate DNS alert setting.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/dns
+func (n *DNSNamespace) Get(ctx context.Context, params *DNSGetParams, opts ...RequestOption) (*DNSInventoryResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/dns")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *DNSInventoryResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // DockerNamespace is `client.docker`.
 type DockerNamespace struct {
 	t *transport
@@ -5667,12 +6127,15 @@ func (n *PagesNamespace) Delete(ctx context.Context, params PagesDeleteParams, o
 type PostureNamespace struct {
 	t *transport
 
+	// Dismissals: `client.posture.dismissals`.
+	Dismissals *PostureDismissalsNamespace
 	// Settings: `client.posture.settings`.
 	Settings *PostureSettingsNamespace
 }
 
 func newPostureNamespace(t *transport) *PostureNamespace {
 	n := &PostureNamespace{t: t}
+	n.Dismissals = newPostureDismissalsNamespace(t)
 	n.Settings = newPostureSettingsNamespace(t)
 	return n
 }
@@ -5693,7 +6156,9 @@ type PostureGetParams struct {
 // public buckets, 0.0.0.0/0 ingress rules, unencrypted disks, publicly reachable
 // database endpoints, stale credentials, missing deletion/backup protection. No
 // provider API calls are made and results reflect the last sync. Findings are
-// sorted worst severity first, with per-severity counts.
+// sorted worst severity first, with per-severity counts. Findings the
+// organization has dismissed are reported separately under `dismissed` and are
+// excluded from `findings`, `counts` and the posture alerts.
 //
 // _Requires permission: `resources:read`._
 //
@@ -5708,6 +6173,89 @@ func (n *PostureNamespace) Get(ctx context.Context, params *PostureGetParams, op
 		return out, err
 	}
 	return out, nil
+}
+
+// PostureDismissalsNamespace is `client.posture.dismissals`.
+type PostureDismissalsNamespace struct {
+	t *transport
+}
+
+func newPostureDismissalsNamespace(t *transport) *PostureDismissalsNamespace {
+	n := &PostureDismissalsNamespace{t: t}
+	return n
+}
+
+// PostureDismissalsCreateParams holds the parameters for
+// `client.posture.dismissals.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PostureDismissalsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *PostureDismissalCreate
+}
+
+// Create: Dismiss a posture finding
+//
+// Accept a finding — the bucket really is meant to be public, the key really is
+// rotated out of band. The finding leaves `findings` and stops feeding the daily
+// posture alerts, but the rule keeps being evaluated and the finding is reported
+// back under `dismissed` for as long as it still matches. Idempotent: dismissing
+// an already-dismissed finding rewrites the note and the author.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/posture/dismissals
+//
+// Raises on 400: Bad request
+func (n *PostureDismissalsNamespace) Create(ctx context.Context, params *PostureDismissalsCreateParams, opts ...RequestOption) (*PostureDismissal, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/posture/dismissals")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *PostureDismissal
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PostureDismissalsDeleteParams holds the parameters for
+// `client.posture.dismissals.delete`.
+type PostureDismissalsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ResourceID: Infrawrench resource id the finding is on.
+	ResourceID string
+	// RuleID: The matched rule's id.
+	RuleID string
+}
+
+// Delete: Restore a dismissed posture finding
+//
+// Undo a dismissal, putting the finding back on the list and back into the alert
+// feed. The finding is identified by query parameters rather than path segments
+// because resource ids are provider-native and routinely contain slashes.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/posture/dismissals
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *PostureDismissalsNamespace) Delete(ctx context.Context, params PostureDismissalsDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/posture/dismissals")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("resourceId", params.ResourceID)
+	r.addQuery("ruleId", params.RuleID)
+	return n.t.do(ctx, r, nil, opts)
 }
 
 // PostureSettingsNamespace is `client.posture.settings`.
@@ -6459,6 +7007,43 @@ func (n *ResourcesNamespace) Attach(ctx context.Context, params ResourcesAttachP
 	return out, nil
 }
 
+// ResourcesCostEstimateParams holds the parameters for
+// `client.resources.costEstimate`.
+type ResourcesCostEstimateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostEstimateRequest
+}
+
+// CostEstimate: Estimated monthly cost of a configuration
+//
+// Calls the plugin's `estimateCost` and returns a monthly total with the line
+// items behind it. Price a proposed resource by passing `fields`, an existing
+// one by passing `resourceId`, or a proposed change to an existing one by
+// passing both — `fields` is merged over the resource's stored fields, so the
+// caller only sends what changed. `estimate` is null when the plugin cannot
+// price the configuration; that is not the same as an estimate of zero, and it
+// should not be rendered as one.
+//
+// _Requires permission: `resources:read`._
+//
+// POST /api/org/{orgId}/resources/cost-estimate
+//
+// Raises on 404: Not found
+func (n *ResourcesNamespace) CostEstimate(ctx context.Context, params ResourcesCostEstimateParams, opts ...RequestOption) (*ResourcesCostEstimateResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/resources/cost-estimate")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *ResourcesCostEstimateResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // ResourcesCreateParams holds the parameters for `client.resources.create`.
 type ResourcesCreateParams struct {
 	// OrgID: Organization id
@@ -6522,33 +7107,6 @@ func (n *ResourcesNamespace) CreateConfig(ctx context.Context, params ResourcesC
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out JSONObject
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// ResourcesCreateCostEstimateParams holds the parameters for
-// `client.resources.createCostEstimate`.
-type ResourcesCreateCostEstimateParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	// Body: the JSON request body.
-	Body CreateCostEstimateRequest
-}
-
-// CreateCostEstimate: Cost estimate for the current create form values
-//
-// _Requires permission: `resources:read`._
-//
-// POST /api/org/{orgId}/resources/create-cost-estimate
-func (n *ResourcesNamespace) CreateCostEstimate(ctx context.Context, params ResourcesCreateCostEstimateParams, opts ...RequestOption) (*ResourcesCreateCostEstimateResponse, error) {
-	r := newRequest(http.MethodPost, "/api/org/{orgId}/resources/create-cost-estimate")
-	r.setPath("orgId", params.OrgID)
-	r.setJSONBody(params.Body)
-	var out *ResourcesCreateCostEstimateResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -7552,6 +8110,251 @@ func (n *SearchNamespace) List(ctx context.Context, params *SearchListParams, op
 		r.addQuery("q", params.Q)
 	}
 	var out []SearchHit
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SessionRecordingsNamespace is `client.sessionRecordings`.
+type SessionRecordingsNamespace struct {
+	t *transport
+
+	// Settings: `client.sessionRecordings.settings`.
+	Settings *SessionRecordingsSettingsNamespace
+}
+
+func newSessionRecordingsNamespace(t *transport) *SessionRecordingsNamespace {
+	n := &SessionRecordingsNamespace{t: t}
+	n.Settings = newSessionRecordingsSettingsNamespace(t)
+	return n
+}
+
+// SessionRecordingsCastParams holds the parameters for
+// `client.sessionRecordings.cast`.
+type SessionRecordingsCastParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	RecordingID string
+	// Download: Force an attachment disposition.
+	//
+	// One of "1".
+	Download *string
+}
+
+// Cast: Download a recording as an asciicast
+//
+// The session as an [asciicast
+// v2](https://docs.asciinema.org/manual/asciicast/v2/) document: a JSON header
+// line followed by one `[time, code, data]` event per line. Deliberately
+// somebody else's format — the same bytes play in `asciinema play` and in the
+// reference web player, so a recording is useful to an auditor who has never
+// seen this product. `?download=1` returns it as an attachment. **Every fetch is
+// audit-logged**, including this one: an investigator has to be able to answer
+// who has watched a given tape.
+//
+// _Requires permission: `session-recordings:read`._
+//
+// GET /api/org/{orgId}/session-recordings/{recordingId}/cast
+//
+// Raises on 404: Not found
+func (n *SessionRecordingsNamespace) Cast(ctx context.Context, params SessionRecordingsCastParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/session-recordings/{recordingId}/cast")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("recordingId", params.RecordingID)
+	r.addQuery("download", params.Download)
+	return n.t.stream(ctx, r, opts)
+}
+
+// SessionRecordingsDeleteParams holds the parameters for
+// `client.sessionRecordings.delete`.
+type SessionRecordingsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	RecordingID string
+}
+
+// Delete: Delete a recording
+//
+// Removes the recording and its stored chunks. Audit-logged.
+//
+// _Requires permission: `session-recordings:write`._
+//
+// DELETE /api/org/{orgId}/session-recordings/{recordingId}
+//
+// Raises on 404: Not found
+func (n *SessionRecordingsNamespace) Delete(ctx context.Context, params SessionRecordingsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/session-recordings/{recordingId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("recordingId", params.RecordingID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SessionRecordingsGetParams holds the parameters for
+// `client.sessionRecordings.get`.
+type SessionRecordingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	RecordingID string
+}
+
+// Get: Get one recording's metadata
+//
+// _Requires permission: `session-recordings:read`._
+//
+// GET /api/org/{orgId}/session-recordings/{recordingId}
+//
+// Raises on 404: Not found
+func (n *SessionRecordingsNamespace) Get(ctx context.Context, params SessionRecordingsGetParams, opts ...RequestOption) (*SessionRecording, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/session-recordings/{recordingId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("recordingId", params.RecordingID)
+	var out *SessionRecording
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SessionRecordingsListParams holds the parameters for
+// `client.sessionRecordings.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SessionRecordingsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Status: `recording` (live), `complete` (closed cleanly), `truncated` (hit
+	// the per-session capture ceiling — the tape is a genuine partial and says
+	// so), or `abandoned` (the server handling the session went away before it
+	// could close the row).
+	//
+	// One of "recording", "complete", "truncated", "abandoned".
+	Status     *string
+	UserID     *string
+	ResourceID *string
+	AccountID  *string
+	// Since: Inclusive lower bound on `startedAt`.
+	Since *string
+	// Until: Exclusive upper bound on `startedAt`.
+	Until *string
+	Limit *int64
+}
+
+// List: List recorded SSH sessions
+//
+// Recorded sessions, newest first. Only SSH opened through the cloud is recorded
+// — those sessions are already proxied by the server, so recording tees a stream
+// it holds rather than requiring an agent on the host. A desktop session that
+// dials a host directly never reaches the server and cannot appear here.
+//
+// _Requires permission: `session-recordings:read`._
+//
+// GET /api/org/{orgId}/session-recordings
+//
+// Raises on 400: Bad request
+func (n *SessionRecordingsNamespace) List(ctx context.Context, params *SessionRecordingsListParams, opts ...RequestOption) ([]SessionRecording, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/session-recordings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("status", params.Status)
+		r.addQuery("userId", params.UserID)
+		r.addQuery("resourceId", params.ResourceID)
+		r.addQuery("accountId", params.AccountID)
+		r.addQuery("since", params.Since)
+		r.addQuery("until", params.Until)
+		r.addQuery("limit", params.Limit)
+	}
+	var out []SessionRecording
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SessionRecordingsSettingsNamespace is `client.sessionRecordings.settings`.
+type SessionRecordingsSettingsNamespace struct {
+	t *transport
+}
+
+func newSessionRecordingsSettingsNamespace(t *transport) *SessionRecordingsSettingsNamespace {
+	n := &SessionRecordingsSettingsNamespace{t: t}
+	return n
+}
+
+// SessionRecordingsSettingsGetParams holds the parameters for
+// `client.sessionRecordings.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SessionRecordingsSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the recording policy
+//
+// The organization's recording policy plus what it currently stores. Usage rides
+// along with the policy because the only question anyone asks about retention is
+// what it costs.
+//
+// _Requires permission: `session-recordings:read`._
+//
+// GET /api/org/{orgId}/session-recordings/settings
+func (n *SessionRecordingsSettingsNamespace) Get(ctx context.Context, params *SessionRecordingsSettingsGetParams, opts ...RequestOption) (*SessionRecordingSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/session-recordings/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SessionRecordingSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SessionRecordingsSettingsUpdateParams holds the parameters for
+// `client.sessionRecordings.settings.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SessionRecordingsSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *SessionRecordingSettingsUpdate
+}
+
+// Update: Update the recording policy
+//
+// Partial update — omitted fields keep their current value. Recording is opt-in
+// and off by default. Audit-logged with the before/after policy.
+//
+// _Requires permission: `session-recordings:write`._
+//
+// PUT /api/org/{orgId}/session-recordings/settings
+//
+// Raises on 400: Bad request
+func (n *SessionRecordingsSettingsNamespace) Update(ctx context.Context, params *SessionRecordingsSettingsUpdateParams, opts ...RequestOption) (*SessionRecordingSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/session-recordings/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *SessionRecordingSettings
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v0.39.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v0.43.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.39.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 0.43.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -34,6 +34,87 @@ type AcceptInvitationRequest struct {
 // AcceptInvitationResponse is the `AcceptInvitationResponse` schema.
 type AcceptInvitationResponse struct {
 	Organization AcceptInvitationResponseOrganization `json:"organization"`
+}
+
+// AccessDecision is the `AccessDecision` schema.
+type AccessDecision struct {
+	// Note: Shown on the request and in the audit log.
+	Note *string `json:"note,omitempty"`
+}
+
+// AccessDecisionConflict is the `AccessDecisionConflict` schema.
+type AccessDecisionConflict struct {
+	Error string `json:"error"`
+}
+
+// AccessDecisionForbidden is the `AccessDecisionForbidden` schema.
+type AccessDecisionForbidden struct {
+	Error string `json:"error"`
+	// Code: One of "self_approval", "exceeds_approver".
+	Code string `json:"code"`
+	// Missing: For `exceeds_approver`: the permissions the approver does not
+	// hold.
+	Missing []string `json:"missing,omitempty"`
+}
+
+// AccessRequest is the `AccessRequest` schema.
+type AccessRequest struct {
+	ID       string  `json:"id"`
+	UserID   string  `json:"userId"`
+	UserName *string `json:"userName"`
+	// Permissions: The permission strings being asked for.
+	Permissions []string `json:"permissions"`
+	Reason      string   `json:"reason"`
+	// DurationMinutes: How long the elevation lasts once granted.
+	DurationMinutes int64 `json:"durationMinutes"`
+	// Status: `pending` (awaiting a decision), `approved`, `denied`, or
+	// `expired` (nobody decided in time, or the requester withdrew it). An
+	// approved row is only *granting* permissions while `active` is true.
+	//
+	// One of "pending", "approved", "denied", "expired".
+	Status string `json:"status"`
+	// ExpiresAt: When an undecided request stops being decidable.
+	ExpiresAt       string  `json:"expiresAt"`
+	DecidedAt       *string `json:"decidedAt"`
+	DecidedByUserID *string `json:"decidedByUserId"`
+	DecidedByName   *string `json:"decidedByName"`
+	DecisionNote    *string `json:"decisionNote"`
+	GrantedAt       *string `json:"grantedAt"`
+	// GrantExpiresAt: When the elevation lapses.
+	GrantExpiresAt *string `json:"grantExpiresAt"`
+	RevokedAt      *string `json:"revokedAt"`
+	RevokedByName  *string `json:"revokedByName"`
+	// Active: True when this row is granting permissions right now. Evaluated,
+	// never swept — a grant stops applying the instant it lapses.
+	Active    bool   `json:"active"`
+	CreatedAt string `json:"createdAt"`
+}
+
+// AccessRequestCatalog is the `AccessRequestCatalog` schema.
+type AccessRequestCatalog struct {
+	Permissions []string `json:"permissions"`
+	// Held: Permissions the caller already holds; asking for these changes
+	// nothing.
+	Held            []string `json:"held"`
+	MinGrantMinutes int64    `json:"minGrantMinutes"`
+	MaxGrantMinutes int64    `json:"maxGrantMinutes"`
+}
+
+// AccessRequestCreate is the `AccessRequestCreate` schema.
+type AccessRequestCreate struct {
+	Permissions     []string `json:"permissions"`
+	Reason          string   `json:"reason"`
+	DurationMinutes int64    `json:"durationMinutes"`
+}
+
+// AccessRevokeConflict is the `AccessRevokeConflict` schema.
+type AccessRevokeConflict struct {
+	Error string `json:"error"`
+}
+
+// AccessWithdrawConflict is the `AccessWithdrawConflict` schema.
+type AccessWithdrawConflict struct {
+	Error string `json:"error"`
 }
 
 // Account is the `Account` schema.
@@ -672,6 +753,36 @@ type CostDimensionValues struct {
 	Values []any `json:"values"`
 }
 
+// CostEstimate is the `CostEstimate` schema.
+//
+// The API may send null in its place.
+type CostEstimate struct {
+	MonthlyAmount float64                `json:"monthlyAmount"`
+	Currency      string                 `json:"currency"`
+	LineItems     []CostEstimateLineItem `json:"lineItems"`
+	Partial       *bool                  `json:"partial,omitempty"`
+	Notes         []string               `json:"notes,omitempty"`
+}
+
+// CostEstimateLineItem is the `CostEstimateLineItem` schema.
+type CostEstimateLineItem struct {
+	Label         string   `json:"label"`
+	MonthlyAmount float64  `json:"monthlyAmount"`
+	Detail        *string  `json:"detail,omitempty"`
+	Quantity      *float64 `json:"quantity,omitempty"`
+	Unit          *string  `json:"unit,omitempty"`
+}
+
+// CostEstimateRequest is the `CostEstimateRequest` schema.
+type CostEstimateRequest struct {
+	AccountID        string            `json:"accountId"`
+	ResourceTypeID   string            `json:"resourceTypeId"`
+	Fields           map[string]string `json:"fields,omitempty"`
+	ResourceID       *ResourceID       `json:"resourceId,omitempty"`
+	PluginID         *string           `json:"pluginId,omitempty"`
+	ParentResourceID *ResourceID       `json:"parentResourceId,omitempty"`
+}
+
 // CostFilter is the `CostFilter` schema.
 type CostFilter struct {
 	Dimension CostDimension `json:"dimension"`
@@ -792,15 +903,6 @@ type CreateConfigRequest struct {
 	ParentResourceID *ResourceID `json:"parentResourceId,omitempty"`
 }
 
-// CreateCostEstimateRequest is the `CreateCostEstimateRequest` schema.
-type CreateCostEstimateRequest struct {
-	AccountID        string            `json:"accountId"`
-	ResourceTypeID   string            `json:"resourceTypeId"`
-	Fields           map[string]string `json:"fields"`
-	PluginID         *string           `json:"pluginId,omitempty"`
-	ParentResourceID *ResourceID       `json:"parentResourceId,omitempty"`
-}
-
 // CreateOrgRequest is the `CreateOrgRequest` schema.
 type CreateOrgRequest struct {
 	DisplayName string `json:"displayName"`
@@ -893,6 +995,70 @@ type CredentialFormat struct {
 	// FilenameTemplate: Suggested filename; `{resource}` is replaced with the
 	// resource's external id.
 	FilenameTemplate *string `json:"filenameTemplate,omitempty"`
+}
+
+// CreditBurndown is the `CreditBurndown` schema.
+type CreditBurndown struct {
+	Pots     []CreditPot         `json:"pots"`
+	Failures []CreditPollFailure `json:"failures"`
+	// PendingAccountIDs: Credit-capable accounts never yet collected — named
+	// rather than omitted.
+	PendingAccountIDs []string `json:"pendingAccountIds"`
+	BurnWindowDays    int64    `json:"burnWindowDays"`
+}
+
+// CreditPollFailure is the `CreditPollFailure` schema.
+type CreditPollFailure struct {
+	AccountID   string   `json:"accountId"`
+	AccountName string   `json:"accountName"`
+	PluginID    PluginID `json:"pluginId"`
+	Error       string   `json:"error"`
+	HelpLabel   *string  `json:"helpLabel"`
+	// HelpURL: Set when the plugin reported a permission gap rather than an
+	// outage.
+	HelpURL      *string `json:"helpUrl"`
+	FailureCount int64   `json:"failureCount"`
+}
+
+// CreditPot is the `CreditPot` schema.
+type CreditPot struct {
+	AccountID   string   `json:"accountId"`
+	AccountName string   `json:"accountName"`
+	PluginID    PluginID `json:"pluginId"`
+	// CapabilityLabel: The provider's own word for this pot — "Credits",
+	// "Balance".
+	CapabilityLabel string  `json:"capabilityLabel"`
+	TopUpURL        *string `json:"topUpUrl"`
+	// PotKey: Stable identity for this pot within the account — a currency code,
+	// a project id — so successive readings line up into a series.
+	PotKey    string  `json:"potKey"`
+	Label     string  `json:"label"`
+	Remaining float64 `json:"remaining"`
+	Currency  string  `json:"currency"`
+	// Granted: What was granted, when the provider reports it.
+	Granted *float64 `json:"granted"`
+	// CreditExpiresAt: Hard expiry on the credit itself, independent of burn.
+	CreditExpiresAt *string `json:"creditExpiresAt"`
+	ObservedAt      string  `json:"observedAt"`
+	// BurnPerDay: Spend per day over the observed span. **Null means there is
+	// not enough history to say** — never 0, which would read as 'nothing is
+	// being spent'.
+	BurnPerDay   *float64 `json:"burnPerDay"`
+	BurnSpanDays float64  `json:"burnSpanDays"`
+	Observations int64    `json:"observations"`
+	// TopUps: Increases seen between consecutive readings. A top-up is recorded,
+	// never netted off the burn — subtracting the endpoints of a window
+	// containing one reports a negative burn and an infinite runway.
+	TopUps      int64    `json:"topUps"`
+	RunwayDays  *float64 `json:"runwayDays"`
+	ExhaustedAt *string  `json:"exhaustedAt"`
+	// NeverEmpties: Nothing has been spent over the observed span.
+	NeverEmpties bool `json:"neverEmpties"`
+	// LimitedByExpiry: The credit's own expiry, not the burn rate, is the
+	// binding deadline.
+	LimitedByExpiry bool `json:"limitedByExpiry"`
+	// Urgency: One of "critical", "warning", "ok", "unknown".
+	Urgency string `json:"urgency"`
 }
 
 // CustomGraphCheckRequest is the `CustomGraphCheckRequest` schema.
@@ -1358,6 +1524,189 @@ type DigestTransportResult struct {
 	Succeeded int64 `json:"succeeded"`
 }
 
+// DismissedPostureFinding is the `DismissedPostureFinding` schema.
+type DismissedPostureFinding struct {
+	// ResourceID: Infrawrench resource id.
+	ResourceID       string   `json:"resourceId"`
+	PluginID         PluginID `json:"pluginId"`
+	PluginName       string   `json:"pluginName"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	AccountID        string   `json:"accountId"`
+	AccountName      string   `json:"accountName"`
+	DisplayName      string   `json:"displayName"`
+	// ExternalID: Provider-native id, when known.
+	ExternalID *string `json:"externalId"`
+	// RuleID: The matched rule's stable id, unique within the plugin.
+	RuleID string `json:"ruleId"`
+	// Title: Short rule title.
+	Title string `json:"title"`
+	// Severity: How bad the finding is. `critical` and `high` findings feed the
+	// posture alerts; `medium` and `low` are hygiene work surfaced on the
+	// posture screen only.
+	//
+	// One of "critical", "high", "medium", "low".
+	Severity string `json:"severity"`
+	// Category: Grouping bucket for what kind of exposure the finding describes.
+	//
+	// One of "public-exposure", "encryption", "credential-age",
+	// "data-protection", "other".
+	Category string `json:"category"`
+	// Reason: Plugin-authored explanation of why this is a finding.
+	Reason    string           `json:"reason"`
+	Dismissal PostureDismissal `json:"dismissal"`
+}
+
+// DNSInventoryCounts: Record counts per status; zones counted separately.
+//
+// Spec schema: `DnsInventoryCounts`.
+type DNSInventoryCounts struct {
+	Zones       int64 `json:"zones"`
+	Records     int64 `json:"records"`
+	Owned       int64 `json:"owned"`
+	Dangling    int64 `json:"dangling"`
+	External    int64 `json:"external"`
+	NotAnalysed int64 `json:"notAnalysed"`
+}
+
+// DNSInventoryResponse is the `DnsInventoryResponse` schema.
+//
+// Spec schema: `DnsInventoryResponse`.
+type DNSInventoryResponse struct {
+	// Zones: Sorted by domain, then account name.
+	Zones []DNSZone `json:"zones"`
+	// Records: Sorted worst status first, then by name.
+	Records []DNSRecord        `json:"records"`
+	Counts  DNSInventoryCounts `json:"counts"`
+	// SkippedNamespaces: Provider namespaces that were declared but not
+	// evaluated, and why — either no account for the plugin is connected, or no
+	// claimant resource has synced. Both are missing data rather than a clean
+	// bill of health, so they are reported rather than hidden.
+	SkippedNamespaces []DNSSkippedNamespace `json:"skippedNamespaces"`
+	GeneratedAt       string                `json:"generatedAt"`
+}
+
+// DNSRecord is the `DnsRecord` schema.
+//
+// Spec schema: `DnsRecord`.
+type DNSRecord struct {
+	// ResourceID: Infrawrench resource id of the record itself.
+	ResourceID       string   `json:"resourceId"`
+	PluginID         PluginID `json:"pluginId"`
+	PluginName       string   `json:"pluginName"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	AccountID        string   `json:"accountId"`
+	AccountName      string   `json:"accountName"`
+	// ZoneResourceID: Owning zone's resource id, or null when the record could
+	// not be attributed.
+	ZoneResourceID *string `json:"zoneResourceId"`
+	ZoneDomain     *string `json:"zoneDomain"`
+	// Name: Fully qualified, lowercased, no trailing dot.
+	Name     string   `json:"name"`
+	Type     string   `json:"type"`
+	TTL      *float64 `json:"ttl"`
+	Priority *float64 `json:"priority"`
+	// Proxied: Whether the provider proxies the record (Cloudflare's orange
+	// cloud).
+	Proxied bool              `json:"proxied"`
+	Targets []DNSRecordTarget `json:"targets"`
+	// Status: Worst classification across `targets`.
+	//
+	// One of "owned", "dangling", "external", "not-analysed".
+	Status string `json:"status"`
+}
+
+// DNSRecordTarget is the `DnsRecordTarget` schema.
+//
+// Spec schema: `DnsRecordTarget`.
+type DNSRecordTarget struct {
+	// Value: The target as stored, lowercased with any trailing dot removed.
+	Value string `json:"value"`
+	// Classification: What can be said about a record target from synced state
+	// alone. `owned` — the value is an identity of a synced resource. `dangling`
+	// — the value falls inside a provider namespace this workspace manages (an
+	// S3 endpoint, a `*.vercel.app` alias) and no synced resource claims it,
+	// which is the subdomain-takeover signature. `external` — the value points
+	// somewhere there is no declaration for; not a finding. `not-analysed` — the
+	// record type carries no host target that is reasoned about (TXT, MX, SOA,
+	// CAA, SRV).
+	//
+	// One of "owned", "dangling", "external", "not-analysed".
+	Classification string             `json:"classification"`
+	Resource       *DNSTargetResource `json:"resource"`
+	Service        *DNSTargetService  `json:"service"`
+}
+
+// DNSSkippedNamespace is the `DnsSkippedNamespace` schema.
+//
+// Spec schema: `DnsSkippedNamespace`.
+type DNSSkippedNamespace struct {
+	PluginID   PluginID `json:"pluginId"`
+	PluginName string   `json:"pluginName"`
+	Label      string   `json:"label"`
+	Reason     string   `json:"reason"`
+}
+
+// DNSTargetResource: Set only when classification is "owned".
+//
+// Spec schema: `DnsTargetResource`.
+//
+// The API may send null in its place.
+type DNSTargetResource struct {
+	ResourceID       string   `json:"resourceId"`
+	DisplayName      string   `json:"displayName"`
+	PluginID         PluginID `json:"pluginId"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	AccountID        string   `json:"accountId"`
+}
+
+// DNSTargetService: Set only when classification is "dangling".
+//
+// Spec schema: `DnsTargetService`.
+//
+// The API may send null in its place.
+type DNSTargetService struct {
+	PluginID       PluginID `json:"pluginId"`
+	PluginName     string   `json:"pluginName"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	RuleID         string   `json:"ruleId"`
+	Label          string   `json:"label"`
+	// Severity: One of "critical", "high", "medium", "low".
+	Severity string `json:"severity"`
+	// Reason: Plugin-authored note on what claiming the name gets an attacker.
+	Reason string `json:"reason"`
+	// ClaimLabel: The instance-identifying part of the hostname, e.g. the bucket
+	// or app name.
+	ClaimLabel string `json:"claimLabel"`
+}
+
+// DNSZone is the `DnsZone` schema.
+//
+// Spec schema: `DnsZone`.
+type DNSZone struct {
+	ResourceID       string   `json:"resourceId"`
+	PluginID         PluginID `json:"pluginId"`
+	PluginName       string   `json:"pluginName"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	AccountID        string   `json:"accountId"`
+	AccountName      string   `json:"accountName"`
+	Domain           string   `json:"domain"`
+	Status           *string  `json:"status"`
+	// IsPrivate: Split-horizon/internal zone; listed but never analysed for
+	// takeover.
+	IsPrivate bool `json:"isPrivate"`
+	// RecordCount: Records synced into this zone.
+	RecordCount int64 `json:"recordCount"`
+	// ProviderRecordCount: The provider's own record count, when reported. May
+	// exceed `recordCount` — several plugins list zones without listing their
+	// records.
+	ProviderRecordCount *int64 `json:"providerRecordCount"`
+	DanglingCount       int64  `json:"danglingCount"`
+}
+
 // DockerCommandRequest is the `DockerCommandRequest` schema.
 type DockerCommandRequest struct {
 	AccountID string     `json:"accountId"`
@@ -1544,6 +1893,44 @@ type GeneratedSSHKey struct {
 	PublicKey   string     `json:"publicKey"`
 	// PrivateKey: Returned once. Not persisted in plaintext.
 	PrivateKey string `json:"privateKey"`
+}
+
+// HygieneFinding is the `HygieneFinding` schema.
+type HygieneFinding struct {
+	// ID: Stable across runs, so a client can remember what has been reviewed.
+	ID string `json:"id"`
+	// Kind: One of "api_key_never_used", "api_key_idle",
+	// "api_key_expired_not_revoked", "api_key_wildcard_scope",
+	// "api_key_unused_scopes", "ssh_key_never_used", "ssh_key_idle",
+	// "member_unused_permissions".
+	Kind string `json:"kind"`
+	// Severity: One of "high", "medium", "low".
+	Severity string `json:"severity"`
+	Title    string `json:"title"`
+	// Detail: The evidence behind the finding.
+	Detail         string `json:"detail"`
+	Recommendation string `json:"recommendation"`
+	// EntityType: One of "api-key", "ssh-key", "member".
+	EntityType string `json:"entityType"`
+	EntityID   string `json:"entityId"`
+	EntityName string `json:"entityName"`
+	// Facts: Structured detail for table columns and reports.
+	Facts map[string]any `json:"facts"`
+}
+
+// HygieneReport is the `HygieneReport` schema.
+type HygieneReport struct {
+	GeneratedAt string `json:"generatedAt"`
+	WindowDays  int64  `json:"windowDays"`
+	// AuditHistoryDays: How much audit history the organization actually has;
+	// null when it has none.
+	AuditHistoryDays *int64 `json:"auditHistoryDays"`
+	// PermissionFindingsWithheld: True when there was not enough audit history
+	// for the unused-permission finding to mean anything, so it was withheld
+	// rather than guessed at.
+	PermissionFindingsWithheld bool                `json:"permissionFindingsWithheld"`
+	Findings                   []HygieneFinding    `json:"findings"`
+	Counts                     HygieneReportCounts `json:"counts"`
 }
 
 // ImportSSHKeyRequest is the `ImportSshKeyRequest` schema.
@@ -2468,52 +2855,57 @@ type Permission = string
 
 // The values Permission takes.
 const (
-	PermissionAccountsRead      Permission = "accounts:read"
-	PermissionAccountsWrite     Permission = "accounts:write"
-	PermissionAccountsDelete    Permission = "accounts:delete"
-	PermissionResourcesRead     Permission = "resources:read"
-	PermissionResourcesWrite    Permission = "resources:write"
-	PermissionResourcesDelete   Permission = "resources:delete"
-	PermissionResourcesExecute  Permission = "resources:execute"
-	PermissionSecretsRead       Permission = "secrets:read"
-	PermissionSecretsWrite      Permission = "secrets:write"
-	PermissionStorageRead       Permission = "storage:read"
-	PermissionStorageWrite      Permission = "storage:write"
-	PermissionDashboardsRead    Permission = "dashboards:read"
-	PermissionDashboardsWrite   Permission = "dashboards:write"
-	PermissionWorkflowsRead     Permission = "workflows:read"
-	PermissionWorkflowsWrite    Permission = "workflows:write"
-	PermissionWorkflowsApprove  Permission = "workflows:approve"
-	PermissionDeploymentsRead   Permission = "deployments:read"
-	PermissionDeploymentsPlan   Permission = "deployments:plan"
-	PermissionDeploymentsWrite  Permission = "deployments:write"
-	PermissionCostsRead         Permission = "costs:read"
-	PermissionCostsWrite        Permission = "costs:write"
-	PermissionBudgetsRead       Permission = "budgets:read"
-	PermissionBudgetsWrite      Permission = "budgets:write"
-	PermissionMetricAlertsRead  Permission = "metric-alerts:read"
-	PermissionMetricAlertsWrite Permission = "metric-alerts:write"
-	PermissionFreezesRead       Permission = "freezes:read"
-	PermissionFreezesWrite      Permission = "freezes:write"
-	PermissionFreezesOverride   Permission = "freezes:override"
-	PermissionTagPolicyOverride Permission = "tag-policy:override"
-	PermissionAuditRead         Permission = "audit:read"
-	PermissionTeamRead          Permission = "team:read"
-	PermissionTeamInvite        Permission = "team:invite"
-	PermissionTeamRoleWrite     Permission = "team:role:write"
-	PermissionTeamRemove        Permission = "team:remove"
-	PermissionApikeysRead       Permission = "apikeys:read"
-	PermissionApikeysWrite      Permission = "apikeys:write"
-	PermissionBillingRead       Permission = "billing:read"
-	PermissionBillingWrite      Permission = "billing:write"
-	PermissionSSHKeysRead       Permission = "ssh-keys:read"
-	PermissionSSHKeysWrite      Permission = "ssh-keys:write"
-	PermissionBastionsRead      Permission = "bastions:read"
-	PermissionBastionsWrite     Permission = "bastions:write"
-	PermissionChatRead          Permission = "chat:read"
-	PermissionChatWrite         Permission = "chat:write"
-	PermissionPagesWrite        Permission = "pages:write"
-	PermissionOrgSettingsWrite  Permission = "org:settings:write"
+	PermissionAccountsRead           Permission = "accounts:read"
+	PermissionAccountsWrite          Permission = "accounts:write"
+	PermissionAccountsDelete         Permission = "accounts:delete"
+	PermissionResourcesRead          Permission = "resources:read"
+	PermissionResourcesWrite         Permission = "resources:write"
+	PermissionResourcesDelete        Permission = "resources:delete"
+	PermissionResourcesExecute       Permission = "resources:execute"
+	PermissionSecretsRead            Permission = "secrets:read"
+	PermissionSecretsWrite           Permission = "secrets:write"
+	PermissionStorageRead            Permission = "storage:read"
+	PermissionStorageWrite           Permission = "storage:write"
+	PermissionDashboardsRead         Permission = "dashboards:read"
+	PermissionDashboardsWrite        Permission = "dashboards:write"
+	PermissionWorkflowsRead          Permission = "workflows:read"
+	PermissionWorkflowsWrite         Permission = "workflows:write"
+	PermissionWorkflowsApprove       Permission = "workflows:approve"
+	PermissionDeploymentsRead        Permission = "deployments:read"
+	PermissionDeploymentsPlan        Permission = "deployments:plan"
+	PermissionDeploymentsWrite       Permission = "deployments:write"
+	PermissionCostsRead              Permission = "costs:read"
+	PermissionCostsWrite             Permission = "costs:write"
+	PermissionBudgetsRead            Permission = "budgets:read"
+	PermissionBudgetsWrite           Permission = "budgets:write"
+	PermissionMetricAlertsRead       Permission = "metric-alerts:read"
+	PermissionMetricAlertsWrite      Permission = "metric-alerts:write"
+	PermissionFreezesRead            Permission = "freezes:read"
+	PermissionFreezesWrite           Permission = "freezes:write"
+	PermissionFreezesOverride        Permission = "freezes:override"
+	PermissionTagPolicyOverride      Permission = "tag-policy:override"
+	PermissionAuditRead              Permission = "audit:read"
+	PermissionAccessRead             Permission = "access:read"
+	PermissionAccessRequest          Permission = "access:request"
+	PermissionAccessApprove          Permission = "access:approve"
+	PermissionTeamRead               Permission = "team:read"
+	PermissionTeamInvite             Permission = "team:invite"
+	PermissionTeamRoleWrite          Permission = "team:role:write"
+	PermissionTeamRemove             Permission = "team:remove"
+	PermissionApikeysRead            Permission = "apikeys:read"
+	PermissionApikeysWrite           Permission = "apikeys:write"
+	PermissionBillingRead            Permission = "billing:read"
+	PermissionBillingWrite           Permission = "billing:write"
+	PermissionSSHKeysRead            Permission = "ssh-keys:read"
+	PermissionSSHKeysWrite           Permission = "ssh-keys:write"
+	PermissionSessionRecordingsRead  Permission = "session-recordings:read"
+	PermissionSessionRecordingsWrite Permission = "session-recordings:write"
+	PermissionBastionsRead           Permission = "bastions:read"
+	PermissionBastionsWrite          Permission = "bastions:write"
+	PermissionChatRead               Permission = "chat:read"
+	PermissionChatWrite              Permission = "chat:write"
+	PermissionPagesWrite             Permission = "pages:write"
+	PermissionOrgSettingsWrite       Permission = "org:settings:write"
 )
 
 // PermissionCatalog is the `PermissionCatalog` schema.
@@ -2676,6 +3068,30 @@ type PostureAlertSettingsUpdate struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
+// PostureDismissal is the `PostureDismissal` schema.
+type PostureDismissal struct {
+	ResourceID string `json:"resourceId"`
+	RuleID     string `json:"ruleId"`
+	// DismissedAt: When the finding was accepted.
+	DismissedAt string `json:"dismissedAt"`
+	// DismissedBy: Display name or email of whoever accepted it; null when
+	// unknown.
+	DismissedBy *string `json:"dismissedBy"`
+	// Reason: The operator's note, when they left one.
+	Reason *string `json:"reason"`
+}
+
+// PostureDismissalCreate is the `PostureDismissalCreate` schema.
+type PostureDismissalCreate struct {
+	// ResourceID: Infrawrench resource id the finding is on.
+	ResourceID string `json:"resourceId"`
+	// RuleID: The matched rule's id.
+	RuleID string `json:"ruleId"`
+	// Reason: Why this finding is acceptable. Trimmed; an empty note is stored
+	// as none.
+	Reason *string `json:"reason,omitempty"`
+}
+
 // PostureFinding is the `PostureFinding` schema.
 type PostureFinding struct {
 	// ResourceID: Infrawrench resource id.
@@ -2710,15 +3126,22 @@ type PostureFinding struct {
 
 // PostureListResponse is the `PostureListResponse` schema.
 type PostureListResponse struct {
-	// Findings: All findings, worst severity first.
-	Findings    []PostureFinding      `json:"findings"`
-	TotalCount  int64                 `json:"totalCount"`
-	Counts      PostureSeverityCounts `json:"counts"`
-	GeneratedAt string                `json:"generatedAt"`
+	// Findings: Live findings, worst severity first. Dismissed findings are not
+	// included.
+	Findings []PostureFinding `json:"findings"`
+	// TotalCount: Live finding count; dismissals excluded.
+	TotalCount int64                 `json:"totalCount"`
+	Counts     PostureSeverityCounts `json:"counts"`
+	// Dismissed: Findings a dismissal is currently suppressing, most recently
+	// dismissed first. Only dismissals whose rule still matches appear, so a
+	// finding that has since been fixed simply drops out.
+	Dismissed      []DismissedPostureFinding `json:"dismissed"`
+	DismissedCount int64                     `json:"dismissedCount"`
+	GeneratedAt    string                    `json:"generatedAt"`
 }
 
-// PostureSeverityCounts: Finding count per severity; every bucket present, zeros
-// included.
+// PostureSeverityCounts: Live finding count per severity; every bucket present,
+// zeros included.
 type PostureSeverityCounts struct {
 	Critical int64 `json:"critical"`
 	High     int64 `json:"high"`
@@ -3722,6 +4145,71 @@ type Session struct {
 	NeedsOnboarding bool    `json:"needsOnboarding"`
 }
 
+// SessionRecording is the `SessionRecording` schema.
+type SessionRecording struct {
+	ID string `json:"id"`
+	// UserID: Who opened the session; null when the socket authenticated with an
+	// API key.
+	UserID *string `json:"userId"`
+	// UserName: Display-name snapshot taken at record time, so a departed member
+	// still reads as one.
+	UserName   *string `json:"userName"`
+	AccountID  *string `json:"accountId"`
+	ResourceID *string `json:"resourceId"`
+	// Host: Final hop, as dialled.
+	Host     string `json:"host"`
+	Port     int64  `json:"port"`
+	Username string `json:"username"`
+	// HopCount: 1 for a direct session; higher when it jumped through bastions.
+	HopCount int64 `json:"hopCount"`
+	Cols     int64 `json:"cols"`
+	Rows     int64 `json:"rows"`
+	// HasInput: True when the cast also contains keystrokes (the org opted into
+	// input capture).
+	HasInput bool `json:"hasInput"`
+	// Status: `recording` (live), `complete` (closed cleanly), `truncated` (hit
+	// the per-session capture ceiling — the tape is a genuine partial and says
+	// so), or `abandoned` (the server handling the session went away before it
+	// could close the row).
+	//
+	// One of "recording", "complete", "truncated", "abandoned".
+	Status string `json:"status"`
+	// OutputBytes: Terminal bytes captured, before compression.
+	OutputBytes int64   `json:"outputBytes"`
+	EventCount  int64   `json:"eventCount"`
+	StartedAt   string  `json:"startedAt"`
+	EndedAt     *string `json:"endedAt"`
+	DurationMs  *int64  `json:"durationMs"`
+}
+
+// SessionRecordingSettings is the `SessionRecordingSettings` schema.
+type SessionRecordingSettings struct {
+	Enabled bool `json:"enabled"`
+	// CaptureInput: Also record keystrokes. Separate from `enabled` because it
+	// captures input at prompts the remote host chose not to echo — a sudo
+	// password, a pasted token — which is a materially different promise to the
+	// people being recorded.
+	CaptureInput  bool                  `json:"captureInput"`
+	RetentionDays int64                 `json:"retentionDays"`
+	Usage         SessionRecordingUsage `json:"usage"`
+}
+
+// SessionRecordingSettingsUpdate is the `SessionRecordingSettingsUpdate` schema.
+type SessionRecordingSettingsUpdate struct {
+	Enabled       *bool  `json:"enabled,omitempty"`
+	CaptureInput  *bool  `json:"captureInput,omitempty"`
+	RetentionDays *int64 `json:"retentionDays,omitempty"`
+}
+
+// SessionRecordingUsage is the `SessionRecordingUsage` schema.
+type SessionRecordingUsage struct {
+	RecordingCount int64 `json:"recordingCount"`
+	// StoredBytes: Compressed size actually stored.
+	StoredBytes     int64   `json:"storedBytes"`
+	CapturedBytes   int64   `json:"capturedBytes"`
+	OldestStartedAt *string `json:"oldestStartedAt"`
+}
+
 // SFTPDeleteRequest is the `SftpDeleteRequest` schema.
 //
 // Spec schema: `SftpDeleteRequest`.
@@ -4400,7 +4888,7 @@ type SyntheticProbeUpdate struct {
 // TabTarget is the `TabTarget` schema.
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
-	// "savings", "graph", "logs", "changes", "expiring", "posture",
+	// "savings", "graph", "logs", "changes", "expiring", "posture", "dns",
 	// "ssh-fanout", "metric-alerts", "probes", "workflows", "deployments",
 	// "settings", "chat".
 	Kind           string      `json:"kind"`
@@ -4758,6 +5246,14 @@ type FieldActionResponseOption struct {
 	Label string `json:"label"`
 }
 
+// HygieneReportCounts is an object the spec declares inline.
+type HygieneReportCounts struct {
+	High   int64 `json:"high"`
+	Medium int64 `json:"medium"`
+	Low    int64 `json:"low"`
+	Total  int64 `json:"total"`
+}
+
 // MetricAlertSelectorOptionsPlugins is an object the spec declares inline.
 type MetricAlertSelectorOptionsPlugins struct {
 	PluginID        string   `json:"pluginId"`
@@ -5057,9 +5553,9 @@ type ProfileSessionsRevokeOthersResponse struct {
 	Revoked int64 `json:"revoked"`
 }
 
-// ResourcesCreateCostEstimateResponse is an object the spec declares inline.
-type ResourcesCreateCostEstimateResponse struct {
-	Estimate JSONObject `json:"estimate"`
+// ResourcesCostEstimateResponse is an object the spec declares inline.
+type ResourcesCostEstimateResponse struct {
+	Estimate *CostEstimate `json:"estimate"`
 }
 
 // ResourcesNoSqlcommandResponse is an object the spec declares inline.
