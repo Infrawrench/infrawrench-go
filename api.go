@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.1.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.2.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.1.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.2.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -61,6 +61,8 @@ type APIV1Client struct {
 	ChangeFreezes *ChangeFreezesNamespace
 	// Changes: `client.changes`.
 	Changes *ChangesNamespace
+	// Config: `client.config`.
+	Config *ConfigNamespace
 	// Connect: `client.connect`.
 	Connect *ConnectNamespace
 	// CostCentres: `client.costCentres`.
@@ -178,6 +180,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Budgets = newBudgetsNamespace(t)
 	c.ChangeFreezes = newChangeFreezesNamespace(t)
 	c.Changes = newChangesNamespace(t)
+	c.Config = newConfigNamespace(t)
 	c.Connect = newConnectNamespace(t)
 	c.CostCentres = newCostCentresNamespace(t)
 	c.Costs = newCostsNamespace(t)
@@ -2581,6 +2584,140 @@ func (n *ChangesAlertSettingsNamespace) Update(ctx context.Context, params *Chan
 		r.setJSONBody(params.Body)
 	}
 	var out *DriftAlertSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ConfigNamespace is `client.config`.
+type ConfigNamespace struct {
+	t *transport
+}
+
+func newConfigNamespace(t *transport) *ConfigNamespace {
+	n := &ConfigNamespace{t: t}
+	return n
+}
+
+// ConfigApplyParams holds the parameters for `client.config.apply`.
+type ConfigApplyParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body OrgConfigRequest
+}
+
+// Apply: Apply a configuration document
+//
+// Applies the document in a single transaction and returns the plan that was
+// executed — all or nothing, so a failure never leaves the organization halfway
+// between two configurations.
+//
+// Requires the write permission of every section the document carries, so this
+// cannot be used to reach past a role that withholds one.
+//
+// _Requires permission: `config:write`._
+//
+// POST /api/org/{orgId}/config/apply
+//
+// Raises on 400: Bad request
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
+//
+// Raises on 403: Forbidden
+func (n *ConfigNamespace) Apply(ctx context.Context, params ConfigApplyParams, opts ...RequestOption) (*OrgConfigApplyResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/config/apply")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *OrgConfigApplyResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ConfigExportParams holds the parameters for `client.config.export`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ConfigExportParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Sections: Comma-separated subset of sections to export. Defaults to all
+	// of: budgets, customGraphs, workflows, dashboards, metricAlerts, probes,
+	// costCentres, tagPolicy, alertSettings.
+	Sections *string
+}
+
+// Export: Export the organization's configuration as one document
+//
+// Dashboards, workflows, custom graphs, budgets, metric alerts, synthetic
+// probes, cost centres, the tag policy and the org-wide alert settings,
+// addressed by stable keys rather than row ids so the result applies to any
+// organization.
+//
+// Credentials, accounts, resources and workflow signing secrets are never
+// included. Ordering is stable, so re-exporting an unchanged organization
+// produces the same bytes — commit it to git and the diff is the change.
+//
+// Requires the read permission of every section exported; it refuses rather than
+// silently omitting one, because a partial document applied in `replace` mode
+// would delete what the exporter could not see.
+//
+// _Requires permission: `config:read`._
+//
+// GET /api/org/{orgId}/config/export
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+func (n *ConfigNamespace) Export(ctx context.Context, params *ConfigExportParams, opts ...RequestOption) (*OrgConfigDocument, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/config/export")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("sections", params.Sections)
+	}
+	var out *OrgConfigDocument
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ConfigPlanParams holds the parameters for `client.config.plan`.
+type ConfigPlanParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body OrgConfigRequest
+}
+
+// Plan: Preview what applying a document would do
+//
+// The dry run: validates the document, resolves its cross-references against
+// this organization, and returns the create/update/delete/unchanged plan without
+// writing anything. Read-only, so a reviewer with read access can run it on a
+// pull request.
+//
+// _Requires permission: `config:read`._
+//
+// POST /api/org/{orgId}/config/plan
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+func (n *ConfigNamespace) Plan(ctx context.Context, params ConfigPlanParams, opts ...RequestOption) (*OrgConfigPlan, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/config/plan")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *OrgConfigPlan
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

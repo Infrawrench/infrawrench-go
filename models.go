@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.1.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.2.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.1.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.2.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2753,6 +2753,216 @@ type OK struct {
 	OK bool `json:"ok"`
 }
 
+// OrgConfigAlertSettings: Org-wide notification tuning. Cooldown claims
+// (`lastNotifiedAt`, `lastSentWeekStart`) are deliberately absent: they are
+// poller state, and resetting one from an apply would re-open a quiet period and
+// page people twice.
+type OrgConfigAlertSettings struct {
+	CostAnomaly *OrgConfigAlertSettingsCostAnomaly `json:"costAnomaly,omitempty"`
+	Drift       *OrgConfigAlertSettingsDrift       `json:"drift,omitempty"`
+	Expiry      *OrgConfigAlertSettingsExpiry      `json:"expiry,omitempty"`
+	Posture     *OrgConfigAlertSettingsPosture     `json:"posture,omitempty"`
+	Digest      *OrgConfigAlertSettingsDigest      `json:"digest,omitempty"`
+}
+
+// OrgConfigApplyResult is the `OrgConfigApplyResult` schema.
+type OrgConfigApplyResult struct {
+	// Mode: One of "merge", "replace".
+	Mode       string                     `json:"mode"`
+	Changes    []OrgConfigChange          `json:"changes"`
+	Unresolved []OrgConfigUnresolved      `json:"unresolved"`
+	Counts     OrgConfigApplyResultCounts `json:"counts"`
+	Applied    bool                       `json:"applied"`
+}
+
+// OrgConfigBudget is the `OrgConfigBudget` schema.
+type OrgConfigBudget struct {
+	// Key: Stable slug identifying this entity across organizations. Derived
+	// from the name on export; it is what an apply matches on, so renaming an
+	// entity while keeping its key is a rename rather than a delete-and-create.
+	Key         string                      `json:"key"`
+	Name        string                      `json:"name"`
+	AmountCents int64                       `json:"amountCents"`
+	Currency    *string                     `json:"currency,omitempty"`
+	Filters     []OrgConfigCostFilter       `json:"filters,omitempty"`
+	Thresholds  []OrgConfigBudgetThresholds `json:"thresholds"`
+}
+
+// OrgConfigChange is the `OrgConfigChange` schema.
+type OrgConfigChange struct {
+	Section OrgConfigSection `json:"section"`
+	Key     string           `json:"key"`
+	Name    string           `json:"name"`
+	// Action: One of "create", "update", "delete", "unchanged".
+	Action string `json:"action"`
+	// Fields: Fields that differ, on an update.
+	Fields []string `json:"fields,omitempty"`
+}
+
+// OrgConfigCostCentre is the `OrgConfigCostCentre` schema.
+type OrgConfigCostCentre struct {
+	// Key: Stable slug identifying this entity across organizations. Derived
+	// from the name on export; it is what an apply matches on, so renaming an
+	// entity while keeping its key is a rename rather than a delete-and-create.
+	Key         string                     `json:"key"`
+	Name        string                     `json:"name"`
+	Description *string                    `json:"description,omitempty"`
+	Rules       []OrgConfigCostCentreRules `json:"rules,omitempty"`
+}
+
+// OrgConfigCostFilter is the `OrgConfigCostFilter` schema.
+type OrgConfigCostFilter struct {
+	Dimension string `json:"dimension"`
+	// Op: One of "in", "not_in".
+	Op     string   `json:"op"`
+	Values []string `json:"values"`
+	TagKey *string  `json:"tagKey,omitempty"`
+}
+
+// OrgConfigCustomGraph is the `OrgConfigCustomGraph` schema.
+type OrgConfigCustomGraph struct {
+	// Key: Stable slug identifying this entity across organizations. Derived
+	// from the name on export; it is what an apply matches on, so renaming an
+	// entity while keeping its key is a rename rather than a delete-and-create.
+	Key         string  `json:"key"`
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	// Source: The graph's TypeScript source.
+	Source string `json:"source"`
+}
+
+// OrgConfigDashboard is the `OrgConfigDashboard` schema.
+type OrgConfigDashboard struct {
+	// Key: Stable slug identifying this entity across organizations. Derived
+	// from the name on export; it is what an apply matches on, so renaming an
+	// entity while keeping its key is a rename rather than a delete-and-create.
+	Key       string                   `json:"key"`
+	Name      string                   `json:"name"`
+	IsDefault *bool                    `json:"isDefault,omitempty"`
+	Cards     []OrgConfigDashboardCard `json:"cards,omitempty"`
+}
+
+// OrgConfigDashboardCard: One card. Position is the index in the dashboard's
+// `cards` array — the grid order all three card kinds share.
+type OrgConfigDashboardCard = any
+
+// OrgConfigDocument: An organization's configuration. Every section is optional
+// — a document that omits one leaves it entirely alone, in both apply modes.
+type OrgConfigDocument struct {
+	Version       *int64                         `json:"version,omitempty"`
+	ExportedAt    *string                        `json:"exportedAt,omitempty"`
+	ExportedFrom  *OrgConfigDocumentExportedFrom `json:"exportedFrom,omitempty"`
+	Budgets       []OrgConfigBudget              `json:"budgets,omitempty"`
+	CustomGraphs  []OrgConfigCustomGraph         `json:"customGraphs,omitempty"`
+	Workflows     []OrgConfigWorkflow            `json:"workflows,omitempty"`
+	Dashboards    []OrgConfigDashboard           `json:"dashboards,omitempty"`
+	MetricAlerts  []OrgConfigMetricAlert         `json:"metricAlerts,omitempty"`
+	Probes        []OrgConfigProbe               `json:"probes,omitempty"`
+	CostCentres   []OrgConfigCostCentre          `json:"costCentres,omitempty"`
+	TagPolicy     *OrgConfigDocumentTagPolicy    `json:"tagPolicy,omitempty"`
+	AlertSettings *OrgConfigAlertSettings        `json:"alertSettings,omitempty"`
+}
+
+// OrgConfigMetricAlert is the `OrgConfigMetricAlert` schema.
+type OrgConfigMetricAlert struct {
+	// Key: Stable slug identifying this entity across organizations. Derived
+	// from the name on export; it is what an apply matches on, so renaming an
+	// entity while keeping its key is a rename rather than a delete-and-create.
+	Key            string  `json:"key"`
+	Name           string  `json:"name"`
+	PluginID       *string `json:"pluginId,omitempty"`
+	ResourceTypeID *string `json:"resourceTypeId,omitempty"`
+	TagKey         *string `json:"tagKey,omitempty"`
+	TagValue       *string `json:"tagValue,omitempty"`
+	MetricKey      string  `json:"metricKey"`
+	// Comparator: One of ">", ">=", "<", "<=".
+	Comparator      string  `json:"comparator"`
+	Threshold       float64 `json:"threshold"`
+	ForMinutes      *int64  `json:"forMinutes,omitempty"`
+	CooldownMinutes *int64  `json:"cooldownMinutes,omitempty"`
+	Enabled         *bool   `json:"enabled,omitempty"`
+}
+
+// OrgConfigPlan is the `OrgConfigPlan` schema.
+type OrgConfigPlan struct {
+	// Mode: One of "merge", "replace".
+	Mode       string                `json:"mode"`
+	Changes    []OrgConfigChange     `json:"changes"`
+	Unresolved []OrgConfigUnresolved `json:"unresolved"`
+	Counts     OrgConfigPlanCounts   `json:"counts"`
+}
+
+// OrgConfigProbe is the `OrgConfigProbe` schema.
+type OrgConfigProbe struct {
+	// Key: Stable slug identifying this entity across organizations. Derived
+	// from the name on export; it is what an apply matches on, so renaming an
+	// entity while keeping its key is a rename rather than a delete-and-create.
+	Key              string  `json:"key"`
+	Name             string  `json:"name"`
+	URL              string  `json:"url"`
+	Method           *string `json:"method,omitempty"`
+	IntervalSeconds  *int64  `json:"intervalSeconds,omitempty"`
+	TimeoutMs        *int64  `json:"timeoutMs,omitempty"`
+	FailureThreshold *int64  `json:"failureThreshold,omitempty"`
+	Enabled          *bool   `json:"enabled,omitempty"`
+}
+
+// OrgConfigRequest is the `OrgConfigRequest` schema.
+type OrgConfigRequest struct {
+	Document OrgConfigDocument `json:"document"`
+	// Mode: `merge` creates and updates what the document names and leaves
+	// everything else alone. `replace` additionally deletes entities the
+	// document does not name, within the sections it carries.
+	//
+	// One of "merge", "replace".
+	Mode *string `json:"mode,omitempty"`
+}
+
+// OrgConfigSection is the `OrgConfigSection` schema.
+type OrgConfigSection = string
+
+// The values OrgConfigSection takes.
+const (
+	OrgConfigSectionBudgets       OrgConfigSection = "budgets"
+	OrgConfigSectionCustomGraphs  OrgConfigSection = "customGraphs"
+	OrgConfigSectionWorkflows     OrgConfigSection = "workflows"
+	OrgConfigSectionDashboards    OrgConfigSection = "dashboards"
+	OrgConfigSectionMetricAlerts  OrgConfigSection = "metricAlerts"
+	OrgConfigSectionProbes        OrgConfigSection = "probes"
+	OrgConfigSectionCostCentres   OrgConfigSection = "costCentres"
+	OrgConfigSectionTagPolicy     OrgConfigSection = "tagPolicy"
+	OrgConfigSectionAlertSettings OrgConfigSection = "alertSettings"
+)
+
+// OrgConfigUnresolved: Something the document asked for that this organization
+// could not satisfy — a pin for a resource nobody has synced, an account name
+// that does not exist here. Not fatal: the affected card, clause or deletion is
+// dropped and the rest of the document still applies.
+type OrgConfigUnresolved struct {
+	Section OrgConfigSection `json:"section"`
+	Key     string           `json:"key"`
+	Detail  string           `json:"detail"`
+}
+
+// OrgConfigWorkflow: A workflow. The git-webhook signing secret is deliberately
+// absent — it is write-only, so a document can neither leak nor set one.
+type OrgConfigWorkflow struct {
+	// Key: Stable slug identifying this entity across organizations. Derived
+	// from the name on export; it is what an apply matches on, so renaming an
+	// entity while keeping its key is a rename rather than a delete-and-create.
+	Key         string  `json:"key"`
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	// Source: The workflow's TypeScript source.
+	Source  string                     `json:"source"`
+	Trigger OrgConfigWorkflowTrigger   `json:"trigger,omitempty"`
+	Metrics []OrgConfigWorkflowMetrics `json:"metrics,omitempty"`
+	Enabled *bool                      `json:"enabled,omitempty"`
+}
+
+// OrgConfigWorkflowTrigger is the `OrgConfigWorkflowTrigger` schema.
+type OrgConfigWorkflowTrigger = any
+
 // OrgMember is the `OrgMember` schema.
 type OrgMember struct {
 	ID            string           `json:"id"`
@@ -3077,6 +3287,8 @@ const (
 	PermissionFreezesWrite           Permission = "freezes:write"
 	PermissionFreezesOverride        Permission = "freezes:override"
 	PermissionTagPolicyOverride      Permission = "tag-policy:override"
+	PermissionConfigRead             Permission = "config:read"
+	PermissionConfigWrite            Permission = "config:write"
 	PermissionAuditRead              Permission = "audit:read"
 	PermissionAccessRead             Permission = "access:read"
 	PermissionAccessRequest          Permission = "access:request"
@@ -5630,6 +5842,96 @@ type MetricSeriesPoints struct {
 	Value     float64 `json:"value"`
 }
 
+// OrgConfigAlertSettingsCostAnomaly is an object the spec declares inline.
+type OrgConfigAlertSettingsCostAnomaly struct {
+	Sigmas            float64 `json:"sigmas"`
+	MinDeltaCents     int64   `json:"minDeltaCents"`
+	NewSourceMinCents int64   `json:"newSourceMinCents"`
+	// SmsAlerts: One of "off", "new_source", "all".
+	SmsAlerts string `json:"smsAlerts"`
+}
+
+// OrgConfigAlertSettingsDrift is an object the spec declares inline.
+type OrgConfigAlertSettingsDrift struct {
+	NotifyCreated   bool  `json:"notifyCreated"`
+	NotifyUpdated   bool  `json:"notifyUpdated"`
+	NotifyDeleted   bool  `json:"notifyDeleted"`
+	CooldownMinutes int64 `json:"cooldownMinutes"`
+	MinChanges      int64 `json:"minChanges"`
+	// Accounts: Account display names; empty means every account.
+	Accounts []string `json:"accounts"`
+}
+
+// OrgConfigAlertSettingsExpiry is an object the spec declares inline.
+type OrgConfigAlertSettingsExpiry struct {
+	Enabled  bool  `json:"enabled"`
+	LeadDays int64 `json:"leadDays"`
+}
+
+// OrgConfigAlertSettingsPosture is an object the spec declares inline.
+type OrgConfigAlertSettingsPosture struct {
+	Enabled bool `json:"enabled"`
+}
+
+// OrgConfigAlertSettingsDigest is an object the spec declares inline.
+type OrgConfigAlertSettingsDigest struct {
+	Enabled          bool     `json:"enabled"`
+	Timezone         string   `json:"timezone"`
+	SendDay          int64    `json:"sendDay"`
+	SendHour         int64    `json:"sendHour"`
+	NarrativeEnabled bool     `json:"narrativeEnabled"`
+	Recipients       []string `json:"recipients"`
+}
+
+// OrgConfigApplyResultCounts is an object the spec declares inline.
+type OrgConfigApplyResultCounts struct {
+	Create    int64 `json:"create"`
+	Update    int64 `json:"update"`
+	Delete    int64 `json:"delete"`
+	Unchanged int64 `json:"unchanged"`
+}
+
+// OrgConfigBudgetThresholds is an object the spec declares inline.
+type OrgConfigBudgetThresholds struct {
+	// Type: One of "actual", "forecast".
+	Type    string `json:"type"`
+	Percent int64  `json:"percent"`
+}
+
+// OrgConfigCostCentreRules is an object the spec declares inline.
+type OrgConfigCostCentreRules struct {
+	Priority int64                          `json:"priority"`
+	Match    *OrgConfigCostCentreRulesMatch `json:"match,omitempty"`
+}
+
+// OrgConfigDocumentExportedFrom is an object the spec declares inline.
+type OrgConfigDocumentExportedFrom struct {
+	OrganizationID   string `json:"organizationId"`
+	OrganizationName string `json:"organizationName"`
+}
+
+// OrgConfigDocumentTagPolicy is an object the spec declares inline.
+type OrgConfigDocumentTagPolicy struct {
+	RequiredTags    []OrgConfigDocumentTagPolicyRequiredTags `json:"requiredTags"`
+	EnforceOnCreate bool                                     `json:"enforceOnCreate"`
+}
+
+// OrgConfigPlanCounts is an object the spec declares inline.
+type OrgConfigPlanCounts struct {
+	Create    int64 `json:"create"`
+	Update    int64 `json:"update"`
+	Delete    int64 `json:"delete"`
+	Unchanged int64 `json:"unchanged"`
+}
+
+// OrgConfigWorkflowMetrics is an object the spec declares inline.
+type OrgConfigWorkflowMetrics struct {
+	Key   string  `json:"key"`
+	Label string  `json:"label"`
+	Unit  *string `json:"unit,omitempty"`
+	Type  *string `json:"type,omitempty"`
+}
+
 // PickerResourcesRequestSources is an object the spec declares inline.
 type PickerResourcesRequestSources struct {
 	PluginID       string `json:"pluginId"`
@@ -5775,6 +6077,22 @@ type CostAccountStatusCostPollErrorHelpLink struct {
 type DeployPlanResultResultError struct {
 	Message string  `json:"message"`
 	Stack   *string `json:"stack,omitempty"`
+}
+
+// OrgConfigCostCentreRulesMatch is an object the spec declares inline.
+type OrgConfigCostCentreRulesMatch struct {
+	TagKey   *string `json:"tagKey,omitempty"`
+	TagValue *string `json:"tagValue,omitempty"`
+	// Account: Account display name.
+	Account  *string `json:"account,omitempty"`
+	PluginID *string `json:"pluginId,omitempty"`
+	Service  *string `json:"service,omitempty"`
+}
+
+// OrgConfigDocumentTagPolicyRequiredTags is an object the spec declares inline.
+type OrgConfigDocumentTagPolicyRequiredTags struct {
+	Key           string   `json:"key"`
+	AllowedValues []string `json:"allowedValues,omitempty"`
 }
 
 // AccountsCreateRequest is an object the spec declares inline.
