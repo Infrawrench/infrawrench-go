@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.3.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.4.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.3.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.4.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3434,6 +3434,7 @@ const (
 	PluginIDSSH          PluginID = "ssh"
 	PluginIDTogether     PluginID = "together"
 	PluginIDTurso        PluginID = "turso"
+	PluginIDUploadthing  PluginID = "uploadthing"
 	PluginIDVercel       PluginID = "vercel"
 	PluginIDWorkos       PluginID = "workos"
 	PluginIDXai          PluginID = "xai"
@@ -4475,6 +4476,8 @@ const (
 	ResourceTypeIDTursoOrganizationMember        ResourceTypeID = "turso-organization-member"
 	ResourceTypeIDUploadPreset                   ResourceTypeID = "upload-preset"
 	ResourceTypeIDUser                           ResourceTypeID = "user"
+	ResourceTypeIDUtApp                          ResourceTypeID = "ut-app"
+	ResourceTypeIDUtFile                         ResourceTypeID = "ut-file"
 	ResourceTypeIDVectorStore                    ResourceTypeID = "vector-store"
 	ResourceTypeIDVectorizeIndex                 ResourceTypeID = "vectorize-index"
 	ResourceTypeIDVercelDeployment               ResourceTypeID = "vercel-deployment"
@@ -4510,6 +4513,8 @@ type ResourceTypeSummary struct {
 	AttachTargets         []ResourceTypeSummaryAttachTargets `json:"attachTargets,omitempty"`
 	IsSSHHost             *bool                              `json:"isSshHost,omitempty"`
 	SSHTunnelAttachSource *bool                              `json:"sshTunnelAttachSource,omitempty"`
+	ShowInSidebar         *bool                              `json:"showInSidebar,omitempty"`
+	AccountRoot           *bool                              `json:"accountRoot,omitempty"`
 	// Schedulable: The type declares lifecycle start/stop actions, so its
 	// resources can carry a sleep/wake schedule.
 	Schedulable *bool `json:"schedulable,omitempty"`
