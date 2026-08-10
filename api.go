@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.4.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.6.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.4.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.6.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -61,18 +61,32 @@ type APIV1Client struct {
 	ChangeFreezes *ChangeFreezesNamespace
 	// Changes: `client.changes`.
 	Changes *ChangesNamespace
+	// Commitments: `client.commitments`.
+	Commitments *CommitmentsNamespace
 	// Config: `client.config`.
 	Config *ConfigNamespace
 	// Connect: `client.connect`.
 	Connect *ConnectNamespace
+	// CostAlerts: `client.costAlerts`.
+	CostAlerts *CostAlertsNamespace
 	// CostCentres: `client.costCentres`.
 	CostCentres *CostCentresNamespace
+	// CostExports: `client.costExports`.
+	CostExports *CostExportsNamespace
+	// CostReportFolders: `client.costReportFolders`.
+	CostReportFolders *CostReportFoldersNamespace
+	// CostReportNotifications: `client.costReportNotifications`.
+	CostReportNotifications *CostReportNotificationsNamespace
+	// CostReports: `client.costReports`.
+	CostReports *CostReportsNamespace
 	// Costs: `client.costs`.
 	Costs *CostsNamespace
 	// CredentialHygiene: `client.credentialHygiene`.
 	CredentialHygiene *CredentialHygieneNamespace
 	// Credits: `client.credits`.
 	Credits *CreditsNamespace
+	// Currency: `client.currency`.
+	Currency *CurrencyNamespace
 	// CustomGraphs: `client.customGraphs`.
 	CustomGraphs *CustomGraphsNamespace
 	// Dashboards: `client.dashboards`.
@@ -93,10 +107,14 @@ type APIV1Client struct {
 	Expiring *ExpiringNamespace
 	// Invitations: `client.invitations`.
 	Invitations *InvitationsNamespace
+	// Jira: `client.jira`.
+	Jira *JiraNamespace
 	// KV: `client.kv`.
 	KV *KVNamespace
 	// Leases: `client.leases`.
 	Leases *LeasesNamespace
+	// Linear: `client.linear`.
+	Linear *LinearNamespace
 	// LogWorkspaces: `client.logWorkspaces`.
 	LogWorkspaces *LogWorkspacesNamespace
 	// MetricAlerts: `client.metricAlerts`.
@@ -123,6 +141,8 @@ type APIV1Client struct {
 	Resources *ResourcesNamespace
 	// Rightsizing: `client.rightsizing`.
 	Rightsizing *RightsizingNamespace
+	// SavedCostFilters: `client.savedCostFilters`.
+	SavedCostFilters *SavedCostFiltersNamespace
 	// Schedules: `client.schedules`.
 	Schedules *SchedulesNamespace
 	// Search: `client.search`.
@@ -180,12 +200,19 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Budgets = newBudgetsNamespace(t)
 	c.ChangeFreezes = newChangeFreezesNamespace(t)
 	c.Changes = newChangesNamespace(t)
+	c.Commitments = newCommitmentsNamespace(t)
 	c.Config = newConfigNamespace(t)
 	c.Connect = newConnectNamespace(t)
+	c.CostAlerts = newCostAlertsNamespace(t)
 	c.CostCentres = newCostCentresNamespace(t)
+	c.CostExports = newCostExportsNamespace(t)
+	c.CostReportFolders = newCostReportFoldersNamespace(t)
+	c.CostReportNotifications = newCostReportNotificationsNamespace(t)
+	c.CostReports = newCostReportsNamespace(t)
 	c.Costs = newCostsNamespace(t)
 	c.CredentialHygiene = newCredentialHygieneNamespace(t)
 	c.Credits = newCreditsNamespace(t)
+	c.Currency = newCurrencyNamespace(t)
 	c.CustomGraphs = newCustomGraphsNamespace(t)
 	c.Dashboards = newDashboardsNamespace(t)
 	c.DependencyGraph = newDependencyGraphNamespace(t)
@@ -196,8 +223,10 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.EnvironmentDiff = newEnvironmentDiffNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
 	c.Invitations = newInvitationsNamespace(t)
+	c.Jira = newJiraNamespace(t)
 	c.KV = newKVNamespace(t)
 	c.Leases = newLeasesNamespace(t)
+	c.Linear = newLinearNamespace(t)
 	c.LogWorkspaces = newLogWorkspacesNamespace(t)
 	c.MetricAlerts = newMetricAlertsNamespace(t)
 	c.Moment = newMomentNamespace(t)
@@ -211,6 +240,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Profile = newProfileNamespace(t)
 	c.Resources = newResourcesNamespace(t)
 	c.Rightsizing = newRightsizingNamespace(t)
+	c.SavedCostFilters = newSavedCostFiltersNamespace(t)
 	c.Schedules = newSchedulesNamespace(t)
 	c.Search = newSearchNamespace(t)
 	c.SessionRecordings = newSessionRecordingsNamespace(t)
@@ -2618,6 +2648,64 @@ func (n *ChangesAlertSettingsNamespace) Update(ctx context.Context, params *Chan
 	return out, nil
 }
 
+// CommitmentsNamespace is `client.commitments`.
+type CommitmentsNamespace struct {
+	t *transport
+}
+
+func newCommitmentsNamespace(t *transport) *CommitmentsNamespace {
+	n := &CommitmentsNamespace{t: t}
+	return n
+}
+
+// CommitmentsGetParams holds the parameters for `client.commitments.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CommitmentsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Reservations, savings plans and committed-use discounts
+//
+// The organization's purchased commitments — reserved instances, savings plans,
+// committed-use discounts — with three derived readings.
+//
+// **Coverage** is a range, not a number: the broad ratio counts every uncovered
+// usage dollar in the denominator (a lower bound — egress and per-request
+// charges can never be committed against), the narrow ratio only uncovered usage
+// in cells where a commitment demonstrably landed (an upper bound). Accounts
+// whose plugin cannot distinguish charge types are excluded and listed; a scope
+// where every account is excluded reports unavailable, not 0%.
+//
+// **Utilization** is measured only over days cost data was actually collected —
+// a collection gap is reported as missing days, never counted as idle
+// commitment. Unit-denominated commitments (GCP) report null with a reason,
+// never 0%. Azure's own reported utilization rides on each holding separately
+// and is never blended with the derived figure.
+//
+// **The planner** recommends committing at the p10 floor of daily uncovered
+// spend, gated on presence, trend, floor and materiality. Savings are quoted
+// against published "up to" discount rates and marked as such. Nothing is ever
+// purchased automatically.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/commitments
+func (n *CommitmentsNamespace) Get(ctx context.Context, params *CommitmentsGetParams, opts ...RequestOption) (*CommitmentsFeed, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/commitments")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CommitmentsFeed
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // ConfigNamespace is `client.config`.
 type ConfigNamespace struct {
 	t *transport
@@ -2845,6 +2933,212 @@ func (n *ConnectNamespace) Templates(ctx context.Context, params ConnectTemplate
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *ConnectTemplatesResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostAlertsNamespace is `client.costAlerts`.
+type CostAlertsNamespace struct {
+	t *transport
+
+	// Get: `client.costAlerts.get`.
+	Get *CostAlertsGetNamespace
+}
+
+func newCostAlertsNamespace(t *transport) *CostAlertsNamespace {
+	n := &CostAlertsNamespace{t: t}
+	n.Get = newCostAlertsGetNamespace(t)
+	return n
+}
+
+// CostAlertsCreateParams holds the parameters for `client.costAlerts.create`.
+type CostAlertsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostAlertInput
+}
+
+// Create: Create a change-based cost alert
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/cost-alerts
+//
+// Raises on 400: Bad request
+func (n *CostAlertsNamespace) Create(ctx context.Context, params CostAlertsCreateParams, opts ...RequestOption) (*CostAlert, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-alerts")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostAlert
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostAlertsDeleteParams holds the parameters for `client.costAlerts.delete`.
+type CostAlertsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a cost alert
+//
+// Soft delete. Fired events disappear from the org-wide event feed with it.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/cost-alerts/{id}
+//
+// Raises on 404: Not found
+func (n *CostAlertsNamespace) Delete(ctx context.Context, params CostAlertsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/cost-alerts/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostAlertsEventsParams holds the parameters for `client.costAlerts.events`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostAlertsEventsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	AlertID *string
+	Limit   *int64
+}
+
+// Events: List recently fired cost-alert events
+//
+// Newest first. Optionally scoped to one alert with ?alertId=; an unknown
+// alertId is a 404, distinct from an alert that simply has no events yet.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-alerts/events
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostAlertsNamespace) Events(ctx context.Context, params *CostAlertsEventsParams, opts ...RequestOption) (*CostAlertsEventsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-alerts/events")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("alertId", params.AlertID)
+		r.addQuery("limit", params.Limit)
+	}
+	var out *CostAlertsEventsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostAlertsUpdateParams holds the parameters for `client.costAlerts.update`.
+type CostAlertsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body CostAlertInput
+}
+
+// Update: Update a cost alert
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/cost-alerts/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostAlertsNamespace) Update(ctx context.Context, params CostAlertsUpdateParams, opts ...RequestOption) (*CostAlert, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/cost-alerts/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CostAlert
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostAlertsGetNamespace is `client.costAlerts.get`.
+type CostAlertsGetNamespace struct {
+	t *transport
+}
+
+func newCostAlertsGetNamespace(t *transport) *CostAlertsGetNamespace {
+	n := &CostAlertsGetNamespace{t: t}
+	return n
+}
+
+// CostAlertsGetGetParams holds the parameters for `client.costAlerts.get.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostAlertsGetGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List change-based cost alerts
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-alerts
+func (n *CostAlertsGetNamespace) Get(ctx context.Context, params *CostAlertsGetGetParams, opts ...RequestOption) (*CostAlertsGetGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-alerts")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CostAlertsGetGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostAlertsGetGetOrgOrgIDCostAlertsIDParams holds the parameters for
+// `client.costAlerts.get.getOrgOrgIdCostAlertsId`.
+type CostAlertsGetGetOrgOrgIDCostAlertsIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// GetOrgOrgIDCostAlertsID: Get a cost alert
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-alerts/{id}
+//
+// Raises on 404: Not found
+func (n *CostAlertsGetNamespace) GetOrgOrgIDCostAlertsID(ctx context.Context, params CostAlertsGetGetOrgOrgIDCostAlertsIDParams, opts ...RequestOption) (*CostAlert, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-alerts/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CostAlert
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -3146,6 +3440,784 @@ func (n *CostCentresRulesNamespace) Update(ctx context.Context, params CostCentr
 	return out, nil
 }
 
+// CostExportsNamespace is `client.costExports`.
+type CostExportsNamespace struct {
+	t *transport
+}
+
+func newCostExportsNamespace(t *transport) *CostExportsNamespace {
+	n := &CostExportsNamespace{t: t}
+	return n
+}
+
+// CostExportsCreateParams holds the parameters for `client.costExports.create`.
+type CostExportsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostExportInput
+}
+
+// Create: Create a cost export
+//
+// Credentials are required on create. They are encrypted at rest and no route
+// ever returns them; responses carry a redacted `credentialHint` instead.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/cost-exports
+//
+// Raises on 400: Bad request
+func (n *CostExportsNamespace) Create(ctx context.Context, params CostExportsCreateParams, opts ...RequestOption) (*CostExport, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-exports")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostExport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostExportsDeleteParams holds the parameters for `client.costExports.delete`.
+type CostExportsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a cost export
+//
+// Soft delete. Objects already written to the destination are left alone.
+//
+// _Requires permission: `org:settings:write`._
+//
+// DELETE /api/org/{orgId}/cost-exports/{id}
+//
+// Raises on 404: Not found
+func (n *CostExportsNamespace) Delete(ctx context.Context, params CostExportsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/cost-exports/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostExportsGetParams holds the parameters for `client.costExports.get`.
+type CostExportsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get a cost export
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-exports/{id}
+//
+// Raises on 404: Not found
+func (n *CostExportsNamespace) Get(ctx context.Context, params CostExportsGetParams, opts ...RequestOption) (*CostExport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-exports/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CostExport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostExportsListParams holds the parameters for `client.costExports.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostExportsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List scheduled cost exports
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-exports
+func (n *CostExportsNamespace) List(ctx context.Context, params *CostExportsListParams, opts ...RequestOption) ([]CostExport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-exports")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []CostExport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostExportsRunParams holds the parameters for `client.costExports.run`.
+type CostExportsRunParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Run: Run a cost export now
+//
+// Runs the export immediately against the same code path the poller uses,
+// writing every period in the restatement window. Answers 200 with `status:
+// "failed"` and a message rather than an error status when the destination
+// rejects the write — the caller wants the reason, and the same failure is
+// recorded on the export.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/cost-exports/{id}/run
+//
+// Raises on 404: Not found
+func (n *CostExportsNamespace) Run(ctx context.Context, params CostExportsRunParams, opts ...RequestOption) (*CostExportRunResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-exports/{id}/run")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CostExportRunResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostExportsUpdateParams holds the parameters for `client.costExports.update`.
+type CostExportsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body CostExportInput
+}
+
+// Update: Update a cost export
+//
+// Replaces everything but the credential. Omit
+// `accessKeyId`/`secretAccessKey`/`url` to keep the stored credential; changing
+// the destination type requires supplying a new one. Saving reschedules the
+// export from now.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/cost-exports/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostExportsNamespace) Update(ctx context.Context, params CostExportsUpdateParams, opts ...RequestOption) (*CostExport, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/cost-exports/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CostExport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportFoldersNamespace is `client.costReportFolders`.
+type CostReportFoldersNamespace struct {
+	t *transport
+}
+
+func newCostReportFoldersNamespace(t *transport) *CostReportFoldersNamespace {
+	n := &CostReportFoldersNamespace{t: t}
+	return n
+}
+
+// CostReportFoldersCreateParams holds the parameters for
+// `client.costReportFolders.create`.
+type CostReportFoldersCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostReportFolderInput
+}
+
+// Create: Create a cost-report folder
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/cost-report-folders
+//
+// Raises on 400: Bad request
+func (n *CostReportFoldersNamespace) Create(ctx context.Context, params CostReportFoldersCreateParams, opts ...RequestOption) (*CostReportFolder, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-report-folders")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostReportFolder
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportFoldersDeleteParams holds the parameters for
+// `client.costReportFolders.delete`.
+type CostReportFoldersDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a cost-report folder
+//
+// Never blocked by contents and never destructive to them: the folder's reports
+// and immediate subfolders fall back to the top level. Deleting a folder cannot
+// delete a report.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/cost-report-folders/{id}
+//
+// Raises on 404: Not found
+func (n *CostReportFoldersNamespace) Delete(ctx context.Context, params CostReportFoldersDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/cost-report-folders/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportFoldersListParams holds the parameters for
+// `client.costReportFolders.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostReportFoldersListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List cost-report folders
+//
+// The org's report folders as a flat list — build the tree from
+// `parentFolderId`. Folders organize the Reports list and nothing else; a
+// report's id, URL and dashboard cards are unchanged by where it is filed.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-report-folders
+func (n *CostReportFoldersNamespace) List(ctx context.Context, params *CostReportFoldersListParams, opts ...RequestOption) ([]CostReportFolder, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-report-folders")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []CostReportFolder
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportFoldersUpdateParams holds the parameters for
+// `client.costReportFolders.update`.
+type CostReportFoldersUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body CostReportFolderInput
+}
+
+// Update: Update a cost-report folder
+//
+// Rename and/or reparent. Filing a *report* is not here — that is `PUT
+// /cost-reports/{id}` with a different `folderId`. Reparenting past the 3-level
+// depth limit, or under the folder's own subtree, is a 400.
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/cost-report-folders/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostReportFoldersNamespace) Update(ctx context.Context, params CostReportFoldersUpdateParams, opts ...RequestOption) (*CostReportFolder, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/cost-report-folders/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CostReportFolder
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportNotificationsNamespace is `client.costReportNotifications`.
+type CostReportNotificationsNamespace struct {
+	t *transport
+}
+
+func newCostReportNotificationsNamespace(t *transport) *CostReportNotificationsNamespace {
+	n := &CostReportNotificationsNamespace{t: t}
+	return n
+}
+
+// CostReportNotificationsListParams holds the parameters for
+// `client.costReportNotifications.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostReportNotificationsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List every delivery schedule in the organization
+//
+// All reports' schedules in one call — what the CLI's schedules column reads.
+// Schedules of deleted reports are excluded.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-report-notifications
+func (n *CostReportNotificationsNamespace) List(ctx context.Context, params *CostReportNotificationsListParams, opts ...RequestOption) ([]ReportNotification, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-report-notifications")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []ReportNotification
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsNamespace is `client.costReports`.
+type CostReportsNamespace struct {
+	t *transport
+
+	// Notifications: `client.costReports.notifications`.
+	Notifications *CostReportsNotificationsNamespace
+}
+
+func newCostReportsNamespace(t *transport) *CostReportsNamespace {
+	n := &CostReportsNamespace{t: t}
+	n.Notifications = newCostReportsNotificationsNamespace(t)
+	return n
+}
+
+// CostReportsCreateParams holds the parameters for `client.costReports.create`.
+type CostReportsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostReportInput
+}
+
+// Create: Create a cost report
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/cost-reports
+//
+// Raises on 400: Bad request
+func (n *CostReportsNamespace) Create(ctx context.Context, params CostReportsCreateParams, opts ...RequestOption) (*CostReport, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-reports")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsDeleteParams holds the parameters for `client.costReports.delete`.
+type CostReportsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a cost report
+//
+// Soft delete. Every dashboard card pointing at the report is removed with it —
+// a card whose report is gone could only ever render as an unavailable tile.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/cost-reports/{id}
+//
+// Raises on 404: Not found
+func (n *CostReportsNamespace) Delete(ctx context.Context, params CostReportsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/cost-reports/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsGetParams holds the parameters for `client.costReports.get`.
+type CostReportsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get a cost report
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-reports/{id}
+//
+// Raises on 404: Not found
+func (n *CostReportsNamespace) Get(ctx context.Context, params CostReportsGetParams, opts ...RequestOption) (*CostReport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-reports/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CostReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsListParams holds the parameters for `client.costReports.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostReportsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List saved cost reports
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-reports
+func (n *CostReportsNamespace) List(ctx context.Context, params *CostReportsListParams, opts ...RequestOption) ([]CostReport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-reports")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []CostReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsRunParams holds the parameters for `client.costReports.run`.
+type CostReportsRunParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Run: Run a cost report
+//
+// Executes the report's saved config and returns the series, along with the
+// inclusive window a relative preset resolved to. Takes no body: the report *is*
+// the query, so a caller never has to reassemble its config to get the numbers.
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/cost-reports/{id}/run
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostReportsNamespace) Run(ctx context.Context, params CostReportsRunParams, opts ...RequestOption) (*CostReportRunResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-reports/{id}/run")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CostReportRunResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsUpdateParams holds the parameters for `client.costReports.update`.
+type CostReportsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body CostReportInput
+}
+
+// Update: Update a cost report
+//
+// Replaces the report's name, description, config and folder. Every dashboard
+// showing the report picks up the new config — that is what referencing a report
+// by id buys.
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/cost-reports/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostReportsNamespace) Update(ctx context.Context, params CostReportsUpdateParams, opts ...RequestOption) (*CostReport, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/cost-reports/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CostReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsNotificationsNamespace is `client.costReports.notifications`.
+type CostReportsNotificationsNamespace struct {
+	t *transport
+}
+
+func newCostReportsNotificationsNamespace(t *transport) *CostReportsNotificationsNamespace {
+	n := &CostReportsNotificationsNamespace{t: t}
+	return n
+}
+
+// CostReportsNotificationsCreateParams holds the parameters for
+// `client.costReports.notifications.create`.
+type CostReportsNotificationsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body ReportNotificationInput
+}
+
+// Create: Create a delivery schedule
+//
+// On its cadence the server runs the report and sends a composed text summary —
+// period total (converted to the org's display currency where configured, with
+// the conversion caveat), change vs the previous period, top groups, and a deep
+// link. No chart images. An empty result still sends, saying so.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/cost-reports/{id}/notifications
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostReportsNotificationsNamespace) Create(ctx context.Context, params CostReportsNotificationsCreateParams, opts ...RequestOption) (*ReportNotification, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-reports/{id}/notifications")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *ReportNotification
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsNotificationsDeleteParams holds the parameters for
+// `client.costReports.notifications.delete`.
+type CostReportsNotificationsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	ID             string
+	NotificationID string
+}
+
+// Delete: Delete a delivery schedule
+//
+// _Requires permission: `org:settings:write`._
+//
+// DELETE /api/org/{orgId}/cost-reports/{id}/notifications/{notificationId}
+//
+// Raises on 404: Not found
+func (n *CostReportsNotificationsNamespace) Delete(ctx context.Context, params CostReportsNotificationsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/cost-reports/{id}/notifications/{notificationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("notificationId", params.NotificationID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsNotificationsListParams holds the parameters for
+// `client.costReports.notifications.list`.
+type CostReportsNotificationsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// List: List a report's delivery schedules
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-reports/{id}/notifications
+//
+// Raises on 404: Not found
+func (n *CostReportsNotificationsNamespace) List(ctx context.Context, params CostReportsNotificationsListParams, opts ...RequestOption) ([]ReportNotification, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-reports/{id}/notifications")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out []ReportNotification
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsNotificationsSendParams holds the parameters for
+// `client.costReports.notifications.send`.
+type CostReportsNotificationsSendParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	ID             string
+	NotificationID string
+}
+
+// Send: Send a schedule's report now
+//
+// Runs the report and delivers it to this schedule's destinations immediately,
+// ignoring the schedule and its enabled flag. Fails with a 400 naming the reason
+// when nothing could be delivered. A successful manual send clears a parked
+// failure — it is the documented recovery for a partial delivery.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/cost-reports/{id}/notifications/{notificationId}/send
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostReportsNotificationsNamespace) Send(ctx context.Context, params CostReportsNotificationsSendParams, opts ...RequestOption) (*ReportNotificationSendResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-reports/{id}/notifications/{notificationId}/send")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("notificationId", params.NotificationID)
+	var out *ReportNotificationSendResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsNotificationsTargetsParams holds the parameters for
+// `client.costReports.notifications.targets`.
+type CostReportsNotificationsTargetsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Targets: List the destinations a schedule can deliver to
+//
+// The org's live Slack channels and Teams webhooks, and whether this deployment
+// can send mail. Destinations are picked from here — a schedule can only point
+// at surfaces the org already connected.
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/cost-reports/{id}/notifications/targets
+func (n *CostReportsNotificationsNamespace) Targets(ctx context.Context, params CostReportsNotificationsTargetsParams, opts ...RequestOption) (*ReportDeliveryTargets, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-reports/{id}/notifications/targets")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *ReportDeliveryTargets
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostReportsNotificationsUpdateParams holds the parameters for
+// `client.costReports.notifications.update`.
+type CostReportsNotificationsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	ID             string
+	NotificationID string
+	// Body: the JSON request body.
+	Body ReportNotificationInput
+}
+
+// Update: Update a delivery schedule
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/cost-reports/{id}/notifications/{notificationId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostReportsNotificationsNamespace) Update(ctx context.Context, params CostReportsNotificationsUpdateParams, opts ...RequestOption) (*ReportNotification, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/cost-reports/{id}/notifications/{notificationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("notificationId", params.NotificationID)
+	r.setJSONBody(params.Body)
+	var out *ReportNotification
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // CostsNamespace is `client.costs`.
 type CostsNamespace struct {
 	t *transport
@@ -3207,7 +4279,7 @@ type CostsDimensionsParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Dimension: One of "provider", "account", "service", "region", "resource",
-	// "tag", "tag-keys".
+	// "tag", "charge_type", "commitment", "tag-keys".
 	Dimension string
 	TagKey    *string
 }
@@ -3215,7 +4287,9 @@ type CostsDimensionsParams struct {
 // Dimensions: List distinct values for a cost dimension
 //
 // Feeds the filter and group-by pickers. Pass dimension=tag-keys for tag keys;
-// dimension=tag requires tagKey.
+// dimension=tag requires tagKey. `charge_type` answers from the fixed set of
+// charge types rather than from the stored data, so the picker is populated
+// before any provider has reported one.
 //
 // _Requires permission: `costs:read`._
 //
@@ -3250,6 +4324,15 @@ type CostsQueryParams struct {
 // graphs. Currencies are never merged; mixed-currency orgs get one series per
 // currency. Optionally returns a previous-period comparison and a trend
 // forecast.
+//
+// `costBasis` chooses between cash and amortized money, and `chargeTypes`
+// narrows which kinds of charge count. Both the comparison period and the
+// forecast are computed on the same basis and charge types as the series itself.
+//
+// The filter can be sent structurally as `filters` or as text in the cost query
+// language via `query` (`provider = 'aws' AND tag['env'] != 'dev'`). They are
+// two spellings of one filter: sending both is a 400, and a query that does not
+// parse is a 400 carrying the offset of the mistake.
 //
 // _Requires permission: `costs:read`._
 //
@@ -3321,6 +4404,13 @@ type CostsShowbackParams struct {
 	From *string
 	// To: Defaults to today.
 	To *string
+	// Basis: Which money to sum. `cash` (the default) is what the provider
+	// charged on the day it charged it; `amortized` spreads a commitment's
+	// up-front fee across the term it buys. Providers that report no amortized
+	// amount fall back to their cash amount.
+	//
+	// One of "cash", "amortized".
+	Basis *string
 }
 
 // Showback: Spend grouped by cost centre (showback)
@@ -3340,6 +4430,7 @@ func (n *CostsNamespace) Showback(ctx context.Context, params *CostsShowbackPara
 		r.setPath("orgId", params.OrgID)
 		r.addQuery("from", params.From)
 		r.addQuery("to", params.To)
+		r.addQuery("basis", params.Basis)
 	}
 	var out *ShowbackReport
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
@@ -3390,6 +4481,13 @@ type CostsUntaggedParams struct {
 	From *string
 	// To: Defaults to today.
 	To *string
+	// Basis: Which money to sum. `cash` (the default) is what the provider
+	// charged on the day it charged it; `amortized` spreads a commitment's
+	// up-front fee across the term it buys. Providers that report no amortized
+	// amount fall back to their cash amount.
+	//
+	// One of "cash", "amortized".
+	Basis *string
 }
 
 // Untagged: Untagged spend over the required tag keys
@@ -3410,6 +4508,7 @@ func (n *CostsNamespace) Untagged(ctx context.Context, params *CostsUntaggedPara
 		r.setPath("orgId", params.OrgID)
 		r.addQuery("from", params.From)
 		r.addQuery("to", params.To)
+		r.addQuery("basis", params.Basis)
 	}
 	var out *UntaggedSpendReport
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
@@ -3601,6 +4700,162 @@ func (n *CreditsNamespace) Get(ctx context.Context, params *CreditsGetParams, op
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *CreditBurndown
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CurrencyNamespace is `client.currency`.
+type CurrencyNamespace struct {
+	t *transport
+
+	// Rates: `client.currency.rates`.
+	Rates *CurrencyRatesNamespace
+}
+
+func newCurrencyNamespace(t *transport) *CurrencyNamespace {
+	n := &CurrencyNamespace{t: t}
+	n.Rates = newCurrencyRatesNamespace(t)
+	return n
+}
+
+// CurrencyGetParams holds the parameters for `client.currency.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CurrencyGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: The org's display currency and exchange rate table
+//
+// Readable with `costs:read` rather than a settings permission: anyone who can
+// see a converted total has to be able to see what it was converted at, or the
+// number is unauditable.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/currency
+func (n *CurrencyNamespace) Get(ctx context.Context, params *CurrencyGetParams, opts ...RequestOption) (*CurrencyConfig, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/currency")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CurrencyConfig
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CurrencyUpdateParams holds the parameters for `client.currency.update`.
+type CurrencyUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CurrencySettings
+}
+
+// Update: Set or clear the org's display currency
+//
+// Setting a currency opts the organization into converted totals; `null` turns
+// conversion off everywhere and restores the per-currency view. Clearing does
+// not delete the rate table, so conversion can be turned back on without
+// re-stating anything. Only currencies with a configured rate are converted —
+// Infrawrench never fetches live exchange rates.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/currency
+//
+// Raises on 400: Bad request
+func (n *CurrencyNamespace) Update(ctx context.Context, params CurrencyUpdateParams, opts ...RequestOption) (*CurrencySettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/currency")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CurrencySettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CurrencyRatesNamespace is `client.currency.rates`.
+type CurrencyRatesNamespace struct {
+	t *transport
+}
+
+func newCurrencyRatesNamespace(t *transport) *CurrencyRatesNamespace {
+	n := &CurrencyRatesNamespace{t: t}
+	return n
+}
+
+// CurrencyRatesDeleteParams holds the parameters for
+// `client.currency.rates.delete`.
+type CurrencyRatesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID  *string
+	RateID string
+}
+
+// Delete: Delete one exchange rate
+//
+// Removing a rate makes the days it covered fall back to the next-older rate, or
+// to unconverted if none remains. Spend never disappears — it reverts to its own
+// currency.
+//
+// _Requires permission: `org:settings:write`._
+//
+// DELETE /api/org/{orgId}/currency/rates/{rateId}
+//
+// Raises on 404: Not found
+func (n *CurrencyRatesNamespace) Delete(ctx context.Context, params CurrencyRatesDeleteParams, opts ...RequestOption) (*CurrencyRatesDeleteResponse, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/currency/rates/{rateId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("rateId", params.RateID)
+	var out *CurrencyRatesDeleteResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CurrencyRatesUpdateParams holds the parameters for
+// `client.currency.rates.update`.
+type CurrencyRatesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body ExchangeRateInput
+}
+
+// Update: Create or replace one exchange rate
+//
+// Upserts on (`fromCurrency`, `toCurrency`, `effectiveFrom`) — one rate per pair
+// per day, so correcting a rate replaces it rather than adding a second one
+// whose precedence a reader would have to guess. Rates are stated to the display
+// currency in one hop: nothing inverts a rate or chains two, because both
+// produce a number you never stated.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/currency/rates
+//
+// Raises on 400: Bad request
+func (n *CurrencyRatesNamespace) Update(ctx context.Context, params CurrencyRatesUpdateParams, opts ...RequestOption) (*ExchangeRate, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/currency/rates")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *ExchangeRate
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -5486,6 +6741,289 @@ func (n *InvitationsByTokenNamespace) Get(ctx context.Context, params Invitation
 	return out, nil
 }
 
+// JiraNamespace is `client.jira`.
+type JiraNamespace struct {
+	t *transport
+
+	// Projects: `client.jira.projects`.
+	Projects *JiraProjectsNamespace
+}
+
+func newJiraNamespace(t *transport) *JiraNamespace {
+	n := &JiraNamespace{t: t}
+	n.Projects = newJiraProjectsNamespace(t)
+	return n
+}
+
+// JiraDeleteParams holds the parameters for `client.jira.delete`.
+//
+// Every field is optional; pass nil to take the defaults.
+type JiraDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Delete: Disconnect Jira
+//
+// Issue links already recorded are kept, so filed findings stay marked as filed.
+//
+// _Requires permission: `jira:write`._
+//
+// DELETE /api/org/{orgId}/jira
+//
+// Raises on 404: Not found
+func (n *JiraNamespace) Delete(ctx context.Context, params *JiraDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/jira")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JiraGetParams holds the parameters for `client.jira.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type JiraGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the org's Jira connection
+//
+// The stored API token is never returned; `tokenHint` stands in for it.
+//
+// _Requires permission: `jira:read`._
+//
+// GET /api/org/{orgId}/jira
+func (n *JiraNamespace) Get(ctx context.Context, params *JiraGetParams, opts ...RequestOption) (*JiraGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jira")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *JiraGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JiraIssuesParams holds the parameters for `client.jira.issues`.
+type JiraIssuesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CreateJiraIssueInput
+}
+
+// Issues: File a finding as a Jira issue
+//
+// Creates the issue, then records the link between it and the finding. The link
+// is what lets a list view show "already filed" instead of offering the button
+// again.
+//
+// _Requires permission: `jira:write`._
+//
+// POST /api/org/{orgId}/jira/issues
+//
+// Raises on 400: Bad request
+//
+// Raises on 502: Jira refused to create the issue, or was unreachable
+func (n *JiraNamespace) Issues(ctx context.Context, params JiraIssuesParams, opts ...RequestOption) (*CreateJiraIssueResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/jira/issues")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CreateJiraIssueResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JiraLinksParams holds the parameters for `client.jira.links`.
+//
+// Every field is optional; pass nil to take the defaults.
+type JiraLinksParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	SourceKind *JiraSourceKind
+	// SourceID: Repeat to narrow to specific findings. Omit to return every link
+	// of the kind — this is the batch lookup a list view makes once instead of
+	// one request per row.
+	SourceID []string
+}
+
+// Links: Look up filed issues for a set of findings
+//
+// _Requires permission: `jira:read`._
+//
+// GET /api/org/{orgId}/jira/links
+//
+// Raises on 400: Bad request
+func (n *JiraNamespace) Links(ctx context.Context, params *JiraLinksParams, opts ...RequestOption) ([]JiraIssueLink, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jira/links")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("sourceKind", params.SourceKind)
+		r.addQuery("sourceId", params.SourceID)
+	}
+	var out []JiraIssueLink
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JiraUpdateParams holds the parameters for `client.jira.update`.
+type JiraUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body JiraIntegrationInput
+}
+
+// Update: Connect Jira, or update the connection
+//
+// _Requires permission: `jira:write`._
+//
+// PUT /api/org/{orgId}/jira
+//
+// Raises on 400: Bad request
+func (n *JiraNamespace) Update(ctx context.Context, params JiraUpdateParams, opts ...RequestOption) (*JiraIntegration, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/jira")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *JiraIntegration
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JiraVerifyParams holds the parameters for `client.jira.verify`.
+//
+// Every field is optional; pass nil to take the defaults.
+type JiraVerifyParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *JiraVerifyInput
+}
+
+// Verify: Check Jira credentials
+//
+// Calls GET /rest/api/3/myself on the site, so a wrong email or a revoked token
+// is reported on the settings form rather than on the first attempt to file an
+// issue.
+//
+// _Requires permission: `jira:write`._
+//
+// POST /api/org/{orgId}/jira/verify
+//
+// Raises on 400: Bad request
+//
+// Raises on 502: Jira rejected the credentials or was unreachable
+func (n *JiraNamespace) Verify(ctx context.Context, params *JiraVerifyParams, opts ...RequestOption) (*JiraVerifyResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/jira/verify")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *JiraVerifyResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JiraProjectsNamespace is `client.jira.projects`.
+type JiraProjectsNamespace struct {
+	t *transport
+}
+
+func newJiraProjectsNamespace(t *transport) *JiraProjectsNamespace {
+	n := &JiraProjectsNamespace{t: t}
+	return n
+}
+
+// JiraProjectsIssueTypesParams holds the parameters for
+// `client.jira.projects.issueTypes`.
+type JiraProjectsIssueTypesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	Key   string
+}
+
+// IssueTypes: List issue types valid in a project
+//
+// Reads the project's own create metadata rather than the global issue-type
+// list, so the picker cannot offer a type the project's scheme would reject.
+// Subtasks are excluded.
+//
+// _Requires permission: `jira:read`._
+//
+// GET /api/org/{orgId}/jira/projects/{key}/issue-types
+//
+// Raises on 400: Bad request
+func (n *JiraProjectsNamespace) IssueTypes(ctx context.Context, params JiraProjectsIssueTypesParams, opts ...RequestOption) ([]JiraIssueType, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jira/projects/{key}/issue-types")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("key", params.Key)
+	var out []JiraIssueType
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JiraProjectsListParams holds the parameters for `client.jira.projects.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type JiraProjectsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List Jira projects
+//
+// Backs the project picker, so nobody has to know a project key by hand.
+//
+// _Requires permission: `jira:read`._
+//
+// GET /api/org/{orgId}/jira/projects
+//
+// Raises on 400: Bad request
+func (n *JiraProjectsNamespace) List(ctx context.Context, params *JiraProjectsListParams, opts ...RequestOption) ([]JiraProject, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jira/projects")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []JiraProject
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // KVNamespace is `client.kv`.
 type KVNamespace struct {
 	t *transport
@@ -5726,6 +7264,244 @@ func (n *LeasesNamespace) Update(ctx context.Context, params LeasesUpdateParams,
 	r.setPath("leaseId", params.LeaseID)
 	r.setJSONBody(params.Body)
 	var out *ResourceLease
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LinearNamespace is `client.linear`.
+type LinearNamespace struct {
+	t *transport
+}
+
+func newLinearNamespace(t *transport) *LinearNamespace {
+	n := &LinearNamespace{t: t}
+	return n
+}
+
+// LinearDeleteParams holds the parameters for `client.linear.delete`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LinearDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Delete: Disconnect Linear
+//
+// Issue links already recorded are kept, so filed findings stay marked as filed.
+//
+// _Requires permission: `linear:write`._
+//
+// DELETE /api/org/{orgId}/linear
+//
+// Raises on 404: Not found
+func (n *LinearNamespace) Delete(ctx context.Context, params *LinearDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/linear")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LinearGetParams holds the parameters for `client.linear.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LinearGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the org's Linear connection
+//
+// The stored API key is never returned; `keyHint` stands in for it.
+//
+// _Requires permission: `linear:read`._
+//
+// GET /api/org/{orgId}/linear
+func (n *LinearNamespace) Get(ctx context.Context, params *LinearGetParams, opts ...RequestOption) (*LinearGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/linear")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *LinearGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LinearIssuesParams holds the parameters for `client.linear.issues`.
+type LinearIssuesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CreateLinearIssueInput
+}
+
+// Issues: File a finding as a Linear issue
+//
+// Creates the issue via the issueCreate mutation, then records the link between
+// it and the finding. The link is what lets a list view show "already filed"
+// instead of offering the button again.
+//
+// _Requires permission: `linear:write`._
+//
+// POST /api/org/{orgId}/linear/issues
+//
+// Raises on 400: Bad request
+//
+// Raises on 502: Linear refused to create the issue, or was unreachable
+func (n *LinearNamespace) Issues(ctx context.Context, params LinearIssuesParams, opts ...RequestOption) (*CreateLinearIssueResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/linear/issues")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CreateLinearIssueResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LinearLinksParams holds the parameters for `client.linear.links`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LinearLinksParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	SourceKind *LinearSourceKind
+	// SourceID: Repeat to narrow to specific findings. Omit to return every link
+	// of the kind — this is the batch lookup a list view makes once instead of
+	// one request per row.
+	SourceID []string
+}
+
+// Links: Look up filed issues for a set of findings
+//
+// _Requires permission: `linear:read`._
+//
+// GET /api/org/{orgId}/linear/links
+//
+// Raises on 400: Bad request
+func (n *LinearNamespace) Links(ctx context.Context, params *LinearLinksParams, opts ...RequestOption) ([]LinearIssueLink, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/linear/links")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("sourceKind", params.SourceKind)
+		r.addQuery("sourceId", params.SourceID)
+	}
+	var out []LinearIssueLink
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LinearTeamsParams holds the parameters for `client.linear.teams`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LinearTeamsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Teams: List Linear teams
+//
+// Backs the team picker, so nobody has to know a team id by hand — issueCreate
+// requires one, and every issue belongs to exactly one team.
+//
+// _Requires permission: `linear:read`._
+//
+// GET /api/org/{orgId}/linear/teams
+//
+// Raises on 400: Bad request
+func (n *LinearNamespace) Teams(ctx context.Context, params *LinearTeamsParams, opts ...RequestOption) ([]LinearTeam, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/linear/teams")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []LinearTeam
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LinearUpdateParams holds the parameters for `client.linear.update`.
+type LinearUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body LinearIntegrationInput
+}
+
+// Update: Connect Linear, or update the connection
+//
+// _Requires permission: `linear:write`._
+//
+// PUT /api/org/{orgId}/linear
+//
+// Raises on 400: Bad request
+func (n *LinearNamespace) Update(ctx context.Context, params LinearUpdateParams, opts ...RequestOption) (*LinearIntegration, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/linear")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *LinearIntegration
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LinearVerifyParams holds the parameters for `client.linear.verify`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LinearVerifyParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *LinearVerifyInput
+}
+
+// Verify: Check Linear credentials
+//
+// Runs the `viewer` query against the Linear GraphQL API, so a mistyped or
+// revoked key is reported on the settings form rather than on the first attempt
+// to file an issue.
+//
+// _Requires permission: `linear:write`._
+//
+// POST /api/org/{orgId}/linear/verify
+//
+// Raises on 400: Bad request
+//
+// Raises on 502: Linear rejected the key or was unreachable
+func (n *LinearNamespace) Verify(ctx context.Context, params *LinearVerifyParams, opts ...RequestOption) (*LinearVerifyResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/linear/verify")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *LinearVerifyResult
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -8566,6 +10342,218 @@ func (n *RightsizingNamespace) Get(ctx context.Context, params *RightsizingGetPa
 		r.addQuery("refresh", params.Refresh)
 	}
 	var out *RightsizingListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavedCostFiltersNamespace is `client.savedCostFilters`.
+type SavedCostFiltersNamespace struct {
+	t *transport
+}
+
+func newSavedCostFiltersNamespace(t *transport) *SavedCostFiltersNamespace {
+	n := &SavedCostFiltersNamespace{t: t}
+	return n
+}
+
+// SavedCostFiltersCreateParams holds the parameters for
+// `client.savedCostFilters.create`.
+type SavedCostFiltersCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body SavedCostFilterInput
+}
+
+// Create: Create a saved cost filter
+//
+// Names must be unique per organization (case-insensitively) — they are how the
+// CLI's `--filter <name>` and humans address the filter. A name collision is a 409.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/saved-cost-filters
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: A live saved filter already uses this name.
+func (n *SavedCostFiltersNamespace) Create(ctx context.Context, params SavedCostFiltersCreateParams, opts ...RequestOption) (*SavedCostFilter, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/saved-cost-filters")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *SavedCostFilter
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavedCostFiltersDeleteParams holds the parameters for
+// `client.savedCostFilters.delete`.
+type SavedCostFiltersDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a saved cost filter
+//
+// Soft delete — **refused with a 409 while anything references the filter**,
+// with the referents in the body. Deleting a referenced filter would silently
+// widen every referent's scope to all spend; for a budget that can fire or
+// suppress alerts, so detaching the referents is a deliberate step, never a side
+// effect of deletion.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/saved-cost-filters/{id}
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Still referenced — the body lists every referent.
+func (n *SavedCostFiltersNamespace) Delete(ctx context.Context, params SavedCostFiltersDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/saved-cost-filters/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavedCostFiltersGetParams holds the parameters for
+// `client.savedCostFilters.get`.
+type SavedCostFiltersGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get a saved cost filter
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/saved-cost-filters/{id}
+//
+// Raises on 404: Not found
+func (n *SavedCostFiltersNamespace) Get(ctx context.Context, params SavedCostFiltersGetParams, opts ...RequestOption) (*SavedCostFilter, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/saved-cost-filters/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *SavedCostFilter
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavedCostFiltersListParams holds the parameters for
+// `client.savedCostFilters.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SavedCostFiltersListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List saved cost filters
+//
+// Named, reusable cost filter sets. Graphs, reports and budgets reference one
+// **by id** (`savedFilterId` in their configs and in `POST /costs/query`), and
+// the server resolves the reference at query time — so editing a saved filter
+// changes every referent at once, and nothing ever holds a copy.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/saved-cost-filters
+func (n *SavedCostFiltersNamespace) List(ctx context.Context, params *SavedCostFiltersListParams, opts ...RequestOption) ([]SavedCostFilter, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/saved-cost-filters")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []SavedCostFilter
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavedCostFiltersReferentsParams holds the parameters for
+// `client.savedCostFilters.referents`.
+type SavedCostFiltersReferentsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Referents: List a saved filter's referents
+//
+// Every budget, cost report and dashboard cost graph referencing this filter —
+// what an edit will re-scope, and what a delete would be refused over.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/saved-cost-filters/{id}/referents
+//
+// Raises on 404: Not found
+func (n *SavedCostFiltersNamespace) Referents(ctx context.Context, params SavedCostFiltersReferentsParams, opts ...RequestOption) (*SavedCostFiltersReferentsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/saved-cost-filters/{id}/referents")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *SavedCostFiltersReferentsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavedCostFiltersUpdateParams holds the parameters for
+// `client.savedCostFilters.update`.
+type SavedCostFiltersUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body SavedCostFilterInput
+}
+
+// Update: Update a saved cost filter
+//
+// Replaces the filter's name, description and terms. This is the high-leverage
+// write: every graph, report and budget referencing the filter runs the new
+// terms on its next query — re-scoping a referenced budget can change which
+// alerts fire. `GET /{id}/referents` names what a change will touch.
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/saved-cost-filters/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: A live saved filter already uses this name.
+func (n *SavedCostFiltersNamespace) Update(ctx context.Context, params SavedCostFiltersUpdateParams, opts ...RequestOption) (*SavedCostFilter, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/saved-cost-filters/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *SavedCostFilter
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
