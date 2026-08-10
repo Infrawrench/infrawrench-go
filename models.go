@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.6.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.7.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.6.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.7.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1227,15 +1227,16 @@ type CostChargeType = string
 
 // The values CostChargeType takes.
 const (
-	CostChargeTypeUsage              CostChargeType = "usage"
-	CostChargeTypeCommitmentFee      CostChargeType = "commitment_fee"
-	CostChargeTypeCommitmentDiscount CostChargeType = "commitment_discount"
-	CostChargeTypeCredit             CostChargeType = "credit"
-	CostChargeTypeTax                CostChargeType = "tax"
-	CostChargeTypeRefund             CostChargeType = "refund"
-	CostChargeTypeAdjustment         CostChargeType = "adjustment"
-	CostChargeTypeSupport            CostChargeType = "support"
-	CostChargeTypeOther              CostChargeType = "other"
+	CostChargeTypeUsage                  CostChargeType = "usage"
+	CostChargeTypeCommitmentCoveredUsage CostChargeType = "commitment_covered_usage"
+	CostChargeTypeCommitmentFee          CostChargeType = "commitment_fee"
+	CostChargeTypeCommitmentDiscount     CostChargeType = "commitment_discount"
+	CostChargeTypeCredit                 CostChargeType = "credit"
+	CostChargeTypeTax                    CostChargeType = "tax"
+	CostChargeTypeRefund                 CostChargeType = "refund"
+	CostChargeTypeAdjustment             CostChargeType = "adjustment"
+	CostChargeTypeSupport                CostChargeType = "support"
+	CostChargeTypeOther                  CostChargeType = "other"
 )
 
 // CostDateRange: A relative preset resolves against today every time the report
