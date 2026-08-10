@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.2.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.3.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.2.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.3.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2088,6 +2088,12 @@ type ExportCredentialRequest struct {
 	ParentResourceID *ResourceID `json:"parentResourceId,omitempty"`
 }
 
+// ExportTerraformRequest is the `ExportTerraformRequest` schema.
+type ExportTerraformRequest struct {
+	ResourceID ResourceID `json:"resourceId"`
+	AccountID  string     `json:"accountId"`
+}
+
 // FieldActionRequest is the `FieldActionRequest` schema.
 type FieldActionRequest struct {
 	AccountID        string            `json:"accountId"`
@@ -3896,42 +3902,43 @@ type ResourceChangeListResponse struct {
 
 // ResourceDetail is the `ResourceDetail` schema.
 type ResourceDetail struct {
-	DetailSchema         JSONObject         `json:"detailSchema"`
-	ChildResources       []ChildResourceRef `json:"childResources"`
-	ChildTypes           []ChildTypeRef     `json:"childTypes"`
-	PluginID             string             `json:"pluginId"`
-	PluginLogoSvg        string             `json:"pluginLogoSvg"`
-	ResourceID           ResourceID         `json:"resourceId"`
-	AccountID            string             `json:"accountId"`
-	ResourceTypeID       string             `json:"resourceTypeId"`
-	PeerPanes            []PeerPane         `json:"peerPanes"`
-	PeerIntegrationStubs []PeerPaneStub     `json:"peerIntegrationStubs"`
-	CanDelete            bool               `json:"canDelete"`
-	CanEdit              bool               `json:"canEdit"`
-	EditableFields       []EditableField    `json:"editableFields"`
-	CredentialFormats    []CredentialFormat `json:"credentialFormats"`
-	HasManifestEditor    bool               `json:"hasManifestEditor"`
-	HasSecretVersions    bool               `json:"hasSecretVersions"`
-	ResourceDisplayName  string             `json:"resourceDisplayName"`
-	ResourceTypeLabel    string             `json:"resourceTypeLabel"`
-	ResourceFields       JSONObject         `json:"resourceFields"`
-	HasSQLEditor         bool               `json:"hasSqlEditor"`
-	HasStorageBrowser    bool               `json:"hasStorageBrowser"`
-	HasArtifactRegistry  bool               `json:"hasArtifactRegistry"`
-	HasKVBrowser         bool               `json:"hasKvBrowser"`
-	HasKVConsole         bool               `json:"hasKvConsole"`
-	KVDriverName         *string            `json:"kvDriverName,omitempty"`
-	IsMongoDB            bool               `json:"isMongoDb"`
-	HasDockerActions     bool               `json:"hasDockerActions"`
-	HasSSHTerminal       bool               `json:"hasSshTerminal"`
-	HasSFTPBrowser       bool               `json:"hasSftpBrowser"`
-	SSHHost              *string            `json:"sshHost"`
-	SSHPrivateHost       *string            `json:"sshPrivateHost,omitempty"`
-	DefaultSSHUsername   *string            `json:"defaultSshUsername"`
-	ContainerID          string             `json:"containerId"`
-	DatabaseName         string             `json:"databaseName"`
-	StorageBucketName    string             `json:"storageBucketName"`
-	SupportsMetrics      bool               `json:"supportsMetrics"`
+	DetailSchema            JSONObject         `json:"detailSchema"`
+	ChildResources          []ChildResourceRef `json:"childResources"`
+	ChildTypes              []ChildTypeRef     `json:"childTypes"`
+	PluginID                string             `json:"pluginId"`
+	PluginLogoSvg           string             `json:"pluginLogoSvg"`
+	ResourceID              ResourceID         `json:"resourceId"`
+	AccountID               string             `json:"accountId"`
+	ResourceTypeID          string             `json:"resourceTypeId"`
+	PeerPanes               []PeerPane         `json:"peerPanes"`
+	PeerIntegrationStubs    []PeerPaneStub     `json:"peerIntegrationStubs"`
+	CanDelete               bool               `json:"canDelete"`
+	CanEdit                 bool               `json:"canEdit"`
+	EditableFields          []EditableField    `json:"editableFields"`
+	CredentialFormats       []CredentialFormat `json:"credentialFormats"`
+	SupportsTerraformExport bool               `json:"supportsTerraformExport"`
+	HasManifestEditor       bool               `json:"hasManifestEditor"`
+	HasSecretVersions       bool               `json:"hasSecretVersions"`
+	ResourceDisplayName     string             `json:"resourceDisplayName"`
+	ResourceTypeLabel       string             `json:"resourceTypeLabel"`
+	ResourceFields          JSONObject         `json:"resourceFields"`
+	HasSQLEditor            bool               `json:"hasSqlEditor"`
+	HasStorageBrowser       bool               `json:"hasStorageBrowser"`
+	HasArtifactRegistry     bool               `json:"hasArtifactRegistry"`
+	HasKVBrowser            bool               `json:"hasKvBrowser"`
+	HasKVConsole            bool               `json:"hasKvConsole"`
+	KVDriverName            *string            `json:"kvDriverName,omitempty"`
+	IsMongoDB               bool               `json:"isMongoDb"`
+	HasDockerActions        bool               `json:"hasDockerActions"`
+	HasSSHTerminal          bool               `json:"hasSshTerminal"`
+	HasSFTPBrowser          bool               `json:"hasSftpBrowser"`
+	SSHHost                 *string            `json:"sshHost"`
+	SSHPrivateHost          *string            `json:"sshPrivateHost,omitempty"`
+	DefaultSSHUsername      *string            `json:"defaultSshUsername"`
+	ContainerID             string             `json:"containerId"`
+	DatabaseName            string             `json:"databaseName"`
+	StorageBucketName       string             `json:"storageBucketName"`
+	SupportsMetrics         bool               `json:"supportsMetrics"`
 	// Schedulable: The type declares lifecycle start/stop actions, so this
 	// resource can carry a sleep/wake schedule.
 	Schedulable bool `json:"schedulable"`
@@ -5487,6 +5494,13 @@ type TagPolicyViolation struct {
 	AllowedValues []string `json:"allowedValues,omitempty"`
 }
 
+// TerraformExport is the `TerraformExport` schema.
+type TerraformExport struct {
+	Hcl         string                       `json:"hcl"`
+	Exported    []TerraformExportExported    `json:"exported"`
+	Unsupported []TerraformExportUnsupported `json:"unsupported"`
+}
+
 // TOTPEnrollment is the `TotpEnrollment` schema.
 //
 // Spec schema: `TotpEnrollment`.
@@ -6043,6 +6057,25 @@ type SshfanoutRunRequestTargets struct {
 	// Kind: One of "account", "resource".
 	Kind string `json:"kind"`
 	ID   string `json:"id"`
+}
+
+// TerraformExportExported is an object the spec declares inline.
+type TerraformExportExported struct {
+	ID             ResourceID `json:"id"`
+	DisplayName    string     `json:"displayName"`
+	PluginID       string     `json:"pluginId"`
+	ResourceTypeID string     `json:"resourceTypeId"`
+	Address        string     `json:"address"`
+	ImportID       *string    `json:"importId,omitempty"`
+}
+
+// TerraformExportUnsupported is an object the spec declares inline.
+type TerraformExportUnsupported struct {
+	ID             ResourceID `json:"id"`
+	DisplayName    string     `json:"displayName"`
+	PluginID       string     `json:"pluginId"`
+	ResourceTypeID string     `json:"resourceTypeId"`
+	Reason         string     `json:"reason"`
 }
 
 // UntaggedSpendReportByKey is an object the spec declares inline.

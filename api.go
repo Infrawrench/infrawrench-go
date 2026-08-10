@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.2.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.3.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.2.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.3.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -627,6 +627,34 @@ func (n *AccountsNamespace) Detail(ctx context.Context, params AccountsDetailPar
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
 	var out *AccountDetail
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccountsExportTerraformParams holds the parameters for
+// `client.accounts.exportTerraform`.
+type AccountsExportTerraformParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// ExportTerraform: Generate Terraform HCL for the account's stored inventory
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/accounts/{id}/export-terraform
+//
+// Raises on 404: Not found
+func (n *AccountsNamespace) ExportTerraform(ctx context.Context, params AccountsExportTerraformParams, opts ...RequestOption) (*TerraformExport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/accounts/{id}/export-terraform")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *TerraformExport
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -7906,6 +7934,42 @@ func (n *ResourcesNamespace) ExportCredential(ctx context.Context, params Resour
 	r.setPath("typeId", params.TypeID)
 	r.setJSONBody(params.Body)
 	var out *CredentialExport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ResourcesExportTerraformParams holds the parameters for
+// `client.resources.exportTerraform`.
+type ResourcesExportTerraformParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	PluginID PluginID
+	TypeID   ResourceTypeID
+	// Body: the JSON request body.
+	Body ExportTerraformRequest
+}
+
+// ExportTerraform: Generate Terraform HCL for a resource (and its direct
+// children) from stored state
+//
+// _Requires permission: `resources:read`._
+//
+// POST /api/org/{orgId}/resources/{pluginId}/{typeId}/export-terraform
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ResourcesNamespace) ExportTerraform(ctx context.Context, params ResourcesExportTerraformParams, opts ...RequestOption) (*TerraformExport, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/resources/{pluginId}/{typeId}/export-terraform")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("pluginId", params.PluginID)
+	r.setPath("typeId", params.TypeID)
+	r.setJSONBody(params.Body)
+	var out *TerraformExport
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
