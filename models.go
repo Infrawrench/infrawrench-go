@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.9.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.10.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.9.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.10.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1371,6 +1371,12 @@ type CostAnnotation struct {
 	CreatedByUserID *string `json:"createdByUserId"`
 	CreatedAt       string  `json:"createdAt"`
 	UpdatedAt       string  `json:"updatedAt"`
+	// CostAnomalyID: The detected cost anomaly this note was written to explain
+	// (see POST /costs/anomalies/{anomalyId}/acknowledge), or null for a note
+	// written by hand. The reverse of the anomaly's own
+	// `acknowledgement.annotationId`, resolved from that same single link rather
+	// than stored twice.
+	CostAnomalyID *string `json:"costAnomalyId"`
 }
 
 // CostAnnotationInput is the `CostAnnotationInput` schema.
@@ -1430,6 +1436,11 @@ type CostAnomaly struct {
 	// Empty when nothing notable happened in the window or the anomaly predates
 	// hint collection.
 	Hints []string `json:"hints"`
+	// Acknowledgement: Present once somebody has explained this finding, null
+	// while it is still an open question. Acknowledging does not suppress
+	// detection — the same key spiking again on a later day is a new anomaly and
+	// fires as normal.
+	Acknowledgement *CostAnomalyAcknowledgement `json:"acknowledgement"`
 }
 
 // CostAnomalySettings is the `CostAnomalySettings` schema.
@@ -4531,6 +4542,149 @@ type MsTeamsWebhookCreate struct {
 // MsTeamsWebhookUpdate is the `MsTeamsWebhookUpdate` schema.
 type MsTeamsWebhookUpdate struct {
 	Label string `json:"label"`
+}
+
+// NetworkFlowAccountStatus is the `NetworkFlowAccountStatus` schema.
+type NetworkFlowAccountStatus struct {
+	AccountID   string `json:"accountId"`
+	PluginID    string `json:"pluginId"`
+	DisplayName string `json:"displayName"`
+	// SupportsFlows: False when the account's provider has no flow source we can
+	// read. Such accounts are listed and excluded from the totals rather than
+	// contributing zero bytes — zero would be a claim about their network, this
+	// is a statement about our coverage.
+	SupportsFlows    bool                `json:"supportsFlows"`
+	CollectedThrough *string             `json:"collectedThrough"`
+	LastPolledAt     *string             `json:"lastPolledAt"`
+	FailureCount     int64               `json:"failureCount"`
+	LastError        *string             `json:"lastError"`
+	LastErrorHelpURL *string             `json:"lastErrorHelpUrl"`
+	Sources          []NetworkFlowSource `json:"sources"`
+	// LastQueryBytesScanned: Log data the provider billed this account for the
+	// last collection's queries.
+	LastQueryBytesScanned *float64 `json:"lastQueryBytesScanned"`
+}
+
+// NetworkFlowEndpoint is the `NetworkFlowEndpoint` schema.
+type NetworkFlowEndpoint struct {
+	// Ref: Stable endpoint identity — a provider resource id where one could be
+	// resolved, otherwise a class token (`internet`, `aws:s3`,
+	// `infrawrench:unattributed`). Never a raw IP address: addresses churn, so
+	// the same workload would be a different row every day.
+	Ref     string `json:"ref"`
+	Label   string `json:"label"`
+	Zone    string `json:"zone"`
+	Region  string `json:"region"`
+	Service string `json:"service"`
+	// ResourceTypeID: Set when `ref` is a resource this organization syncs, so
+	// the row can link out.
+	ResourceTypeID string `json:"resourceTypeId"`
+}
+
+// NetworkFlowFeed is the `NetworkFlowFeed` schema.
+type NetworkFlowFeed struct {
+	Enabled             bool  `json:"enabled"`
+	InitialLookbackDays int64 `json:"initialLookbackDays"`
+	// Estimated: Always true. Flow bytes come from logs that sample or drop
+	// under load and are priced at published list rates with no free tier, no
+	// volume tier and no negotiated discount modelled — the ranking is sound,
+	// the absolute figure will not reconcile to the invoice.
+	Estimated bool                       `json:"estimated"`
+	Range     NetworkFlowFeedRange       `json:"range"`
+	Scopes    []NetworkFlowScopeSummary  `json:"scopes"`
+	TopFlows  []NetworkFlowPair          `json:"topFlows"`
+	Accounts  []NetworkFlowAccountStatus `json:"accounts"`
+	RateCards []NetworkFlowRateCard      `json:"rateCards"`
+	Totals    NetworkFlowFeedTotals      `json:"totals"`
+}
+
+// NetworkFlowPair is the `NetworkFlowPair` schema.
+type NetworkFlowPair struct {
+	Source      NetworkFlowEndpoint `json:"source"`
+	Destination NetworkFlowEndpoint `json:"destination"`
+	// Scope: Which billing boundary the traffic crossed. `unknown` means the
+	// provider's record did not determine one — it is priced at zero and
+	// labelled rather than folded into a neighbouring boundary.
+	//
+	// One of "intra_zone", "cross_zone", "cross_region", "internet_egress",
+	// "internet_ingress", "provider_service", "nat_gateway",
+	// "private_interconnect", "unknown".
+	Scope string `json:"scope"`
+	// Direction: One of "egress", "ingress".
+	Direction string `json:"direction"`
+	// Attribution: One of "resolved", "unattributed".
+	Attribution   string  `json:"attribution"`
+	Bytes         float64 `json:"bytes"`
+	Packets       float64 `json:"packets"`
+	EstimatedCost float64 `json:"estimatedCost"`
+	Currency      string  `json:"currency"`
+	AccountID     string  `json:"accountId"`
+	PluginID      string  `json:"pluginId"`
+	// Days: Days in the range this pair appeared on.
+	Days int64 `json:"days"`
+}
+
+// NetworkFlowRateCard is the `NetworkFlowRateCard` schema.
+type NetworkFlowRateCard struct {
+	PluginID string `json:"pluginId"`
+	Currency string `json:"currency"`
+	// AsOf: Date the rates were last checked against the provider's pricing
+	// page.
+	AsOf  string             `json:"asOf"`
+	PerGb map[string]float64 `json:"perGb"`
+	// QueriesBillable: True when collecting flows runs queries the provider
+	// bills to your cloud account.
+	QueriesBillable bool `json:"queriesBillable"`
+	// Sampled: True when the flow source samples rather than recording all
+	// flows.
+	Sampled bool `json:"sampled"`
+}
+
+// NetworkFlowScopeSummary is the `NetworkFlowScopeSummary` schema.
+type NetworkFlowScopeSummary struct {
+	// Scope: Which billing boundary the traffic crossed. `unknown` means the
+	// provider's record did not determine one — it is priced at zero and
+	// labelled rather than folded into a neighbouring boundary.
+	//
+	// One of "intra_zone", "cross_zone", "cross_region", "internet_egress",
+	// "internet_ingress", "provider_service", "nat_gateway",
+	// "private_interconnect", "unknown".
+	Scope string `json:"scope"`
+	// Direction: One of "egress", "ingress".
+	Direction     string  `json:"direction"`
+	Bytes         float64 `json:"bytes"`
+	EstimatedCost float64 `json:"estimatedCost"`
+	Currency      string  `json:"currency"`
+	CrossedZone   bool    `json:"crossedZone"`
+	CrossedRegion bool    `json:"crossedRegion"`
+	LeftCloud     bool    `json:"leftCloud"`
+	// UnattributedBytes: Bytes inside `bytes` whose endpoints could not be tied
+	// to a workload. A subset, not an addition — nothing here has been
+	// apportioned across the attributed rows.
+	UnattributedBytes float64 `json:"unattributedBytes"`
+	// TruncatedBytes: Bytes inside `bytes` that fell below the stored top-N pair
+	// cap, computed by subtraction against the provider's exact totals rather
+	// than estimated.
+	TruncatedBytes float64 `json:"truncatedBytes"`
+}
+
+// NetworkFlowSettings is the `NetworkFlowSettings` schema.
+type NetworkFlowSettings struct {
+	Enabled             bool  `json:"enabled"`
+	InitialLookbackDays int64 `json:"initialLookbackDays"`
+}
+
+// NetworkFlowSource is the `NetworkFlowSource` schema.
+type NetworkFlowSource struct {
+	ID string `json:"id"`
+	// Target: What the flow log is attached to — a VPC id, a network.
+	Target          string  `json:"target"`
+	Region          *string `json:"region"`
+	DestinationType string  `json:"destinationType"`
+	Usable          bool    `json:"usable"`
+	// UnusableReason: Why the source cannot be read, in terms that name the fix.
+	UnusableReason *string `json:"unusableReason"`
+	HelpURL        *string `json:"helpUrl"`
 }
 
 // NoSQLCommandRequest is the `NoSqlCommandRequest` schema.
@@ -7808,6 +7962,22 @@ type CostAdjustmentSummaryRules struct {
 	Summary string `json:"summary"`
 }
 
+// CostAnomalyAcknowledgement is an object the spec declares inline.
+type CostAnomalyAcknowledgement struct {
+	// Explanation: What somebody established this finding was. Also the
+	// annotation's text.
+	Explanation string `json:"explanation"`
+	// AcknowledgedAt: When the current explanation was recorded — restamped by a
+	// correction.
+	AcknowledgedAt       string  `json:"acknowledgedAt"`
+	AcknowledgedByUserID *string `json:"acknowledgedByUserId"`
+	// AnnotationID: The cost annotation this created, drawn on every chart
+	// covering the anomalous day. Null once that note has been deleted — which
+	// removes the marker, never the acknowledgement: the finding stays
+	// explained.
+	AnnotationID *string `json:"annotationId"`
+}
+
 // CostScenarioResultContributions is an object the spec declares inline.
 type CostScenarioResultContributions struct {
 	AdjustmentID string `json:"adjustmentId"`
@@ -7998,6 +8168,21 @@ type MetricSeriesPoints struct {
 	// Timestamp: Unix epoch milliseconds.
 	Timestamp float64 `json:"timestamp"`
 	Value     float64 `json:"value"`
+}
+
+// NetworkFlowFeedRange is an object the spec declares inline.
+type NetworkFlowFeedRange struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+}
+
+// NetworkFlowFeedTotals is an object the spec declares inline.
+type NetworkFlowFeedTotals struct {
+	Bytes             float64 `json:"bytes"`
+	EstimatedCost     float64 `json:"estimatedCost"`
+	Currency          string  `json:"currency"`
+	UnattributedBytes float64 `json:"unattributedBytes"`
+	TruncatedBytes    float64 `json:"truncatedBytes"`
 }
 
 // OrgConfigAlertSettingsCostAnomaly is an object the spec declares inline.
@@ -8467,11 +8652,6 @@ type CostScenariosGetGetResponse struct {
 	Models []CostScenarioModel `json:"models"`
 }
 
-// CostsAnomaliesResponse is an object the spec declares inline.
-type CostsAnomaliesResponse struct {
-	Anomalies []CostAnomaly `json:"anomalies"`
-}
-
 // CostsEfficiencyAlertsResponse is an object the spec declares inline.
 type CostsEfficiencyAlertsResponse struct {
 	Events []EfficiencyAlertEvent `json:"events"`
@@ -8480,6 +8660,18 @@ type CostsEfficiencyAlertsResponse struct {
 // CostsStatusResponse is an object the spec declares inline.
 type CostsStatusResponse struct {
 	Accounts []CostAccountStatus `json:"accounts"`
+}
+
+// CostsAnomaliesAcknowledgeRequest is an object the spec declares inline.
+type CostsAnomaliesAcknowledgeRequest struct {
+	// Explanation: One sentence on what caused the spend. Becomes the
+	// annotation's text, so the annotation's 500-character ceiling applies.
+	Explanation string `json:"explanation"`
+}
+
+// CostsAnomaliesGetResponse is an object the spec declares inline.
+type CostsAnomaliesGetResponse struct {
+	Anomalies []CostAnomaly `json:"anomalies"`
 }
 
 // CurrencyRatesDeleteResponse is an object the spec declares inline.

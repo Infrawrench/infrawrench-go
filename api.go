@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.9.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.10.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.9.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.10.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -135,6 +135,8 @@ type APIV1Client struct {
 	Moment *MomentNamespace
 	// Msteams: `client.msteams`.
 	Msteams *MsteamsNamespace
+	// NetworkFlows: `client.networkFlows`.
+	NetworkFlows *NetworkFlowsNamespace
 	// Orgs: `client.orgs`.
 	Orgs *OrgsNamespace
 	// Orphans: `client.orphans`.
@@ -249,6 +251,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.MetricAlerts = newMetricAlertsNamespace(t)
 	c.Moment = newMomentNamespace(t)
 	c.Msteams = newMsteamsNamespace(t)
+	c.NetworkFlows = newNetworkFlowsNamespace(t)
 	c.Orgs = newOrgsNamespace(t)
 	c.Orphans = newOrphansNamespace(t)
 	c.Ownership = newOwnershipNamespace(t)
@@ -5134,6 +5137,8 @@ func (n *CostScenariosGetNamespace) GetOrgOrgIDCostScenariosID(ctx context.Conte
 type CostsNamespace struct {
 	t *transport
 
+	// Anomalies: `client.costs.anomalies`.
+	Anomalies *CostsAnomaliesNamespace
 	// AnomalySettings: `client.costs.anomalySettings`.
 	AnomalySettings *CostsAnomalySettingsNamespace
 	// EfficiencyAlertSettings: `client.costs.efficiencyAlertSettings`.
@@ -5142,49 +5147,10 @@ type CostsNamespace struct {
 
 func newCostsNamespace(t *transport) *CostsNamespace {
 	n := &CostsNamespace{t: t}
+	n.Anomalies = newCostsAnomaliesNamespace(t)
 	n.AnomalySettings = newCostsAnomalySettingsNamespace(t)
 	n.EfficiencyAlertSettings = newCostsEfficiencyAlertSettingsNamespace(t)
 	return n
-}
-
-// CostsAnomaliesParams holds the parameters for `client.costs.anomalies`.
-//
-// Every field is optional; pass nil to take the defaults.
-type CostsAnomaliesParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	// Days: Window in days over anomalous days, 1-90. Defaults to 30.
-	Days *string
-}
-
-// Anomalies: List recently detected cost anomalies
-//
-// Spend anomalies detected by the daily background pass. Two kinds share the
-// list: a `spike`, where a provider's or service's spend exceeded its trailing
-// 28-day baseline by a statistical threshold (mean + N·stddev, with an absolute
-// floor to ignore penny-scale noise), and a `new_source`, where a provider or
-// service with no spend at all across that window suddenly billed a material
-// amount. Thresholds are per organization — see GET /costs/anomaly-settings.
-// Newest day first, capped at 200 rows.
-//
-// _Requires permission: `costs:read`._
-//
-// GET /api/org/{orgId}/costs/anomalies
-//
-// Raises on 400: Bad request
-func (n *CostsNamespace) Anomalies(ctx context.Context, params *CostsAnomaliesParams, opts ...RequestOption) (*CostsAnomaliesResponse, error) {
-	r := newRequest(http.MethodGet, "/api/org/{orgId}/costs/anomalies")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.addQuery("days", params.Days)
-	}
-	var out *CostsAnomaliesResponse
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
 }
 
 // CostsDimensionsParams holds the parameters for `client.costs.dimensions`.
@@ -5490,6 +5456,105 @@ func (n *CostsNamespace) Untagged(ctx context.Context, params *CostsUntaggedPara
 		r.addQuery("basis", params.Basis)
 	}
 	var out *UntaggedSpendReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsAnomaliesNamespace is `client.costs.anomalies`.
+type CostsAnomaliesNamespace struct {
+	t *transport
+}
+
+func newCostsAnomaliesNamespace(t *transport) *CostsAnomaliesNamespace {
+	n := &CostsAnomaliesNamespace{t: t}
+	return n
+}
+
+// CostsAnomaliesAcknowledgeParams holds the parameters for
+// `client.costs.anomalies.acknowledge`.
+type CostsAnomaliesAcknowledgeParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	AnomalyID string
+	// Body: the JSON request body.
+	Body *CostsAnomaliesAcknowledgeRequest
+}
+
+// Acknowledge: Explain a detected cost anomaly
+//
+// Record what a finding actually was, and publish that sentence as a cost
+// annotation on **every** chart covering the anomalous day — the point being
+// that 'we migrated the fleet' is not a fact about whichever report somebody
+// happened to open. The note's date (the anomalous day) and its org-wide scope
+// are derived from the anomaly and are not the caller's to choose.
+//
+// The reply is the updated anomaly, carrying `acknowledgement` with the id of
+// the note it created. Sending it again replaces the sentence and rewords that
+// note rather than filing a second one; it will not recreate a note that has
+// since been deleted, since deleting a note is a deliberate act and the finding
+// stays explained without it.
+//
+// This does not suppress detection. If the same provider or service spikes again
+// on a later day, that is a new anomaly and it is detected and alerted on as
+// normal.
+//
+// POST /api/org/{orgId}/costs/anomalies/{anomalyId}/acknowledge
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *CostsAnomaliesNamespace) Acknowledge(ctx context.Context, params CostsAnomaliesAcknowledgeParams, opts ...RequestOption) (*CostAnomaly, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/costs/anomalies/{anomalyId}/acknowledge")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("anomalyId", params.AnomalyID)
+	r.setJSONBody(params.Body)
+	var out *CostAnomaly
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsAnomaliesGetParams holds the parameters for `client.costs.anomalies.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostsAnomaliesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Days: Window in days over anomalous days, 1-90. Defaults to 30.
+	Days *string
+}
+
+// Get: List recently detected cost anomalies
+//
+// Spend anomalies detected by the daily background pass. Two kinds share the
+// list: a `spike`, where a provider's or service's spend exceeded its trailing
+// 28-day baseline by a statistical threshold (mean + N·stddev, with an absolute
+// floor to ignore penny-scale noise), and a `new_source`, where a provider or
+// service with no spend at all across that window suddenly billed a material
+// amount. Thresholds are per organization — see GET /costs/anomaly-settings.
+// Newest day first, capped at 200 rows.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/costs/anomalies
+//
+// Raises on 400: Bad request
+func (n *CostsAnomaliesNamespace) Get(ctx context.Context, params *CostsAnomaliesGetParams, opts ...RequestOption) (*CostsAnomaliesGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/costs/anomalies")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("days", params.Days)
+	}
+	var out *CostsAnomaliesGetResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -9781,6 +9846,158 @@ func (n *MsteamsWebhooksNamespace) Update(ctx context.Context, params MsteamsWeb
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *MsTeamsWebhook
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// NetworkFlowsNamespace is `client.networkFlows`.
+type NetworkFlowsNamespace struct {
+	t *transport
+
+	// Settings: `client.networkFlows.settings`.
+	Settings *NetworkFlowsSettingsNamespace
+}
+
+func newNetworkFlowsNamespace(t *transport) *NetworkFlowsNamespace {
+	n := &NetworkFlowsNamespace{t: t}
+	n.Settings = newNetworkFlowsSettingsNamespace(t)
+	return n
+}
+
+// NetworkFlowsGetParams holds the parameters for `client.networkFlows.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type NetworkFlowsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// From: Inclusive start day. Defaults to 13 days ago.
+	From *string
+	// To: Inclusive end day. Defaults to today.
+	To *string
+	// Scope: Narrow to one billing boundary.
+	//
+	// One of "intra_zone", "cross_zone", "cross_region", "internet_egress",
+	// "internet_ingress", "provider_service", "nat_gateway",
+	// "private_interconnect", "unknown".
+	Scope *string
+	// AccountID: Narrow to one connected account.
+	AccountID *string
+	// Limit: Pairs to return in `topFlows`, largest cost first. Defaults to 50.
+	Limit *int64
+}
+
+// Get: Priced source→destination network flow attribution
+//
+// Which two things are talking, across which billing boundary, and what that
+// costs. Answers the question the cost dimensions structurally cannot: every
+// cost dimension is about one side of a transfer, and a network charge is about
+// a pair.
+//
+// All figures are **estimates** and the `estimated` field says so
+// unconditionally. Bytes come from the provider's flow logs (which sample, or
+// drop records under capacity pressure) and are priced at published list rates
+// with no free tier, no volume tier and no negotiated discount applied. Use the
+// ranking; do not reconcile the total against an invoice line.
+//
+// Accounts whose provider has no readable flow source appear in `accounts` with
+// `supportsFlows: false` and contribute nothing to the totals — never zero
+// bytes.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/network-flows
+//
+// Raises on 400: Bad request
+func (n *NetworkFlowsNamespace) Get(ctx context.Context, params *NetworkFlowsGetParams, opts ...RequestOption) (*NetworkFlowFeed, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/network-flows")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("from", params.From)
+		r.addQuery("to", params.To)
+		r.addQuery("scope", params.Scope)
+		r.addQuery("accountId", params.AccountID)
+		r.addQuery("limit", params.Limit)
+	}
+	var out *NetworkFlowFeed
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// NetworkFlowsSettingsNamespace is `client.networkFlows.settings`.
+type NetworkFlowsSettingsNamespace struct {
+	t *transport
+}
+
+func newNetworkFlowsSettingsNamespace(t *transport) *NetworkFlowsSettingsNamespace {
+	n := &NetworkFlowsSettingsNamespace{t: t}
+	return n
+}
+
+// NetworkFlowsSettingsGetParams holds the parameters for
+// `client.networkFlows.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type NetworkFlowsSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Read the network flow collection switch
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/network-flows/settings
+func (n *NetworkFlowsSettingsNamespace) Get(ctx context.Context, params *NetworkFlowsSettingsGetParams, opts ...RequestOption) (*NetworkFlowSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/network-flows/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *NetworkFlowSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// NetworkFlowsSettingsUpdateParams holds the parameters for
+// `client.networkFlows.settings.update`.
+type NetworkFlowsSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body NetworkFlowSettings
+}
+
+// Update: Turn network flow collection on or off
+//
+// Collection is **off by default**. Enabling it authorizes Infrawrench to run
+// daily queries against the provider's log store — and on AWS those queries are
+// billed to your own cloud account per GB of log data scanned, every day, until
+// you turn them off. That is why the write is governed by `org:settings:write`
+// rather than `costs:write`, and why it is audit-logged.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/network-flows/settings
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+func (n *NetworkFlowsSettingsNamespace) Update(ctx context.Context, params NetworkFlowsSettingsUpdateParams, opts ...RequestOption) (*NetworkFlowSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/network-flows/settings")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *NetworkFlowSettings
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
