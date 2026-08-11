@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.10.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.12.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.10.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.12.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -50,7 +50,7 @@ const DefaultBaseURL = "https://app.infrawrench.com"
 // A Go module takes its version from a VCS tag rather than from a manifest
 // field, so there is nowhere else for the API version to live — this constant
 // is what you compare against when you need to know which API shape you have.
-const APIVersion = "1.10.0"
+const APIVersion = "1.12.0"
 
 // scopeParam is the single path parameter a client may carry as configuration
 // instead of taking it on every call, or "" when the API has no such

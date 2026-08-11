@@ -2,7 +2,7 @@
 
 Generated Go client for the Infrawrench API.
 
-**API version `1.10.0`.** A Go module takes its version from a VCS
+**API version `1.12.0`.** A Go module takes its version from a VCS
 tag rather than from a manifest field, so the API version lives in this README
 and in the `APIVersion` constant — check that constant, not the module tag,
 when you need to know which API shape you have.

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.10.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.12.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.10.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.12.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -151,6 +151,8 @@ type APIV1Client struct {
 	Probes *ProbesNamespace
 	// Profile: `client.profile`.
 	Profile *ProfileNamespace
+	// Quotas: `client.quotas`.
+	Quotas *QuotasNamespace
 	// Resources: `client.resources`.
 	Resources *ResourcesNamespace
 	// Rightsizing: `client.rightsizing`.
@@ -259,6 +261,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Posture = newPostureNamespace(t)
 	c.Probes = newProbesNamespace(t)
 	c.Profile = newProfileNamespace(t)
+	c.Quotas = newQuotasNamespace(t)
 	c.Resources = newResourcesNamespace(t)
 	c.Rightsizing = newRightsizingNamespace(t)
 	c.SavedCostFilters = newSavedCostFiltersNamespace(t)
@@ -11175,6 +11178,134 @@ func (n *ProfileSessionsNamespace) List(ctx context.Context, opts ...RequestOpti
 func (n *ProfileSessionsNamespace) RevokeOthers(ctx context.Context, opts ...RequestOption) (*ProfileSessionsRevokeOthersResponse, error) {
 	r := newRequest(http.MethodPost, "/api/profile/sessions/revoke-others")
 	var out *ProfileSessionsRevokeOthersResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// QuotasNamespace is `client.quotas`.
+type QuotasNamespace struct {
+	t *transport
+
+	// Settings: `client.quotas.settings`.
+	Settings *QuotasSettingsNamespace
+}
+
+func newQuotasNamespace(t *transport) *QuotasNamespace {
+	n := &QuotasNamespace{t: t}
+	n.Settings = newQuotasSettingsNamespace(t)
+	return n
+}
+
+// QuotasGetParams holds the parameters for `client.quotas.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type QuotasGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List provider quota utilisation across the organization
+//
+// How close each account is to the limits its provider enforces, with the trend
+// fitted over the last 14 days of collected readings. Both halves of every row —
+// the used figure and the limit — come from the provider; nothing is filled in
+// from published defaults, so an account with an approved increase reads as
+// having the headroom it has. This is a read over already-collected snapshots:
+// no provider API calls are made here, and the readings are as fresh as the last
+// collection pass (roughly six hours). A plugin that declares no quota
+// capability contributes nothing rather than zero — see `unsupportedPluginIds`.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/quotas
+func (n *QuotasNamespace) Get(ctx context.Context, params *QuotasGetParams, opts ...RequestOption) (*QuotaListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/quotas")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *QuotaListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// QuotasSettingsNamespace is `client.quotas.settings`.
+type QuotasSettingsNamespace struct {
+	t *transport
+}
+
+func newQuotasSettingsNamespace(t *transport) *QuotasSettingsNamespace {
+	n := &QuotasSettingsNamespace{t: t}
+	return n
+}
+
+// QuotasSettingsGetParams holds the parameters for `client.quotas.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type QuotasSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the organization's quota alert settings
+//
+// The threshold feeds both the feed's severity buckets and the poller's daily
+// alert scan. An organization that never saved reads the shipped defaults
+// (enabled, 0.8).
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/quotas/settings
+func (n *QuotasSettingsNamespace) Get(ctx context.Context, params *QuotasSettingsGetParams, opts ...RequestOption) (*QuotaAlertSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/quotas/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *QuotaAlertSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// QuotasSettingsUpdateParams holds the parameters for
+// `client.quotas.settings.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type QuotasSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *QuotaAlertSettingsUpdate
+}
+
+// Update: Update the quota alert settings
+//
+// Every field is optional so a single toggle can be saved on its own.
+// `threshold` is a fraction from 0.5 to 0.99 and is rejected rather than clamped
+// when out of range. Saving never resets the alert cooldown.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/quotas/settings
+//
+// Raises on 400: Bad request
+func (n *QuotasSettingsNamespace) Update(ctx context.Context, params *QuotasSettingsUpdateParams, opts ...RequestOption) (*QuotaAlertSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/quotas/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *QuotaAlertSettings
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
