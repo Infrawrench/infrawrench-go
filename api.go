@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.12.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.13.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.12.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.13.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -57,6 +57,8 @@ type APIV1Client struct {
 	Billing *BillingNamespace
 	// BillingRules: `client.billingRules`.
 	BillingRules *BillingRulesNamespace
+	// BlastRadius: `client.blastRadius`.
+	BlastRadius *BlastRadiusNamespace
 	// Budgets: `client.budgets`.
 	Budgets *BudgetsNamespace
 	// BusinessMetrics: `client.businessMetrics`.
@@ -214,6 +216,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Bastions = newBastionsNamespace(t)
 	c.Billing = newBillingNamespace(t)
 	c.BillingRules = newBillingRulesNamespace(t)
+	c.BlastRadius = newBlastRadiusNamespace(t)
 	c.Budgets = newBudgetsNamespace(t)
 	c.BusinessMetrics = newBusinessMetricsNamespace(t)
 	c.ChangeFreezes = newChangeFreezesNamespace(t)
@@ -2317,6 +2320,52 @@ func (n *BillingRulesNamespace) Update(ctx context.Context, params BillingRulesU
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *BillingRule
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BlastRadiusNamespace is `client.blastRadius`.
+type BlastRadiusNamespace struct {
+	t *transport
+}
+
+func newBlastRadiusNamespace(t *transport) *BlastRadiusNamespace {
+	n := &BlastRadiusNamespace{t: t}
+	return n
+}
+
+// BlastRadiusGetParams holds the parameters for `client.blastRadius.get`.
+type BlastRadiusGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ResourceID ResourceID
+}
+
+// Get: What breaks if this resource is deleted
+//
+// An impact report for one resource, assembled from the dependency graph walked
+// inbound, network flow attribution, and the org objects that name the resource
+// without depending on it (dashboards, custom graphs, probes, status pages,
+// metric alerts, leases, schedules, saved log queries, workflows, and its
+// recorded owner).
+//
+// The endpoint answers 200 with a partial report rather than failing when a
+// source is unavailable; `unchecked` says which, in prose.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/blast-radius
+//
+// Raises on 400: Missing resourceId
+func (n *BlastRadiusNamespace) Get(ctx context.Context, params BlastRadiusGetParams, opts ...RequestOption) (*BlastRadiusReport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/blast-radius")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("resourceId", params.ResourceID)
+	var out *BlastRadiusReport
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.12.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.13.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.12.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.13.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -575,6 +575,117 @@ type BillingStatus struct {
 	Complimentary bool           `json:"complimentary"`
 	Subscription  *Subscription  `json:"subscription"`
 	Capacity      CapacityStatus `json:"capacity"`
+}
+
+// BlastRadiusDependant is the `BlastRadiusDependant` schema.
+type BlastRadiusDependant struct {
+	Node *BlastRadiusNode `json:"node"`
+	// Depth: Shortest hop count from the resource: 1 is a direct dependant, 2 or
+	// more reached it through something else. The resource itself is never
+	// listed.
+	Depth int64 `json:"depth"`
+	// Via: How a direct dependant reaches the resource. Absent for transitive
+	// dependants, whose path is several edges and has no single caption.
+	Via *BlastRadiusDependantVia `json:"via,omitempty"`
+}
+
+// BlastRadiusFlowPeer is the `BlastRadiusFlowPeer` schema.
+type BlastRadiusFlowPeer struct {
+	// Ref: The peer's flow ref — a provider resource id, or a class token like
+	// `internet`.
+	Ref   string `json:"ref"`
+	Label string `json:"label"`
+	// Direction: Relative to the resource being deleted, not to the row the
+	// provider captured.
+	//
+	// One of "egress", "ingress".
+	Direction string `json:"direction"`
+	// Scope: The boundary the traffic crossed.
+	Scope         string  `json:"scope"`
+	Bytes         float64 `json:"bytes"`
+	EstimatedCost float64 `json:"estimatedCost"`
+	Currency      string  `json:"currency"`
+	// Days: Days in the window this peer appeared on — a spike versus a standing
+	// flow.
+	Days       int64       `json:"days"`
+	ResourceID *ResourceID `json:"resourceId"`
+}
+
+// BlastRadiusGap is the `BlastRadiusGap` schema.
+type BlastRadiusGap struct {
+	// Kind: One of "network-flows", "dependency-graph", "references",
+	// "workflow-source", "custom-graph-source".
+	Kind string `json:"kind"`
+	// Reason: A full sentence, written to be rendered verbatim to the person
+	// deleting.
+	Reason string `json:"reason"`
+}
+
+// BlastRadiusNode: The resource itself, when it participates in the dependency
+// graph.
+//
+// The API may send null in its place.
+type BlastRadiusNode struct {
+	ID                ResourceID `json:"id"`
+	DisplayName       string     `json:"displayName"`
+	PluginID          string     `json:"pluginId"`
+	PluginDisplayName string     `json:"pluginDisplayName"`
+	// PluginLogoSvg: Inline SVG markup; may be empty.
+	PluginLogoSvg     string `json:"pluginLogoSvg"`
+	ResourceTypeID    string `json:"resourceTypeId"`
+	ResourceTypeLabel string `json:"resourceTypeLabel"`
+	AccountID         string `json:"accountId"`
+	AccountName       string `json:"accountName"`
+}
+
+// BlastRadiusReference is the `BlastRadiusReference` schema.
+type BlastRadiusReference struct {
+	// Kind: What kind of object names the resource.
+	//
+	// One of "dashboard", "custom-graph", "probe", "status-page",
+	// "metric-alert", "lease", "schedule", "workflow", "log-query", "owner".
+	Kind string `json:"kind"`
+	// ID: The referring object's own id.
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Detail: One extra clause of context.
+	Detail *string `json:"detail,omitempty"`
+	// UserFacing: Set when the reference is visible outside the organization — a
+	// published status page component, or the probe behind one. Any user-facing
+	// reference makes the report high severity on its own.
+	UserFacing *bool `json:"userFacing,omitempty"`
+}
+
+// BlastRadiusReport is the `BlastRadiusReport` schema.
+type BlastRadiusReport struct {
+	ResourceID ResourceID       `json:"resourceId"`
+	Resource   *BlastRadiusNode `json:"resource"`
+	// Dependants: Affected resources, direct first then by depth.
+	Dependants      []BlastRadiusDependant `json:"dependants"`
+	DirectCount     int64                  `json:"directCount"`
+	TransitiveCount int64                  `json:"transitiveCount"`
+	// References: Objects naming the resource without depending on it,
+	// user-facing ones first.
+	References []BlastRadiusReference `json:"references"`
+	// FlowPeers: Measured network peers over the last 14 days, heaviest first.
+	// Empty when flow collection is off — see `unchecked`.
+	FlowPeers []BlastRadiusFlowPeer `json:"flowPeers"`
+	// FlowTotals: Totals over `flowPeers`, or null when traffic could not be
+	// measured at all. Zeroed totals mean collection is on and the resource is
+	// quiet; null means nobody looked.
+	FlowTotals *BlastRadiusReportFlowTotals `json:"flowTotals"`
+	// Unchecked: What the report could not look at. An empty `dependants` list
+	// with a non-empty `unchecked` list is not a clean bill of health, and
+	// surfaces must not render it as one.
+	Unchecked []BlastRadiusGap `json:"unchecked"`
+	// Severity: `high` for anything user-facing or five or more direct
+	// dependants; `unknown` when nothing was found but something could not be
+	// checked.
+	//
+	// One of "none", "low", "medium", "high", "unknown".
+	Severity string `json:"severity"`
+	// Headline: One sentence, ready to render.
+	Headline string `json:"headline"`
 }
 
 // BudgetAlertEvent is the `BudgetAlertEvent` schema.
@@ -8026,6 +8137,29 @@ type AlertRulesResponseAccounts struct {
 	ID          string `json:"id"`
 	DisplayName string `json:"displayName"`
 	PluginID    string `json:"pluginId"`
+}
+
+// BlastRadiusDependantVia is an object the spec declares inline.
+type BlastRadiusDependantVia struct {
+	// FieldKey: The dependant's field holding the reference.
+	FieldKey string `json:"fieldKey"`
+	// OutputKey: The output or identity the reference reads.
+	OutputKey string `json:"outputKey"`
+	// Kind: Where the edge came from. Absent means `output-ref` — a reference
+	// wired by hand.
+	//
+	// One of "output-ref", "declared", "containment", "field-match".
+	Kind *string `json:"kind,omitempty"`
+	// Label: How the plugin words the relationship ("in VPC"), when it declared
+	// one.
+	Label *string `json:"label,omitempty"`
+}
+
+// BlastRadiusReportFlowTotals is an object the spec declares inline.
+type BlastRadiusReportFlowTotals struct {
+	Bytes         float64 `json:"bytes"`
+	EstimatedCost float64 `json:"estimatedCost"`
+	Currency      string  `json:"currency"`
 }
 
 // BudgetWithStatusCurrentMonthEvents is an object the spec declares inline.
