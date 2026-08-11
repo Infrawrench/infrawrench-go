@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.7.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.9.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.7.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.9.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -323,19 +323,22 @@ type AlertTrigger = string
 
 // The values AlertTrigger takes.
 const (
-	AlertTriggerSyncIncidents     AlertTrigger = "syncIncidents"
-	AlertTriggerBudgetAlerts      AlertTrigger = "budgetAlerts"
-	AlertTriggerAnomalyAlerts     AlertTrigger = "anomalyAlerts"
-	AlertTriggerCostChangeAlerts  AlertTrigger = "costChangeAlerts"
-	AlertTriggerMetricAlerts      AlertTrigger = "metricAlerts"
-	AlertTriggerResourceDrift     AlertTrigger = "resourceDrift"
-	AlertTriggerWorkflowPages     AlertTrigger = "workflowPages"
-	AlertTriggerProviderIncidents AlertTrigger = "providerIncidents"
-	AlertTriggerExpiryAlerts      AlertTrigger = "expiryAlerts"
-	AlertTriggerLogMatchAlerts    AlertTrigger = "logMatchAlerts"
-	AlertTriggerPostureAlerts     AlertTrigger = "postureAlerts"
-	AlertTriggerProbeAlerts       AlertTrigger = "probeAlerts"
-	AlertTriggerWeeklyDigest      AlertTrigger = "weeklyDigest"
+	AlertTriggerSyncIncidents            AlertTrigger = "syncIncidents"
+	AlertTriggerBudgetAlerts             AlertTrigger = "budgetAlerts"
+	AlertTriggerAnomalyAlerts            AlertTrigger = "anomalyAlerts"
+	AlertTriggerCostChangeAlerts         AlertTrigger = "costChangeAlerts"
+	AlertTriggerCommitmentExpiryAlerts   AlertTrigger = "commitmentExpiryAlerts"
+	AlertTriggerCommitmentIdleAlerts     AlertTrigger = "commitmentIdleAlerts"
+	AlertTriggerUnitCostRegressionAlerts AlertTrigger = "unitCostRegressionAlerts"
+	AlertTriggerMetricAlerts             AlertTrigger = "metricAlerts"
+	AlertTriggerResourceDrift            AlertTrigger = "resourceDrift"
+	AlertTriggerWorkflowPages            AlertTrigger = "workflowPages"
+	AlertTriggerProviderIncidents        AlertTrigger = "providerIncidents"
+	AlertTriggerExpiryAlerts             AlertTrigger = "expiryAlerts"
+	AlertTriggerLogMatchAlerts           AlertTrigger = "logMatchAlerts"
+	AlertTriggerPostureAlerts            AlertTrigger = "postureAlerts"
+	AlertTriggerProbeAlerts              AlertTrigger = "probeAlerts"
+	AlertTriggerWeeklyDigest             AlertTrigger = "weeklyDigest"
 )
 
 // AllocationRule is the `AllocationRule` schema.
@@ -428,17 +431,19 @@ type AttachRequest struct {
 
 // AuditEntry is the `AuditEntry` schema.
 type AuditEntry struct {
-	ID         string     `json:"id"`
-	UserID     *string    `json:"userId"`
-	APIKeyID   *string    `json:"apiKeyId"`
-	Action     string     `json:"action"`
-	EntityType string     `json:"entityType"`
-	EntityID   string     `json:"entityId"`
-	Metadata   JSONObject `json:"metadata"`
-	IPAddress  *string    `json:"ipAddress"`
-	CreatedAt  string     `json:"createdAt"`
-	UserName   *string    `json:"userName"`
-	UserEmail  *string    `json:"userEmail"`
+	ID           string     `json:"id"`
+	UserID       *string    `json:"userId"`
+	APIKeyID     *string    `json:"apiKeyId"`
+	Action       string     `json:"action"`
+	EntityType   string     `json:"entityType"`
+	EntityID     string     `json:"entityId"`
+	Metadata     JSONObject `json:"metadata"`
+	IPAddress    *string    `json:"ipAddress"`
+	CreatedAt    string     `json:"createdAt"`
+	UserName     *string    `json:"userName"`
+	UserEmail    *string    `json:"userEmail"`
+	APIKeyName   *string    `json:"apiKeyName"`
+	APIKeyPrefix *string    `json:"apiKeyPrefix"`
 }
 
 // AuditResponse is the `AuditResponse` schema.
@@ -482,6 +487,85 @@ const (
 	BastionStatusActive  BastionStatus = "active"
 	BastionStatusRevoked BastionStatus = "revoked"
 )
+
+// BillingRule is the `BillingRule` schema.
+type BillingRule struct {
+	ID          string                `json:"id"`
+	Name        string                `json:"name"`
+	Description *string               `json:"description"`
+	Enabled     bool                  `json:"enabled"`
+	Priority    int64                 `json:"priority"`
+	Match       BillingRuleMatch      `json:"match"`
+	Adjustment  BillingRuleAdjustment `json:"adjustment"`
+	CreatedAt   string                `json:"createdAt"`
+	UpdatedAt   string                `json:"updatedAt"`
+}
+
+// BillingRuleAdjustment is the `BillingRuleAdjustment` schema.
+type BillingRuleAdjustment struct {
+	// Kind: `percentage` multiplies matched spend (every matching percentage
+	// rule applies, so two 10% markups compound to 21%). `fixed` adds a flat
+	// amount per period, pro-rated across the queried range, and is never
+	// multiplied by anything. `reallocation` moves matched spend onto another
+	// cost centre or account; the first matching reallocation rule wins, so a
+	// row moves exactly once and the organisation's total is unchanged.
+	//
+	// One of "percentage", "fixed", "reallocation".
+	Kind string `json:"kind"`
+	// Percent: `percentage` only. Signed: +15 marks up by 15%, -10 discounts by
+	// 10%. Bounded below at -100 because a discount larger than the cost would
+	// turn spend into income.
+	Percent *float64 `json:"percent,omitempty"`
+	// Amount: `fixed` only, in the major unit of `currency`, per `period`.
+	Amount   *float64 `json:"amount,omitempty"`
+	Currency *string  `json:"currency,omitempty"`
+	// Period: `fixed` only. A monthly amount is pro-rated across partial months:
+	// a range covering ten days of a 31-day month contributes 10/31 of it.
+	//
+	// One of "daily", "monthly".
+	Period *string `json:"period,omitempty"`
+	// TargetKind: Required on `reallocation`, optional on `fixed` (where the
+	// flat charge is booked), never set on `percentage`.
+	//
+	// One of "cost_centre", "account".
+	TargetKind *string `json:"targetKind,omitempty"`
+	TargetID   *string `json:"targetId,omitempty"`
+}
+
+// BillingRuleInput is the `BillingRuleInput` schema.
+type BillingRuleInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	// Enabled: Disabled rules are kept and excluded from every query. Switching
+	// a markup off for a quarter is an edit, not a delete.
+	Enabled *bool `json:"enabled,omitempty"`
+	// Priority: Lower evaluates first. Percentage rules all apply regardless of
+	// order (multiplication commutes); reallocation is first-match-wins, so
+	// priority decides which one moves a row.
+	Priority   int64                 `json:"priority"`
+	Match      BillingRuleMatch      `json:"match"`
+	Adjustment BillingRuleAdjustment `json:"adjustment"`
+}
+
+// BillingRuleMatch: All set fields must match (AND); a rule with no fields
+// matches all spend. The same vocabulary allocation rules use, plus chargeType.
+type BillingRuleMatch struct {
+	TagKey *string `json:"tagKey,omitempty"`
+	// TagValue: Only meaningful with tagKey; alone, tagKey matches rows carrying
+	// the key.
+	TagValue  *string `json:"tagValue,omitempty"`
+	AccountID *string `json:"accountId,omitempty"`
+	PluginID  *string `json:"pluginId,omitempty"`
+	Service   *string `json:"service,omitempty"`
+	// ChargeType: Narrow to one kind of charge. A markup that recovers overhead
+	// usually should not apply to credits, refunds or commitment purchases, and
+	// this is how that is expressed.
+	//
+	// One of "usage", "commitment_covered_usage", "commitment_fee",
+	// "commitment_discount", "credit", "tax", "refund", "adjustment", "support",
+	// "other".
+	ChargeType *string `json:"chargeType,omitempty"`
+}
 
 // BillingStatus is the `BillingStatus` schema.
 type BillingStatus struct {
@@ -537,13 +621,32 @@ type BudgetFull struct {
 	// Updates are full replaces, so omitting it on PUT clears it. A reference
 	// that fails to resolve errors the budget's evaluation rather than silently
 	// measuring all spend.
-	SavedFilterID   *string           `json:"savedFilterId"`
+	SavedFilterID *string `json:"savedFilterId"`
+	// ScenarioModelID: A scenario model (see /cost-scenarios) this budget's
+	// **forecast** thresholds are measured against. Null — the default, and the
+	// value for every budget nobody deliberately opts in — keeps them on the
+	// bare trend. Opting in is per-budget on purpose: a hypothesis somebody
+	// typed into a form must not silently change when real people get paged.
+	// `actual` thresholds are never affected; they measure money already spent.
+	// Updates are full replaces, so omitting it on PUT clears the opt-in.
+	ScenarioModelID *string           `json:"scenarioModelId"`
 	Thresholds      []BudgetThreshold `json:"thresholds"`
 	CostBasis       BudgetCostBasis   `json:"costBasis"`
-	CreatedByUserID *string           `json:"createdByUserId"`
-	DeletedAt       *string           `json:"deletedAt"`
-	CreatedAt       string            `json:"createdAt"`
-	UpdatedAt       string            `json:"updatedAt"`
+	// UseAdjustedSpend: Measure this budget against billing-rule-adjusted spend
+	// — the internal figure — instead of what the providers charged. False by
+	// default, and for every budget nobody opted in. The default is a deliberate
+	// refusal: a markup is organisation policy and a budget threshold pages a
+	// real person, so adding one settings row must not be able to move every
+	// on-call rota at once. Unlike a scenario this affects `actual` thresholds
+	// too — an opted-in budget is measuring the internal number, and
+	// month-to-date internal spend is as marked up as the forecast is. The alert
+	// body says the figure is adjusted and names the collected one. Updates are
+	// full replaces, so omitting it on PUT clears the opt-in.
+	UseAdjustedSpend bool    `json:"useAdjustedSpend"`
+	CreatedByUserID  *string `json:"createdByUserId"`
+	DeletedAt        *string `json:"deletedAt"`
+	CreatedAt        string  `json:"createdAt"`
+	UpdatedAt        string  `json:"updatedAt"`
 }
 
 // BudgetInput is the `BudgetInput` schema.
@@ -557,9 +660,28 @@ type BudgetInput struct {
 	// Updates are full replaces, so omitting it on PUT clears it. A reference
 	// that fails to resolve errors the budget's evaluation rather than silently
 	// measuring all spend.
-	SavedFilterID *string           `json:"savedFilterId,omitempty"`
-	Thresholds    []BudgetThreshold `json:"thresholds"`
-	CostBasis     *BudgetCostBasis  `json:"costBasis,omitempty"`
+	SavedFilterID *string `json:"savedFilterId,omitempty"`
+	// ScenarioModelID: A scenario model (see /cost-scenarios) this budget's
+	// **forecast** thresholds are measured against. Null — the default, and the
+	// value for every budget nobody deliberately opts in — keeps them on the
+	// bare trend. Opting in is per-budget on purpose: a hypothesis somebody
+	// typed into a form must not silently change when real people get paged.
+	// `actual` thresholds are never affected; they measure money already spent.
+	// Updates are full replaces, so omitting it on PUT clears the opt-in.
+	ScenarioModelID *string           `json:"scenarioModelId,omitempty"`
+	Thresholds      []BudgetThreshold `json:"thresholds"`
+	CostBasis       *BudgetCostBasis  `json:"costBasis,omitempty"`
+	// UseAdjustedSpend: Measure this budget against billing-rule-adjusted spend
+	// — the internal figure — instead of what the providers charged. False by
+	// default, and for every budget nobody opted in. The default is a deliberate
+	// refusal: a markup is organisation policy and a budget threshold pages a
+	// real person, so adding one settings row must not be able to move every
+	// on-call rota at once. Unlike a scenario this affects `actual` thresholds
+	// too — an opted-in budget is measuring the internal number, and
+	// month-to-date internal spend is as marked up as the forecast is. The alert
+	// body says the figure is adjusted and names the collected one. Updates are
+	// full replaces, so omitting it on PUT clears the opt-in.
+	UseAdjustedSpend *bool `json:"useAdjustedSpend,omitempty"`
 }
 
 // BudgetThreshold is the `BudgetThreshold` schema.
@@ -583,12 +705,151 @@ type BudgetWithStatus struct {
 	// Updates are full replaces, so omitting it on PUT clears it. A reference
 	// that fails to resolve errors the budget's evaluation rather than silently
 	// measuring all spend.
-	SavedFilterID      *string                              `json:"savedFilterId"`
-	Month              string                               `json:"month"`
-	ActualCents        int64                                `json:"actualCents"`
-	ForecastCents      *int64                               `json:"forecastCents"`
-	CurrentMonthEvents []BudgetWithStatusCurrentMonthEvents `json:"currentMonthEvents"`
-	Placements         []BudgetWithStatusPlacements         `json:"placements"`
+	SavedFilterID *string `json:"savedFilterId"`
+	// ScenarioModelID: A scenario model (see /cost-scenarios) this budget's
+	// **forecast** thresholds are measured against. Null — the default, and the
+	// value for every budget nobody deliberately opts in — keeps them on the
+	// bare trend. Opting in is per-budget on purpose: a hypothesis somebody
+	// typed into a form must not silently change when real people get paged.
+	// `actual` thresholds are never affected; they measure money already spent.
+	// Updates are full replaces, so omitting it on PUT clears the opt-in.
+	ScenarioModelID *string `json:"scenarioModelId"`
+	// ScenarioModelName: The opted-into model's name, so a card can say whose
+	// assumptions are in the number.
+	ScenarioModelName *string `json:"scenarioModelName"`
+	// UseAdjustedSpend: Measure this budget against billing-rule-adjusted spend
+	// — the internal figure — instead of what the providers charged. False by
+	// default, and for every budget nobody opted in. The default is a deliberate
+	// refusal: a markup is organisation policy and a budget threshold pages a
+	// real person, so adding one settings row must not be able to move every
+	// on-call rota at once. Unlike a scenario this affects `actual` thresholds
+	// too — an opted-in budget is measuring the internal number, and
+	// month-to-date internal spend is as marked up as the forecast is. The alert
+	// body says the figure is adjusted and names the collected one. Updates are
+	// full replaces, so omitting it on PUT clears the opt-in.
+	UseAdjustedSpend bool `json:"useAdjustedSpend"`
+	// RawActualCents: Month-to-date **collected** spend, non-null only for a
+	// budget measuring adjusted spend. Null on an unadjusted budget rather than
+	// a copy of `actualCents`: "there is no separate collected figure because
+	// this one is it" and "the collected figure happens to equal the adjusted
+	// one" are different facts, and captioning every budget in the organisation
+	// would make the adjusted ones invisible.
+	RawActualCents *int64 `json:"rawActualCents"`
+	Month          string `json:"month"`
+	ActualCents    int64  `json:"actualCents"`
+	// ForecastCents: The **unadjusted trend** forecast, whether or not a
+	// scenario is applied — so both numbers are always comparable.
+	ForecastCents *int64 `json:"forecastCents"`
+	// ScenarioForecastCents: The scenario-adjusted month forecast, set only for
+	// a budget that opted into a model, and the number its forecast thresholds
+	// are judged against. Null means the thresholds used `forecastCents`.
+	ScenarioForecastCents *int64                               `json:"scenarioForecastCents"`
+	CurrentMonthEvents    []BudgetWithStatusCurrentMonthEvents `json:"currentMonthEvents"`
+	Placements            []BudgetWithStatusPlacements         `json:"placements"`
+}
+
+// BusinessMetric is the `BusinessMetric` schema.
+type BusinessMetric struct {
+	ID              string                    `json:"id"`
+	Key             string                    `json:"key"`
+	Name            string                    `json:"name"`
+	Unit            string                    `json:"unit"`
+	Description     *string                   `json:"description"`
+	Kind            BusinessMetricKind        `json:"kind"`
+	Currency        *string                   `json:"currency"`
+	CostScope       []BusinessMetricScopeTerm `json:"costScope"`
+	SavedFilterID   *string                   `json:"savedFilterId"`
+	CreatedByUserID *string                   `json:"createdByUserId"`
+	CreatedAt       string                    `json:"createdAt"`
+	UpdatedAt       string                    `json:"updatedAt"`
+	Coverage        *BusinessMetricCoverage   `json:"coverage"`
+}
+
+// BusinessMetricCoverage: Null when the metric has no values at all — not an
+// error, but every unit-cost chart drawn from it is one continuous gap.
+//
+// The API may send null in its place.
+type BusinessMetricCoverage struct {
+	// FirstDay: Earliest reported day, YYYY-MM-DD.
+	FirstDay string `json:"firstDay"`
+	LastDay  string `json:"lastDay"`
+	// ReportedDays: Days carrying a value — compare against the span to spot a
+	// sparse series.
+	ReportedDays int64 `json:"reportedDays"`
+}
+
+// BusinessMetricInput is the `BusinessMetricInput` schema.
+type BusinessMetricInput struct {
+	// Key: Stable lowercase slug (letters, digits, `_ . -`) that workflows and
+	// the CLI address the metric by. Unique per organization among live metrics,
+	// and independent of `name` so a rename never breaks a running job.
+	Key  string `json:"key"`
+	Name string `json:"name"`
+	// Unit: Singular unit label used for display — the noun in "USD per
+	// customer".
+	Unit        string             `json:"unit"`
+	Description *string            `json:"description,omitempty"`
+	Kind        BusinessMetricKind `json:"kind"`
+	// Currency: ISO-4217 code. **Required when `kind` is `currency`, and
+	// rejected otherwise** — a revenue metric with no currency cannot have
+	// margin computed against it, and a count metric carrying one would suggest
+	// its numbers are money when they are requests.
+	Currency *string `json:"currency,omitempty"`
+	// CostScope: The spend this metric divides, in the same filter vocabulary
+	// cost graphs and budgets use. Empty (the default) is all of the
+	// organization's spend. A unit-cost query may narrow this further but can
+	// never widen it: the scope is part of what the metric means, and a caller
+	// who could drop it would be answering a different question under the same
+	// name.
+	CostScope []BusinessMetricScopeTerm `json:"costScope,omitempty"`
+	// SavedFilterID: A saved cost filter AND-composed with `costScope`, resolved
+	// server-side at query time. A reference that fails to resolve errors the
+	// unit-cost query rather than silently widening the numerator to all spend.
+	SavedFilterID *string `json:"savedFilterId,omitempty"`
+}
+
+// BusinessMetricKind: What the metric's numbers are. `count` is a unit-less
+// quantity (customers, requests, GB) and supports unit cost only. `currency` is
+// money the business took in, denominated in the metric's own `currency`, and is
+// the only kind margin can be computed against — `(revenue − cost) ÷ revenue`
+// subtracts money from money and is undefined otherwise.
+type BusinessMetricKind = string
+
+// The values BusinessMetricKind takes.
+const (
+	BusinessMetricKindCount    BusinessMetricKind = "count"
+	BusinessMetricKindCurrency BusinessMetricKind = "currency"
+)
+
+// BusinessMetricScopeTerm is the `BusinessMetricScopeTerm` schema.
+type BusinessMetricScopeTerm struct {
+	// Dimension: One of "provider", "account", "service", "region", "resource",
+	// "tag", "charge_type", "commitment".
+	Dimension string `json:"dimension"`
+	// Op: One of "in", "not_in".
+	Op     string   `json:"op"`
+	Values []string `json:"values"`
+	TagKey *string  `json:"tagKey,omitempty"`
+}
+
+// BusinessMetricValue is the `BusinessMetricValue` schema.
+type BusinessMetricValue struct {
+	// Day: UTC day, YYYY-MM-DD.
+	Day   string  `json:"day"`
+	Value float64 `json:"value"`
+	// Source: One of "api", "workflow".
+	Source    string `json:"source"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+// BusinessMetricValuesInput is the `BusinessMetricValuesInput` schema.
+type BusinessMetricValuesInput struct {
+	// Values: Days to report. **Re-reporting a day restates it rather than
+	// adding to it**, so an unattended nightly job is safe to retry — an
+	// accumulating write would double every number the first time the job
+	// re-ran. A batch naming the same day twice keeps the last value, applying
+	// the same rule within a batch that restatement applies between them.
+	Values []BusinessMetricValuesInputValues `json:"values"`
 }
 
 // CapacityCheckoutRequest is the `CapacityCheckoutRequest` schema.
@@ -977,6 +1238,27 @@ type CostAccountStatus struct {
 	Coverage      *CostAccountStatusCoverage      `json:"coverage"`
 }
 
+// CostAdjustmentSummary: What an adjusted answer did. Present whenever the
+// request asked to be adjusted, even for an organisation with no rules — its
+// absence means, and can only mean, that every figure in the response is exactly
+// what the providers charged.
+type CostAdjustmentSummary struct {
+	// Rules: The enabled rules in force for this answer, in evaluation order.
+	Rules []CostAdjustmentSummaryRules `json:"rules"`
+	// RawTotals: The collected, unadjusted totals for exactly the same rows,
+	// summed in the same scan. Always present on an adjusted answer — this is
+	// the figure that reconciles against an invoice. Per-series raw figures are
+	// deliberately not offered: after a reallocation the series are a different
+	// partition of the same money.
+	RawTotals map[string]float64 `json:"rawTotals"`
+	// FixedTotals: Fixed-amount charges over the period, pro-rated. On a cost
+	// query these are reported here and **not** folded into `totals`, which
+	// stays the sum of the series; the figure an organisation reports internally
+	// is the adjusted total plus this. On a showback report they are
+	// additionally booked onto the cost centre the rule names.
+	FixedTotals map[string]float64 `json:"fixedTotals"`
+}
+
 // CostAlert: A change-based cost alert: fires when spend on its scope moves more
 // than the configured threshold versus the prior period. The third alert family
 // alongside budgets (absolute monthly total) and anomaly detection (statistical
@@ -1065,6 +1347,50 @@ type CostAlertInput struct {
 	ThresholdAmountCents *int64              `json:"thresholdAmountCents,omitempty"`
 	Direction            CostChangeDirection `json:"direction"`
 	Enabled              *bool               `json:"enabled,omitempty"`
+}
+
+// CostAnnotation is the `CostAnnotation` schema.
+type CostAnnotation struct {
+	ID string `json:"id"`
+	// StartDate: Inclusive first day (UTC) the note is about. Mapped to
+	// whichever bucket holds it at the chart's binning — daily and cumulative
+	// use the day itself, weekly the Monday that starts its week, monthly the
+	// first of its month.
+	StartDate string `json:"startDate"`
+	// EndDate: Inclusive last day, or null for a note about a single moment. A
+	// deploy is a moment; a migration is a week, and a week spelled as seven
+	// notes misstates how many things happened. An end equal to the start is
+	// stored as null — the same fact has one spelling.
+	EndDate *string `json:"endDate"`
+	Text    string  `json:"text"`
+	// CostReportID: The report this note is scoped to, or null for **org-wide**.
+	// Null is the useful default: an org-wide note is drawn on every cost chart,
+	// because "we changed instance types" is not a fact about one report. An id
+	// from another org is a 400.
+	CostReportID    *string `json:"costReportId"`
+	CreatedByUserID *string `json:"createdByUserId"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// CostAnnotationInput is the `CostAnnotationInput` schema.
+type CostAnnotationInput struct {
+	// StartDate: Inclusive first day (UTC) the note is about. Mapped to
+	// whichever bucket holds it at the chart's binning — daily and cumulative
+	// use the day itself, weekly the Monday that starts its week, monthly the
+	// first of its month.
+	StartDate string `json:"startDate"`
+	// EndDate: Inclusive last day, or null for a note about a single moment. A
+	// deploy is a moment; a migration is a week, and a week spelled as seven
+	// notes misstates how many things happened. An end equal to the start is
+	// stored as null — the same fact has one spelling.
+	EndDate *string `json:"endDate,omitempty"`
+	Text    string  `json:"text"`
+	// CostReportID: The report this note is scoped to, or null for **org-wide**.
+	// Null is the useful default: an org-wide note is drawn on every cost chart,
+	// because "we changed instance types" is not a fact about one report. An id
+	// from another org is a 400.
+	CostReportID *string `json:"costReportId,omitempty"`
 }
 
 // CostAnomaly is the `CostAnomaly` schema.
@@ -1188,14 +1514,25 @@ type CostCentre struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
-	CreatedAt   string  `json:"createdAt"`
-	UpdatedAt   string  `json:"updatedAt"`
+	// ParentID: The centre this one sits under; null is a top-level centre.
+	// Nesting is a reporting structure only — allocation still resolves each
+	// cost row to exactly one centre.
+	ParentID  *string `json:"parentId"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt string  `json:"updatedAt"`
 }
 
 // CostCentreInput is the `CostCentreInput` schema.
 type CostCentreInput struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description,omitempty"`
+	// ParentID: Cost centre to nest this one under; null is the top level. On an
+	// update, moving a centre is this field changing — omitting it leaves the
+	// centre where it is. Rejected with 400 when the parent is unknown, is the
+	// centre itself or one of its own descendants, or when the resulting tree
+	// would be more than 4 levels deep (measured over the whole subtree being
+	// moved).
+	ParentID *string `json:"parentId,omitempty"`
 }
 
 // CostChangeCadence: Which window is compared to which, in complete UTC days
@@ -1262,6 +1599,64 @@ const (
 // CostDimensionValues is the `CostDimensionValues` schema.
 type CostDimensionValues struct {
 	Values []any `json:"values"`
+}
+
+// CostEfficiencySettings is the `CostEfficiencySettings` schema.
+type CostEfficiencySettings struct {
+	// CommitmentExpiryEnabled: Whether commitments approaching their term end
+	// raise alerts. Defaults to true.
+	CommitmentExpiryEnabled bool `json:"commitmentExpiryEnabled"`
+	// CommitmentExpiryHorizonDays: Days of notice, each firing at most once per
+	// commitment per term end. Defaults to [60, 30, 7]. A commitment fires at
+	// the *smallest* horizon it has reached, so an account connected 30 days
+	// before a term ends gets one alert, not two.
+	CommitmentExpiryHorizonDays []int64 `json:"commitmentExpiryHorizonDays"`
+	// CommitmentExpiryAlertOnExpired: Whether a commitment that lapsed without
+	// any horizon warning having fired raises one alert anyway. Defaults to
+	// true, and bounded to terms that ended within the last 90 days — connecting
+	// an account with years of dead reservations produces one pass of recent
+	// news, not an archive.
+	CommitmentExpiryAlertOnExpired bool `json:"commitmentExpiryAlertOnExpired"`
+	// CommitmentIdleEnabled: Whether under-used commitments raise alerts.
+	// Defaults to true.
+	CommitmentIdleEnabled bool `json:"commitmentIdleEnabled"`
+	// CommitmentIdleThresholdPercent: Utilization percent the whole window must
+	// stay under. Defaults to 70 — roughly where a 1-year no-upfront commitment
+	// stops beating on-demand for the usage it covers.
+	CommitmentIdleThresholdPercent int64 `json:"commitmentIdleThresholdPercent"`
+	// CommitmentIdleWindowDays: Trailing days utilization is aggregated over.
+	// Defaults to 30. Aggregated, never sampled per day: a weekday-only workload
+	// reads about 71% over a month and does not fire, which is the point.
+	CommitmentIdleWindowDays int64 `json:"commitmentIdleWindowDays"`
+	// CommitmentIdleMinMeasuredDays: Window days that must carry cost data
+	// before anything is judged. Defaults to 14. A commitment whose utilization
+	// cannot be measured at all — a unit-denominated GCP CUD, or an account
+	// whose plugin reports no commitment attribution — never alerts, regardless
+	// of this value.
+	CommitmentIdleMinMeasuredDays int64 `json:"commitmentIdleMinMeasuredDays"`
+	// CommitmentIdleMinWasteCents: Least wasted money (obligation − delivered)
+	// before alerting, in USD cents, restated per currency. Defaults to 5000
+	// ($50).
+	CommitmentIdleMinWasteCents int64 `json:"commitmentIdleMinWasteCents"`
+	// UnitCostRegressionEnabled: Whether rising cost per business-metric unit
+	// raises alerts. Defaults to true.
+	UnitCostRegressionEnabled bool `json:"unitCostRegressionEnabled"`
+	// UnitCostThresholdPercent: Percent the unit cost must rise versus the prior
+	// window. Defaults to 20.
+	UnitCostThresholdPercent int64 `json:"unitCostThresholdPercent"`
+	// UnitCostWindowDays: Length of each of the two compared windows. Defaults
+	// to 14 — two whole weekly cycles a side, so a weekday-shaped unit cost
+	// compares like with like.
+	UnitCostWindowDays int64 `json:"unitCostWindowDays"`
+	// UnitCostMinReportedDays: Days inside **each** window that must carry a
+	// reported, positive metric value. Defaults to 10. A day with no reported
+	// value is a gap and contributes to neither the numerator nor the
+	// denominator; a window that fails this bar produces no comparison at all
+	// rather than a comparison against a gap.
+	UnitCostMinReportedDays int64 `json:"unitCostMinReportedDays"`
+	// UnitCostMinSpendCents: Least spend in the current window before alerting,
+	// in USD cents, restated per currency. Defaults to 10000 ($100).
+	UnitCostMinSpendCents int64 `json:"unitCostMinSpendCents"`
 }
 
 // CostEstimate is the `CostEstimate` schema.
@@ -1453,6 +1848,11 @@ type CostGraphConfig struct {
 	TopN                  *int64  `json:"topN,omitempty"`
 	ComparePreviousPeriod *bool   `json:"comparePreviousPeriod,omitempty"`
 	ShowForecast          *bool   `json:"showForecast,omitempty"`
+	// ScenarioModelID: A scenario model (see /cost-scenarios) overlaid on the
+	// forecast — known future cost the trend cannot see, drawn as a second
+	// dashed line beside the trend rather than instead of it. Only meaningful
+	// alongside `showForecast`.
+	ScenarioModelID *string `json:"scenarioModelId,omitempty"`
 	// CostBasis: One of "cash", "amortized".
 	CostBasis *string `json:"costBasis,omitempty"`
 }
@@ -1509,27 +1909,52 @@ type CostQueryRequest struct {
 	// whichever of `filters`/`query` is present — unlike those two it is a
 	// composition, not an alternative. An id that does not resolve to a live
 	// filter is a 400; the query is never silently run unfiltered.
-	SavedFilterID         *string    `json:"savedFilterId,omitempty"`
-	TopN                  *int64     `json:"topN,omitempty"`
-	ComparePreviousPeriod *bool      `json:"comparePreviousPeriod,omitempty"`
-	Forecast              *bool      `json:"forecast,omitempty"`
-	CostBasis             *CostBasis `json:"costBasis,omitempty"`
+	SavedFilterID         *string `json:"savedFilterId,omitempty"`
+	TopN                  *int64  `json:"topN,omitempty"`
+	ComparePreviousPeriod *bool   `json:"comparePreviousPeriod,omitempty"`
+	Forecast              *bool   `json:"forecast,omitempty"`
+	// ScenarioModelID: Apply a scenario model (see /cost-scenarios) to the
+	// projection: known future cost the trend cannot see. Requires `forecast:
+	// true` — sending it without one is a 400, not a no-op, because a caller who
+	// asked for assumptions and silently got none back is the failure this
+	// feature exists to prevent. The adjusted projection comes back as
+	// `scenario`, **alongside** the untouched `forecast`, never instead of it.
+	// An id that does not resolve is a 400.
+	ScenarioModelID *string    `json:"scenarioModelId,omitempty"`
+	CostBasis       *CostBasis `json:"costBasis,omitempty"`
 	// ChargeTypes: Restrict to these kinds of charge. Omitted is all of them,
 	// which is what makes an unfiltered total net rather than gross — credits,
 	// refunds and commitment discounts are included. Rows collected before
 	// charge types existed, and rows from providers that cannot distinguish
 	// them, are `usage`.
 	ChargeTypes []CostChargeType `json:"chargeTypes,omitempty"`
+	// Adjusted: Apply the organization's billing rules (see /billing-rules) —
+	// markups, discounts, reallocations. Omitted (the default, and what every
+	// unattended reader sends) is raw collected spend. Present, the response
+	// carries `adjustment` with the collected totals beside the adjusted ones
+	// and the rules that moved them; it is set even for an organization with no
+	// rules, because the absence of that field is the only signal that a figure
+	// is unadjusted.
+	Adjusted *bool `json:"adjusted,omitempty"`
 }
 
 // CostQueryResponse is the `CostQueryResponse` schema.
 type CostQueryResponse struct {
-	Series         []CostQuerySeries  `json:"series"`
-	Comparison     []CostQuerySeries  `json:"comparison,omitempty"`
-	Forecast       []CostSeriesPoint  `json:"forecast,omitempty"`
-	Currencies     []string           `json:"currencies"`
-	Totals         map[string]float64 `json:"totals"`
-	PreviousTotals map[string]float64 `json:"previousTotals,omitempty"`
+	Series     []CostQuerySeries `json:"series"`
+	Comparison []CostQuerySeries `json:"comparison,omitempty"`
+	// Forecast: The **unadjusted trend** projection. Stays the trend even when a
+	// scenario is applied, so a reader can always see what the fit said before
+	// anybody's assumptions touched it.
+	Forecast   []CostSeriesPoint   `json:"forecast,omitempty"`
+	Scenario   *CostScenarioResult `json:"scenario,omitempty"`
+	Currencies []string            `json:"currencies"`
+	// Totals: Period total per currency, and always exactly the sum of `series`.
+	// Fixed-amount billing-rule charges are deliberately **not** folded in here
+	// — they have no series behind them and are reported in
+	// `adjustment.fixedTotals` instead.
+	Totals         map[string]float64     `json:"totals"`
+	PreviousTotals map[string]float64     `json:"previousTotals,omitempty"`
+	Adjustment     *CostAdjustmentSummary `json:"adjustment,omitempty"`
 }
 
 // CostQuerySeries is the `CostQuerySeries` schema.
@@ -1619,6 +2044,122 @@ type CostReportRunResult struct {
 	From     string            `json:"from"`
 	To       string            `json:"to"`
 	Result   CostQueryResponse `json:"result"`
+}
+
+// CostScenarioAdjustment is the `CostScenarioAdjustment` schema.
+type CostScenarioAdjustment struct {
+	// ID: Stable within the model; also the key of its per-adjustment total.
+	ID string `json:"id"`
+	// Label: What this adjustment is. Named on the chart whenever the scenario
+	// moves a number.
+	Label string `json:"label"`
+	// Kind: `one_off` is a single amount on a single day; `recurring` is an
+	// amount every period from a date; `rate_change` is ±X% of the trend from a
+	// date. The split between an amount and a percentage of the trend is what
+	// fixes the composition order — see the `scenario` field on the cost query
+	// response.
+	//
+	// One of "one_off", "recurring", "rate_change".
+	Kind      string `json:"kind"`
+	StartDate string `json:"startDate"`
+	// EndDate: Inclusive last day, or null for indefinitely. Refused for
+	// `one_off`, which is one day.
+	EndDate *string `json:"endDate"`
+	// AmountCents: Minor units of the model's currency, for the amount kinds;
+	// null for `rate_change`. May be negative — turning off an old cluster is as
+	// real a known future cost as buying a new one.
+	AmountCents *int64 `json:"amountCents"`
+	// Currency: Always the model's own currency; a model that held two would sum
+	// two kinds of money.
+	Currency *string `json:"currency"`
+	// Period: How often a `recurring` amount charges. A monthly amount is spread
+	// evenly across each calendar month it covers rather than landing as a spike
+	// on the 1st, so a month the scenario only partly covers costs
+	// proportionally less.
+	//
+	// One of "daily", "monthly".
+	Period *string `json:"period"`
+	// Percent: Percent change to the trend, for `rate_change`. -20 is a fifth
+	// cheaper.
+	Percent *float64 `json:"percent"`
+	// Scope: Which spend this adjustment describes; empty is the whole
+	// organization. For a rate change the scope is what the percentage is *of*.
+	// For an amount it decides whether the adjustment applies to a given chart
+	// at all — a GCP commitment does not belong on a chart filtered to AWS, and
+	// one that is excluded is named in `scenario.outOfScope`.
+	Scope []CostScenarioScopeTerm `json:"scope"`
+}
+
+// CostScenarioModel is the `CostScenarioModel` schema.
+type CostScenarioModel struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	// Currency: The one currency every amount in this model is denominated in.
+	Currency        string                   `json:"currency"`
+	Adjustments     []CostScenarioAdjustment `json:"adjustments"`
+	CreatedByUserID *string                  `json:"createdByUserId"`
+	CreatedAt       string                   `json:"createdAt"`
+	UpdatedAt       string                   `json:"updatedAt"`
+}
+
+// CostScenarioModelInput is the `CostScenarioModelInput` schema.
+type CostScenarioModelInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	// Currency: Three-letter code. Every amount in the model must be in it — a
+	// model that mixed two would produce a projection that is the sum of two
+	// kinds of money, so this is refused rather than converted behind the
+	// caller's back.
+	Currency    string                   `json:"currency"`
+	Adjustments []CostScenarioAdjustment `json:"adjustments"`
+}
+
+// CostScenarioReferent is the `CostScenarioReferent` schema.
+type CostScenarioReferent struct {
+	// Kind: One of "budget", "cost_report", "cost_graph_widget".
+	Kind string `json:"kind"`
+	// ID: Budget id, report id, or dashboard-widget id.
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// DashboardID: Set for `cost_graph_widget` referents.
+	DashboardID   *string `json:"dashboardId,omitempty"`
+	DashboardName *string `json:"dashboardName,omitempty"`
+}
+
+// CostScenarioResult is the `CostScenarioResult` schema.
+type CostScenarioResult struct {
+	ModelID   string `json:"modelId"`
+	ModelName string `json:"modelName"`
+	Currency  string `json:"currency"`
+	// Points: The adjusted projection — exactly the same days as `forecast`,
+	// never one more or fewer. A scenario modifies the projected region; it does
+	// not extend it, and it can never touch a day that already has recorded
+	// spend behind it.
+	Points []CostSeriesPoint `json:"points"`
+	// Contributions: Signed total each adjustment added across the horizon, in
+	// model order.
+	Contributions []CostScenarioResultContributions `json:"contributions"`
+	// TotalDelta: Signed difference from the baseline across the horizon.
+	TotalDelta float64 `json:"totalDelta"`
+	// ConvertedFrom: Set when the model's amounts were converted at the org's
+	// stated rates.
+	ConvertedFrom *string `json:"convertedFrom,omitempty"`
+	// OutOfScope: Adjustments this chart's own filters exclude, by label — a GCP
+	// commitment on an AWS-filtered chart is correctly left out, and saying so
+	// is what makes the number trustworthy rather than quietly assumed broken.
+	OutOfScope []string `json:"outOfScope"`
+}
+
+// CostScenarioScopeTerm is the `CostScenarioScopeTerm` schema.
+type CostScenarioScopeTerm struct {
+	// Dimension: One of "provider", "account", "service", "region", "resource",
+	// "tag", "charge_type", "commitment".
+	Dimension string `json:"dimension"`
+	// Op: One of "in", "not_in".
+	Op     string   `json:"op"`
+	Values []string `json:"values"`
+	TagKey *string  `json:"tagKey,omitempty"`
 }
 
 // CostSeriesPoint is the `CostSeriesPoint` schema.
@@ -2608,6 +3149,34 @@ type EditableField struct {
 	EnumValues  []string `json:"enumValues,omitempty"`
 }
 
+// EfficiencyAlertEvent is the `EfficiencyAlertEvent` schema.
+type EfficiencyAlertEvent struct {
+	ID string `json:"id"`
+	// Kind: Which detector produced it.
+	//
+	// One of "commitment_expiry", "commitment_idle", "unit_cost_regression".
+	Kind string `json:"kind"`
+	// Subject: The commitment's description, or the business metric's name.
+	Subject string `json:"subject"`
+	// AccountID: The account, for commitment kinds; null otherwise.
+	AccountID   *string `json:"accountId"`
+	AccountName *string `json:"accountName"`
+	// Currency: ISO 4217 of `amount`, or null when it carries none.
+	Currency *string `json:"currency"`
+	// Amount: The money at stake, in **units of `currency`** rather than cents —
+	// commitment amounts are provider-reported in currency units. Per kind: the
+	// monthly on-demand exposure for an expiry, the wasted amount for an idle
+	// commitment, the current window's spend for a regression.
+	Amount *float64 `json:"amount"`
+	// Detail: Per-kind display facts. Free-form; nothing branches on it.
+	Detail  map[string]any `json:"detail"`
+	FiredAt string         `json:"firedAt"`
+	// NotifiedAt: When the alert reached its routed destinations, or null when
+	// nothing was routed (or the routing rule held it for quiet hours and the
+	// follow-up pass has not run yet).
+	NotifiedAt *string `json:"notifiedAt"`
+}
+
 // EnvironmentDiffEntry is the `EnvironmentDiffEntry` schema.
 type EnvironmentDiffEntry struct {
 	// Key: The pairing key both sides matched on — the resource type plus the
@@ -3017,6 +3586,236 @@ type InviteResponse struct {
 	Token string `json:"token"`
 }
 
+// Invoice is the `Invoice` schema.
+type Invoice struct {
+	ID                 string `json:"id"`
+	ManagedAccountID   string `json:"managedAccountId"`
+	ManagedAccountName string `json:"managedAccountName"`
+	// Number: `INV-2026-0001`. Null while draft — numbers are assigned at
+	// approval so a deleted draft cannot leave a gap in the sequence.
+	Number                *string           `json:"number"`
+	Status                InvoiceStatus     `json:"status"`
+	PeriodFrom            string            `json:"periodFrom"`
+	PeriodTo              string            `json:"periodTo"`
+	Currency              string            `json:"currency"`
+	Totals                *InvoiceTotals    `json:"totals,omitempty"`
+	IssuedAt              *string           `json:"issuedAt"`
+	SentAt                *string           `json:"sentAt"`
+	Delivery              *InvoiceDelivery  `json:"delivery"`
+	VoidedAt              *string           `json:"voidedAt"`
+	VoidReason            *string           `json:"voidReason"`
+	SupersedesInvoiceID   *string           `json:"supersedesInvoiceId"`
+	SupersededByInvoiceID *string           `json:"supersededByInvoiceId"`
+	CreatedAt             string            `json:"createdAt"`
+	UpdatedAt             string            `json:"updatedAt"`
+	Notes                 *string           `json:"notes"`
+	Lines                 []InvoiceLine     `json:"lines"`
+	Derivation            InvoiceDerivation `json:"derivation"`
+	// Live: True when the figures in this response were recomputed for it — true
+	// for a draft, false for everything else. Say so: “these numbers will move”
+	// and “these numbers are what we sent” are different claims about the same
+	// fields.
+	Live             bool    `json:"live"`
+	ComputedAt       string  `json:"computedAt"`
+	ApprovedByUserID *string `json:"approvedByUserId"`
+	SentByUserID     *string `json:"sentByUserId"`
+	VoidedByUserID   *string `json:"voidedByUserId"`
+	CreatedByUserID  *string `json:"createdByUserId"`
+}
+
+// InvoiceDelivery: The last delivery attempt, or null when none has been made —
+// including on an invoice marked sent by a deployment with no mail provider. “A
+// person released this” and “we delivered it” are different claims, and this
+// field is only ever the second.
+//
+// The API may send null in its place.
+type InvoiceDelivery struct {
+	// Status: `pending` means an attempt was claimed and its outcome never
+	// recorded — the process died mid-send, so whether the customer received it
+	// is unknown. It is not a failure and is never retried automatically.
+	//
+	// One of "pending", "succeeded", "partial", "failed", "no_targets".
+	Status string `json:"status"`
+	// Recipients: The addresses this attempt was made to, as the customer record
+	// had them then.
+	Recipients []string `json:"recipients"`
+	// Delivered: How many the mail provider accepted.
+	Delivered   int64  `json:"delivered"`
+	AttemptedAt string `json:"attemptedAt"`
+	// DeliveredAt: The last attempt that reached at least one address, or null
+	// when none ever has. Never cleared by a later failure — it is a fact about
+	// the past, and it is what decides whether sending again is a retry or a
+	// second copy.
+	DeliveredAt *string `json:"deliveredAt"`
+	Attempts    int64   `json:"attempts"`
+	Error       *string `json:"error"`
+}
+
+// InvoiceDerivation: Everything needed to re-derive the invoice by hand. Not
+// decoration: an invoice a customer cannot reconcile is an invoice a customer
+// does not pay.
+type InvoiceDerivation struct {
+	// CostBasis: One of "cash", "amortized".
+	CostBasis         string `json:"costBasis"`
+	ApplyBillingRules bool   `json:"applyBillingRules"`
+	// RateDate: The day the exchange rates were read — always the period's last
+	// day. One rate for the period rather than a per-day blend: “January, at the
+	// 31 January rate” is a sentence a finance team can reproduce.
+	RateDate string                   `json:"rateDate"`
+	Rates    []InvoiceDerivationRates `json:"rates"`
+	// Unconverted: Currencies the organisation had stated no usable rate for. A
+	// non-empty list blocks approval: an invoice that cannot be expressed as one
+	// number in the customer's currency must not be frozen.
+	Unconverted []string                 `json:"unconverted"`
+	Rules       []InvoiceDerivationRules `json:"rules"`
+	Scope       InvoiceDerivationScope   `json:"scope"`
+	// MissingScope: Scope entries that no longer exist. Recorded rather than
+	// silently skipped — an invoice that is quietly short is worse than one that
+	// says why.
+	MissingScope []string `json:"missingScope"`
+}
+
+// InvoiceInput: A new invoice is always a draft. There is no status field and no
+// scope field: generating and issuing are two acts, and the scope comes from the
+// customer.
+type InvoiceInput struct {
+	ManagedAccountID string  `json:"managedAccountId"`
+	PeriodFrom       string  `json:"periodFrom"`
+	PeriodTo         string  `json:"periodTo"`
+	Notes            *string `json:"notes,omitempty"`
+	// SupersedesInvoiceID: The void invoice this one corrects. The original must
+	// already be void — a correction that leaves the original standing means the
+	// customer holds two live invoices for one period.
+	SupersedesInvoiceID *string `json:"supersedesInvoiceId,omitempty"`
+}
+
+// InvoiceLine: One scope entry in one collected currency. Two currencies for one
+// cost centre are two lines, not one blended line, because the conversion is a
+// separately reconcilable step.
+type InvoiceLine struct {
+	// Kind: One of "cost_centre", "account", "fixed".
+	Kind string `json:"kind"`
+	// RefID: Cost-centre id, account id, or null for an org-level fixed charge.
+	RefID *string `json:"refId"`
+	// Label: The name at issue time, frozen with the numbers — renaming a cost
+	// centre in March must not retitle a line on January's invoice.
+	Label string `json:"label"`
+	// Currency: The currency the providers billed in.
+	Currency string `json:"currency"`
+	// Collected: What the providers charged for this scope, before any billing
+	// rule.
+	Collected float64 `json:"collected"`
+	// Adjustment: What the organisation's billing rules added or removed.
+	Adjustment float64 `json:"adjustment"`
+	// Adjusted: `collected + adjustment`.
+	Adjusted float64 `json:"adjusted"`
+	// Rate: The rate applied to reach `billed`. 1 when the line is already in
+	// the invoice currency; null when the organisation has stated no rate for
+	// this currency, in which case the amount is carried in its own currency
+	// rather than dropped or invented.
+	Rate *float64 `json:"rate"`
+	// Billed: `adjusted × rate`, in the invoice currency.
+	Billed *float64 `json:"billed"`
+}
+
+// InvoiceSendRequest is the `InvoiceSendRequest` schema.
+type InvoiceSendRequest struct {
+	// Resend: Send another copy of an invoice that has already reached somebody.
+	// Required only in that case: retrying a delivery that reached nobody
+	// (`failed`, `no_targets`) needs no flag, because there is no inbox to
+	// duplicate into. Refused with 409 without it when the last attempt landed,
+	// or when its outcome is unknown (`pending`).
+	Resend *bool `json:"resend,omitempty"`
+}
+
+// InvoiceStatus: `draft` → `approved` → `sent`, plus `void` from either issued
+// state.
+//
+// **A draft recomputes its figures from live spend on every read; an approved,
+// sent or void invoice never does.** Approval is the freeze: the lines, the
+// totals, the exchange rates and the day they were read, the billing rules in
+// force and the names of everything in scope are written onto the invoice, and
+// no later restatement of spend, change of rate, edit of a rule or rename can
+// alter what the document says.
+//
+// An issued invoice is never edited and never deleted. A wrong one is voided
+// with a reason and superseded by a corrective invoice; both survive. The server
+// enforces this, not just the UI.
+type InvoiceStatus = string
+
+// The values InvoiceStatus takes.
+const (
+	InvoiceStatusDraft    InvoiceStatus = "draft"
+	InvoiceStatusApproved InvoiceStatus = "approved"
+	InvoiceStatusSent     InvoiceStatus = "sent"
+	InvoiceStatusVoid     InvoiceStatus = "void"
+)
+
+// InvoiceSummary is the `InvoiceSummary` schema.
+type InvoiceSummary struct {
+	ID                 string `json:"id"`
+	ManagedAccountID   string `json:"managedAccountId"`
+	ManagedAccountName string `json:"managedAccountName"`
+	// Number: `INV-2026-0001`. Null while draft — numbers are assigned at
+	// approval so a deleted draft cannot leave a gap in the sequence.
+	Number                *string          `json:"number"`
+	Status                InvoiceStatus    `json:"status"`
+	PeriodFrom            string           `json:"periodFrom"`
+	PeriodTo              string           `json:"periodTo"`
+	Currency              string           `json:"currency"`
+	Totals                *InvoiceTotals   `json:"totals"`
+	IssuedAt              *string          `json:"issuedAt"`
+	SentAt                *string          `json:"sentAt"`
+	Delivery              *InvoiceDelivery `json:"delivery"`
+	VoidedAt              *string          `json:"voidedAt"`
+	VoidReason            *string          `json:"voidReason"`
+	SupersedesInvoiceID   *string          `json:"supersedesInvoiceId"`
+	SupersededByInvoiceID *string          `json:"supersededByInvoiceId"`
+	CreatedAt             string           `json:"createdAt"`
+	UpdatedAt             string           `json:"updatedAt"`
+}
+
+// InvoiceTotals: **Null for a draft** — null, not zero. A draft's figures are
+// recomputed on read and the list does not recompute; fetch the invoice by id
+// for a draft's current numbers.
+//
+// The API may send null in its place.
+type InvoiceTotals struct {
+	// Collected: Currency code → amount in the currency's major unit.
+	Collected map[string]float64 `json:"collected"`
+	// Adjustment: Currency code → amount in the currency's major unit.
+	Adjustment map[string]float64 `json:"adjustment"`
+	// Adjusted: Currency code → amount in the currency's major unit.
+	Adjusted map[string]float64 `json:"adjusted"`
+	// Billed: Keyed by the invoice currency, plus any currency that could not be
+	// converted — which keeps its own key so the total is never quietly short.
+	Billed map[string]float64 `json:"billed"`
+}
+
+// InvoiceUpdate is the `InvoiceUpdate` schema.
+type InvoiceUpdate struct {
+	PeriodFrom string  `json:"periodFrom"`
+	PeriodTo   string  `json:"periodTo"`
+	Notes      *string `json:"notes,omitempty"`
+}
+
+// InvoiceVoidRequest is the `InvoiceVoidRequest` schema.
+type InvoiceVoidRequest struct {
+	// Reason: Required. The only record of why a customer was sent an invoice
+	// that was then withdrawn.
+	Reason string `json:"reason"`
+	// Supersede: Raise the corrective draft in the same call, linked both ways
+	// to the original. Doing it in one call is what keeps the pair from being
+	// left half-made by a failed second request.
+	Supersede *bool `json:"supersede,omitempty"`
+}
+
+// InvoiceVoidResponse is the `InvoiceVoidResponse` schema.
+type InvoiceVoidResponse struct {
+	Invoice     Invoice                        `json:"invoice"`
+	Replacement InvoiceVoidResponseReplacement `json:"replacement"`
+}
+
 // InvokeActionRequest is the `InvokeActionRequest` schema.
 type InvokeActionRequest struct {
 	PluginID         string      `json:"pluginId"`
@@ -3343,6 +4142,68 @@ type LogsResponse struct {
 	Containers []string `json:"containers"`
 	// ActiveContainer: Container `text` was read from.
 	ActiveContainer string `json:"activeContainer"`
+}
+
+// ManagedAccount: A customer a managed service provider bills. A cost centre or
+// cloud account belongs to at most one managed account — billing the same money
+// to two customers is refused at write time with a 409 naming the other
+// customer.
+type ManagedAccount struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	ContactName     *string `json:"contactName"`
+	ContactEmail    *string `json:"contactEmail"`
+	BillingAddress  *string `json:"billingAddress"`
+	BillingCurrency string  `json:"billingCurrency"`
+	// CostBasis: One of "cash", "amortized".
+	CostBasis         string   `json:"costBasis"`
+	ApplyBillingRules bool     `json:"applyBillingRules"`
+	Notes             *string  `json:"notes"`
+	CostCentreIDs     []string `json:"costCentreIds"`
+	AccountIDs        []string `json:"accountIds"`
+	InvoiceCount      int64    `json:"invoiceCount"`
+	CreatedByUserID   *string  `json:"createdByUserId"`
+	CreatedAt         string   `json:"createdAt"`
+	UpdatedAt         string   `json:"updatedAt"`
+}
+
+// ManagedAccountInput is the `ManagedAccountInput` schema.
+type ManagedAccountInput struct {
+	Name           string  `json:"name"`
+	ContactName    *string `json:"contactName,omitempty"`
+	ContactEmail   *string `json:"contactEmail,omitempty"`
+	BillingAddress *string `json:"billingAddress,omitempty"`
+	// BillingCurrency: ISO 4217 code the customer is invoiced in. Spend
+	// collected in another currency is converted through the organisation's own
+	// stated exchange rates, and the rate used is frozen onto every invoice — so
+	// restating a rate later cannot restate history.
+	BillingCurrency string `json:"billingCurrency"`
+	// CostBasis: Defaults to `amortized`. Charging a customer the whole cash
+	// value of a three-year commitment in the month it was signed is not a bill
+	// anyone can budget against.
+	//
+	// One of "cash", "amortized".
+	CostBasis *string `json:"costBasis,omitempty"`
+	// ApplyBillingRules: Defaults to true. False is a pass-through contract: the
+	// customer is billed exactly what the providers charged, with no markup,
+	// discount or fixed fee applied.
+	ApplyBillingRules *bool   `json:"applyBillingRules,omitempty"`
+	Notes             *string `json:"notes,omitempty"`
+	// CostCentreIDs: Cost centres whose spend belongs to this customer.
+	// **Subtrees are included** — naming a parent bills every descendant, and
+	// naming both a parent and its child bills the child once, not twice.
+	//
+	// This is deliberately a list of existing cost centres rather than a rule of
+	// its own. Which spend lands in which centre is already decided by the
+	// organisation's allocation rules, and a second vocabulary over the same
+	// data would eventually disagree with the first — at which point an invoice
+	// would stop matching the showback report the customer was shown.
+	CostCentreIDs []string `json:"costCentreIds,omitempty"`
+	// AccountIDs: Cloud accounts whose spend belongs to this customer. Evaluated
+	// **after** every allocation rule, so an account in scope claims only the
+	// spend no cost centre already claimed. Every cost row therefore resolves
+	// exactly once: nothing is billed twice and nothing goes missing.
+	AccountIDs []string `json:"accountIds,omitempty"`
 }
 
 // Manifest is the `Manifest` schema.
@@ -4252,6 +5113,9 @@ const (
 	PermissionJiraWrite              Permission = "jira:write"
 	PermissionLinearRead             Permission = "linear:read"
 	PermissionLinearWrite            Permission = "linear:write"
+	PermissionInvoicesRead           Permission = "invoices:read"
+	PermissionInvoicesWrite          Permission = "invoices:write"
+	PermissionInvoicesIssue          Permission = "invoices:issue"
 	PermissionPagesWrite             Permission = "pages:write"
 	PermissionOrgSettingsWrite       Permission = "org:settings:write"
 )
@@ -5894,10 +6758,13 @@ type SFTPUploadForm struct {
 
 // ShowbackReport is the `ShowbackReport` schema.
 type ShowbackReport struct {
-	From       string                  `json:"from"`
-	To         string                  `json:"to"`
-	Currencies []string                `json:"currencies"`
-	Centres    []ShowbackReportCentres `json:"centres"`
+	From       string                 `json:"from"`
+	To         string                 `json:"to"`
+	Currencies []string               `json:"currencies"`
+	Adjustment *CostAdjustmentSummary `json:"adjustment,omitempty"`
+	// Centres: Depth-first: each centre immediately followed by its children,
+	// siblings name-sorted, with the "Unallocated" bucket last.
+	Centres []ShowbackReportCentres `json:"centres"`
 }
 
 // SlackAvailableChannel is the `SlackAvailableChannel` schema.
@@ -6539,15 +7406,16 @@ type SyntheticProbeUpdate struct {
 // TabTarget is the `TabTarget` schema.
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
-	// "savings", "cost-reports", "graph", "logs", "changes", "expiring",
-	// "posture", "dns", "environment-diff", "ssh-fanout", "metric-alerts",
-	// "probes", "workflows", "deployments", "settings", "chat".
+	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
+	// "expiring", "posture", "dns", "environment-diff", "ssh-fanout",
+	// "metric-alerts", "probes", "workflows", "deployments", "settings", "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
 	ResourceID     *ResourceID `json:"resourceId,omitempty"`
 	ConversationID *string     `json:"conversationId,omitempty"`
 	ReportID       *string     `json:"reportId,omitempty"`
+	InvoiceID      *string     `json:"invoiceId,omitempty"`
 }
 
 // TagComplianceReport is the `TagComplianceReport` schema.
@@ -6603,6 +7471,95 @@ type TOTPEnrollment struct {
 	Secret *string `json:"secret"`
 	// URI: `otpauth://` URI
 	URI *string `json:"uri"`
+}
+
+// UnitCostPoint is the `UnitCostPoint` schema.
+type UnitCostPoint struct {
+	// Bucket: Bucket start date, YYYY-MM-DD.
+	Bucket string `json:"bucket"`
+	// Value: The ratio, or **null for a gap**. Never 0 and never infinite: a
+	// bucket with no reported metric value is unknown, not free, and rendering
+	// it as 0 would say the opposite of the truth. A zero numerator over a
+	// positive denominator is a real 0 and is returned as one.
+	Value *float64 `json:"value"`
+	// Cost: Spend summed over the bucket, in the series' currency.
+	Cost float64 `json:"cost"`
+	// MetricValue: Metric value summed over the bucket, or null when nothing was
+	// reported.
+	MetricValue *float64 `json:"metricValue"`
+	// Gap: Set exactly when `value` is null.
+	//
+	// One of "no_metric_value", "non_positive_metric_value",
+	// "unconvertible_currency".
+	Gap *string `json:"gap,omitempty"`
+	// ReportedDays: Days in the bucket carrying a reported value, out of
+	// `bucketDays`. When it is smaller, the denominator covers only part of the
+	// bucket and the ratio there reads high.
+	ReportedDays int64 `json:"reportedDays"`
+	BucketDays   int64 `json:"bucketDays"`
+}
+
+// UnitCostQueryRequest is the `UnitCostQueryRequest` schema.
+type UnitCostQueryRequest struct {
+	// From: Inclusive, YYYY-MM-DD.
+	From string `json:"from"`
+	To   string `json:"to"`
+	// Binning: One of "daily", "weekly", "monthly", "cumulative".
+	Binning string `json:"binning"`
+	// Mode: Absent is `unit_cost` (spend ÷ metric value). `margin` is `(revenue
+	// − spend) ÷ revenue` as a fraction, and is a 400 for a metric whose `kind`
+	// is not `currency`.
+	//
+	// One of "unit_cost", "margin".
+	Mode *string `json:"mode,omitempty"`
+	// Filters: Narrowing on top of the metric's own `costScope` — AND-composed,
+	// never a replacement.
+	Filters []BusinessMetricScopeTerm `json:"filters,omitempty"`
+	// Query: The same narrowing as cost-query-language text.
+	Query         *string `json:"query,omitempty"`
+	SavedFilterID *string `json:"savedFilterId,omitempty"`
+	// CostBasis: One of "cash", "amortized".
+	CostBasis   *string  `json:"costBasis,omitempty"`
+	ChargeTypes []string `json:"chargeTypes,omitempty"`
+	// DisplayCurrency: Fold spend currencies the organization holds a rate for
+	// into this one before dividing. Ignored for `margin`, which always converts
+	// to the metric's own currency.
+	DisplayCurrency *string `json:"displayCurrency,omitempty"`
+}
+
+// UnitCostQueryResponse is the `UnitCostQueryResponse` schema.
+type UnitCostQueryResponse struct {
+	Metric UnitCostQueryResponseMetric `json:"metric"`
+	// Mode: One of "unit_cost", "margin".
+	Mode string `json:"mode"`
+	// Binning: One of "daily", "weekly", "monthly", "cumulative".
+	Binning string `json:"binning"`
+	// Series: One series per currency the numerator ended up in — usually one.
+	// More than one means the organization has spend in a currency it holds no
+	// rate for; rather than dropping that spend (understating every unit cost)
+	// or adding it to another currency (inventing a number), each currency
+	// divides the same denominator on its own.
+	Series []UnitCostSeries `json:"series"`
+	// Conversion: Set only when spend currencies were folded together; absent
+	// means untouched.
+	Conversion *UnitCostQueryResponseConversion `json:"conversion,omitempty"`
+	// GapBuckets: Buckets on the axis that produced no ratio at all.
+	GapBuckets int64 `json:"gapBuckets"`
+	// PartialBuckets: Buckets whose denominator covers only part of the bucket.
+	PartialBuckets int64 `json:"partialBuckets"`
+}
+
+// UnitCostSeries is the `UnitCostSeries` schema.
+type UnitCostSeries struct {
+	Currency string          `json:"currency"`
+	Points   []UnitCostPoint `json:"points"`
+	// OverallValue: The period ratio: **summed numerator ÷ summed denominator**,
+	// not the mean of the per-bucket ratios — the mean weights a quiet Sunday
+	// exactly as heavily as a peak Monday. Only buckets that produced a ratio
+	// contribute, on both sides.
+	OverallValue       *float64 `json:"overallValue"`
+	OverallCost        float64  `json:"overallCost"`
+	OverallMetricValue *float64 `json:"overallMetricValue"`
 }
 
 // UnpinRequest is the `UnpinRequest` schema.
@@ -6815,6 +7772,12 @@ type BudgetWithStatusPlacements struct {
 	DashboardName string `json:"dashboardName"`
 }
 
+// BusinessMetricValuesInputValues is an object the spec declares inline.
+type BusinessMetricValuesInputValues struct {
+	Date  string  `json:"date"`
+	Value float64 `json:"value"`
+}
+
 // ChangeFreezeBlockedFreeze is an object the spec declares inline.
 type ChangeFreezeBlockedFreeze struct {
 	ID       string  `json:"id"`
@@ -6834,6 +7797,24 @@ type CostAccountStatusCostPollError struct {
 type CostAccountStatusCoverage struct {
 	FirstDay string `json:"firstDay"`
 	LastDay  string `json:"lastDay"`
+}
+
+// CostAdjustmentSummaryRules is an object the spec declares inline.
+type CostAdjustmentSummaryRules struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Kind: One of "percentage", "fixed", "reallocation".
+	Kind    string `json:"kind"`
+	Summary string `json:"summary"`
+}
+
+// CostScenarioResultContributions is an object the spec declares inline.
+type CostScenarioResultContributions struct {
+	AdjustmentID string `json:"adjustmentId"`
+	Label        string `json:"label"`
+	// Kind: One of "one_off", "recurring", "rate_change".
+	Kind   string  `json:"kind"`
+	Amount float64 `json:"amount"`
 }
 
 // CreateAccountResponseSyncError is an object the spec declares inline.
@@ -6945,6 +7926,65 @@ type HygieneReportCounts struct {
 	Medium int64 `json:"medium"`
 	Low    int64 `json:"low"`
 	Total  int64 `json:"total"`
+}
+
+// InvoiceDerivationRates is an object the spec declares inline.
+type InvoiceDerivationRates struct {
+	Currency      string  `json:"currency"`
+	Rate          float64 `json:"rate"`
+	EffectiveFrom string  `json:"effectiveFrom"`
+}
+
+// InvoiceDerivationRules is an object the spec declares inline.
+type InvoiceDerivationRules struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Kind: One of "percentage", "fixed", "reallocation".
+	Kind    string `json:"kind"`
+	Summary string `json:"summary"`
+}
+
+// InvoiceDerivationScope is an object the spec declares inline.
+type InvoiceDerivationScope struct {
+	CostCentres []InvoiceDerivationScopeCostCentres `json:"costCentres"`
+	Accounts    []InvoiceDerivationScopeAccounts    `json:"accounts"`
+}
+
+// InvoiceVoidResponseReplacement is an object the spec declares inline.
+type InvoiceVoidResponseReplacement struct {
+	ID                 string `json:"id"`
+	ManagedAccountID   string `json:"managedAccountId"`
+	ManagedAccountName string `json:"managedAccountName"`
+	// Number: `INV-2026-0001`. Null while draft — numbers are assigned at
+	// approval so a deleted draft cannot leave a gap in the sequence.
+	Number                *string           `json:"number"`
+	Status                InvoiceStatus     `json:"status"`
+	PeriodFrom            string            `json:"periodFrom"`
+	PeriodTo              string            `json:"periodTo"`
+	Currency              string            `json:"currency"`
+	Totals                *InvoiceTotals    `json:"totals,omitempty"`
+	IssuedAt              *string           `json:"issuedAt"`
+	SentAt                *string           `json:"sentAt"`
+	Delivery              *InvoiceDelivery  `json:"delivery"`
+	VoidedAt              *string           `json:"voidedAt"`
+	VoidReason            *string           `json:"voidReason"`
+	SupersedesInvoiceID   *string           `json:"supersedesInvoiceId"`
+	SupersededByInvoiceID *string           `json:"supersededByInvoiceId"`
+	CreatedAt             string            `json:"createdAt"`
+	UpdatedAt             string            `json:"updatedAt"`
+	Notes                 *string           `json:"notes"`
+	Lines                 []InvoiceLine     `json:"lines"`
+	Derivation            InvoiceDerivation `json:"derivation"`
+	// Live: True when the figures in this response were recomputed for it — true
+	// for a draft, false for everything else. Say so: “these numbers will move”
+	// and “these numbers are what we sent” are different claims about the same
+	// fields.
+	Live             bool    `json:"live"`
+	ComputedAt       string  `json:"computedAt"`
+	ApprovedByUserID *string `json:"approvedByUserId"`
+	SentByUserID     *string `json:"sentByUserId"`
+	VoidedByUserID   *string `json:"voidedByUserId"`
+	CreatedByUserID  *string `json:"createdByUserId"`
 }
 
 // MetricAlertSelectorOptionsPlugins is an object the spec declares inline.
@@ -7160,8 +8200,20 @@ type ShowbackReportCentres struct {
 	// CostCentreID: Null for the synthetic "Unallocated" bucket.
 	CostCentreID *string `json:"costCentreId"`
 	Name         string  `json:"name"`
-	// Totals: Currency code → amount in the currency's major unit.
+	// Totals: Spend allocated directly to this centre. A cost row is allocated
+	// exactly once, so summing this across every entry equals the organization's
+	// spend for the period.
 	Totals map[string]float64 `json:"totals"`
+	// SubtreeTotals: This centre's own spend plus every descendant's. Equal to
+	// `totals` for a leaf and for every centre in an organization that does not
+	// nest. Do not sum this across entries — parents already contain their
+	// children.
+	SubtreeTotals map[string]float64 `json:"subtreeTotals"`
+	// ParentID: The centre this one sits under; null for a root and for
+	// Unallocated.
+	ParentID *string `json:"parentId"`
+	// Depth: 0 for a root; the indentation level.
+	Depth int64 `json:"depth"`
 }
 
 // SshfanoutHostResultHostKeyTrust is an object the spec declares inline.
@@ -7200,6 +8252,23 @@ type TerraformExportUnsupported struct {
 	Reason         string     `json:"reason"`
 }
 
+// UnitCostQueryResponseMetric is an object the spec declares inline.
+type UnitCostQueryResponseMetric struct {
+	ID       string             `json:"id"`
+	Key      string             `json:"key"`
+	Name     string             `json:"name"`
+	Unit     string             `json:"unit"`
+	Kind     BusinessMetricKind `json:"kind"`
+	Currency *string            `json:"currency"`
+}
+
+// UnitCostQueryResponseConversion is an object the spec declares inline.
+type UnitCostQueryResponseConversion struct {
+	DisplayCurrency string                                     `json:"displayCurrency"`
+	Converted       []UnitCostQueryResponseConversionConverted `json:"converted"`
+	Unconverted     []string                                   `json:"unconverted"`
+}
+
 // UntaggedSpendReportByKey is an object the spec declares inline.
 type UntaggedSpendReportByKey struct {
 	Key string `json:"key"`
@@ -7234,6 +8303,18 @@ type DeployPlanResultResultError struct {
 	Stack   *string `json:"stack,omitempty"`
 }
 
+// InvoiceDerivationScopeCostCentres is an object the spec declares inline.
+type InvoiceDerivationScopeCostCentres struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// InvoiceDerivationScopeAccounts is an object the spec declares inline.
+type InvoiceDerivationScopeAccounts struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
 // OrgConfigCostCentreRulesMatch is an object the spec declares inline.
 type OrgConfigCostCentreRulesMatch struct {
 	TagKey   *string `json:"tagKey,omitempty"`
@@ -7248,6 +8329,20 @@ type OrgConfigCostCentreRulesMatch struct {
 type OrgConfigDocumentTagPolicyRequiredTags struct {
 	Key           string   `json:"key"`
 	AllowedValues []string `json:"allowedValues,omitempty"`
+}
+
+// UnitCostQueryResponseConversionConverted is an object the spec declares
+// inline.
+type UnitCostQueryResponseConversionConverted struct {
+	Currency string                                          `json:"currency"`
+	Rates    []UnitCostQueryResponseConversionConvertedRates `json:"rates"`
+}
+
+// UnitCostQueryResponseConversionConvertedRates is an object the spec declares
+// inline.
+type UnitCostQueryResponseConversionConvertedRates struct {
+	EffectiveFrom string  `json:"effectiveFrom"`
+	Rate          float64 `json:"rate"`
 }
 
 // AccountsCreateRequest is an object the spec declares inline.
@@ -7331,6 +8426,22 @@ type AlertRulesDeliveriesCancelResponse struct {
 	Cancelled int64 `json:"cancelled"`
 }
 
+// BusinessMetricsGetGetResponse is an object the spec declares inline.
+type BusinessMetricsGetGetResponse struct {
+	Metrics []BusinessMetric `json:"metrics"`
+}
+
+// BusinessMetricsValuesCreateResponse is an object the spec declares inline.
+type BusinessMetricsValuesCreateResponse struct {
+	// Written: Days written, counting restatements.
+	Written int64 `json:"written"`
+}
+
+// BusinessMetricsValuesGetResponse is an object the spec declares inline.
+type BusinessMetricsValuesGetResponse struct {
+	Values []BusinessMetricValue `json:"values"`
+}
+
 // CostAlertsEventsResponse is an object the spec declares inline.
 type CostAlertsEventsResponse struct {
 	Events []CostAlertEvent `json:"events"`
@@ -7341,9 +8452,29 @@ type CostAlertsGetGetResponse struct {
 	Alerts []CostAlert `json:"alerts"`
 }
 
+// CostAnnotationsGetResponse is an object the spec declares inline.
+type CostAnnotationsGetResponse struct {
+	Annotations []CostAnnotation `json:"annotations"`
+}
+
+// CostScenariosReferentsResponse is an object the spec declares inline.
+type CostScenariosReferentsResponse struct {
+	Referents []CostScenarioReferent `json:"referents"`
+}
+
+// CostScenariosGetGetResponse is an object the spec declares inline.
+type CostScenariosGetGetResponse struct {
+	Models []CostScenarioModel `json:"models"`
+}
+
 // CostsAnomaliesResponse is an object the spec declares inline.
 type CostsAnomaliesResponse struct {
 	Anomalies []CostAnomaly `json:"anomalies"`
+}
+
+// CostsEfficiencyAlertsResponse is an object the spec declares inline.
+type CostsEfficiencyAlertsResponse struct {
+	Events []EfficiencyAlertEvent `json:"events"`
 }
 
 // CostsStatusResponse is an object the spec declares inline.
