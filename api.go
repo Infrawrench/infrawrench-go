@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.17.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.18.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.17.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.18.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3286,6 +3286,51 @@ func newChangesNamespace(t *transport) *ChangesNamespace {
 	return n
 }
 
+// ChangesCostImpactsParams holds the parameters for
+// `client.changes.costImpacts`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ChangesCostImpactsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *ChangeCostImpactsRequest
+}
+
+// CostImpacts: Cost impact of a page of changes
+//
+// For each change, compares the resource's per-day spend over the window before
+// it against the window after, and reports the difference as a run-rate delta.
+//
+// A POST because it takes a list of ids, not because it writes: nothing is
+// stored. The answer is recomputed on every call, deliberately — provider cost
+// arrives late and is then restated, so a stored number would be a wrong number
+// that never corrects itself.
+//
+// Both windows exclude the change's own day (spend on it is half old shape, half
+// new) and today (an accruing day always reads as a dip), and are clamped
+// symmetrically to the days cost collection actually covers.
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/changes/cost-impacts
+//
+// Raises on 400: Bad request
+func (n *ChangesNamespace) CostImpacts(ctx context.Context, params *ChangesCostImpactsParams, opts ...RequestOption) (*ChangeCostImpactsResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/changes/cost-impacts")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *ChangeCostImpactsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // ChangesGetParams holds the parameters for `client.changes.get`.
 //
 // Every field is optional; pass nil to take the defaults.
@@ -4100,6 +4145,50 @@ type CostAnnotationsNamespace struct {
 func newCostAnnotationsNamespace(t *transport) *CostAnnotationsNamespace {
 	n := &CostAnnotationsNamespace{t: t}
 	return n
+}
+
+// CostAnnotationsChangeImpactParams holds the parameters for
+// `client.costAnnotations.changeImpact`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostAnnotationsChangeImpactParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *ChangeCostImpactAnnotationRequest
+}
+
+// ChangeImpact: Pin a change's or deploy's cost impact onto the cost charts
+//
+// Writes the finding as a cost annotation, so the step in the run rate is
+// explained on the graph where it shows. Re-posting the same subject **rewords
+// the existing note** rather than adding a second — which is what makes it safe
+// to pin a finding again once the provider has finished restating. The note's
+// date and report scope are never rewritten: they may have been edited
+// deliberately.
+//
+// A subject with no measurable impact is a 400, not a note reading `$0.00/day`.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/cost-annotations/change-impact
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostAnnotationsNamespace) ChangeImpact(ctx context.Context, params *CostAnnotationsChangeImpactParams, opts ...RequestOption) (*ChangeCostImpactAnnotationResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-annotations/change-impact")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *ChangeCostImpactAnnotationResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // CostAnnotationsCreateParams holds the parameters for
@@ -7393,6 +7482,49 @@ type DeploymentsRunsNamespace struct {
 func newDeploymentsRunsNamespace(t *transport) *DeploymentsRunsNamespace {
 	n := &DeploymentsRunsNamespace{t: t}
 	return n
+}
+
+// DeploymentsRunsCostImpactParams holds the parameters for
+// `client.deployments.runs.costImpact`.
+type DeploymentsRunsCostImpactParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ID         string
+	WindowDays *int64
+	// CostBasis: Which charge-type basis both windows are read on. `cash` (the
+	// default) is what the provider charged on the day it charged it;
+	// `amortized` spreads a commitment's up-front fee across the term it buys.
+	// It is echoed on every response because a delta whose basis is unstated is
+	// unreadable — an amortized 'after' against a cash 'before' looks exactly
+	// like a saving.
+	CostBasis *ChangeCostBasis
+}
+
+// CostImpact: Cost impact of a deployment run
+//
+// The same comparison as `POST /changes/cost-impacts`, run over the resources
+// this deploy provisioned, with a per-resource breakdown that sums to the total.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/deployments/runs/{id}/cost-impact
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *DeploymentsRunsNamespace) CostImpact(ctx context.Context, params DeploymentsRunsCostImpactParams, opts ...RequestOption) (*DeploymentCostImpact, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/deployments/runs/{id}/cost-impact")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.addQuery("windowDays", params.WindowDays)
+	r.addQuery("costBasis", params.CostBasis)
+	var out *DeploymentCostImpact
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // DeploymentsRunsCreateParams holds the parameters for

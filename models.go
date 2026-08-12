@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.17.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.18.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.17.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.18.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1177,6 +1177,155 @@ type CapacityStatus struct {
 	// Slots: Every purchase ever made, newest first, including lapsed and
 	// refunded.
 	Slots []CapacitySlot `json:"slots"`
+}
+
+// ChangeCostBasis: Which charge-type basis both windows are read on. `cash` (the
+// default) is what the provider charged on the day it charged it; `amortized`
+// spreads a commitment's up-front fee across the term it buys. It is echoed on
+// every response because a delta whose basis is unstated is unreadable — an
+// amortized 'after' against a cash 'before' looks exactly like a saving.
+type ChangeCostBasis = string
+
+// The values ChangeCostBasis takes.
+const (
+	ChangeCostBasisCash      ChangeCostBasis = "cash"
+	ChangeCostBasisAmortized ChangeCostBasis = "amortized"
+)
+
+// ChangeCostImpact is the `ChangeCostImpact` schema.
+type ChangeCostImpact struct {
+	Status    ChangeCostImpactStatus `json:"status"`
+	CostBasis ChangeCostBasis        `json:"costBasis"`
+	// WindowDays: The half-window that was requested.
+	WindowDays int64 `json:"windowDays"`
+	// EffectiveWindowDays: The half-window the data supported. Clamped
+	// symmetrically, so both means always average the same number of days.
+	EffectiveWindowDays int64 `json:"effectiveWindowDays"`
+	// EventDay: UTC day the change landed on. Excluded from both windows — it is
+	// a mixed day.
+	EventDay   string                     `json:"eventDay"`
+	Before     *ChangeCostImpactWindow    `json:"before"`
+	After      *ChangeCostImpactWindow    `json:"after"`
+	Series     []ChangeCostImpactSeries   `json:"series"`
+	Confidence ChangeCostImpactConfidence `json:"confidence"`
+	Reasons    []ChangeCostImpactReason   `json:"reasons"`
+	// OverlappingChanges: Other recorded changes to the same resource inside the
+	// window. A delta is correlation, never causation; this is the number that
+	// says how much else was going on.
+	OverlappingChanges int64 `json:"overlappingChanges"`
+}
+
+// ChangeCostImpactAnnotationRequest is the `ChangeCostImpactAnnotationRequest`
+// schema.
+type ChangeCostImpactAnnotationRequest struct {
+	// SubjectKind: One of "change", "deployment".
+	SubjectKind string           `json:"subjectKind"`
+	SubjectID   string           `json:"subjectId"`
+	WindowDays  *int64           `json:"windowDays,omitempty"`
+	CostBasis   *ChangeCostBasis `json:"costBasis,omitempty"`
+}
+
+// ChangeCostImpactAnnotationResponse is the `ChangeCostImpactAnnotationResponse`
+// schema.
+type ChangeCostImpactAnnotationResponse struct {
+	AnnotationID string           `json:"annotationId"`
+	Text         string           `json:"text"`
+	Impact       ChangeCostImpact `json:"impact"`
+}
+
+// ChangeCostImpactConfidence: How much the delta is worth believing. Derived
+// from the number of comparable days per side (7+ high, 4+ medium, otherwise
+// low) and dropped one tier when other recorded changes touched the same
+// resource inside the window.
+type ChangeCostImpactConfidence = string
+
+// The values ChangeCostImpactConfidence takes.
+const (
+	ChangeCostImpactConfidenceHigh   ChangeCostImpactConfidence = "high"
+	ChangeCostImpactConfidenceMedium ChangeCostImpactConfidence = "medium"
+	ChangeCostImpactConfidenceLow    ChangeCostImpactConfidence = "low"
+	ChangeCostImpactConfidenceNone   ChangeCostImpactConfidence = "none"
+)
+
+// ChangeCostImpactEntry is the `ChangeCostImpactEntry` schema.
+type ChangeCostImpactEntry struct {
+	ChangeID   string           `json:"changeId"`
+	ResourceID ResourceID       `json:"resourceId"`
+	Impact     ChangeCostImpact `json:"impact"`
+}
+
+// ChangeCostImpactReason: Why the result reads the way it does. Every
+// non-`measured` status carries at least one, and `measured` carries whatever
+// lowered its confidence. `period_native_provider` is the notable one: a
+// provider that dates a whole invoice period to the period's start cannot be
+// read by a day-window comparison at all.
+type ChangeCostImpactReason = string
+
+// The values ChangeCostImpactReason takes.
+const (
+	ChangeCostImpactReasonNoCostIdentity       ChangeCostImpactReason = "no_cost_identity"
+	ChangeCostImpactReasonPeriodNativeProvider ChangeCostImpactReason = "period_native_provider"
+	ChangeCostImpactReasonNoCostData           ChangeCostImpactReason = "no_cost_data"
+	ChangeCostImpactReasonNoCoverageBefore     ChangeCostImpactReason = "no_coverage_before"
+	ChangeCostImpactReasonNoCoverageAfter      ChangeCostImpactReason = "no_coverage_after"
+	ChangeCostImpactReasonShortWindow          ChangeCostImpactReason = "short_window"
+	ChangeCostImpactReasonWindowClamped        ChangeCostImpactReason = "window_clamped"
+	ChangeCostImpactReasonOverlappingChanges   ChangeCostImpactReason = "overlapping_changes"
+)
+
+// ChangeCostImpactSeries is the `ChangeCostImpactSeries` schema.
+type ChangeCostImpactSeries struct {
+	// Currency: ISO 4217 code. Currencies are never summed.
+	Currency     string  `json:"currency"`
+	BeforePerDay float64 `json:"beforePerDay"`
+	AfterPerDay  float64 `json:"afterPerDay"`
+	// DeltaPerDay: `afterPerDay - beforePerDay`. Positive means the change costs
+	// more.
+	DeltaPerDay float64 `json:"deltaPerDay"`
+	// DeltaPercent: Null when the before window spent nothing — there is no
+	// percentage.
+	DeltaPercent *float64 `json:"deltaPercent"`
+	BeforeTotal  float64  `json:"beforeTotal"`
+	AfterTotal   float64  `json:"afterTotal"`
+}
+
+// ChangeCostImpactStatus: `measured` — both windows had collected data and the
+// delta is real. `insufficient_data` — the windows exist but are too short to
+// compare. `unknown` — nothing here can answer the question. **`unknown` is
+// never zero**: a resource with no cost data reports that we cannot say, not
+// that the change was free.
+type ChangeCostImpactStatus = string
+
+// The values ChangeCostImpactStatus takes.
+const (
+	ChangeCostImpactStatusMeasured         ChangeCostImpactStatus = "measured"
+	ChangeCostImpactStatusInsufficientData ChangeCostImpactStatus = "insufficient_data"
+	ChangeCostImpactStatusUnknown          ChangeCostImpactStatus = "unknown"
+)
+
+// ChangeCostImpactWindow is the `ChangeCostImpactWindow` schema.
+//
+// The API may send null in its place.
+type ChangeCostImpactWindow struct {
+	// From: Inclusive first UTC day, `YYYY-MM-DD`.
+	From string `json:"from"`
+	// To: Inclusive last UTC day.
+	To string `json:"to"`
+}
+
+// ChangeCostImpactsRequest is the `ChangeCostImpactsRequest` schema.
+type ChangeCostImpactsRequest struct {
+	// ChangeIDs: Change ids from `GET /changes`. At most 50 — one feed page.
+	ChangeIDs []string `json:"changeIds"`
+	// WindowDays: Days either side of the change. Default 7; clamped
+	// server-side.
+	WindowDays *int64           `json:"windowDays,omitempty"`
+	CostBasis  *ChangeCostBasis `json:"costBasis,omitempty"`
+}
+
+// ChangeCostImpactsResponse is the `ChangeCostImpactsResponse` schema.
+type ChangeCostImpactsResponse struct {
+	Impacts []ChangeCostImpactEntry `json:"impacts"`
 }
 
 // ChangeFreeze is the `ChangeFreeze` schema.
@@ -3077,6 +3226,37 @@ type DeployTriggerInput struct {
 	Branch  string            `json:"branch"`
 	Env     string            `json:"env"`
 	Answers map[string]string `json:"answers,omitempty"`
+}
+
+// DeploymentCostImpact is the `DeploymentCostImpact` schema.
+type DeploymentCostImpact struct {
+	RunID      string          `json:"runId"`
+	CostBasis  ChangeCostBasis `json:"costBasis"`
+	WindowDays int64           `json:"windowDays"`
+	// EventDay: The run's start day, UTC — what both windows hang off.
+	EventDay string `json:"eventDay"`
+	// Resources: One row per resource the run provisioned through
+	// `infra.accounts.*.create(...)`. That is the only set attributable to a run
+	// with certainty: a deploy that merely re-shipped an image links to nothing
+	// and honestly reports an empty breakdown.
+	Resources []DeploymentCostImpactResource `json:"resources"`
+	// Total: Summed `deltaPerDay` per currency across the **measured** rows
+	// only, so the breakdown always adds up to it. An unmeasurable resource
+	// contributes nothing rather than zero.
+	Total []DeploymentCostImpactTotal `json:"total"`
+	// UnknownResources: Rows excluded from `total` because their impact could
+	// not be measured.
+	UnknownResources int64                      `json:"unknownResources"`
+	Confidence       ChangeCostImpactConfidence `json:"confidence"`
+}
+
+// DeploymentCostImpactResource is the `DeploymentCostImpactResource` schema.
+type DeploymentCostImpactResource struct {
+	ResourceID     ResourceID       `json:"resourceId"`
+	DisplayName    string           `json:"displayName"`
+	PluginID       string           `json:"pluginId"`
+	ResourceTypeID string           `json:"resourceTypeId"`
+	Impact         ChangeCostImpact `json:"impact"`
 }
 
 // DeploymentRun is the `DeploymentRun` schema.
@@ -9008,6 +9188,12 @@ type DeployPlanResultResult struct {
 type DeployPlannedChangeSidecar struct {
 	PluginID         string `json:"pluginId"`
 	ParentResourceID string `json:"parentResourceId"`
+}
+
+// DeploymentCostImpactTotal is an object the spec declares inline.
+type DeploymentCostImpactTotal struct {
+	Currency    string  `json:"currency"`
+	DeltaPerDay float64 `json:"deltaPerDay"`
 }
 
 // DeploymentRunInputError is an object the spec declares inline.
