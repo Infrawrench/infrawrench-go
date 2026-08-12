@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.16.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.17.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.16.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.17.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -6569,6 +6569,10 @@ type ResourceChangeEntry struct {
 	// One of "schedule".
 	Origin    *string `json:"origin,omitempty"`
 	CreatedAt string  `json:"createdAt"`
+	// RevertedAt: When this event was reverted, or null if it never was.
+	// Reverting is a one-shot: an event carrying a timestamp here cannot be
+	// reverted again.
+	RevertedAt *string `json:"revertedAt,omitempty"`
 }
 
 // ResourceChangeFeedEntry is the `ResourceChangeFeedEntry` schema.
@@ -6589,8 +6593,12 @@ type ResourceChangeFeedEntry struct {
 	// sleep/wake schedule transitions. Absent/null = observed by sync.
 	//
 	// One of "schedule".
-	Origin      *string `json:"origin,omitempty"`
-	CreatedAt   string  `json:"createdAt"`
+	Origin    *string `json:"origin,omitempty"`
+	CreatedAt string  `json:"createdAt"`
+	// RevertedAt: When this event was reverted, or null if it never was.
+	// Reverting is a one-shot: an event carrying a timestamp here cannot be
+	// reverted again.
+	RevertedAt  *string `json:"revertedAt,omitempty"`
 	AccountName *string `json:"accountName"`
 }
 
@@ -7233,6 +7241,84 @@ type ResourceTypeSummary struct {
 	// Schedulable: The type declares lifecycle start/stop actions, so its
 	// resources can carry a sleep/wake schedule.
 	Schedulable *bool `json:"schedulable,omitempty"`
+}
+
+// RevertApplyResponse is the `RevertApplyResponse` schema.
+type RevertApplyResponse struct {
+	ChangeID   string     `json:"changeId"`
+	ResourceID ResourceID `json:"resourceId"`
+	// AppliedFields: The fields written, in plan order. Empty on a
+	// reconciliation.
+	AppliedFields []string   `json:"appliedFields"`
+	Plan          RevertPlan `json:"plan"`
+	RevertedAt    string     `json:"revertedAt"`
+	// Reconciled: True when this request wrote nothing and instead recorded an
+	// *earlier* interrupted attempt's write — the resource was already back, and
+	// the event is now marked reverted. Nothing was sent to the provider by this
+	// request.
+	Reconciled *bool `json:"reconciled,omitempty"`
+	// AuditRecorded: Present and `false` only when the audit entry could not be
+	// written. The provider change still happened; its attribution did not reach
+	// the audit table and was written to the server log instead. Attribution is
+	// best-effort — nothing transactional spans a third-party cloud API and
+	// Infrawrench's database.
+	AuditRecorded *bool `json:"auditRecorded,omitempty"`
+}
+
+// RevertFieldPlan is the `RevertFieldPlan` schema.
+type RevertFieldPlan struct {
+	Field string `json:"field"`
+	// RevertTo: The value a revert would write.
+	RevertTo any `json:"revertTo,omitempty"`
+	// ChangedTo: The value the recorded change set.
+	ChangedTo any `json:"changedTo,omitempty"`
+	// Current: The value the resource holds right now, read live.
+	Current any               `json:"current,omitempty"`
+	Status  RevertFieldStatus `json:"status"`
+	// Reason: One sentence explaining the status.
+	Reason string `json:"reason"`
+}
+
+// RevertFieldStatus: What a revert would do to one field. `revertible` — the
+// field still holds the value the change set, and the plugin's edit form can
+// write the old one back. `already-reverted` — it is already at the old value;
+// nothing to do. `conflict` — it changed again since, so reverting would discard
+// the newer value. `not-writable` — outside the plugin's editable surface, or
+// the old value is not something the edit form can submit. `provider-derived` —
+// an `outputs.*` entry, which the provider computes rather than accepts.
+type RevertFieldStatus = string
+
+// The values RevertFieldStatus takes.
+const (
+	RevertFieldStatusRevertible      RevertFieldStatus = "revertible"
+	RevertFieldStatusAlreadyReverted RevertFieldStatus = "already-reverted"
+	RevertFieldStatusConflict        RevertFieldStatus = "conflict"
+	RevertFieldStatusNotWritable     RevertFieldStatus = "not-writable"
+	RevertFieldStatusProviderDerived RevertFieldStatus = "provider-derived"
+)
+
+// RevertPlan is the `RevertPlan` schema.
+type RevertPlan struct {
+	// Fields: Every field of the recorded diff, in the order the event recorded
+	// them.
+	Fields []RevertFieldPlan `json:"fields"`
+	// RevertibleFields: The keys that would actually be written.
+	RevertibleFields []string `json:"revertibleFields"`
+	Revertible       bool     `json:"revertible"`
+	// BlockedReason: Why nothing would be written, or null when something would.
+	BlockedReason *string `json:"blockedReason"`
+}
+
+// RevertPreviewResponse is the `RevertPreviewResponse` schema.
+type RevertPreviewResponse struct {
+	ChangeID       string     `json:"changeId"`
+	ResourceID     ResourceID `json:"resourceId"`
+	DisplayName    string     `json:"displayName"`
+	PluginID       string     `json:"pluginId"`
+	ResourceTypeID string     `json:"resourceTypeId"`
+	AccountID      string     `json:"accountId"`
+	Plan           RevertPlan `json:"plan"`
+	RevertedAt     *string    `json:"revertedAt"`
 }
 
 // RightsizingListResponse is the `RightsizingListResponse` schema.
