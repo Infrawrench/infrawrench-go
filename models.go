@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.20.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.21.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.20.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.21.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -511,8 +511,6 @@ const (
 	AlertTriggerLogMatchAlerts           AlertTrigger = "logMatchAlerts"
 	AlertTriggerPostureAlerts            AlertTrigger = "postureAlerts"
 	AlertTriggerProbeAlerts              AlertTrigger = "probeAlerts"
-	AlertTriggerQuotaAlerts              AlertTrigger = "quotaAlerts"
-	AlertTriggerIncidentAlerts           AlertTrigger = "incidentAlerts"
 	AlertTriggerWeeklyDigest             AlertTrigger = "weeklyDigest"
 )
 
@@ -3899,6 +3897,51 @@ type EfficiencyAlertEvent struct {
 	NotifiedAt *string `json:"notifiedAt"`
 }
 
+// EnvironmentCaptureDraft is the `EnvironmentCaptureDraft` schema.
+type EnvironmentCaptureDraft struct {
+	Members             []EnvironmentCaptureDraftMember  `json:"members"`
+	SuggestedParameters []EnvironmentParameter           `json:"suggestedParameters"`
+	Skipped             []EnvironmentCaptureDraftSkipped `json:"skipped"`
+}
+
+// EnvironmentCaptureDraftMember is the `EnvironmentCaptureDraftMember` schema.
+type EnvironmentCaptureDraftMember struct {
+	// Key: Unique within the template; the id references are written against.
+	Key              string   `json:"key"`
+	PluginID         PluginID `json:"pluginId"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	AccountID        string   `json:"accountId"`
+	SourceName       string   `json:"sourceName"`
+	SourceResourceID *string  `json:"sourceResourceId,omitempty"`
+	// NameFieldKey: The create-form field carrying the resource's name, detected
+	// at capture by matching the captured value against the source's display
+	// name. The instance name prefix is applied to this field and no other.
+	NameFieldKey *string                                                `json:"nameFieldKey,omitempty"`
+	ParentMember *string                                                `json:"parentMember,omitempty"`
+	Fields       map[string]EnvironmentTemplateFieldValue               `json:"fields"`
+	FieldMeta    map[string]EnvironmentCaptureDraftMemberFieldMetaValue `json:"fieldMeta"`
+}
+
+// EnvironmentCaptureRequest is the `EnvironmentCaptureRequest` schema.
+type EnvironmentCaptureRequest struct {
+	ResourceIDs []string `json:"resourceIds,omitempty"`
+	AccountID   *string  `json:"accountId,omitempty"`
+	TagKey      *string  `json:"tagKey,omitempty"`
+	TagValue    *string  `json:"tagValue,omitempty"`
+}
+
+// EnvironmentCostEstimate is the `EnvironmentCostEstimate` schema.
+type EnvironmentCostEstimate struct {
+	// MonthlyAmount: Null means 'could not be priced', which is not the same as
+	// zero.
+	MonthlyAmount *float64 `json:"monthlyAmount"`
+	Currency      *string  `json:"currency"`
+	// Partial: True when at least one member is unpriced — read as 'at least'.
+	Partial       bool                             `json:"partial"`
+	UnpricedCount int64                            `json:"unpricedCount"`
+	Members       []EnvironmentCostEstimateMembers `json:"members"`
+}
+
 // EnvironmentDiffEntry is the `EnvironmentDiffEntry` schema.
 type EnvironmentDiffEntry struct {
 	// Key: The pairing key both sides matched on — the resource type plus the
@@ -4012,6 +4055,151 @@ type EnvironmentDiffUnavailableType struct {
 	ResourceTypeName string `json:"resourceTypeName"`
 	// Message: The provider's complaint, as the lister reported it.
 	Message string `json:"message"`
+}
+
+// EnvironmentEstimateRequest is the `EnvironmentEstimateRequest` schema.
+type EnvironmentEstimateRequest struct {
+	Parameters       map[string]string `json:"parameters,omitempty"`
+	AccountOverrides map[string]string `json:"accountOverrides,omitempty"`
+}
+
+// EnvironmentInstance is the `EnvironmentInstance` schema.
+type EnvironmentInstance struct {
+	ID           string            `json:"id"`
+	TemplateID   *string           `json:"templateId"`
+	TemplateName string            `json:"templateName"`
+	Name         string            `json:"name"`
+	NamePrefix   string            `json:"namePrefix"`
+	Parameters   map[string]string `json:"parameters"`
+	// Status: `partial` means a create failed part-way: the members that were
+	// created are recorded and can still be torn down, which is what stops a
+	// half-finished run leaving cloud resources with no row pointing at them.
+	//
+	// One of "creating", "active", "partial", "tearing-down", "deleted",
+	// "failed".
+	Status      string                      `json:"status"`
+	ExpiresAt   string                      `json:"expiresAt"`
+	Error       *string                     `json:"error"`
+	Members     []EnvironmentInstanceMember `json:"members"`
+	CreatedAt   string                      `json:"createdAt"`
+	UpdatedAt   string                      `json:"updatedAt"`
+	CompletedAt *string                     `json:"completedAt"`
+}
+
+// EnvironmentInstanceConflict is the `EnvironmentInstanceConflict` schema.
+type EnvironmentInstanceConflict struct {
+	Error string `json:"error"`
+}
+
+// EnvironmentInstanceList is the `EnvironmentInstanceList` schema.
+type EnvironmentInstanceList struct {
+	Instances []EnvironmentInstance `json:"instances"`
+}
+
+// EnvironmentInstanceMember is the `EnvironmentInstanceMember` schema.
+type EnvironmentInstanceMember struct {
+	ID             string   `json:"id"`
+	MemberKey      string   `json:"memberKey"`
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	AccountID      string   `json:"accountId"`
+	ResourceID     *string  `json:"resourceId"`
+	ExternalID     *string  `json:"externalId"`
+	DisplayName    string   `json:"displayName"`
+	// Status: One of "pending", "created", "failed", "deleted".
+	Status string  `json:"status"`
+	Error  *string `json:"error"`
+	// LeaseID: The lease that auto-deletes this member at the TTL.
+	LeaseID  *string `json:"leaseId"`
+	Position int64   `json:"position"`
+}
+
+// EnvironmentInstantiateRequest is the `EnvironmentInstantiateRequest` schema.
+type EnvironmentInstantiateRequest struct {
+	Name       string            `json:"name"`
+	Parameters map[string]string `json:"parameters,omitempty"`
+	// TTLHours: Required. Capped by the org's `maxTtlHours` setting and by a
+	// 720-hour ceiling.
+	TTLHours         float64           `json:"ttlHours"`
+	AccountOverrides map[string]string `json:"accountOverrides,omitempty"`
+	Note             *string           `json:"note,omitempty"`
+}
+
+// EnvironmentParameter is the `EnvironmentParameter` schema.
+type EnvironmentParameter struct {
+	Key   string `json:"key"`
+	Label string `json:"label"`
+	// Type: One of "string", "number", "select".
+	Type         string                        `json:"type"`
+	Required     bool                          `json:"required"`
+	DefaultValue *string                       `json:"defaultValue,omitempty"`
+	Options      []EnvironmentParameterOptions `json:"options,omitempty"`
+	Description  *string                       `json:"description,omitempty"`
+}
+
+// EnvironmentSettings is the `EnvironmentSettings` schema.
+type EnvironmentSettings struct {
+	MaxTTLHours     int64 `json:"maxTtlHours"`
+	DefaultTTLHours int64 `json:"defaultTtlHours"`
+}
+
+// EnvironmentStillLive is the `EnvironmentStillLive` schema.
+type EnvironmentStillLive struct {
+	Error string `json:"error"`
+}
+
+// EnvironmentTemplate is the `EnvironmentTemplate` schema.
+type EnvironmentTemplate struct {
+	ID                  string                      `json:"id"`
+	Name                string                      `json:"name"`
+	Description         *string                     `json:"description"`
+	Parameters          []EnvironmentParameter      `json:"parameters"`
+	Members             []EnvironmentTemplateMember `json:"members"`
+	CreatedAt           string                      `json:"createdAt"`
+	UpdatedAt           string                      `json:"updatedAt"`
+	ActiveInstanceCount *int64                      `json:"activeInstanceCount,omitempty"`
+}
+
+// EnvironmentTemplateConflict is the `EnvironmentTemplateConflict` schema.
+type EnvironmentTemplateConflict struct {
+	Error string `json:"error"`
+}
+
+// EnvironmentTemplateFieldValue: What a captured create-form field is filled
+// with at instantiation. `literal` is the captured value; `parameter` is a field
+// the user chose to vary; `output` is another member's resolved output (a
+// connection string, an IP — the captured half of an output reference);
+// `member-id` is another member's provider-side id.
+type EnvironmentTemplateFieldValue = any
+
+// EnvironmentTemplateInput is the `EnvironmentTemplateInput` schema.
+type EnvironmentTemplateInput struct {
+	Name        string                      `json:"name"`
+	Description *string                     `json:"description,omitempty"`
+	Parameters  []EnvironmentParameter      `json:"parameters"`
+	Members     []EnvironmentTemplateMember `json:"members"`
+}
+
+// EnvironmentTemplateList is the `EnvironmentTemplateList` schema.
+type EnvironmentTemplateList struct {
+	Templates []EnvironmentTemplate `json:"templates"`
+}
+
+// EnvironmentTemplateMember is the `EnvironmentTemplateMember` schema.
+type EnvironmentTemplateMember struct {
+	// Key: Unique within the template; the id references are written against.
+	Key              string   `json:"key"`
+	PluginID         PluginID `json:"pluginId"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	AccountID        string   `json:"accountId"`
+	SourceName       string   `json:"sourceName"`
+	SourceResourceID *string  `json:"sourceResourceId,omitempty"`
+	// NameFieldKey: The create-form field carrying the resource's name, detected
+	// at capture by matching the captured value against the source's display
+	// name. The instance name prefix is applied to this field and no other.
+	NameFieldKey *string                                  `json:"nameFieldKey,omitempty"`
+	ParentMember *string                                  `json:"parentMember,omitempty"`
+	Fields       map[string]EnvironmentTemplateFieldValue `json:"fields"`
 }
 
 // Error is the `Error` schema.
@@ -8993,8 +9181,9 @@ type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
 	// "expiring", "posture", "access-review", "backups", "dns", "iac",
-	// "environment-diff", "ssh-fanout", "metric-alerts", "probes", "quotas",
-	// "incidents", "workflows", "deployments", "settings", "chat".
+	// "environment-diff", "environments", "ssh-fanout", "metric-alerts",
+	// "probes", "quotas", "incidents", "workflows", "deployments", "settings",
+	// "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -9545,6 +9734,37 @@ type DeploymentRunInputError struct {
 	Message string `json:"message"`
 }
 
+// EnvironmentCaptureDraftSkipped is an object the spec declares inline.
+type EnvironmentCaptureDraftSkipped struct {
+	ResourceID  string `json:"resourceId"`
+	DisplayName string `json:"displayName"`
+	Reason      string `json:"reason"`
+}
+
+// EnvironmentCaptureDraftMemberFieldMetaValue is an object the spec declares
+// inline.
+type EnvironmentCaptureDraftMemberFieldMetaValue struct {
+	Label           string                                               `json:"label"`
+	Kind            string                                               `json:"kind"`
+	Required        bool                                                 `json:"required"`
+	Options         []EnvironmentCaptureDraftMemberFieldMetaValueOptions `json:"options,omitempty"`
+	Parameterisable bool                                                 `json:"parameterisable"`
+}
+
+// EnvironmentCostEstimateMembers is an object the spec declares inline.
+type EnvironmentCostEstimateMembers struct {
+	MemberKey     string   `json:"memberKey"`
+	DisplayName   string   `json:"displayName"`
+	MonthlyAmount *float64 `json:"monthlyAmount"`
+	Currency      *string  `json:"currency"`
+}
+
+// EnvironmentParameterOptions is an object the spec declares inline.
+type EnvironmentParameterOptions struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
 // FieldActionResponseOption is an object the spec declares inline.
 type FieldActionResponseOption struct {
 	ID    string `json:"id"`
@@ -10015,6 +10235,13 @@ type CostAccountStatusCostPollErrorHelpLink struct {
 type DeployPlanResultResultError struct {
 	Message string  `json:"message"`
 	Stack   *string `json:"stack,omitempty"`
+}
+
+// EnvironmentCaptureDraftMemberFieldMetaValueOptions is an object the spec
+// declares inline.
+type EnvironmentCaptureDraftMemberFieldMetaValueOptions struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
 }
 
 // InvoiceDerivationScopeCostCentres is an object the spec declares inline.

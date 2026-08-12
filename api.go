@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.20.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.21.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.20.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.21.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -117,6 +117,8 @@ type APIV1Client struct {
 	Docker *DockerNamespace
 	// EnvironmentDiff: `client.environmentDiff`.
 	EnvironmentDiff *EnvironmentDiffNamespace
+	// Environments: `client.environments`.
+	Environments *EnvironmentsNamespace
 	// Expiring: `client.expiring`.
 	Expiring *ExpiringNamespace
 	// Iac: `client.iac`.
@@ -256,6 +258,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.DNS = newDNSNamespace(t)
 	c.Docker = newDockerNamespace(t)
 	c.EnvironmentDiff = newEnvironmentDiffNamespace(t)
+	c.Environments = newEnvironmentsNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
 	c.Iac = newIacNamespace(t)
 	c.Incidents = newIncidentsNamespace(t)
@@ -8398,6 +8401,540 @@ func (n *EnvironmentDiffNamespace) Get(ctx context.Context, params EnvironmentDi
 	r.addQuery("resourceTypeId", params.ResourceTypeID)
 	r.addQuery("includeIdentityFields", params.IncludeIdentityFields)
 	var out *EnvironmentDiffResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsNamespace is `client.environments`.
+type EnvironmentsNamespace struct {
+	t *transport
+
+	// Instances: `client.environments.instances`.
+	Instances *EnvironmentsInstancesNamespace
+	// Settings: `client.environments.settings`.
+	Settings *EnvironmentsSettingsNamespace
+	// Templates: `client.environments.templates`.
+	Templates *EnvironmentsTemplatesNamespace
+}
+
+func newEnvironmentsNamespace(t *transport) *EnvironmentsNamespace {
+	n := &EnvironmentsNamespace{t: t}
+	n.Instances = newEnvironmentsInstancesNamespace(t)
+	n.Settings = newEnvironmentsSettingsNamespace(t)
+	n.Templates = newEnvironmentsTemplatesNamespace(t)
+	return n
+}
+
+// EnvironmentsCaptureParams holds the parameters for
+// `client.environments.capture`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EnvironmentsCaptureParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *EnvironmentCaptureRequest
+}
+
+// Capture: Preview a template capture
+//
+// Turn a selection of live resources into a draft template. **Persists nothing**
+// — the editor shows the draft so the user can choose which fields to vary
+// before saving. The shape of every member comes from the plugin's own
+// `getCreateConfig`: a captured value with no matching create field is dropped,
+// and a resource type the plugin cannot create is reported in `skipped` with a
+// reason rather than silently omitted. Recorded output references whose target
+// is also in the selection are preserved as `output` field values; a value that
+// is exactly another selected resource's external id becomes a `member-id`.
+//
+// _Requires permission: `resources:read`._
+//
+// POST /api/org/{orgId}/environments/capture
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *EnvironmentsNamespace) Capture(ctx context.Context, params *EnvironmentsCaptureParams, opts ...RequestOption) (*EnvironmentCaptureDraft, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/environments/capture")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *EnvironmentCaptureDraft
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsInstancesNamespace is `client.environments.instances`.
+type EnvironmentsInstancesNamespace struct {
+	t *transport
+}
+
+func newEnvironmentsInstancesNamespace(t *transport) *EnvironmentsInstancesNamespace {
+	n := &EnvironmentsInstancesNamespace{t: t}
+	return n
+}
+
+// EnvironmentsInstancesDeleteParams holds the parameters for
+// `client.environments.instances.delete`.
+type EnvironmentsInstancesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	InstanceID string
+}
+
+// Delete: Forget a torn-down environment
+//
+// Removes the record. Refuses while the instance still owns resources — the row
+// is the only thing that knows they exist. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/environments/instances/{instanceId}
+//
+// Raises on 404: Not found
+//
+// Raises on 409: The environment is still live — tear it down first
+func (n *EnvironmentsInstancesNamespace) Delete(ctx context.Context, params EnvironmentsInstancesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/environments/instances/{instanceId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("instanceId", params.InstanceID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// EnvironmentsInstancesGetParams holds the parameters for
+// `client.environments.instances.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EnvironmentsInstancesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List environment instances
+//
+// Newest first. Reading this also reconciles instances past their deadline
+// against what the lease pass already deleted, so an environment whose resources
+// are all gone stops reporting itself as running.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/environments/instances
+func (n *EnvironmentsInstancesNamespace) Get(ctx context.Context, params *EnvironmentsInstancesGetParams, opts ...RequestOption) (*EnvironmentInstanceList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/environments/instances")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *EnvironmentInstanceList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsInstancesGetOrgOrgIDEnvironmentsInstancesInstanceIDParams holds
+// the parameters for
+// `client.environments.instances.getOrgOrgIdEnvironmentsInstancesInstanceId`.
+type EnvironmentsInstancesGetOrgOrgIDEnvironmentsInstancesInstanceIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	InstanceID string
+}
+
+// GetOrgOrgIDEnvironmentsInstancesInstanceID: Get an environment instance
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/environments/instances/{instanceId}
+//
+// Raises on 404: Not found
+func (n *EnvironmentsInstancesNamespace) GetOrgOrgIDEnvironmentsInstancesInstanceID(ctx context.Context, params EnvironmentsInstancesGetOrgOrgIDEnvironmentsInstancesInstanceIDParams, opts ...RequestOption) (*EnvironmentInstance, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/environments/instances/{instanceId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("instanceId", params.InstanceID)
+	var out *EnvironmentInstance
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsInstancesTeardownParams holds the parameters for
+// `client.environments.instances.teardown`.
+type EnvironmentsInstancesTeardownParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	InstanceID string
+}
+
+// Teardown: Tear an environment down now
+//
+// Deletes every created member through the ordinary `deleteResource` path, in
+// reverse creation order. Idempotent: a member already gone, a resource the
+// provider answers 404 for, and an instance already torn down all succeed
+// quietly, so this is safe to retry. Blocked by an active change freeze.
+// Audit-logged.
+//
+// _Requires permission: `resources:delete`._
+//
+// POST /api/org/{orgId}/environments/instances/{instanceId}/teardown
+//
+// Raises on 404: Not found
+//
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
+func (n *EnvironmentsInstancesNamespace) Teardown(ctx context.Context, params EnvironmentsInstancesTeardownParams, opts ...RequestOption) (*EnvironmentInstance, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/environments/instances/{instanceId}/teardown")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("instanceId", params.InstanceID)
+	var out *EnvironmentInstance
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsSettingsNamespace is `client.environments.settings`.
+type EnvironmentsSettingsNamespace struct {
+	t *transport
+}
+
+func newEnvironmentsSettingsNamespace(t *transport) *EnvironmentsSettingsNamespace {
+	n := &EnvironmentsSettingsNamespace{t: t}
+	return n
+}
+
+// EnvironmentsSettingsGetParams holds the parameters for
+// `client.environments.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EnvironmentsSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the organization's environment TTL rails
+//
+// The longest TTL an instantiation may ask for and the TTL the form pre-fills.
+// Absent settings normalize into the shipped defaults (168h / 24h).
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/environments/settings
+func (n *EnvironmentsSettingsNamespace) Get(ctx context.Context, params *EnvironmentsSettingsGetParams, opts ...RequestOption) (*EnvironmentSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/environments/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *EnvironmentSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsSettingsUpdateParams holds the parameters for
+// `client.environments.settings.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EnvironmentsSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *EnvironmentSettings
+}
+
+// Update: Set the organization's environment TTL rails
+//
+// `org:settings:write`, not `resources:write` — this is a governance decision
+// about how long the organization is willing to pay for a throwaway environment.
+// Clamped to a 720-hour ceiling; the default is clamped to the maximum.
+// Audit-logged.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/environments/settings
+func (n *EnvironmentsSettingsNamespace) Update(ctx context.Context, params *EnvironmentsSettingsUpdateParams, opts ...RequestOption) (*EnvironmentSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/environments/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *EnvironmentSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsTemplatesNamespace is `client.environments.templates`.
+type EnvironmentsTemplatesNamespace struct {
+	t *transport
+}
+
+func newEnvironmentsTemplatesNamespace(t *transport) *EnvironmentsTemplatesNamespace {
+	n := &EnvironmentsTemplatesNamespace{t: t}
+	return n
+}
+
+// EnvironmentsTemplatesCreateParams holds the parameters for
+// `client.environments.templates.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EnvironmentsTemplatesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *EnvironmentTemplateInput
+}
+
+// Create: Create an environment template
+//
+// Save a capture draft as a template. Member keys must be unique, every
+// parameter and member reference must resolve, and the members must be orderable
+// — a dependency cycle is rejected here rather than half-way through an apply.
+// Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/environments/templates
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: A template with that name already exists
+func (n *EnvironmentsTemplatesNamespace) Create(ctx context.Context, params *EnvironmentsTemplatesCreateParams, opts ...RequestOption) (*EnvironmentTemplate, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/environments/templates")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *EnvironmentTemplate
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsTemplatesDeleteParams holds the parameters for
+// `client.environments.templates.delete`.
+type EnvironmentsTemplatesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	TemplateID string
+}
+
+// Delete: Delete an environment template
+//
+// Live instances keep running and keep their TTL — they own real resources, and
+// the template is only where they came from. Their `templateId` becomes null;
+// the denormalized `templateName` is what the surface reads. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/environments/templates/{templateId}
+//
+// Raises on 404: Not found
+func (n *EnvironmentsTemplatesNamespace) Delete(ctx context.Context, params EnvironmentsTemplatesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/environments/templates/{templateId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("templateId", params.TemplateID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// EnvironmentsTemplatesEstimateParams holds the parameters for
+// `client.environments.templates.estimate`.
+type EnvironmentsTemplatesEstimateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	TemplateID string
+	// Body: the JSON request body.
+	Body *EnvironmentEstimateRequest
+}
+
+// Estimate: Price an instantiation before it runs
+//
+// Runs each member's create fields through the plugin's own `estimateCost`. A
+// member the plugin cannot price is counted in `unpricedCount` and makes the
+// total `partial` — `null` is never rounded to zero.
+//
+// _Requires permission: `resources:read`._
+//
+// POST /api/org/{orgId}/environments/templates/{templateId}/estimate
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *EnvironmentsTemplatesNamespace) Estimate(ctx context.Context, params EnvironmentsTemplatesEstimateParams, opts ...RequestOption) (*EnvironmentCostEstimate, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/environments/templates/{templateId}/estimate")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("templateId", params.TemplateID)
+	r.setJSONBody(params.Body)
+	var out *EnvironmentCostEstimate
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsTemplatesGetParams holds the parameters for
+// `client.environments.templates.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EnvironmentsTemplatesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List environment templates
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/environments/templates
+func (n *EnvironmentsTemplatesNamespace) Get(ctx context.Context, params *EnvironmentsTemplatesGetParams, opts ...RequestOption) (*EnvironmentTemplateList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/environments/templates")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *EnvironmentTemplateList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsTemplatesGetOrgOrgIDEnvironmentsTemplatesTemplateIDParams holds
+// the parameters for
+// `client.environments.templates.getOrgOrgIdEnvironmentsTemplatesTemplateId`.
+type EnvironmentsTemplatesGetOrgOrgIDEnvironmentsTemplatesTemplateIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	TemplateID string
+}
+
+// GetOrgOrgIDEnvironmentsTemplatesTemplateID: Get an environment template
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/environments/templates/{templateId}
+//
+// Raises on 404: Not found
+func (n *EnvironmentsTemplatesNamespace) GetOrgOrgIDEnvironmentsTemplatesTemplateID(ctx context.Context, params EnvironmentsTemplatesGetOrgOrgIDEnvironmentsTemplatesTemplateIDParams, opts ...RequestOption) (*EnvironmentTemplate, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/environments/templates/{templateId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("templateId", params.TemplateID)
+	var out *EnvironmentTemplate
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsTemplatesInstantiateParams holds the parameters for
+// `client.environments.templates.instantiate`.
+type EnvironmentsTemplatesInstantiateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	TemplateID string
+	// Body: the JSON request body.
+	Body *EnvironmentInstantiateRequest
+}
+
+// Instantiate: Stamp out an environment
+//
+// Creates the template's resources in dependency order through the ordinary
+// `createResource` path, name-prefixed per instance, and attaches an auto-delete
+// lease to each so expiry runs through the existing lease pass. `ttlHours` is
+// **required**. Requires `resources:write` **and** `resources:delete` (the lease
+// is a standing deletion, the same rule `POST /leases` applies), and is blocked
+// by an active change freeze. A create that fails part-way returns a `partial`
+// instance whose created members are recorded and tearable-down, never an error
+// with orphaned resources behind it. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/environments/templates/{templateId}/instantiate
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: The organization is at its live-environment limit
+//
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
+func (n *EnvironmentsTemplatesNamespace) Instantiate(ctx context.Context, params EnvironmentsTemplatesInstantiateParams, opts ...RequestOption) (*EnvironmentInstance, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/environments/templates/{templateId}/instantiate")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("templateId", params.TemplateID)
+	r.setJSONBody(params.Body)
+	var out *EnvironmentInstance
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvironmentsTemplatesUpdateParams holds the parameters for
+// `client.environments.templates.update`.
+type EnvironmentsTemplatesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	TemplateID string
+	// Body: the JSON request body.
+	Body *EnvironmentTemplateInput
+}
+
+// Update: Replace an environment template
+//
+// The whole document is replaced. Live instances are unaffected. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// PUT /api/org/{orgId}/environments/templates/{templateId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *EnvironmentsTemplatesNamespace) Update(ctx context.Context, params EnvironmentsTemplatesUpdateParams, opts ...RequestOption) (*EnvironmentTemplate, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/environments/templates/{templateId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("templateId", params.TemplateID)
+	r.setJSONBody(params.Body)
+	var out *EnvironmentTemplate
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
