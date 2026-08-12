@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.19.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.20.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.19.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.20.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -119,6 +119,8 @@ type APIV1Client struct {
 	EnvironmentDiff *EnvironmentDiffNamespace
 	// Expiring: `client.expiring`.
 	Expiring *ExpiringNamespace
+	// Iac: `client.iac`.
+	Iac *IacNamespace
 	// Incidents: `client.incidents`.
 	Incidents *IncidentsNamespace
 	// Invitations: `client.invitations`.
@@ -255,6 +257,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Docker = newDockerNamespace(t)
 	c.EnvironmentDiff = newEnvironmentDiffNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
+	c.Iac = newIacNamespace(t)
 	c.Incidents = newIncidentsNamespace(t)
 	c.Invitations = newInvitationsNamespace(t)
 	c.Invoices = newInvoicesNamespace(t)
@@ -8522,6 +8525,216 @@ func (n *ExpiringSettingsNamespace) Update(ctx context.Context, params *Expiring
 		r.setJSONBody(params.Body)
 	}
 	var out *ExpiryAlertSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// IacNamespace is `client.iac`.
+type IacNamespace struct {
+	t *transport
+
+	// States: `client.iac.states`.
+	States *IacStatesNamespace
+}
+
+func newIacNamespace(t *transport) *IacNamespace {
+	n := &IacNamespace{t: t}
+	n.States = newIacStatesNamespace(t)
+	return n
+}
+
+// IacImportPlanParams holds the parameters for `client.iac.importPlan`.
+//
+// Every field is optional; pass nil to take the defaults.
+type IacImportPlanParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *IacImportPlanRequest
+}
+
+// ImportPlan: Generate Terraform import blocks for unmanaged resources
+//
+// Terraform 1.5+ `import` blocks plus the matching resource stanzas, generated
+// by the same plugin export mappers and HCL serializer that back "Export to
+// Terraform…". Resources no plugin can express are returned in `unsupported`
+// with a reason, never dropped.
+//
+// POST /api/org/{orgId}/iac/import-plan
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *IacNamespace) ImportPlan(ctx context.Context, params *IacImportPlanParams, opts ...RequestOption) (*IacImportPlanResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/iac/import-plan")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *IacImportPlanResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// IacReconciliationParams holds the parameters for `client.iac.reconciliation`.
+type IacReconciliationParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	StateID string
+}
+
+// Reconciliation: Classify inventory against a state document
+//
+// Every synced resource classified as managed, drifted or unmanaged against one
+// uploaded state, plus state entries with no inventory match. Unmanaged
+// resources carry the ownership and first-seen join that answers "who made this
+// by hand, and when".
+//
+// GET /api/org/{orgId}/iac/reconciliation
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *IacNamespace) Reconciliation(ctx context.Context, params IacReconciliationParams, opts ...RequestOption) (*IacReconciliationResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/iac/reconciliation")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("stateId", params.StateID)
+	var out *IacReconciliationResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// IacResourceParams holds the parameters for `client.iac.resource`.
+type IacResourceParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ResourceID string
+}
+
+// Resource: IaC status for one resource
+//
+// The managed/unmanaged badge for a resource detail page, computed against the
+// newest state document. `status` is null when the organization has uploaded
+// none — absence of a state is not evidence of ClickOps. A query parameter
+// rather than a path segment because composite resource ids contain slashes.
+//
+// GET /api/org/{orgId}/iac/resource
+//
+// Raises on 400: Bad request
+func (n *IacNamespace) Resource(ctx context.Context, params IacResourceParams, opts ...RequestOption) (*IacResourceStatusResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/iac/resource")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("resourceId", params.ResourceID)
+	var out *IacResourceStatusResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// IacStatesNamespace is `client.iac.states`.
+type IacStatesNamespace struct {
+	t *transport
+}
+
+func newIacStatesNamespace(t *transport) *IacStatesNamespace {
+	n := &IacStatesNamespace{t: t}
+	return n
+}
+
+// IacStatesCreateParams holds the parameters for `client.iac.states.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type IacStatesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *IacStateUploadRequest
+}
+
+// Create: Upload a Terraform state document
+//
+// Parses a `.tfstate` (format version 4) or `terraform show -json` output
+// (format_version 1.x) and records the resource instances it contains.
+// Attributes the state marks sensitive are dropped before anything is written.
+// The format version is checked, not assumed: an unsupported version is a 400
+// rather than a partial read.
+//
+// POST /api/org/{orgId}/iac/states
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *IacStatesNamespace) Create(ctx context.Context, params *IacStatesCreateParams, opts ...RequestOption) (*IacStatesCreateResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/iac/states")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *IacStatesCreateResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// IacStatesDeleteParams holds the parameters for `client.iac.states.delete`.
+type IacStatesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	StateID string
+}
+
+// Delete: Delete an uploaded state document
+//
+// DELETE /api/org/{orgId}/iac/states/{stateId}
+//
+// Raises on 404: Not found
+func (n *IacStatesNamespace) Delete(ctx context.Context, params IacStatesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/iac/states/{stateId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("stateId", params.StateID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// IacStatesGetParams holds the parameters for `client.iac.states.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type IacStatesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List uploaded Terraform state documents
+//
+// Every state document the organization has uploaded, newest first. The
+// documents themselves are never stored — only the parsed, redacted projection.
+//
+// GET /api/org/{orgId}/iac/states
+func (n *IacStatesNamespace) Get(ctx context.Context, params *IacStatesGetParams, opts ...RequestOption) (*IacStateListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/iac/states")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *IacStateListResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

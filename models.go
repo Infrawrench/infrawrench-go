@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.19.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.20.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.19.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.20.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -4237,6 +4237,143 @@ type HygieneReport struct {
 	Counts                     HygieneReportCounts `json:"counts"`
 }
 
+// IacFieldChange is the `IacFieldChange` schema.
+type IacFieldChange struct {
+	Field string `json:"field"`
+	// From: The value Terraform state carries.
+	From any `json:"from,omitempty"`
+	// To: The value actually running.
+	To any `json:"to,omitempty"`
+}
+
+// IacImportPlanRequest is the `IacImportPlanRequest` schema.
+type IacImportPlanRequest struct {
+	ResourceIDs []string `json:"resourceIds"`
+}
+
+// IacImportPlanResponse is the `IacImportPlanResponse` schema.
+type IacImportPlanResponse struct {
+	// Hcl: `import` blocks followed by the generated resource stanzas.
+	Hcl         string                             `json:"hcl"`
+	Exported    []IacImportPlanResponseExported    `json:"exported"`
+	Unsupported []IacImportPlanResponseUnsupported `json:"unsupported"`
+}
+
+// IacReconciledResource is the `IacReconciledResource` schema.
+type IacReconciledResource struct {
+	ResourceID     string   `json:"resourceId"`
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	AccountID      string   `json:"accountId"`
+	DisplayName    string   `json:"displayName"`
+	ExternalID     *string  `json:"externalId"`
+	// Status: `managed`: matched a state entry and agrees with it. `drifted`:
+	// matched, but live fields differ. `unmanaged`: in inventory, absent from
+	// state — somebody made it by hand.
+	//
+	// One of "managed", "drifted", "unmanaged".
+	Status           string  `json:"status"`
+	TerraformType    *string `json:"terraformType"`
+	TerraformAddress *string `json:"terraformAddress"`
+	// MatchedBy: How the match was made, so it can be argued with.
+	//
+	// One of "import-id", "external-id", "identifier".
+	MatchedBy *string          `json:"matchedBy"`
+	Drift     []IacFieldChange `json:"drift"`
+	// UnmappableReason: Set when no Terraform block could be produced for this
+	// resource, which makes its drift unknowable. Never reported as "no drift".
+	UnmappableReason *string `json:"unmappableReason"`
+	// Owner: Resource owner annotation, populated for unmanaged resources.
+	Owner map[string]any `json:"owner"`
+	// FirstSeenAt: When the change timeline first recorded this resource
+	// appearing.
+	FirstSeenAt *string `json:"firstSeenAt"`
+}
+
+// IacReconciliationResponse is the `IacReconciliationResponse` schema.
+type IacReconciliationResponse struct {
+	State     IacState                `json:"state"`
+	Resources []IacReconciledResource `json:"resources"`
+	// StateOnly: State entries with no inventory match — their own category.
+	StateOnly []IacStateOnlyResource           `json:"stateOnly"`
+	Summary   IacReconciliationResponseSummary `json:"summary"`
+	// Underivable: Plugin resource types whose Terraform type could not be
+	// derived from the plugin's own export mapper. Reported rather than guessed.
+	Underivable []IacReconciliationResponseUnderivable `json:"underivable"`
+}
+
+// IacResourceStatusResponse is the `IacResourceStatusResponse` schema.
+type IacResourceStatusResponse struct {
+	// Status: One of "managed", "drifted", "unmanaged".
+	Status           *string `json:"status"`
+	StateID          *string `json:"stateId"`
+	StateLabel       *string `json:"stateLabel"`
+	TerraformAddress *string `json:"terraformAddress"`
+	DriftFieldCount  int64   `json:"driftFieldCount"`
+}
+
+// IacState is the `IacState` schema.
+type IacState struct {
+	ID string `json:"id"`
+	// Label: User-supplied name for this state, e.g. "prod / us-east-1".
+	Label string `json:"label"`
+	// AccountID: The account this state covers, or null when it covers the whole
+	// organization.
+	AccountID   *string `json:"accountId"`
+	AccountName *string `json:"accountName"`
+	// Format: Which document shape was uploaded: a raw state file, or `terraform
+	// show -json`.
+	//
+	// One of "tfstate", "show-json".
+	Format string `json:"format"`
+	// FormatVersion: The document's own version — "4" for a state file,
+	// "1.0"-style otherwise.
+	FormatVersion    string  `json:"formatVersion"`
+	TerraformVersion *string `json:"terraformVersion"`
+	// Serial: State file serial; null for show output.
+	Serial *int64 `json:"serial"`
+	// Lineage: State file lineage; null for show output.
+	Lineage *string `json:"lineage"`
+	// ResourceCount: Managed resource instances recorded.
+	ResourceCount int64 `json:"resourceCount"`
+	// DataSourceCount: Data-source entries, recorded but never matched against
+	// inventory.
+	DataSourceCount int64 `json:"dataSourceCount"`
+	// RedactedAttributeCount: Attribute values dropped because the state marked
+	// them sensitive. Redaction happens at parse time — no sensitive value is
+	// ever stored.
+	RedactedAttributeCount int64    `json:"redactedAttributeCount"`
+	ParseWarnings          []string `json:"parseWarnings"`
+	UploadedByUserID       *string  `json:"uploadedByUserId"`
+	UploadedByName         *string  `json:"uploadedByName"`
+	CreatedAt              string   `json:"createdAt"`
+}
+
+// IacStateListResponse is the `IacStateListResponse` schema.
+type IacStateListResponse struct {
+	States []IacState `json:"states"`
+}
+
+// IacStateOnlyResource is the `IacStateOnlyResource` schema.
+type IacStateOnlyResource struct {
+	Address       string                           `json:"address"`
+	TerraformType string                           `json:"terraformType"`
+	Identifiers   []string                         `json:"identifiers"`
+	Candidates    []IacStateOnlyResourceCandidates `json:"candidates"`
+	// Reason: One of "no-inventory-match", "unknown-terraform-type".
+	Reason string `json:"reason"`
+}
+
+// IacStateUploadRequest is the `IacStateUploadRequest` schema.
+type IacStateUploadRequest struct {
+	Label     string  `json:"label"`
+	AccountID *string `json:"accountId,omitempty"`
+	// Document: The state document, as text: a raw `.tfstate` (format version 4)
+	// or the output of `terraform show -json` (format_version 1.x). Limited to 8
+	// MiB.
+	Document string `json:"document"`
+}
+
 // ImportSSHKeyRequest is the `ImportSshKeyRequest` schema.
 //
 // Spec schema: `ImportSshKeyRequest`.
@@ -6179,6 +6316,8 @@ const (
 	PermissionTagPolicyOverride      Permission = "tag-policy:override"
 	PermissionConfigRead             Permission = "config:read"
 	PermissionConfigWrite            Permission = "config:write"
+	PermissionIacRead                Permission = "iac:read"
+	PermissionIacWrite               Permission = "iac:write"
 	PermissionAuditRead              Permission = "audit:read"
 	PermissionAccessRead             Permission = "access:read"
 	PermissionAccessRequest          Permission = "access:request"
@@ -8853,7 +8992,7 @@ type SyntheticProbeUpdate struct {
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
-	// "expiring", "posture", "access-review", "backups", "dns",
+	// "expiring", "posture", "access-review", "backups", "dns", "iac",
 	// "environment-diff", "ssh-fanout", "metric-alerts", "probes", "quotas",
 	// "incidents", "workflows", "deployments", "settings", "chat".
 	Kind           string      `json:"kind"`
@@ -9418,6 +9557,45 @@ type HygieneReportCounts struct {
 	Medium int64 `json:"medium"`
 	Low    int64 `json:"low"`
 	Total  int64 `json:"total"`
+}
+
+// IacImportPlanResponseExported is an object the spec declares inline.
+type IacImportPlanResponseExported struct {
+	ResourceID string  `json:"resourceId"`
+	Address    string  `json:"address"`
+	ImportID   *string `json:"importId"`
+}
+
+// IacImportPlanResponseUnsupported is an object the spec declares inline.
+type IacImportPlanResponseUnsupported struct {
+	ResourceID  string `json:"resourceId"`
+	DisplayName string `json:"displayName"`
+	Reason      string `json:"reason"`
+}
+
+// IacReconciliationResponseSummary is an object the spec declares inline.
+type IacReconciliationResponseSummary struct {
+	InventoryTotal     int64 `json:"inventoryTotal"`
+	Managed            int64 `json:"managed"`
+	Drifted            int64 `json:"drifted"`
+	Unmanaged          int64 `json:"unmanaged"`
+	StateOnly          int64 `json:"stateOnly"`
+	Undiffable         int64 `json:"undiffable"`
+	StateResources     int64 `json:"stateResources"`
+	DataSourcesIgnored int64 `json:"dataSourcesIgnored"`
+}
+
+// IacReconciliationResponseUnderivable is an object the spec declares inline.
+type IacReconciliationResponseUnderivable struct {
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	Reason         string   `json:"reason"`
+}
+
+// IacStateOnlyResourceCandidates is an object the spec declares inline.
+type IacStateOnlyResourceCandidates struct {
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
 }
 
 // IncidentTimelineFeeds is an object the spec declares inline.
@@ -10053,6 +10231,11 @@ type DeploymentsTriggersUpdateRequest struct {
 // DigestRecipientsDeleteResponse is an object the spec declares inline.
 type DigestRecipientsDeleteResponse struct {
 	OK bool `json:"ok"`
+}
+
+// IacStatesCreateResponse is an object the spec declares inline.
+type IacStatesCreateResponse struct {
+	State IacState `json:"state"`
 }
 
 // JiraGetResponse is an object the spec declares inline.
