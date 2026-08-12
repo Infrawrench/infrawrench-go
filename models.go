@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.14.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.15.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.14.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.15.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -339,6 +339,7 @@ const (
 	AlertTriggerPostureAlerts            AlertTrigger = "postureAlerts"
 	AlertTriggerProbeAlerts              AlertTrigger = "probeAlerts"
 	AlertTriggerQuotaAlerts              AlertTrigger = "quotaAlerts"
+	AlertTriggerIncidentAlerts           AlertTrigger = "incidentAlerts"
 	AlertTriggerWeeklyDigest             AlertTrigger = "weeklyDigest"
 )
 
@@ -3681,6 +3682,229 @@ type ImportedSSHKey struct {
 	IsImported  bool       `json:"isImported"`
 }
 
+// Incident is the `Incident` schema.
+type Incident struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+	// Severity: Severity in the ordinary sev1..sev4 register. `sev1` is a
+	// complete outage; `sev4` is cosmetic and tracked rather than paged.
+	//
+	// One of "sev1", "sev2", "sev3", "sev4".
+	Severity string `json:"severity"`
+	// Status: `mitigated` is a real state, not a synonym for resolved: impact
+	// has stopped but the incident is still open for follow-up. Keeping it
+	// separate is what makes time-to-mitigate a measurement rather than a guess.
+	// Resolving runs the resolve path — the change freeze this incident opened
+	// is lifted, and the status-page update it posted is closed.
+	//
+	// One of "open", "mitigated", "resolved".
+	Status  string  `json:"status"`
+	Summary *string `json:"summary"`
+	// StartedAt: Backdatable — people declare after they start firefighting.
+	StartedAt        string  `json:"startedAt"`
+	MitigatedAt      *string `json:"mitigatedAt"`
+	ResolvedAt       *string `json:"resolvedAt"`
+	DeclaredByUserID *string `json:"declaredByUserId"`
+	DeclaredByName   *string `json:"declaredByName"`
+	ResolvedByUserID *string `json:"resolvedByUserId"`
+	// AffectedResourceIDs: Advisory. Not foreign keys — the claim must survive
+	// the resource being deleted.
+	AffectedResourceIDs []string `json:"affectedResourceIds"`
+	AffectedAccountIDs  []string `json:"affectedAccountIds"`
+	// IssueURL: Where the write-up was filed, once anyone filed it.
+	IssueURL  *string            `json:"issueUrl"`
+	CreatedAt string             `json:"createdAt"`
+	UpdatedAt string             `json:"updatedAt"`
+	Artifacts []IncidentArtifact `json:"artifacts"`
+	NoteCount int64              `json:"noteCount"`
+}
+
+// IncidentActions is the `IncidentActions` schema.
+type IncidentActions struct {
+	// OpenFreeze: Open an org change freeze for the duration, lifted when the
+	// incident resolves. Defaults to false — freezing has blast radius beyond
+	// the incident. Needs `freezes:write`; without it the freeze is recorded as
+	// a failed artefact naming the permission, and the incident still stands.
+	OpenFreeze *bool `json:"openFreeze,omitempty"`
+	// PinMoment: Pin the moment (a timestamp and a window) so `GET /moment` is
+	// one click away. Defaults to true — it cannot fail, and the investigation
+	// always wants it.
+	PinMoment *bool `json:"pinMoment,omitempty"`
+	// PostSlack: Announce through the org's alert routing rules under the
+	// `incidentAlerts` trigger, so channels, quiet hours, escalation and the
+	// acknowledge button all apply unchanged. Defaults to true. If no rule
+	// matches, the artefact fails and says so.
+	PostSlack *bool `json:"postSlack,omitempty"`
+	// StatusPageID: Post a public update on this status page. Omitted means no
+	// public update.
+	StatusPageID *string `json:"statusPageId,omitempty"`
+	// StatusPageComponentIDs: Components on that page to mark affected. Empty
+	// means the page as a whole.
+	StatusPageComponentIDs []string `json:"statusPageComponentIds,omitempty"`
+}
+
+// IncidentArtifact is the `IncidentArtifact` schema.
+type IncidentArtifact struct {
+	ID string `json:"id"`
+	// Kind: Which side effect of declaring this artefact records.
+	//
+	// One of "freeze", "moment", "slack", "status-page".
+	Kind string `json:"kind"`
+	// Status: `failed` is a stored state, not an error: declaring writes the
+	// incident first and attempts each opted-in side effect afterwards, so a
+	// Slack outage costs the announcement and never the incident. A failed
+	// artefact carries its error and can be retried.
+	//
+	// `close_failed` is the other half and is deliberately distinct: the
+	// artefact **was** created and resolving could not put it away, so the
+	// change freeze is still in force or the public notice still reports an
+	// outage. Retrying a `failed` artefact re-creates it; retrying a
+	// `close_failed` one re-closes it. Collapsing the two would either strand
+	// the incident with a live freeze nothing can lift, or open a second freeze.
+	//
+	// One of "created", "failed", "closed", "close_failed".
+	Status string `json:"status"`
+	// Label: Human label — the freeze name, the destination count.
+	Label *string `json:"label"`
+	// RefID: Freeze id, notice id, Slack channel id…
+	RefID *string `json:"refId"`
+	// RefSecondary: Second half of a compound reference — a Slack message ts, a
+	// window width.
+	RefSecondary *string `json:"refSecondary"`
+	// Error: Why it failed. Null unless `status` is `failed` or `close_failed`.
+	Error     *string                  `json:"error"`
+	Request   *IncidentArtifactRequest `json:"request"`
+	CreatedAt string                   `json:"createdAt"`
+	UpdatedAt string                   `json:"updatedAt"`
+}
+
+// IncidentArtifactRequest: What the declaration asked for, recorded so a retry
+// asks for the same thing. Present on the status-page artefact, where a retry
+// that forgot the operator's chosen components would publish the outage against
+// the whole page.
+//
+// The API may send null in its place.
+type IncidentArtifactRequest struct {
+	StatusPageID *string  `json:"statusPageId,omitempty"`
+	ComponentIDs []string `json:"componentIds,omitempty"`
+}
+
+// IncidentDeclare is the `IncidentDeclare` schema.
+type IncidentDeclare struct {
+	Title string `json:"title"`
+	// Severity: Severity in the ordinary sev1..sev4 register. `sev1` is a
+	// complete outage; `sev4` is cosmetic and tracked rather than paged.
+	//
+	// One of "sev1", "sev2", "sev3", "sev4".
+	Severity *string `json:"severity,omitempty"`
+	Summary  *string `json:"summary,omitempty"`
+	// StartedAt: Defaults to now.
+	StartedAt           *string          `json:"startedAt,omitempty"`
+	AffectedResourceIDs []string         `json:"affectedResourceIds,omitempty"`
+	AffectedAccountIDs  []string         `json:"affectedAccountIds,omitempty"`
+	Actions             *IncidentActions `json:"actions,omitempty"`
+}
+
+// IncidentDetail is the `IncidentDetail` schema.
+type IncidentDetail struct {
+	Incident Incident       `json:"incident"`
+	Notes    []IncidentNote `json:"notes"`
+}
+
+// IncidentList is the `IncidentList` schema.
+type IncidentList struct {
+	Incidents []Incident `json:"incidents"`
+}
+
+// IncidentNote is the `IncidentNote` schema.
+type IncidentNote struct {
+	ID           string  `json:"id"`
+	Body         string  `json:"body"`
+	AuthorUserID *string `json:"authorUserId"`
+	AuthorName   *string `json:"authorName"`
+	// OccurredAt: When the note is *about*, which may precede when it was
+	// written — a note typed at 04:00 can be dated to 03:14 and lands there on
+	// the timeline.
+	OccurredAt string `json:"occurredAt"`
+	CreatedAt  string `json:"createdAt"`
+}
+
+// IncidentNoteCreate is the `IncidentNoteCreate` schema.
+type IncidentNoteCreate struct {
+	Body string `json:"body"`
+	// OccurredAt: Defaults to now; backdate to place the note.
+	OccurredAt *string `json:"occurredAt,omitempty"`
+}
+
+// IncidentPatch is the `IncidentPatch` schema.
+type IncidentPatch struct {
+	Title *string `json:"title,omitempty"`
+	// Severity: Severity in the ordinary sev1..sev4 register. `sev1` is a
+	// complete outage; `sev4` is cosmetic and tracked rather than paged.
+	//
+	// One of "sev1", "sev2", "sev3", "sev4".
+	Severity *string `json:"severity,omitempty"`
+	// Status: `mitigated` is a real state, not a synonym for resolved: impact
+	// has stopped but the incident is still open for follow-up. Keeping it
+	// separate is what makes time-to-mitigate a measurement rather than a guess.
+	// Resolving runs the resolve path — the change freeze this incident opened
+	// is lifted, and the status-page update it posted is closed.
+	//
+	// One of "open", "mitigated", "resolved".
+	Status              *string  `json:"status,omitempty"`
+	Summary             *string  `json:"summary,omitempty"`
+	AffectedResourceIDs []string `json:"affectedResourceIds,omitempty"`
+	AffectedAccountIDs  []string `json:"affectedAccountIds,omitempty"`
+	IssueURL            *string  `json:"issueUrl,omitempty"`
+}
+
+// IncidentPostmortem is the `IncidentPostmortem` schema.
+type IncidentPostmortem struct {
+	Markdown string `json:"markdown"`
+	Filename string `json:"filename"`
+}
+
+// IncidentTimeline is the `IncidentTimeline` schema.
+type IncidentTimeline struct {
+	IncidentID string `json:"incidentId"`
+	From       string `json:"from"`
+	// To: `resolvedAt`, or the server's clock while the incident is open.
+	To          string                  `json:"to"`
+	GeneratedAt string                  `json:"generatedAt"`
+	Entries     []IncidentTimelineEntry `json:"entries"`
+	// Feeds: Per-feed health, passed through from the moment union: `omitted`
+	// means the caller lacks that feed's read permission, `error` means it
+	// failed and the rest is still good.
+	Feeds     []IncidentTimelineFeeds `json:"feeds"`
+	Truncated bool                    `json:"truncated"`
+}
+
+// IncidentTimelineEntry is the `IncidentTimelineEntry` schema.
+type IncidentTimelineEntry struct {
+	ID string `json:"id"`
+	// Source: `moment` covers everything the moment union already indexes —
+	// resource changes, deployments, cost anomalies, provider status incidents,
+	// audit entries, change freezes and workflow runs. Nothing is copied into
+	// the incident's own tables; the timeline is a join, so re-reading it
+	// reflects the record as it stands today.
+	//
+	// One of "incident", "note", "artifact", "moment", "probe", "metric-alert".
+	Source string `json:"source"`
+	// Kind: `<noun>.<verb>`. Open set — render unknown kinds generically.
+	Kind   string  `json:"kind"`
+	At     string  `json:"at"`
+	Title  string  `json:"title"`
+	Detail *string `json:"detail,omitempty"`
+	// Severity: One of "info", "warning", "critical".
+	Severity     string                     `json:"severity"`
+	AuthorName   *string                    `json:"authorName,omitempty"`
+	ResourceID   *string                    `json:"resourceId,omitempty"`
+	ResourceName *string                    `json:"resourceName,omitempty"`
+	PluginID     *string                    `json:"pluginId,omitempty"`
+	AccountID    *string                    `json:"accountId,omitempty"`
+	Link         *IncidentTimelineEntryLink `json:"link,omitempty"`
+}
+
 // Invitation is the `Invitation` schema.
 type Invitation struct {
 	ID         string           `json:"id"`
@@ -5366,6 +5590,8 @@ const (
 	PermissionFreezesRead            Permission = "freezes:read"
 	PermissionFreezesWrite           Permission = "freezes:write"
 	PermissionFreezesOverride        Permission = "freezes:override"
+	PermissionIncidentsRead          Permission = "incidents:read"
+	PermissionIncidentsWrite         Permission = "incidents:write"
 	PermissionTagPolicyOverride      Permission = "tag-policy:override"
 	PermissionConfigRead             Permission = "config:read"
 	PermissionConfigWrite            Permission = "config:write"
@@ -7958,8 +8184,8 @@ type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
 	// "expiring", "posture", "dns", "environment-diff", "ssh-fanout",
-	// "metric-alerts", "probes", "quotas", "workflows", "deployments",
-	// "settings", "chat".
+	// "metric-alerts", "probes", "quotas", "incidents", "workflows",
+	// "deployments", "settings", "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -8516,6 +8742,25 @@ type HygieneReportCounts struct {
 	Medium int64 `json:"medium"`
 	Low    int64 `json:"low"`
 	Total  int64 `json:"total"`
+}
+
+// IncidentTimelineFeeds is an object the spec declares inline.
+type IncidentTimelineFeeds struct {
+	Feed string `json:"feed"`
+	// Status: One of "ok", "omitted", "error".
+	Status string  `json:"status"`
+	Error  *string `json:"error,omitempty"`
+}
+
+// IncidentTimelineEntryLink is an object the spec declares inline.
+type IncidentTimelineEntryLink struct {
+	// Kind: One of "resource", "changes", "provider-incident", "costs",
+	// "workflow-run", "deployment", "audit", "freeze", "expiring", "probe",
+	// "metric-alert", "incident".
+	Kind     string  `json:"kind"`
+	ID       *string `json:"id,omitempty"`
+	ParentID *string `json:"parentId,omitempty"`
+	URL      *string `json:"url,omitempty"`
 }
 
 // InvoiceDerivationRates is an object the spec declares inline.
