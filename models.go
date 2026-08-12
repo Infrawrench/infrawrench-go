@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.15.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.16.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.15.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.16.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -57,6 +57,94 @@ type AccessDecisionForbidden struct {
 	Missing []string `json:"missing,omitempty"`
 }
 
+// AccessFinding is the `AccessFinding` schema.
+type AccessFinding struct {
+	// ResourceID: Infrawrench resource id the finding is on.
+	ResourceID string `json:"resourceId"`
+	// RuleID: Which rule was raised. Half of a dismissal's key, alongside the
+	// resource id. The `access-review:` prefix is reserved so these can share
+	// the posture dismissal store without colliding with plugin-declared posture
+	// rule ids.
+	//
+	// One of "access-review:stale-principal", "access-review:admin-principal",
+	// "access-review:key-past-rotation", "access-review:no-recorded-owner",
+	// "access-review:no-mfa".
+	RuleID string `json:"ruleId"`
+	Title  string `json:"title"`
+	// Severity: How bad the finding is. `critical` and `high` findings ride the
+	// posture alert window; `medium` and `low` are review work surfaced on the
+	// access review screen and in the weekly digest only.
+	//
+	// One of "critical", "high", "medium", "low".
+	Severity string `json:"severity"`
+	// Reason: Why this principal is flagged, in a sentence.
+	Reason    string          `json:"reason"`
+	Principal AccessPrincipal `json:"principal"`
+}
+
+// AccessPrincipal is the `AccessPrincipal` schema.
+type AccessPrincipal struct {
+	// ResourceID: Infrawrench resource id.
+	ResourceID       string   `json:"resourceId"`
+	PluginID         PluginID `json:"pluginId"`
+	PluginName       string   `json:"pluginName"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	AccountID        string   `json:"accountId"`
+	AccountName      string   `json:"accountName"`
+	DisplayName      string   `json:"displayName"`
+	// ExternalID: Provider-native id, when known.
+	ExternalID *string `json:"externalId"`
+	// Role: What kind of identity the principal is, from the resource type's
+	// `principalRole` declaration. Grouping and labels only — it is not a
+	// permission model.
+	//
+	// One of "user", "group", "role", "service-account", "key", "binding".
+	Role string `json:"role"`
+	// LastUsedAt: When the principal was last used, or null when the review has
+	// no evidence.
+	LastUsedAt        *string `json:"lastUsedAt"`
+	DaysSinceLastUsed *int64  `json:"daysSinceLastUsed"`
+	// Activity: What could be established about the principal's last use.
+	// `unknown` means the resource type declares no last-used field, or the
+	// provider stored nothing parseable — it is a first-class answer and is
+	// never reported as `stale`.
+	//
+	// One of "active", "stale", "unknown".
+	Activity  string  `json:"activity"`
+	CreatedAt *string `json:"createdAt"`
+	AgeDays   *int64  `json:"ageDays"`
+	// Admin: True when the type's declared admin indicator matched; null when
+	// the type declares none.
+	Admin *bool `json:"admin"`
+	// MFA: Multi-factor state, only on types that declare an MFA field. Null
+	// everywhere else — "not synced" is not "MFA is off".
+	MFA *bool `json:"mfa"`
+	// Parent: The principal this one hangs off — a key's owner, a binding's
+	// subject.
+	Parent *string               `json:"parent"`
+	Owner  *AccessPrincipalOwner `json:"owner"`
+	// RevokeActionID: The plugin action that revokes this principal, when the
+	// type declares one. Dispatch it through POST /resources/invoke-action; null
+	// means the provider offers no revocation Infrawrench can invoke.
+	RevokeActionID *string `json:"revokeActionId"`
+}
+
+// AccessPrincipalOwner: Who owns the resource, from the resource-ownership
+// record. Null when nobody is named.
+//
+// The API may send null in its place.
+type AccessPrincipalOwner struct {
+	// UserID: Infrawrench user id when the owner is a member.
+	UserID *string `json:"userId"`
+	// DisplayName: Member name, or the free-text owner label.
+	DisplayName string `json:"displayName"`
+	// IsLabel: True when the owner is a label rather than a routable member.
+	IsLabel   bool    `json:"isLabel"`
+	TicketURL *string `json:"ticketUrl"`
+	Purpose   *string `json:"purpose"`
+}
+
 // AccessRequest is the `AccessRequest` schema.
 type AccessRequest struct {
 	ID       string  `json:"id"`
@@ -105,6 +193,91 @@ type AccessRequestCreate struct {
 	Permissions     []string `json:"permissions"`
 	Reason          string   `json:"reason"`
 	DurationMinutes int64    `json:"durationMinutes"`
+}
+
+// AccessReviewDismissal is the `AccessReviewDismissal` schema.
+type AccessReviewDismissal struct {
+	ResourceID string `json:"resourceId"`
+	RuleID     string `json:"ruleId"`
+	// DismissedAt: When the finding was accepted.
+	DismissedAt string `json:"dismissedAt"`
+	// DismissedBy: Display name or email of whoever accepted it; null when
+	// unknown.
+	DismissedBy *string `json:"dismissedBy"`
+	// Reason: The operator's note, when they left one.
+	Reason *string `json:"reason"`
+}
+
+// AccessReviewDismissalCreate is the `AccessReviewDismissalCreate` schema.
+type AccessReviewDismissalCreate struct {
+	// ResourceID: Infrawrench resource id the finding is on.
+	ResourceID string `json:"resourceId"`
+	// RuleID: Which rule was raised. Half of a dismissal's key, alongside the
+	// resource id. The `access-review:` prefix is reserved so these can share
+	// the posture dismissal store without colliding with plugin-declared posture
+	// rule ids.
+	//
+	// One of "access-review:stale-principal", "access-review:admin-principal",
+	// "access-review:key-past-rotation", "access-review:no-recorded-owner",
+	// "access-review:no-mfa".
+	RuleID string `json:"ruleId"`
+	// Reason: Why this finding is acceptable. Trimmed; an empty note is stored
+	// as none.
+	Reason *string `json:"reason,omitempty"`
+}
+
+// AccessReviewResponse is the `AccessReviewResponse` schema.
+type AccessReviewResponse struct {
+	// Principals: Every synced principal, by account then type then name. Never
+	// filtered by dismissals — accepting a finding must not remove a principal
+	// from the inventory.
+	Principals []AccessPrincipal `json:"principals"`
+	// Findings: Live findings, worst severity first. Dismissed findings are not
+	// included.
+	Findings []AccessFinding `json:"findings"`
+	// TotalCount: Live finding count; dismissals excluded.
+	TotalCount int64                      `json:"totalCount"`
+	Counts     AccessReviewSeverityCounts `json:"counts"`
+	ByRule     AccessReviewRuleCounts     `json:"byRule"`
+	ByRole     AccessReviewRoleCounts     `json:"byRole"`
+	// Dismissed: Findings a dismissal is currently suppressing, most recently
+	// dismissed first. Only dismissals whose rule still matches appear.
+	Dismissed      []DismissedAccessFinding `json:"dismissed"`
+	DismissedCount int64                    `json:"dismissedCount"`
+	// UnknownActivityCount: How many principals the review could establish no
+	// last-use evidence for. Surfaces render this so "we found nothing" and "we
+	// could not look" do not read the same.
+	UnknownActivityCount int64 `json:"unknownActivityCount"`
+	// StaleDays: The staleness window this review was computed against.
+	StaleDays   int64  `json:"staleDays"`
+	GeneratedAt string `json:"generatedAt"`
+}
+
+// AccessReviewRoleCounts is the `AccessReviewRoleCounts` schema.
+type AccessReviewRoleCounts struct {
+	User           int64 `json:"user"`
+	Group          int64 `json:"group"`
+	Role           int64 `json:"role"`
+	ServiceAccount int64 `json:"service-account"`
+	Key            int64 `json:"key"`
+	Binding        int64 `json:"binding"`
+}
+
+// AccessReviewRuleCounts is the `AccessReviewRuleCounts` schema.
+type AccessReviewRuleCounts struct {
+	AccessReviewStalePrincipal  int64 `json:"access-review:stale-principal"`
+	AccessReviewAdminPrincipal  int64 `json:"access-review:admin-principal"`
+	AccessReviewKeyPastRotation int64 `json:"access-review:key-past-rotation"`
+	AccessReviewNoRecordedOwner int64 `json:"access-review:no-recorded-owner"`
+	AccessReviewNoMFA           int64 `json:"access-review:no-mfa"`
+}
+
+// AccessReviewSeverityCounts is the `AccessReviewSeverityCounts` schema.
+type AccessReviewSeverityCounts struct {
+	Critical int64 `json:"critical"`
+	High     int64 `json:"high"`
+	Medium   int64 `json:"medium"`
+	Low      int64 `json:"low"`
 }
 
 // AccessRevokeConflict is the `AccessRevokeConflict` schema.
@@ -3047,6 +3220,32 @@ type DigestSettingsUpdate struct {
 type DigestTransportResult struct {
 	Attempted int64 `json:"attempted"`
 	Succeeded int64 `json:"succeeded"`
+}
+
+// DismissedAccessFinding is the `DismissedAccessFinding` schema.
+type DismissedAccessFinding struct {
+	// ResourceID: Infrawrench resource id the finding is on.
+	ResourceID string `json:"resourceId"`
+	// RuleID: Which rule was raised. Half of a dismissal's key, alongside the
+	// resource id. The `access-review:` prefix is reserved so these can share
+	// the posture dismissal store without colliding with plugin-declared posture
+	// rule ids.
+	//
+	// One of "access-review:stale-principal", "access-review:admin-principal",
+	// "access-review:key-past-rotation", "access-review:no-recorded-owner",
+	// "access-review:no-mfa".
+	RuleID string `json:"ruleId"`
+	Title  string `json:"title"`
+	// Severity: How bad the finding is. `critical` and `high` findings ride the
+	// posture alert window; `medium` and `low` are review work surfaced on the
+	// access review screen and in the weekly digest only.
+	//
+	// One of "critical", "high", "medium", "low".
+	Severity string `json:"severity"`
+	// Reason: Why this principal is flagged, in a sentence.
+	Reason    string                `json:"reason"`
+	Principal AccessPrincipal       `json:"principal"`
+	Dismissal AccessReviewDismissal `json:"dismissal"`
 }
 
 // DismissedPostureFinding is the `DismissedPostureFinding` schema.
@@ -8183,9 +8382,9 @@ type SyntheticProbeUpdate struct {
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
-	// "expiring", "posture", "dns", "environment-diff", "ssh-fanout",
-	// "metric-alerts", "probes", "quotas", "incidents", "workflows",
-	// "deployments", "settings", "chat".
+	// "expiring", "posture", "access-review", "dns", "environment-diff",
+	// "ssh-fanout", "metric-alerts", "probes", "quotas", "incidents",
+	// "workflows", "deployments", "settings", "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
