@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.18.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.19.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.18.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.19.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -53,6 +53,8 @@ type APIV1Client struct {
 	AuditLogs *AuditLogsNamespace
 	// Auth: `client.auth`.
 	Auth *AuthNamespace
+	// Backups: `client.backups`.
+	Backups *BackupsNamespace
 	// Bastions: `client.bastions`.
 	Bastions *BastionsNamespace
 	// Billing: `client.billing`.
@@ -220,6 +222,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Associations = newAssociationsNamespace(t)
 	c.AuditLogs = newAuditLogsNamespace(t)
 	c.Auth = newAuthNamespace(t)
+	c.Backups = newBackupsNamespace(t)
 	c.Bastions = newBastionsNamespace(t)
 	c.Billing = newBillingNamespace(t)
 	c.BillingRules = newBillingRulesNamespace(t)
@@ -2103,6 +2106,189 @@ func (n *AuthNamespace) Me(ctx context.Context, opts ...RequestOption) (*Session
 func (n *AuthNamespace) Orgs(ctx context.Context, opts ...RequestOption) ([]OrgMembership, error) {
 	r := newRequest(http.MethodGet, "/api/auth/orgs")
 	var out []OrgMembership
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BackupsNamespace is `client.backups`.
+type BackupsNamespace struct {
+	t *transport
+
+	// Policies: `client.backups.policies`.
+	Policies *BackupsPoliciesNamespace
+}
+
+func newBackupsNamespace(t *transport) *BackupsNamespace {
+	n := &BackupsNamespace{t: t}
+	n.Policies = newBackupsPoliciesNamespace(t)
+	return n
+}
+
+// BackupsGetParams holds the parameters for `client.backups.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type BackupsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List backup coverage across synced resources
+//
+// What protects the organization's stateful resources, what does not, and which
+// backups protect nothing. Derived from already-synced inventory using the
+// `backupRole` and `backupPolicy` declarations plugins carry on their resource
+// types — no provider API calls are made and results reflect the last sync.
+// Findings are recomputed on every read rather than stored. Orphaned backups
+// carry a trailing-30-day spend quote when billing data is available.
+//
+// GET /api/org/{orgId}/backups
+func (n *BackupsNamespace) Get(ctx context.Context, params *BackupsGetParams, opts ...RequestOption) (*BackupCoverageResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/backups")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *BackupCoverageResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BackupsPoliciesNamespace is `client.backups.policies`.
+type BackupsPoliciesNamespace struct {
+	t *transport
+}
+
+func newBackupsPoliciesNamespace(t *transport) *BackupsPoliciesNamespace {
+	n := &BackupsPoliciesNamespace{t: t}
+	return n
+}
+
+// BackupsPoliciesCreateParams holds the parameters for
+// `client.backups.policies.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type BackupsPoliciesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *BackupPolicyCreate
+}
+
+// Create: Create a backup policy
+//
+// A policy must demand at least one of `maxRpoHours` and `minRetentionDays` —
+// one that demands nothing could never produce a finding and would read as
+// protection while providing none. An empty `resourceTypeIds` selects every
+// stateful resource type.
+//
+// POST /api/org/{orgId}/backups/policies
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: Conflict
+func (n *BackupsPoliciesNamespace) Create(ctx context.Context, params *BackupsPoliciesCreateParams, opts ...RequestOption) (*BackupPolicy, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/backups/policies")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *BackupPolicy
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BackupsPoliciesDeleteParams holds the parameters for
+// `client.backups.policies.delete`.
+type BackupsPoliciesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	PolicyID string
+}
+
+// Delete: Delete a backup policy
+//
+// Removes the objective. To stop a policy judging without losing it, set
+// `enabled` to false instead.
+//
+// DELETE /api/org/{orgId}/backups/policies/{policyId}
+//
+// Raises on 404: Not found
+func (n *BackupsPoliciesNamespace) Delete(ctx context.Context, params BackupsPoliciesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/backups/policies/{policyId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("policyId", params.PolicyID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// BackupsPoliciesGetParams holds the parameters for
+// `client.backups.policies.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type BackupsPoliciesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List the organization's backup policies
+//
+// The recovery objectives coverage is judged against. A policy selects resources
+// by type and/or tag and demands a maximum RPO, a minimum retention, or both.
+//
+// GET /api/org/{orgId}/backups/policies
+func (n *BackupsPoliciesNamespace) Get(ctx context.Context, params *BackupsPoliciesGetParams, opts ...RequestOption) (*BackupPolicyList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/backups/policies")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *BackupPolicyList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BackupsPoliciesUpdateParams holds the parameters for
+// `client.backups.policies.update`.
+type BackupsPoliciesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	PolicyID string
+	// Body: the JSON request body.
+	Body *BackupPolicyUpdate
+}
+
+// Update: Update a backup policy
+//
+// Omitted fields are left alone; an explicit `null` clears `tagKey`, `tagValue`,
+// `maxRpoHours` or `minRetentionDays`. The result is validated after merging, so
+// a patch that would leave the policy demanding nothing is rejected.
+//
+// PATCH /api/org/{orgId}/backups/policies/{policyId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *BackupsPoliciesNamespace) Update(ctx context.Context, params BackupsPoliciesUpdateParams, opts ...RequestOption) (*BackupPolicy, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/backups/policies/{policyId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("policyId", params.PolicyID)
+	r.setJSONBody(params.Body)
+	var out *BackupPolicy
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

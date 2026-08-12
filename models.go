@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.18.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.19.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.18.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.19.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -636,6 +636,211 @@ type AuthFactor struct {
 	UpdatedAt  string  `json:"updatedAt"`
 	TOTPIssuer *string `json:"totpIssuer"`
 	TOTPUser   *string `json:"totpUser"`
+}
+
+// BackupCoverageResponse is the `BackupCoverageResponse` schema.
+type BackupCoverageResponse struct {
+	// Findings: Gaps, worst severity first.
+	Findings    []BackupFinding       `json:"findings"`
+	Counts      BackupSeverityCounts  `json:"counts"`
+	KindCounts  BackupKindCounts      `json:"kindCounts"`
+	TotalCount  int64                 `json:"totalCount"`
+	Resources   []BackupCoverageRow   `json:"resources"`
+	Summary     BackupCoverageSummary `json:"summary"`
+	GeneratedAt string                `json:"generatedAt"`
+}
+
+// BackupCoverageRow is the `BackupCoverageRow` schema.
+type BackupCoverageRow struct {
+	ResourceID       string   `json:"resourceId"`
+	PluginID         PluginID `json:"pluginId"`
+	PluginName       string   `json:"pluginName"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	AccountID        string   `json:"accountId"`
+	AccountName      string   `json:"accountName"`
+	DisplayName      string   `json:"displayName"`
+	ExternalID       *string  `json:"externalId"`
+	// State: How the resource reads at a glance. `automated` means the provider
+	// is taking backups we cannot enumerate, so there is a restore point but no
+	// listable one. `unknown` means the resource type declares a provider-native
+	// automated-backup signal but this instance's value could not be read — it
+	// is unassessed, not a confirmed gap, and never produces a finding.
+	//
+	// One of "protected", "automated", "stale", "unknown", "unprotected".
+	State string `json:"state"`
+	// BackupCount: Backups in the inventory that protect this resource.
+	BackupCount      int64    `json:"backupCount"`
+	LatestBackupID   *string  `json:"latestBackupId"`
+	LatestBackupName *string  `json:"latestBackupName"`
+	LatestBackupAt   *string  `json:"latestBackupAt"`
+	RpoHours         *float64 `json:"rpoHours"`
+	// AutomatedBackups: Whether provider-native automated backups are on. Null
+	// means the plugin syncs no signal either way — which never counts as
+	// protection and never counts as a fault.
+	AutomatedBackups *bool    `json:"automatedBackups"`
+	RetentionDays    *float64 `json:"retentionDays"`
+	// RpoPolicyID: The policy supplying `maxRpoHours` — the strictest RPO among
+	// those selecting this resource. Tracked separately from the retention
+	// policy because the two strictest demands routinely come from different
+	// policies.
+	RpoPolicyID   *string `json:"rpoPolicyId"`
+	RpoPolicyName *string `json:"rpoPolicyName"`
+	// RetentionPolicyID: The policy supplying `minRetentionDays`.
+	RetentionPolicyID   *string `json:"retentionPolicyId"`
+	RetentionPolicyName *string `json:"retentionPolicyName"`
+	MaxRpoHours         *int64  `json:"maxRpoHours"`
+	MinRetentionDays    *int64  `json:"minRetentionDays"`
+}
+
+// BackupCoverageSummary is the `BackupCoverageSummary` schema.
+type BackupCoverageSummary struct {
+	// StatefulCount: Stateful resources the plugin declarations can judge.
+	StatefulCount  int64 `json:"statefulCount"`
+	ProtectedCount int64 `json:"protectedCount"`
+	// UnprotectedCount: Confirmed gaps. Excludes unassessed resources; this is
+	// what the digest counts.
+	UnprotectedCount int64 `json:"unprotectedCount"`
+	// UnknownCount: Resources that could not be assessed: the type declares a
+	// provider-native automated-backup signal but this instance's value was
+	// absent or unrecognised. Reported separately so 'we found no gap' and 'we
+	// could not tell' do not read alike.
+	UnknownCount        int64 `json:"unknownCount"`
+	BackupCount         int64 `json:"backupCount"`
+	OrphanedBackupCount int64 `json:"orphanedBackupCount"`
+	// UnattributableBackupCount: Backups whose source could not be determined —
+	// the plugin syncs no source field, the field was empty, or more than one
+	// resource answered to it. Reported rather than hidden: 'we found no
+	// orphans' and 'we could not tell' are different answers.
+	UnattributableBackupCount int64    `json:"unattributableBackupCount"`
+	OrphanedGb                *float64 `json:"orphanedGb"`
+	// OrphanedMonthlyCost: Null when billing data is unavailable or the orphans
+	// span several currencies.
+	OrphanedMonthlyCost *float64 `json:"orphanedMonthlyCost"`
+	Currency            *string  `json:"currency"`
+	// WorstRpoHours: Largest RPO across resources that have a datable backup at
+	// all.
+	WorstRpoHours *float64 `json:"worstRpoHours"`
+}
+
+// BackupFinding is the `BackupFinding` schema.
+type BackupFinding struct {
+	// ResourceID: Infrawrench resource id the finding is on.
+	ResourceID       string   `json:"resourceId"`
+	PluginID         PluginID `json:"pluginId"`
+	PluginName       string   `json:"pluginName"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	AccountID        string   `json:"accountId"`
+	AccountName      string   `json:"accountName"`
+	DisplayName      string   `json:"displayName"`
+	// ExternalID: Provider-native id, when known.
+	ExternalID *string `json:"externalId"`
+	// Kind: What the finding describes: nothing protects the resource; the
+	// newest backup is older than the policy's RPO; the provider-native
+	// retention window is shorter than the policy asks; or a backup whose source
+	// resource no longer exists.
+	//
+	// One of "unprotected", "rpo-breach", "retention-below-policy",
+	// "orphaned-snapshot".
+	Kind string `json:"kind"`
+	// Severity: How bad the gap is. Orphaned backups are always `low` — they
+	// cost money, not data.
+	//
+	// One of "critical", "high", "medium", "low".
+	Severity string `json:"severity"`
+	Title    string `json:"title"`
+	// Detail: Sentence explaining the gap and what would close it.
+	Detail string `json:"detail"`
+	// PolicyID: The policy supplying the objective this finding breaches — the
+	// RPO policy for `rpo-breach`, the retention policy for
+	// `retention-below-policy`. Null when no policy applies.
+	PolicyID   *string `json:"policyId"`
+	PolicyName *string `json:"policyName"`
+	// RpoHours: Hours since the newest backup protecting the resource; null when
+	// there is none.
+	RpoHours *float64 `json:"rpoHours"`
+	// MaxRpoHours: The policy's allowance, when one applied.
+	MaxRpoHours *int64 `json:"maxRpoHours"`
+	// RetentionDays: Provider-native retention window in days, when the plugin
+	// syncs one.
+	RetentionDays    *float64 `json:"retentionDays"`
+	MinRetentionDays *int64   `json:"minRetentionDays"`
+	LatestBackupID   *string  `json:"latestBackupId"`
+	LatestBackupName *string  `json:"latestBackupName"`
+	LatestBackupAt   *string  `json:"latestBackupAt"`
+	// SizeGb: Size of an orphaned backup in GiB, when the plugin syncs one.
+	SizeGb *float64 `json:"sizeGb"`
+	// MonthlyCost: Trailing-30-day spend on an orphaned backup. Null means the
+	// cost could not be determined — never that the backup is free.
+	MonthlyCost *float64 `json:"monthlyCost"`
+	Currency    *string  `json:"currency"`
+}
+
+// BackupKindCounts is the `BackupKindCounts` schema.
+type BackupKindCounts struct {
+	Unprotected          int64 `json:"unprotected"`
+	RpoBreach            int64 `json:"rpo-breach"`
+	RetentionBelowPolicy int64 `json:"retention-below-policy"`
+	OrphanedSnapshot     int64 `json:"orphaned-snapshot"`
+}
+
+// BackupPolicy is the `BackupPolicy` schema.
+type BackupPolicy struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// ResourceTypeIDs: Resource types the policy selects; empty selects every
+	// stateful type.
+	ResourceTypeIDs []string `json:"resourceTypeIds"`
+	// TagKey: Tag key that must be present. Matched case-insensitively.
+	TagKey *string `json:"tagKey"`
+	// TagValue: Required value of `tagKey`, matched exactly. Null means presence
+	// is enough.
+	TagValue *string `json:"tagValue"`
+	// MaxRpoHours: The newest backup must be no older than this. Null means no
+	// RPO demand.
+	MaxRpoHours *int64 `json:"maxRpoHours"`
+	// MinRetentionDays: Provider-native retention must be at least this. Null
+	// means no demand.
+	MinRetentionDays *int64 `json:"minRetentionDays"`
+	Enabled          bool   `json:"enabled"`
+	CreatedAt        string `json:"createdAt"`
+	UpdatedAt        string `json:"updatedAt"`
+}
+
+// BackupPolicyCreate is the `BackupPolicyCreate` schema.
+type BackupPolicyCreate struct {
+	Name             string   `json:"name"`
+	ResourceTypeIDs  []string `json:"resourceTypeIds,omitempty"`
+	TagKey           *string  `json:"tagKey,omitempty"`
+	TagValue         *string  `json:"tagValue,omitempty"`
+	MaxRpoHours      *int64   `json:"maxRpoHours,omitempty"`
+	MinRetentionDays *int64   `json:"minRetentionDays,omitempty"`
+	Enabled          *bool    `json:"enabled,omitempty"`
+}
+
+// BackupPolicyList is the `BackupPolicyList` schema.
+type BackupPolicyList struct {
+	Policies []BackupPolicy `json:"policies"`
+}
+
+// BackupPolicyUpdate is the `BackupPolicyUpdate` schema.
+type BackupPolicyUpdate struct {
+	Name             *string  `json:"name,omitempty"`
+	ResourceTypeIDs  []string `json:"resourceTypeIds,omitempty"`
+	TagKey           *string  `json:"tagKey,omitempty"`
+	TagValue         *string  `json:"tagValue,omitempty"`
+	MaxRpoHours      *int64   `json:"maxRpoHours,omitempty"`
+	MinRetentionDays *int64   `json:"minRetentionDays,omitempty"`
+	Enabled          *bool    `json:"enabled,omitempty"`
+}
+
+// BackupSeverityCounts is the `BackupSeverityCounts` schema.
+type BackupSeverityCounts struct {
+	Critical int64 `json:"critical"`
+	High     int64 `json:"high"`
+	Medium   int64 `json:"medium"`
+	Low      int64 `json:"low"`
 }
 
 // Bastion is the `Bastion` schema.
@@ -8648,9 +8853,9 @@ type SyntheticProbeUpdate struct {
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
-	// "expiring", "posture", "access-review", "dns", "environment-diff",
-	// "ssh-fanout", "metric-alerts", "probes", "quotas", "incidents",
-	// "workflows", "deployments", "settings", "chat".
+	// "expiring", "posture", "access-review", "backups", "dns",
+	// "environment-diff", "ssh-fanout", "metric-alerts", "probes", "quotas",
+	// "incidents", "workflows", "deployments", "settings", "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
