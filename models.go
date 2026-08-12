@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.13.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.14.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.13.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.14.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2423,6 +2423,20 @@ type CreateResourceResponse struct {
 	ID          ResourceID `json:"id"`
 	DisplayName string     `json:"displayName"`
 	Warnings    []string   `json:"warnings,omitempty"`
+}
+
+// CreateSharedConsole is the `CreateSharedConsole` schema.
+type CreateSharedConsole struct {
+	// LiveConsoleID: The pty to share, as the terminal's WebSocket reported it
+	// in its `ssh:connected` frame. Everything else about the session — host,
+	// account, recording — is read from the proxy's own registration rather than
+	// from this body.
+	LiveConsoleID string `json:"liveConsoleId"`
+	RoutingKey    string `json:"routingKey"`
+	// AllowHandover: Defaults to true.
+	AllowHandover *bool `json:"allowHandover,omitempty"`
+	// InviteTTLMinutes: Defaults to 15.
+	InviteTTLMinutes *int64 `json:"inviteTtlMinutes,omitempty"`
 }
 
 // CreateWidgetRequest is the `CreateWidgetRequest` schema.
@@ -7036,6 +7050,16 @@ type SessionRecording struct {
 	// HasInput: True when the cast also contains keystrokes (the org opted into
 	// input capture).
 	HasInput bool `json:"hasInput"`
+	// SharedConsoleID: Set when this session was shared with colleagues while it
+	// ran.
+	SharedConsoleID *string `json:"sharedConsoleId,omitempty"`
+	// Participants: Everyone who was attached to this session and in what role —
+	// the **highest** role they held, not their role at the end. Null or empty
+	// for an ordinary solo session. Once a session can be shared, `userId` alone
+	// stops answering 'whose hands were on this box'; this does. The cast
+	// carries the same facts in-band as asciicast `"m"` marker events, so a
+	// viewer sees *when* the keyboard moved.
+	Participants []SessionRecordingParticipants `json:"participants,omitempty"`
 	// Status: `recording` (live), `complete` (closed cleanly), `truncated` (hit
 	// the per-session capture ceiling — the tape is a genuine partial and says
 	// so), or `abandoned` (the server handling the session went away before it
@@ -7136,6 +7160,150 @@ type SFTPUploadForm struct {
 	SSHKeyID    *string   `json:"sshKeyId,omitempty"`
 	SSHHost     *string   `json:"sshHost,omitempty"`
 	SSHUsername *string   `json:"sshUsername,omitempty"`
+}
+
+// SharedConsole is the `SharedConsole` schema.
+type SharedConsole struct {
+	ID string `json:"id"`
+	// RoutingKey: Load-balancer affinity hint. A guest's WebSocket must carry it
+	// as `?sid=` so the upgrade lands on the replica holding the pty. Not a
+	// secret and not authorisation.
+	RoutingKey  string  `json:"routingKey"`
+	OwnerUserID *string `json:"ownerUserId"`
+	OwnerName   *string `json:"ownerName"`
+	AccountID   *string `json:"accountId"`
+	ResourceID  *string `json:"resourceId"`
+	// Host: Final hop, as the proxy dialled it — never as a client asserted it.
+	Host     string `json:"host"`
+	Port     int64  `json:"port"`
+	Username string `json:"username"`
+	// AllowHandover: False makes the share strictly read-only: nobody but the
+	// sharer can ever type. This is the one hard safety property the feature
+	// offers, as opposed to inferring intent from command text.
+	AllowHandover bool `json:"allowHandover"`
+	// Status: `revoked` — somebody ended the share; `ended` — the underlying SSH
+	// session closed. Either way the fan-out stops and attached guests are
+	// disconnected.
+	//
+	// One of "active", "revoked", "ended".
+	Status            string  `json:"status"`
+	InviteTokenPrefix *string `json:"inviteTokenPrefix"`
+	InviteExpiresAt   *string `json:"inviteExpiresAt"`
+	// InviteConsumedAt: Set once an invite admitted somebody new. The link stops
+	// working for anyone else at that moment; the sharer mints a replacement for
+	// the next guest.
+	InviteConsumedAt *string `json:"inviteConsumedAt"`
+	// RecordingID: The session recording this console is being taped into, when
+	// the org records. Participants are attributed in that recording's own
+	// metadata and as asciicast markers on its timeline.
+	RecordingID *string `json:"recordingId"`
+	PtyCols     int64   `json:"ptyCols"`
+	// PtyRows: The pty's geometry, which is the **driver's** geometry. One pty
+	// has one size, so everyone else letterboxes rather than reflowing.
+	PtyRows   int64  `json:"ptyRows"`
+	CreatedAt string `json:"createdAt"`
+}
+
+// SharedConsoleCreated is the `SharedConsoleCreated` schema.
+type SharedConsoleCreated struct {
+	Share        SharedConsole              `json:"share"`
+	Participants []SharedConsoleParticipant `json:"participants"`
+	// InviteToken: The invite, returned exactly once. Only its sha256 is stored,
+	// so it cannot be shown again — mint a replacement instead.
+	InviteToken string `json:"inviteToken"`
+}
+
+// SharedConsoleInvitePreview is the `SharedConsoleInvitePreview` schema.
+type SharedConsoleInvitePreview struct {
+	Share    SharedConsole `json:"share"`
+	Joinable bool          `json:"joinable"`
+	// Rejoin: You are already on this console and would resume.
+	Rejoin *bool   `json:"rejoin,omitempty"`
+	Error  *string `json:"error,omitempty"`
+	Code   *string `json:"code,omitempty"`
+}
+
+// SharedConsoleJoined is the `SharedConsoleJoined` schema.
+type SharedConsoleJoined struct {
+	Share        SharedConsole              `json:"share"`
+	Participants []SharedConsoleParticipant `json:"participants"`
+	You          SharedConsoleParticipant   `json:"you"`
+	RoutingKey   string                     `json:"routingKey"`
+}
+
+// SharedConsoleParticipant is the `SharedConsoleParticipant` schema.
+type SharedConsoleParticipant struct {
+	ID     string `json:"id"`
+	UserID string `json:"userId"`
+	// UserName: Display-name snapshot taken when they joined.
+	UserName *string `json:"userName"`
+	// Role: `driver` holds the keyboard; `observer` sees the terminal and cannot
+	// type into it. Exactly one participant per console is a driver at any
+	// moment, enforced by a partial unique index rather than by the application
+	// — two simultaneous handovers cannot both win.
+	//
+	// One of "observer", "driver".
+	Role string `json:"role"`
+	// Status: `left` walked away and may resume on the same row without a new
+	// invite; `removed` was ejected or lost the permission mid-session and needs
+	// a fresh one.
+	//
+	// One of "joined", "left", "removed".
+	Status string `json:"status"`
+	// DriverRequestedAt: Set when this participant has asked for the keyboard
+	// and nobody has answered yet. Asking grants nothing — only the current
+	// driver or the sharer can move it.
+	DriverRequestedAt *string `json:"driverRequestedAt"`
+	JoinedAt          string  `json:"joinedAt"`
+}
+
+// SharedConsoleState is the `SharedConsoleState` schema.
+type SharedConsoleState struct {
+	Share        SharedConsole              `json:"share"`
+	Participants []SharedConsoleParticipant `json:"participants"`
+}
+
+// SharedConsoleSummary is the `SharedConsoleSummary` schema.
+type SharedConsoleSummary struct {
+	ID string `json:"id"`
+	// RoutingKey: Load-balancer affinity hint. A guest's WebSocket must carry it
+	// as `?sid=` so the upgrade lands on the replica holding the pty. Not a
+	// secret and not authorisation.
+	RoutingKey  string  `json:"routingKey"`
+	OwnerUserID *string `json:"ownerUserId"`
+	OwnerName   *string `json:"ownerName"`
+	AccountID   *string `json:"accountId"`
+	ResourceID  *string `json:"resourceId"`
+	// Host: Final hop, as the proxy dialled it — never as a client asserted it.
+	Host     string `json:"host"`
+	Port     int64  `json:"port"`
+	Username string `json:"username"`
+	// AllowHandover: False makes the share strictly read-only: nobody but the
+	// sharer can ever type. This is the one hard safety property the feature
+	// offers, as opposed to inferring intent from command text.
+	AllowHandover bool `json:"allowHandover"`
+	// Status: `revoked` — somebody ended the share; `ended` — the underlying SSH
+	// session closed. Either way the fan-out stops and attached guests are
+	// disconnected.
+	//
+	// One of "active", "revoked", "ended".
+	Status            string  `json:"status"`
+	InviteTokenPrefix *string `json:"inviteTokenPrefix"`
+	InviteExpiresAt   *string `json:"inviteExpiresAt"`
+	// InviteConsumedAt: Set once an invite admitted somebody new. The link stops
+	// working for anyone else at that moment; the sharer mints a replacement for
+	// the next guest.
+	InviteConsumedAt *string `json:"inviteConsumedAt"`
+	// RecordingID: The session recording this console is being taped into, when
+	// the org records. Participants are attributed in that recording's own
+	// metadata and as asciicast markers on its timeline.
+	RecordingID *string `json:"recordingId"`
+	PtyCols     int64   `json:"ptyCols"`
+	// PtyRows: The pty's geometry, which is the **driver's** geometry. One pty
+	// has one size, so everyone else letterboxes rather than reflowing.
+	PtyRows      int64                      `json:"ptyRows"`
+	CreatedAt    string                     `json:"createdAt"`
+	Participants []SharedConsoleParticipant `json:"participants"`
 }
 
 // ShowbackReport is the `ShowbackReport` schema.
@@ -8632,6 +8800,16 @@ type SecretExportTemplateEntries struct {
 	EnvKey    string `json:"envKey"`
 }
 
+// SessionRecordingParticipants is an object the spec declares inline.
+type SessionRecordingParticipants struct {
+	UserID   *string `json:"userId"`
+	UserName *string `json:"userName"`
+	// Role: One of "observer", "driver".
+	Role     string  `json:"role"`
+	JoinedAt string  `json:"joinedAt"`
+	LeftAt   *string `json:"leftAt"`
+}
+
 // ShowbackReportCentres is an object the spec declares inline.
 type ShowbackReportCentres struct {
 	// CostCentreID: Null for the synthetic "Unallocated" bucket.
@@ -9041,6 +9219,21 @@ type ResourcesNoSqlcommandResponse struct {
 // SavedCostFiltersReferentsResponse is an object the spec declares inline.
 type SavedCostFiltersReferentsResponse struct {
 	Referents []SavedCostFilterReferent `json:"referents"`
+}
+
+// SharedConsolesHandoverRequest is an object the spec declares inline.
+type SharedConsolesHandoverRequest struct {
+	ParticipantID string `json:"participantId"`
+}
+
+// SharedConsolesJoinRequest is an object the spec declares inline.
+type SharedConsolesJoinRequest struct {
+	Token string `json:"token"`
+}
+
+// SharedConsolesInvitesCreateRequest is an object the spec declares inline.
+type SharedConsolesInvitesCreateRequest struct {
+	InviteTTLMinutes *int64 `json:"inviteTtlMinutes,omitempty"`
 }
 
 // SlackInstallUrlresponse is an object the spec declares inline.

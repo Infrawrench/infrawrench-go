@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.13.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.14.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.13.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.14.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -169,6 +169,8 @@ type APIV1Client struct {
 	SessionRecordings *SessionRecordingsNamespace
 	// SFTP: `client.sftp`.
 	SFTP *SFTPNamespace
+	// SharedConsoles: `client.sharedConsoles`.
+	SharedConsoles *SharedConsolesNamespace
 	// Slack: `client.slack`.
 	Slack *SlackNamespace
 	// SQL: `client.sql`.
@@ -272,6 +274,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Search = newSearchNamespace(t)
 	c.SessionRecordings = newSessionRecordingsNamespace(t)
 	c.SFTP = newSFTPNamespace(t)
+	c.SharedConsoles = newSharedConsolesNamespace(t)
 	c.Slack = newSlackNamespace(t)
 	c.SQL = newSQLNamespace(t)
 	c.SSHFanout = newSSHFanoutNamespace(t)
@@ -13172,6 +13175,492 @@ func (n *SFTPNamespace) Upload(ctx context.Context, params SFTPUploadParams, opt
 	r.setPath("orgId", params.OrgID)
 	r.setFormBody(params.Body)
 	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesNamespace is `client.sharedConsoles`.
+type SharedConsolesNamespace struct {
+	t *transport
+
+	// Invites: `client.sharedConsoles.invites`.
+	Invites *SharedConsolesInvitesNamespace
+	// Participants: `client.sharedConsoles.participants`.
+	Participants *SharedConsolesParticipantsNamespace
+}
+
+func newSharedConsolesNamespace(t *transport) *SharedConsolesNamespace {
+	n := &SharedConsolesNamespace{t: t}
+	n.Invites = newSharedConsolesInvitesNamespace(t)
+	n.Participants = newSharedConsolesParticipantsNamespace(t)
+	return n
+}
+
+// SharedConsolesCreateParams holds the parameters for
+// `client.sharedConsoles.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SharedConsolesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *CreateSharedConsole
+}
+
+// Create: Share a live SSH session
+//
+// Opens a share on a session you already have running and mints its first
+// invite. You become the driver.
+//
+// Returns 409 `console_not_here` when the pty is held by a different server
+// replica than the one answering this call — reopen the terminal and share
+// again. Writing the share anyway would produce a link that authorises correctly
+// and then finds nothing to attach to.
+//
+// Requires `resources:execute` — the same permission as opening the terminal.
+// Closed to API keys: sharing a shell is an act a person performs.
+//
+// _Requires permission: `resources:execute`._
+//
+// POST /api/org/{orgId}/shared-consoles
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *SharedConsolesNamespace) Create(ctx context.Context, params *SharedConsolesCreateParams, opts ...RequestOption) (*SharedConsoleCreated, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/shared-consoles")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *SharedConsoleCreated
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesDeleteParams holds the parameters for
+// `client.sharedConsoles.delete`.
+type SharedConsolesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	ConsoleID string
+}
+
+// Delete: Revoke a share
+//
+// Disconnects every guest and stops the fan-out. The sharer's own SSH session
+// carries on — revoking a share is not killing a terminal.
+//
+// The sharer or a holder of `org:settings:write`. Deliberately does **not**
+// require `resources:execute`: ending access must never be gated on still
+// holding the access, or an owner whose role was narrowed mid-incident could not
+// close the session they opened.
+//
+// DELETE /api/org/{orgId}/shared-consoles/{consoleId}
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *SharedConsolesNamespace) Delete(ctx context.Context, params SharedConsolesDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/shared-consoles/{consoleId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("consoleId", params.ConsoleID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesGetParams holds the parameters for `client.sharedConsoles.get`.
+type SharedConsolesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	ConsoleID string
+}
+
+// Get: Get one shared console
+//
+// Visible to participants and to anyone who could revoke it (the sharer, or a
+// holder of `org:settings:write`). Others get 404 — that a named colleague has a
+// root shell open on a named production host right now is operational
+// information.
+//
+// _Requires permission: `resources:execute`._
+//
+// GET /api/org/{orgId}/shared-consoles/{consoleId}
+//
+// Raises on 404: Not found
+func (n *SharedConsolesNamespace) Get(ctx context.Context, params SharedConsolesGetParams, opts ...RequestOption) (*SharedConsoleState, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/shared-consoles/{consoleId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("consoleId", params.ConsoleID)
+	var out *SharedConsoleState
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesHandoverParams holds the parameters for
+// `client.sharedConsoles.handover`.
+type SharedConsolesHandoverParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	ConsoleID string
+	// Body: the JSON request body.
+	Body *SharedConsolesHandoverRequest
+}
+
+// Handover: Move the keyboard to another participant
+//
+// Authorised by the **current driver** (the keyboard is theirs to give) or by
+// the **sharer** (it is their box, and asking permission from somebody who has
+// stopped responding is not a control). An observer cannot promote themselves —
+// that is `/request-driver`.
+//
+// Two simultaneous grants cannot both win: the database's partial unique index
+// decides the order, and the loser gets 409 `driver-race-lost`.
+//
+// The pty resizes to the new driver's viewport; everyone else letterboxes.
+//
+// _Requires permission: `resources:execute`._
+//
+// POST /api/org/{orgId}/shared-consoles/{consoleId}/handover
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *SharedConsolesNamespace) Handover(ctx context.Context, params SharedConsolesHandoverParams, opts ...RequestOption) (*SharedConsoleState, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/shared-consoles/{consoleId}/handover")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("consoleId", params.ConsoleID)
+	r.setJSONBody(params.Body)
+	var out *SharedConsoleState
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesJoinParams holds the parameters for
+// `client.sharedConsoles.join`.
+type SharedConsolesJoinParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	ConsoleID string
+	// Body: the JSON request body.
+	Body *SharedConsolesJoinRequest
+}
+
+// Join: Redeem an invite and join
+//
+// Admission needs live org membership **and** `resources:execute` — the invite
+// is a locator, never a capability, so a leaked link admits nobody who could not
+// have opened the shell themselves.
+//
+// The invite is consumed by the first person it admits. Somebody already on the
+// console resumes their own row without a token, so a reload costs them nothing
+// and obliges the sharer to mint nothing. New joiners always start as observers
+// whatever the link said.
+//
+// Audit-logged as `shared_console.join`, and written onto the recording's
+// timeline as an asciicast marker.
+//
+// _Requires permission: `resources:execute`._
+//
+// POST /api/org/{orgId}/shared-consoles/{consoleId}/join
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *SharedConsolesNamespace) Join(ctx context.Context, params SharedConsolesJoinParams, opts ...RequestOption) (*SharedConsoleJoined, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/shared-consoles/{consoleId}/join")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("consoleId", params.ConsoleID)
+	r.setJSONBody(params.Body)
+	var out *SharedConsoleJoined
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesLeaveParams holds the parameters for
+// `client.sharedConsoles.leave`.
+type SharedConsolesLeaveParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	ConsoleID string
+}
+
+// Leave: Leave a shared console
+//
+// Steps you off without ending the session. Your row survives, so the same
+// invite is not needed again. Deliberately does not require `resources:execute`:
+// giving access up must never be gated on still holding it.
+//
+// POST /api/org/{orgId}/shared-consoles/{consoleId}/leave
+//
+// Raises on 404: Not found
+func (n *SharedConsolesNamespace) Leave(ctx context.Context, params SharedConsolesLeaveParams, opts ...RequestOption) (*SharedConsoleState, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/shared-consoles/{consoleId}/leave")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("consoleId", params.ConsoleID)
+	var out *SharedConsoleState
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesListParams holds the parameters for
+// `client.sharedConsoles.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SharedConsolesListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List sessions currently shared
+//
+// Live shared SSH sessions in this organization, with who is on each. Only cloud
+// SSH can be shared: those sessions are already proxied by the server, so
+// fanning the pty out to a second socket is a consumer of a stream it holds. A
+// desktop session dialling a host directly never reaches the server and cannot
+// be shared.
+//
+// _Requires permission: `resources:execute`._
+//
+// GET /api/org/{orgId}/shared-consoles
+func (n *SharedConsolesNamespace) List(ctx context.Context, params *SharedConsolesListParams, opts ...RequestOption) ([]SharedConsoleSummary, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/shared-consoles")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []SharedConsoleSummary
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesRequestDriverParams holds the parameters for
+// `client.sharedConsoles.requestDriver`.
+type SharedConsolesRequestDriverParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	ConsoleID string
+}
+
+// RequestDriver: Ask for the keyboard
+//
+// Raises a flag the driver and the sharer can see. Grants nothing on its own —
+// that is the point.
+//
+// _Requires permission: `resources:execute`._
+//
+// POST /api/org/{orgId}/shared-consoles/{consoleId}/request-driver
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *SharedConsolesNamespace) RequestDriver(ctx context.Context, params SharedConsolesRequestDriverParams, opts ...RequestOption) (*SharedConsoleState, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/shared-consoles/{consoleId}/request-driver")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("consoleId", params.ConsoleID)
+	var out *SharedConsoleState
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesInvitesNamespace is `client.sharedConsoles.invites`.
+type SharedConsolesInvitesNamespace struct {
+	t *transport
+}
+
+func newSharedConsolesInvitesNamespace(t *transport) *SharedConsolesInvitesNamespace {
+	n := &SharedConsolesInvitesNamespace{t: t}
+	return n
+}
+
+// SharedConsolesInvitesCreateParams holds the parameters for
+// `client.sharedConsoles.invites.create`.
+type SharedConsolesInvitesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	ConsoleID string
+	// Body: the JSON request body.
+	Body *SharedConsolesInvitesCreateRequest
+}
+
+// Create: Mint a replacement invite
+//
+// An invite is spent by the first person it admits, so inviting a second guest
+// means minting a second link. Replaces any outstanding one. Sharer or
+// `org:settings:write`.
+//
+// POST /api/org/{orgId}/shared-consoles/{consoleId}/invites
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *SharedConsolesInvitesNamespace) Create(ctx context.Context, params SharedConsolesInvitesCreateParams, opts ...RequestOption) (*SharedConsoleCreated, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/shared-consoles/{consoleId}/invites")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("consoleId", params.ConsoleID)
+	r.setJSONBody(params.Body)
+	var out *SharedConsoleCreated
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesInvitesDeleteParams holds the parameters for
+// `client.sharedConsoles.invites.delete`.
+type SharedConsolesInvitesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	ConsoleID string
+}
+
+// Delete: Withdraw the outstanding invite
+//
+// Kills the link without touching the session or anyone already on it.
+//
+// DELETE /api/org/{orgId}/shared-consoles/{consoleId}/invites
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *SharedConsolesInvitesNamespace) Delete(ctx context.Context, params SharedConsolesInvitesDeleteParams, opts ...RequestOption) (*SharedConsoleState, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/shared-consoles/{consoleId}/invites")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("consoleId", params.ConsoleID)
+	var out *SharedConsoleState
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesInvitesGetParams holds the parameters for
+// `client.sharedConsoles.invites.get`.
+type SharedConsolesInvitesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	Token string
+}
+
+// Get: Preview what an invite link points at
+//
+// What the join screen shows before anyone commits: which host, whose session,
+// and whether you may join it. Reachable with a valid token by a signed-in
+// member who already holds `resources:execute` — the token says *which* session,
+// never *whether*. Returns nothing from the session itself.
+//
+// _Requires permission: `resources:execute`._
+//
+// GET /api/org/{orgId}/shared-consoles/invites/{token}
+//
+// Raises on 404: Not found
+func (n *SharedConsolesInvitesNamespace) Get(ctx context.Context, params SharedConsolesInvitesGetParams, opts ...RequestOption) (*SharedConsoleInvitePreview, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/shared-consoles/invites/{token}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("token", params.Token)
+	var out *SharedConsoleInvitePreview
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharedConsolesParticipantsNamespace is `client.sharedConsoles.participants`.
+type SharedConsolesParticipantsNamespace struct {
+	t *transport
+}
+
+func newSharedConsolesParticipantsNamespace(t *transport) *SharedConsolesParticipantsNamespace {
+	n := &SharedConsolesParticipantsNamespace{t: t}
+	return n
+}
+
+// SharedConsolesParticipantsDeleteParams holds the parameters for
+// `client.sharedConsoles.participants.delete`.
+type SharedConsolesParticipantsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID         *string
+	ConsoleID     string
+	ParticipantID string
+}
+
+// Delete: Remove somebody from a shared console
+//
+// Their socket is closed immediately on the replica holding the pty, and within
+// one two-second sweep on any other. They are marked `removed` rather than
+// `left`, so they cannot resume without a fresh invite. The sharer cannot be
+// removed — revoke the share.
+//
+// DELETE
+// /api/org/{orgId}/shared-consoles/{consoleId}/participants/{participantId}
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *SharedConsolesParticipantsNamespace) Delete(ctx context.Context, params SharedConsolesParticipantsDeleteParams, opts ...RequestOption) (*SharedConsoleState, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/shared-consoles/{consoleId}/participants/{participantId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("consoleId", params.ConsoleID)
+	r.setPath("participantId", params.ParticipantID)
+	var out *SharedConsoleState
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
