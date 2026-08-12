@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.21.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.22.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.21.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.22.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -511,6 +511,8 @@ const (
 	AlertTriggerLogMatchAlerts           AlertTrigger = "logMatchAlerts"
 	AlertTriggerPostureAlerts            AlertTrigger = "postureAlerts"
 	AlertTriggerProbeAlerts              AlertTrigger = "probeAlerts"
+	AlertTriggerQuotaAlerts              AlertTrigger = "quotaAlerts"
+	AlertTriggerIncidentAlerts           AlertTrigger = "incidentAlerts"
 	AlertTriggerWeeklyDigest             AlertTrigger = "weeklyDigest"
 )
 
@@ -9182,8 +9184,8 @@ type TabTarget struct {
 	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
 	// "expiring", "posture", "access-review", "backups", "dns", "iac",
 	// "environment-diff", "environments", "ssh-fanout", "metric-alerts",
-	// "probes", "quotas", "incidents", "workflows", "deployments", "settings",
-	// "chat".
+	// "probes", "status-pages", "quotas", "incidents", "workflows",
+	// "deployments", "settings", "chat".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
