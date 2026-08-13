@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.24.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.25.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.24.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.25.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3856,14 +3856,72 @@ func newChatNamespace(t *transport) *ChatNamespace {
 type ChatConversationsNamespace struct {
 	t *transport
 
+	// Pending: `client.chat.conversations.pending`.
+	Pending *ChatConversationsPendingNamespace
 	// SecretRequests: `client.chat.conversations.secretRequests`.
 	SecretRequests *ChatConversationsSecretRequestsNamespace
 }
 
 func newChatConversationsNamespace(t *transport) *ChatConversationsNamespace {
 	n := &ChatConversationsNamespace{t: t}
+	n.Pending = newChatConversationsPendingNamespace(t)
 	n.SecretRequests = newChatConversationsSecretRequestsNamespace(t)
 	return n
+}
+
+// ChatConversationsPendingNamespace is `client.chat.conversations.pending`.
+type ChatConversationsPendingNamespace struct {
+	t *transport
+}
+
+func newChatConversationsPendingNamespace(t *transport) *ChatConversationsPendingNamespace {
+	n := &ChatConversationsPendingNamespace{t: t}
+	return n
+}
+
+// ChatConversationsPendingAnswerParams holds the parameters for
+// `client.chat.conversations.pending.answer`.
+type ChatConversationsPendingAnswerParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ConversationID: Chat conversation id
+	ConversationID string
+	// PendingID: Pending ask_question action id
+	PendingID string
+	// Body: the JSON request body.
+	Body ChatAskQuestionInput
+}
+
+// Answer: Answer an agent question
+//
+// Submit answers to a chat-only `ask_question` pending action (selection with an
+// Other field, or a textarea). Not used for destructive-tool approval.
+//
+// _Requires permission: `chat:write`._
+//
+// POST
+// /api/org/{orgId}/chat/conversations/{conversationId}/pending/{pendingId}/answer
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *ChatConversationsPendingNamespace) Answer(ctx context.Context, params ChatConversationsPendingAnswerParams, opts ...RequestOption) (*ChatAskQuestionResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/chat/conversations/{conversationId}/pending/{pendingId}/answer")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("conversationId", params.ConversationID)
+	r.setPath("pendingId", params.PendingID)
+	r.setJSONBody(params.Body)
+	var out *ChatAskQuestionResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // ChatConversationsSecretRequestsNamespace is

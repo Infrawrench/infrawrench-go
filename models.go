@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.24.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.25.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.24.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.25.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1566,6 +1566,30 @@ type ChangeFreezeInput struct {
 // ChangeFreezeStatus is the `ChangeFreezeStatus` schema.
 type ChangeFreezeStatus struct {
 	Freeze any `json:"freeze"`
+}
+
+// ChatAskQuestionAnswer is the `ChatAskQuestionAnswer` schema.
+type ChatAskQuestionAnswer struct {
+	// QuestionID: Id of the question being answered.
+	QuestionID string `json:"questionId"`
+	// OptionID: Listed option id, or `other` when the user typed a custom value.
+	OptionID *string `json:"optionId,omitempty"`
+	// Text: Required for text questions and when optionId is `other`.
+	Text *string `json:"text,omitempty"`
+}
+
+// ChatAskQuestionInput is the `ChatAskQuestionInput` schema.
+type ChatAskQuestionInput struct {
+	// Answers: One answer per question the agent asked.
+	Answers []ChatAskQuestionAnswer `json:"answers"`
+}
+
+// ChatAskQuestionResult is the `ChatAskQuestionResult` schema.
+type ChatAskQuestionResult struct {
+	OK bool `json:"ok"`
+	// AllResolved: True when every pending action and secret request on this
+	// assistant message is resolved, so the caller may POST {resume: true}.
+	AllResolved bool `json:"allResolved"`
 }
 
 // ChatSecretRequestResult is the `ChatSecretRequestResult` schema.
