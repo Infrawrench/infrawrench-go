@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.23.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.24.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.23.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.24.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -71,6 +71,8 @@ type APIV1Client struct {
 	ChangeFreezes *ChangeFreezesNamespace
 	// Changes: `client.changes`.
 	Changes *ChangesNamespace
+	// Chat: `client.chat`.
+	Chat *ChatNamespace
 	// Commitments: `client.commitments`.
 	Commitments *CommitmentsNamespace
 	// Config: `client.config`.
@@ -205,6 +207,8 @@ type APIV1Client struct {
 	Team *TeamNamespace
 	// WorkflowApprovals: `client.workflowApprovals`.
 	WorkflowApprovals *WorkflowApprovalsNamespace
+	// WorkflowSecrets: `client.workflowSecrets`.
+	WorkflowSecrets *WorkflowSecretsNamespace
 	// Workflows: `client.workflows`.
 	Workflows *WorkflowsNamespace
 }
@@ -235,6 +239,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.BusinessMetrics = newBusinessMetricsNamespace(t)
 	c.ChangeFreezes = newChangeFreezesNamespace(t)
 	c.Changes = newChangesNamespace(t)
+	c.Chat = newChatNamespace(t)
 	c.Commitments = newCommitmentsNamespace(t)
 	c.Config = newConfigNamespace(t)
 	c.Connect = newConnectNamespace(t)
@@ -302,6 +307,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.TagPolicy = newTagPolicyNamespace(t)
 	c.Team = newTeamNamespace(t)
 	c.WorkflowApprovals = newWorkflowApprovalsNamespace(t)
+	c.WorkflowSecrets = newWorkflowSecretsNamespace(t)
 	c.Workflows = newWorkflowsNamespace(t)
 	return c
 }
@@ -3826,6 +3832,88 @@ func (n *ChangesRevertNamespace) Get(ctx context.Context, params ChangesRevertGe
 	r.setPath("orgId", params.OrgID)
 	r.setPath("changeId", params.ChangeID)
 	var out *RevertPreviewResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChatNamespace is `client.chat`.
+type ChatNamespace struct {
+	t *transport
+
+	// Conversations: `client.chat.conversations`.
+	Conversations *ChatConversationsNamespace
+}
+
+func newChatNamespace(t *transport) *ChatNamespace {
+	n := &ChatNamespace{t: t}
+	n.Conversations = newChatConversationsNamespace(t)
+	return n
+}
+
+// ChatConversationsNamespace is `client.chat.conversations`.
+type ChatConversationsNamespace struct {
+	t *transport
+
+	// SecretRequests: `client.chat.conversations.secretRequests`.
+	SecretRequests *ChatConversationsSecretRequestsNamespace
+}
+
+func newChatConversationsNamespace(t *transport) *ChatConversationsNamespace {
+	n := &ChatConversationsNamespace{t: t}
+	n.SecretRequests = newChatConversationsSecretRequestsNamespace(t)
+	return n
+}
+
+// ChatConversationsSecretRequestsNamespace is
+// `client.chat.conversations.secretRequests`.
+type ChatConversationsSecretRequestsNamespace struct {
+	t *transport
+}
+
+func newChatConversationsSecretRequestsNamespace(t *transport) *ChatConversationsSecretRequestsNamespace {
+	n := &ChatConversationsSecretRequestsNamespace{t: t}
+	return n
+}
+
+// ChatConversationsSecretRequestsCreateParams holds the parameters for
+// `client.chat.conversations.secretRequests.create`.
+type ChatConversationsSecretRequestsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ConversationID: Chat conversation id
+	ConversationID string
+	// RequestID: Pending secret request id
+	RequestID string
+	// Body: the JSON request body.
+	Body WorkflowSecretValueWrite
+}
+
+// Create: Submit a requested workflow secret
+//
+// Human-only, write-only handoff from the chat password field to encrypted
+// workflow-secret storage. The value is never returned or added to chat history.
+//
+// POST
+// /api/org/{orgId}/chat/conversations/{conversationId}/secret-requests/{requestId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *ChatConversationsSecretRequestsNamespace) Create(ctx context.Context, params ChatConversationsSecretRequestsCreateParams, opts ...RequestOption) (*ChatSecretRequestResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/chat/conversations/{conversationId}/secret-requests/{requestId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("conversationId", params.ConversationID)
+	r.setPath("requestId", params.RequestID)
+	r.setJSONBody(params.Body)
+	var out *ChatSecretRequestResult
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -17362,17 +17450,198 @@ func (n *WorkflowApprovalsNamespace) List(ctx context.Context, params *WorkflowA
 	return out, nil
 }
 
+// WorkflowSecretsNamespace is `client.workflowSecrets`.
+type WorkflowSecretsNamespace struct {
+	t *transport
+}
+
+func newWorkflowSecretsNamespace(t *transport) *WorkflowSecretsNamespace {
+	n := &WorkflowSecretsNamespace{t: t}
+	return n
+}
+
+// WorkflowSecretsCreateParams holds the parameters for
+// `client.workflowSecrets.create`.
+type WorkflowSecretsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body WorkflowSecretCreate
+}
+
+// Create: Create workflow secret metadata
+//
+// Creates metadata without a value. Write the value separately through the
+// write-only value endpoint.
+//
+// _Requires permission: `secrets:write`._
+//
+// POST /api/org/{orgId}/workflow-secrets
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: Conflict
+func (n *WorkflowSecretsNamespace) Create(ctx context.Context, params WorkflowSecretsCreateParams, opts ...RequestOption) (*WorkflowSecret, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/workflow-secrets")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *WorkflowSecret
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowSecretsDeleteParams holds the parameters for
+// `client.workflowSecrets.delete`.
+type WorkflowSecretsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow secret id
+	ID string
+}
+
+// Delete: Delete a workflow secret
+//
+// Also removes every workflow assignment through database cascades.
+//
+// _Requires permission: `secrets:write`._
+//
+// DELETE /api/org/{orgId}/workflow-secrets/{id}
+//
+// Raises on 404: Not found
+func (n *WorkflowSecretsNamespace) Delete(ctx context.Context, params WorkflowSecretsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/workflow-secrets/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowSecretsListParams holds the parameters for
+// `client.workflowSecrets.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type WorkflowSecretsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List reusable workflow secrets
+//
+// Returns metadata and hasValue only; plaintext values are never returned.
+//
+// _Requires permission: `secrets:read`._
+//
+// GET /api/org/{orgId}/workflow-secrets
+func (n *WorkflowSecretsNamespace) List(ctx context.Context, params *WorkflowSecretsListParams, opts ...RequestOption) ([]WorkflowSecret, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/workflow-secrets")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []WorkflowSecret
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowSecretsUpdateParams holds the parameters for
+// `client.workflowSecrets.update`.
+type WorkflowSecretsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow secret id
+	ID string
+	// Body: the JSON request body.
+	Body WorkflowSecretUpdate
+}
+
+// Update: Update workflow secret metadata
+//
+// _Requires permission: `secrets:write`._
+//
+// PATCH /api/org/{orgId}/workflow-secrets/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *WorkflowSecretsNamespace) Update(ctx context.Context, params WorkflowSecretsUpdateParams, opts ...RequestOption) (*WorkflowSecret, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/workflow-secrets/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *WorkflowSecret
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowSecretsValueParams holds the parameters for
+// `client.workflowSecrets.value`.
+type WorkflowSecretsValueParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow secret id
+	ID string
+	// Body: the JSON request body.
+	Body WorkflowSecretValueWrite
+}
+
+// Value: Write a workflow secret value
+//
+// Write-only. The response contains metadata and hasValue, never the supplied
+// plaintext.
+//
+// _Requires permission: `secrets:write`._
+//
+// PUT /api/org/{orgId}/workflow-secrets/{id}/value
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *WorkflowSecretsNamespace) Value(ctx context.Context, params WorkflowSecretsValueParams, opts ...RequestOption) (*WorkflowSecret, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/workflow-secrets/{id}/value")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *WorkflowSecret
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // WorkflowsNamespace is `client.workflows`.
 type WorkflowsNamespace struct {
 	t *transport
 
 	// Schedule: `client.workflows.schedule`.
 	Schedule *WorkflowsScheduleNamespace
+	// Secrets: `client.workflows.secrets`.
+	Secrets *WorkflowsSecretsNamespace
 }
 
 func newWorkflowsNamespace(t *transport) *WorkflowsNamespace {
 	n := &WorkflowsNamespace{t: t}
 	n.Schedule = newWorkflowsScheduleNamespace(t)
+	n.Secrets = newWorkflowsSecretsNamespace(t)
 	return n
 }
 
@@ -17525,6 +17794,81 @@ func (n *WorkflowsScheduleNamespace) Update(ctx context.Context, params Workflow
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *WorkflowScheduleResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsSecretsNamespace is `client.workflows.secrets`.
+type WorkflowsSecretsNamespace struct {
+	t *transport
+}
+
+func newWorkflowsSecretsNamespace(t *transport) *WorkflowsSecretsNamespace {
+	n := &WorkflowsSecretsNamespace{t: t}
+	return n
+}
+
+// WorkflowsSecretsGetParams holds the parameters for
+// `client.workflows.secrets.get`.
+type WorkflowsSecretsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+}
+
+// Get: List a workflow's assigned secrets
+//
+// Returns assigned ids and metadata only, never values.
+//
+// _Requires permission: `secrets:read`._
+//
+// GET /api/org/{orgId}/workflows/{id}/secrets
+//
+// Raises on 404: Not found
+func (n *WorkflowsSecretsNamespace) Get(ctx context.Context, params WorkflowsSecretsGetParams, opts ...RequestOption) (*WorkflowSecretAssignment, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/workflows/{id}/secrets")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *WorkflowSecretAssignment
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsSecretsUpdateParams holds the parameters for
+// `client.workflows.secrets.update`.
+type WorkflowsSecretsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+	// Body: the JSON request body.
+	Body WorkflowSecretAssignmentInput
+}
+
+// Update: Replace a workflow's secret assignments
+//
+// _Requires permission: `workflows:write`._
+//
+// PUT /api/org/{orgId}/workflows/{id}/secrets
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *WorkflowsSecretsNamespace) Update(ctx context.Context, params WorkflowsSecretsUpdateParams, opts ...RequestOption) (*WorkflowSecretAssignment, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/workflows/{id}/secrets")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *WorkflowSecretAssignment
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

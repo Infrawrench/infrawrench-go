@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.23.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.24.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.23.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.24.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1566,6 +1566,12 @@ type ChangeFreezeInput struct {
 // ChangeFreezeStatus is the `ChangeFreezeStatus` schema.
 type ChangeFreezeStatus struct {
 	Freeze any `json:"freeze"`
+}
+
+// ChatSecretRequestResult is the `ChatSecretRequestResult` schema.
+type ChatSecretRequestResult struct {
+	OK          bool `json:"ok"`
+	AllResolved bool `json:"allResolved"`
 }
 
 // ChildResourceRef is the `ChildResourceRef` schema.
@@ -9498,6 +9504,54 @@ type WorkflowScheduleInput struct {
 type WorkflowScheduleResponse struct {
 	// Schedule: Null when the workflow's trigger is not cron.
 	Schedule *WorkflowSchedule `json:"schedule"`
+}
+
+// WorkflowSecret is the `WorkflowSecret` schema.
+type WorkflowSecret struct {
+	ID string `json:"id"`
+	// Name: JavaScript dot identifier used to expose the value to workflow code,
+	// for example `API_TOKEN` or `stripe.apiKey`.
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	// HasValue: Whether an encrypted value is stored. The value is never
+	// returned.
+	HasValue  bool   `json:"hasValue"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+// WorkflowSecretAssignment is the `WorkflowSecretAssignment` schema.
+type WorkflowSecretAssignment struct {
+	SecretIDs []string         `json:"secretIds"`
+	Secrets   []WorkflowSecret `json:"secrets"`
+}
+
+// WorkflowSecretAssignmentInput is the `WorkflowSecretAssignmentInput` schema.
+type WorkflowSecretAssignmentInput struct {
+	SecretIDs []string `json:"secretIds"`
+}
+
+// WorkflowSecretCreate is the `WorkflowSecretCreate` schema.
+type WorkflowSecretCreate struct {
+	// Name: JavaScript dot identifier used to expose the value to workflow code,
+	// for example `API_TOKEN` or `stripe.apiKey`.
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+}
+
+// WorkflowSecretUpdate is the `WorkflowSecretUpdate` schema.
+type WorkflowSecretUpdate struct {
+	// Name: JavaScript dot identifier used to expose the value to workflow code,
+	// for example `API_TOKEN` or `stripe.apiKey`.
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+}
+
+// WorkflowSecretValueWrite is the `WorkflowSecretValueWrite` schema.
+type WorkflowSecretValueWrite struct {
+	// Value: Write-only plaintext. It is AES-256-GCM encrypted before storage
+	// and is never returned.
+	Value string `json:"value"`
 }
 
 // WorkflowTypingsResponse is the `WorkflowTypingsResponse` schema.
