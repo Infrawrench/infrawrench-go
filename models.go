@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.22.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.23.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.22.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.23.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -9498,6 +9498,13 @@ type WorkflowScheduleInput struct {
 type WorkflowScheduleResponse struct {
 	// Schedule: Null when the workflow's trigger is not cron.
 	Schedule *WorkflowSchedule `json:"schedule"`
+}
+
+// WorkflowTypingsResponse is the `WorkflowTypingsResponse` schema.
+type WorkflowTypingsResponse struct {
+	// Dts: Ambient TypeScript declarations for this workflow's `infra` API — the
+	// same file the Monaco editor and `check` endpoint type against.
+	Dts string `json:"dts"`
 }
 
 // AcceptInvitationResponseOrganization is an object the spec declares inline.

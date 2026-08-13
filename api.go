@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.22.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.23.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.22.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.23.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -17374,6 +17374,48 @@ func newWorkflowsNamespace(t *transport) *WorkflowsNamespace {
 	n := &WorkflowsNamespace{t: t}
 	n.Schedule = newWorkflowsScheduleNamespace(t)
 	return n
+}
+
+// WorkflowsTypingsParams holds the parameters for `client.workflows.typings`.
+type WorkflowsTypingsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+	// Enrich: When `1` or `true`, enrich create() field shapes and sidecar
+	// capabilities from live provider configs. Omit for the fast static surface.
+	//
+	// One of "1", "true".
+	Enrich *string
+}
+
+// Typings: Generated infra.d.ts for a workflow
+//
+// The ambient TypeScript declarations workflow source is written against,
+// specialized with this organization's connected accounts, resource types, SSH
+// key names, and the workflow's trigger + metrics. Default is the fast static
+// surface (`create` fields are `Record<string, string>`). Pass `enrich=1` for a
+// second pass that hits provider APIs for precise create() field unions and live
+// sidecar capability flags — the editor loads static first and upgrades when
+// that finishes.
+//
+// _Requires permission: `workflows:read`._
+//
+// GET /api/org/{orgId}/workflows/{id}/typings
+//
+// Raises on 404: Not found
+func (n *WorkflowsNamespace) Typings(ctx context.Context, params WorkflowsTypingsParams, opts ...RequestOption) (*WorkflowTypingsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/workflows/{id}/typings")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.addQuery("enrich", params.Enrich)
+	var out *WorkflowTypingsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // WorkflowsScheduleNamespace is `client.workflows.schedule`.
