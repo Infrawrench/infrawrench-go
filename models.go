@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.25.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.26.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.25.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.26.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -347,6 +347,114 @@ type ActiveTunnel struct {
 	LocalPort  int64  `json:"localPort"`
 	SSHHost    string `json:"sshHost"`
 	RemotePort int64  `json:"remotePort"`
+}
+
+// AgentClaimLookup is the `AgentClaimLookup` schema.
+type AgentClaimLookup struct {
+	RegistrationID   string `json:"registrationId"`
+	WorkspaceName    string `json:"workspaceName"`
+	TrialExpiresInMs *int64 `json:"trialExpiresInMs"`
+	// MergeTargets: Organizations this user may merge the workspace into: ones
+	// they already belong to AND hold `accounts:write` in. A merge writes cloud
+	// credentials, so membership alone is not enough — the confirm route
+	// enforces the same rule.
+	MergeTargets []AgentClaimMergeTarget `json:"mergeTargets"`
+}
+
+// AgentClaimLookupRequest is the `AgentClaimLookupRequest` schema.
+type AgentClaimLookupRequest struct {
+	// Code: The `user_code` the agent showed its user.
+	Code string `json:"code"`
+}
+
+// AgentClaimMergeTarget is the `AgentClaimMergeTarget` schema.
+type AgentClaimMergeTarget struct {
+	ID          string `json:"id"`
+	DisplayName string `json:"displayName"`
+}
+
+// AgentClaimRequest is the `AgentClaimRequest` schema.
+type AgentClaimRequest struct {
+	Code string `json:"code"`
+	// Mode: `adopt` keeps the workspace as its own organization and stops the
+	// clock. `merge` moves its cloud accounts into an organization you already
+	// belong to and destroys the trial. Defaults to `adopt`.
+	//
+	// One of "adopt", "merge".
+	Mode *string `json:"mode,omitempty"`
+	// TargetOrganizationID: Required when `mode` is merge.
+	TargetOrganizationID *string `json:"targetOrganizationId,omitempty"`
+	// MoveHistory: Merge only: also re-parent the trial's metrics and cost
+	// history. Off by default — it changes numbers the target organization may
+	// already be reporting on. Needs `costs:write`.
+	MoveHistory *bool `json:"moveHistory,omitempty"`
+}
+
+// AgentClaimResult is the `AgentClaimResult` schema.
+type AgentClaimResult struct {
+	// OrganizationID: The organization the agent acts in from now on.
+	OrganizationID string `json:"organizationId"`
+	// Mode: One of "adopt", "merge".
+	Mode          string `json:"mode"`
+	AccountsMoved int64  `json:"accountsMoved"`
+	HistoryMoved  bool   `json:"historyMoved"`
+}
+
+// AgentClaimStarted is the `AgentClaimStarted` schema.
+type AgentClaimStarted struct {
+	// UserCode: Formatted as `XXXX-XXXX`. Show it to the user alongside
+	// `verification_uri`.
+	UserCode        string `json:"user_code"`
+	VerificationURI string `json:"verification_uri"`
+	// VerificationURIComplete: The verification page with the code pre-filled.
+	// Convenient, but it puts a live bearer secret in a URL — prefer
+	// `verification_uri` plus the code shown separately.
+	VerificationURIComplete string `json:"verification_uri_complete"`
+	ExpiresAt               string `json:"expires_at"`
+	// Interval: Minimum seconds between status polls.
+	Interval int64 `json:"interval"`
+}
+
+// AgentIdentity is the `AgentIdentity` schema.
+type AgentIdentity struct {
+	RegistrationID string `json:"registration_id"`
+	OrganizationID string `json:"organization_id"`
+	Claimed        bool   `json:"claimed"`
+	// ClaimPending: A `user_code` is currently outstanding.
+	ClaimPending bool `json:"claim_pending"`
+	// TrialExpiresInMs: Milliseconds until deletion. Null once the workspace is
+	// claimed.
+	TrialExpiresInMs *int64 `json:"trial_expires_in_ms"`
+}
+
+// AgentRegisterRequest is the `AgentRegisterRequest` schema.
+type AgentRegisterRequest struct {
+	// Label: Short name for the workspace, shown to the user who claims it.
+	Label *string `json:"label,omitempty"`
+}
+
+// AgentRegistration is the `AgentRegistration` schema.
+type AgentRegistration struct {
+	ID    string  `json:"id"`
+	Label *string `json:"label"`
+	// Kind: One of "anonymous", "service_auth".
+	Kind string `json:"kind"`
+	// Prefix: First 8 characters of the credential.
+	Prefix          *string `json:"prefix"`
+	ClaimedAt       *string `json:"claimedAt"`
+	ClaimedByUserID *string `json:"claimedByUserId"`
+	ClaimedByEmail  *string `json:"claimedByEmail"`
+	LastSeenAt      *string `json:"lastSeenAt"`
+	RevokedAt       *string `json:"revokedAt"`
+	CreatedAt       string  `json:"createdAt"`
+}
+
+// AgentRevoked is the `AgentRevoked` schema.
+type AgentRevoked struct {
+	OK bool `json:"ok"`
+	// Revoked: False when the registration was already revoked. The request
+	// still succeeds — revocation is idempotent — but nothing changed.
+	Revoked bool `json:"revoked"`
 }
 
 // AgentSession is the `AgentSession` schema.
@@ -7171,6 +7279,23 @@ type ReauthenticationRequired struct {
 	Error string `json:"error"`
 	// Code: One of "reauthentication_required".
 	Code string `json:"code"`
+}
+
+// RegisteredAgent is the `RegisteredAgent` schema.
+type RegisteredAgent struct {
+	RegistrationID string `json:"registration_id"`
+	// Credential: Bearer credential for this registration. Format
+	// `iwa_<base64url>`. Returned once and never recoverable — there is no route
+	// that can show it again.
+	Credential     string `json:"credential"`
+	OrganizationID string `json:"organization_id"`
+	// TrialExpiresAt: When the trial workspace is deleted unless a person claims
+	// it.
+	TrialExpiresAt string `json:"trial_expires_at"`
+	ClaimURL       string `json:"claim_url"`
+	// Notice: Human-readable summary of the trial terms, meant to be relayed to
+	// the user.
+	Notice string `json:"notice"`
 }
 
 // ReorderRequest is the `ReorderRequest` schema.

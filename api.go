@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.25.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.26.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.25.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.26.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -39,6 +39,10 @@ type APIV1Client struct {
 	AccessReview *AccessReviewNamespace
 	// Accounts: `client.accounts`.
 	Accounts *AccountsNamespace
+	// Agent: `client.agent`.
+	Agent *AgentNamespace
+	// AgentRegistrations: `client.agentRegistrations`.
+	AgentRegistrations *AgentRegistrationsNamespace
 	// Agents: `client.agents`.
 	Agents *AgentsNamespace
 	// AlertRules: `client.alertRules`.
@@ -223,6 +227,8 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.AccessRequests = newAccessRequestsNamespace(t)
 	c.AccessReview = newAccessReviewNamespace(t)
 	c.Accounts = newAccountsNamespace(t)
+	c.Agent = newAgentNamespace(t)
+	c.AgentRegistrations = newAgentRegistrationsNamespace(t)
 	c.Agents = newAgentsNamespace(t)
 	c.AlertRules = newAlertRulesNamespace(t)
 	c.APIKeys = newAPIKeysNamespace(t)
@@ -1326,6 +1332,289 @@ func (n *AccountsSyncTypeNamespace) Create(ctx context.Context, params AccountsS
 	r.setPath("id", params.ID)
 	r.setPath("typeId", params.TypeID)
 	var out []SyncedResource
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentNamespace is `client.agent`.
+type AgentNamespace struct {
+	t *transport
+
+	// Claim: `client.agent.claim`.
+	Claim *AgentClaimNamespace
+	// Identity: `client.agent.identity`.
+	Identity *AgentIdentityNamespace
+}
+
+func newAgentNamespace(t *transport) *AgentNamespace {
+	n := &AgentNamespace{t: t}
+	n.Claim = newAgentClaimNamespace(t)
+	n.Identity = newAgentIdentityNamespace(t)
+	return n
+}
+
+// AgentClaimNamespace is `client.agent.claim`.
+type AgentClaimNamespace struct {
+	t *transport
+}
+
+func newAgentClaimNamespace(t *transport) *AgentClaimNamespace {
+	n := &AgentClaimNamespace{t: t}
+	return n
+}
+
+// AgentClaimCreateParams holds the parameters for `client.agent.claim.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentClaimCreateParams struct {
+	// Body: the JSON request body.
+	Body *AgentClaimRequest
+}
+
+// Create: Confirm a claim, binding the workspace to the signed-in user
+//
+// The code is re-resolved here rather than trusting a registration id from the
+// lookup, so the lookup cannot be used as an oracle. Rate limited per user.
+//
+// POST /api/agent/claim
+//
+// Raises on 400: Bad code, already claimed, revoked, or a merge with no valid
+// target
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: The merge would put a free target organization over its plan
+// limits
+//
+// Raises on 403: You lack the permission the merge needs in the target
+// organization (`accounts:write`, plus `costs:write` when moving history).
+//
+// Raises on 429: Too many attempts
+func (n *AgentClaimNamespace) Create(ctx context.Context, params *AgentClaimCreateParams, opts ...RequestOption) (*AgentClaimResult, error) {
+	r := newRequest(http.MethodPost, "/api/agent/claim")
+	if params != nil {
+		r.setJSONBody(params.Body)
+	}
+	var out *AgentClaimResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentClaimLookupParams holds the parameters for `client.agent.claim.lookup`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentClaimLookupParams struct {
+	// Body: the JSON request body.
+	Body *AgentClaimLookupRequest
+}
+
+// Lookup: Resolve a user code so the claim page can show what is being claimed
+//
+// A POST rather than a GET with the code in the path: the code is a live bearer
+// secret for 15 minutes, and a URL lands in history, in `Referer`, and in access
+// logs. Rate limited per user.
+//
+// POST /api/agent/claim/lookup
+//
+// Raises on 400: Missing, malformed, or expired code
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 404: The workspace no longer exists
+//
+// Raises on 429: Too many attempts
+func (n *AgentClaimNamespace) Lookup(ctx context.Context, params *AgentClaimLookupParams, opts ...RequestOption) (*AgentClaimLookup, error) {
+	r := newRequest(http.MethodPost, "/api/agent/claim/lookup")
+	if params != nil {
+		r.setJSONBody(params.Body)
+	}
+	var out *AgentClaimLookup
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentIdentityNamespace is `client.agent.identity`.
+type AgentIdentityNamespace struct {
+	t *transport
+}
+
+func newAgentIdentityNamespace(t *transport) *AgentIdentityNamespace {
+	n := &AgentIdentityNamespace{t: t}
+	return n
+}
+
+// Claim: Start the claim ceremony and mint a user code
+//
+// Returns a code to show the user together with the verification URL. Replaces
+// any code already outstanding for this registration.
+//
+// POST /api/agent/identity/claim
+//
+// Raises on 400: Already claimed
+//
+// Raises on 401: Unknown or revoked credential
+//
+// Raises on 403: Registration revoked
+func (n *AgentIdentityNamespace) Claim(ctx context.Context, opts ...RequestOption) (*AgentClaimStarted, error) {
+	r := newRequest(http.MethodPost, "/api/agent/identity/claim")
+	var out *AgentClaimStarted
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentIdentityCreateParams holds the parameters for
+// `client.agent.identity.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentIdentityCreateParams struct {
+	// Body: the JSON request body.
+	Body *AgentRegisterRequest
+}
+
+// Create: Open an anonymous registration and a 24-hour trial workspace
+//
+// Requires no authentication — this is how a client with no credentials gets
+// one. Rate limited per source address. The workspace it opens is deleted 24
+// hours later unless a person completes the claim ceremony.
+//
+// POST /api/agent/identity
+//
+// Raises on 429: Too many registrations from this address
+//
+// Raises on 500: Could not open a workspace
+func (n *AgentIdentityNamespace) Create(ctx context.Context, params *AgentIdentityCreateParams, opts ...RequestOption) (*RegisteredAgent, error) {
+	r := newRequest(http.MethodPost, "/api/agent/identity")
+	if params != nil {
+		r.setJSONBody(params.Body)
+	}
+	var out *RegisteredAgent
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// Get: Poll this registration's claim status and time remaining
+//
+// GET /api/agent/identity
+//
+// Raises on 401: Unknown or revoked credential
+//
+// Raises on 404: Unknown registration
+func (n *AgentIdentityNamespace) Get(ctx context.Context, opts ...RequestOption) (*AgentIdentity, error) {
+	r := newRequest(http.MethodGet, "/api/agent/identity")
+	var out *AgentIdentity
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentRegistrationsNamespace is `client.agentRegistrations`.
+type AgentRegistrationsNamespace struct {
+	t *transport
+}
+
+func newAgentRegistrationsNamespace(t *transport) *AgentRegistrationsNamespace {
+	n := &AgentRegistrationsNamespace{t: t}
+	return n
+}
+
+// AgentRegistrationsDeleteParams holds the parameters for
+// `client.agentRegistrations.delete`.
+type AgentRegistrationsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Revoke an agent registration
+//
+// The row is kept so audit entries naming this agent stay legible; its
+// credential stops working on the next request. Closed to agent credentials.
+//
+// DELETE /api/org/{orgId}/agent-registrations/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *AgentRegistrationsNamespace) Delete(ctx context.Context, params AgentRegistrationsDeleteParams, opts ...RequestOption) (*AgentRevoked, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/agent-registrations/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *AgentRevoked
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentRegistrationsListParams holds the parameters for
+// `client.agentRegistrations.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentRegistrationsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List the agent registrations acting in this organization
+//
+// GET /api/org/{orgId}/agent-registrations
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *AgentRegistrationsNamespace) List(ctx context.Context, params *AgentRegistrationsListParams, opts ...RequestOption) ([]AgentRegistration, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/agent-registrations")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []AgentRegistration
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
