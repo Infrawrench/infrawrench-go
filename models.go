@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.26.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.27.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.26.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.27.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -9340,7 +9340,7 @@ type TabTarget struct {
 	// "expiring", "posture", "access-review", "backups", "dns", "iac",
 	// "environment-diff", "environments", "ssh-fanout", "metric-alerts",
 	// "probes", "status-pages", "quotas", "incidents", "workflows",
-	// "deployments", "settings", "chat".
+	// "deployments", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -9348,6 +9348,9 @@ type TabTarget struct {
 	ConversationID *string     `json:"conversationId,omitempty"`
 	ReportID       *string     `json:"reportId,omitempty"`
 	InvoiceID      *string     `json:"invoiceId,omitempty"`
+	SessionID      *string     `json:"sessionId,omitempty"`
+	WindowID       *int64      `json:"windowId,omitempty"`
+	AppID          *string     `json:"appId,omitempty"`
 }
 
 // TagComplianceReport is the `TagComplianceReport` schema.
