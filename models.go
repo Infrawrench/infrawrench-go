@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.27.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.28.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.27.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.28.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -9337,8 +9337,8 @@ type SyntheticProbeUpdate struct {
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
-	// "expiring", "posture", "access-review", "backups", "dns", "iac",
-	// "environment-diff", "environments", "ssh-fanout", "metric-alerts",
+	// "expiring", "posture", "access-review", "backups", "wallboard", "dns",
+	// "iac", "environment-diff", "environments", "ssh-fanout", "metric-alerts",
 	// "probes", "status-pages", "quotas", "incidents", "workflows",
 	// "deployments", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
@@ -9582,6 +9582,63 @@ type ValidateTabsRequest struct {
 // ValidateTabsResponse is the `ValidateTabsResponse` schema.
 type ValidateTabsResponse struct {
 	ValidTabIDs []string `json:"validTabIds"`
+}
+
+// WallboardFailureLine is the `WallboardFailureLine` schema.
+type WallboardFailureLine struct {
+	ID     string  `json:"id"`
+	Label  string  `json:"label"`
+	Detail string  `json:"detail"`
+	Since  *string `json:"since"`
+}
+
+// WallboardIncidentLine is the `WallboardIncidentLine` schema.
+type WallboardIncidentLine struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Severity  string `json:"severity"`
+	StartedAt string `json:"startedAt"`
+	Status    string `json:"status"`
+}
+
+// WallboardResponse is the `WallboardResponse` schema.
+type WallboardResponse struct {
+	// Status: Three states rather than five, because at four metres a person
+	// distinguishes three colours reliably and nothing more. `down` is reserved
+	// for the two things that mean customers are affected now — a sev1 incident
+	// or a probe that is down; everything else that is wrong is `degraded`. A
+	// source that could not be read is `degraded` and never `ok`.
+	//
+	// One of "ok", "degraded", "down".
+	Status string          `json:"status"`
+	Tiles  []WallboardTile `json:"tiles"`
+	// Incidents: Unresolved incidents, newest first.
+	Incidents []WallboardIncidentLine `json:"incidents"`
+	// Failures: Probes that are down, monitors breaching, accounts that stopped
+	// syncing.
+	Failures []WallboardFailureLine `json:"failures"`
+	// FailedSources: Sources that could not be read, **named on the screen**. A
+	// wallboard showing green because a query failed is worse than a blank one —
+	// it is actively telling the room the wrong thing.
+	FailedSources []string `json:"failedSources"`
+	GeneratedAt   string   `json:"generatedAt"`
+}
+
+// WallboardTile is the `WallboardTile` schema.
+type WallboardTile struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+	// Value: The number or short phrase, rendered in large type.
+	Value  string  `json:"value"`
+	Detail *string `json:"detail"`
+	// Status: Three states rather than five, because at four metres a person
+	// distinguishes three colours reliably and nothing more. `down` is reserved
+	// for the two things that mean customers are affected now — a sev1 incident
+	// or a probe that is down; everything else that is wrong is `degraded`. A
+	// source that could not be read is `degraded` and never `ok`.
+	//
+	// One of "ok", "degraded", "down".
+	Status string `json:"status"`
 }
 
 // WorkflowApproval is the `WorkflowApproval` schema.

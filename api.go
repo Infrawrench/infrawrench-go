@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.27.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.28.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.27.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.28.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -209,6 +209,8 @@ type APIV1Client struct {
 	TagPolicy *TagPolicyNamespace
 	// Team: `client.team`.
 	Team *TeamNamespace
+	// Wallboard: `client.wallboard`.
+	Wallboard *WallboardNamespace
 	// WorkflowApprovals: `client.workflowApprovals`.
 	WorkflowApprovals *WorkflowApprovalsNamespace
 	// WorkflowSecrets: `client.workflowSecrets`.
@@ -312,6 +314,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Storage = newStorageNamespace(t)
 	c.TagPolicy = newTagPolicyNamespace(t)
 	c.Team = newTeamNamespace(t)
+	c.Wallboard = newWallboardNamespace(t)
 	c.WorkflowApprovals = newWorkflowApprovalsNamespace(t)
 	c.WorkflowSecrets = newWorkflowSecretsNamespace(t)
 	c.Workflows = newWorkflowsNamespace(t)
@@ -17678,6 +17681,56 @@ func (n *TeamRolesNamespace) Update(ctx context.Context, params TeamRolesUpdateP
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *Role
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WallboardNamespace is `client.wallboard`.
+type WallboardNamespace struct {
+	t *transport
+}
+
+func newWallboardNamespace(t *transport) *WallboardNamespace {
+	n := &WallboardNamespace{t: t}
+	return n
+}
+
+// WallboardGetParams holds the parameters for `client.wallboard.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type WallboardGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Everything that is wrong right now, for a screen on a wall
+//
+// A different reading of data the product already holds, built on one rule: a
+// wallboard may only show things that are true **right now** and that somebody
+// would cross a room to look at. There is deliberately no history, no trend and
+// no breakdown — those belong on the page you open when you do walk over.
+//
+// Four sources — declared incidents, synthetic probes, query monitors and
+// account sync health — each guarded independently, because a television that
+// goes blank because one query threw is showing nothing to a room that was
+// relying on it.
+//
+// Session-authenticated on purpose: unlike the calendar feed or a public status
+// page, this carries incident titles, probe names and account names, and a
+// screen in an office is exactly what a visitor photographs. The machine driving
+// the wall signs in once.
+//
+// GET /api/org/{orgId}/wallboard
+func (n *WallboardNamespace) Get(ctx context.Context, params *WallboardGetParams, opts ...RequestOption) (*WallboardResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/wallboard")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *WallboardResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
