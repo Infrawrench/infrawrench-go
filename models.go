@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.29.1 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.30.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.29.1).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.30.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -8784,6 +8784,28 @@ type ShowbackReport struct {
 	Centres []ShowbackReportCentres `json:"centres"`
 }
 
+// SignSSHKeyRequest is the `SignSshKeyRequest` schema.
+//
+// Spec schema: `SignSshKeyRequest`.
+type SignSSHKeyRequest struct {
+	// Data: The exact bytes SSH wants signed (a publickey-auth challenge),
+	// base64-encoded.
+	Data      string           `json:"data"`
+	Algorithm SSHSignAlgorithm `json:"algorithm"`
+	// Context: Recorded in the audit log entry for this signature.
+	Context *SignSshkeyRequestContext `json:"context,omitempty"`
+}
+
+// SignSSHKeyResponse is the `SignSshKeyResponse` schema.
+//
+// Spec schema: `SignSshKeyResponse`.
+type SignSSHKeyResponse struct {
+	// Signature: Raw signature bytes, base64-encoded — Ed25519/RSA as-is, ECDSA
+	// in DER as node produces it.
+	Signature string           `json:"signature"`
+	Algorithm SSHSignAlgorithm `json:"algorithm"`
+}
+
 // SlackAvailableChannel is the `SlackAvailableChannel` schema.
 type SlackAvailableChannel struct {
 	ID        string `json:"id"`
@@ -9117,6 +9139,22 @@ const (
 	SSHKeyTypeEcdsaSha2Nistp521             SSHKeyType = "ecdsa-sha2-nistp521"
 	SSHKeyTypeSkSSHEd25519OpensshCom        SSHKeyType = "sk-ssh-ed25519@openssh.com"
 	SSHKeyTypeSkEcdsaSha2Nistp256OpensshCom SSHKeyType = "sk-ecdsa-sha2-nistp256@openssh.com"
+)
+
+// SSHSignAlgorithm is the `SshSignAlgorithm` schema.
+//
+// Spec schema: `SshSignAlgorithm`.
+type SSHSignAlgorithm = string
+
+// The values SSHSignAlgorithm takes.
+const (
+	SSHSignAlgorithmSSHEd25519        SSHSignAlgorithm = "ssh-ed25519"
+	SSHSignAlgorithmSSHRsa            SSHSignAlgorithm = "ssh-rsa"
+	SSHSignAlgorithmRsaSha2256        SSHSignAlgorithm = "rsa-sha2-256"
+	SSHSignAlgorithmRsaSha2512        SSHSignAlgorithm = "rsa-sha2-512"
+	SSHSignAlgorithmEcdsaSha2Nistp256 SSHSignAlgorithm = "ecdsa-sha2-nistp256"
+	SSHSignAlgorithmEcdsaSha2Nistp384 SSHSignAlgorithm = "ecdsa-sha2-nistp384"
+	SSHSignAlgorithmEcdsaSha2Nistp521 SSHSignAlgorithm = "ecdsa-sha2-nistp521"
 )
 
 // SSHSnippet is the `SshSnippet` schema.
@@ -10506,6 +10544,12 @@ type ShowbackReportCentres struct {
 	ParentID *string `json:"parentId"`
 	// Depth: 0 for a root; the indentation level.
 	Depth int64 `json:"depth"`
+}
+
+// SignSshkeyRequestContext is an object the spec declares inline.
+type SignSshkeyRequestContext struct {
+	Host     *string `json:"host,omitempty"`
+	Username *string `json:"username,omitempty"`
 }
 
 // SshfanoutHostResultHostKeyTrust is an object the spec declares inline.

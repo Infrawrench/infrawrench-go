@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.29.1 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.30.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.29.1).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.30.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -16787,6 +16787,43 @@ func (n *SSHKeysNamespace) List(ctx context.Context, params *SSHKeysListParams, 
 		r.setPath("orgId", params.OrgID)
 	}
 	var out []SSHKey
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SSHKeysSignParams holds the parameters for `client.sshKeys.sign`.
+type SSHKeysSignParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body SignSSHKeyRequest
+}
+
+// Sign: Sign an SSH auth challenge with a cloud-held key (the cloud as an SSH
+// agent)
+//
+// Signs one publickey-authentication challenge with a server-generated org key
+// whose private half never leaves Infrawrench Cloud. Requires the
+// `resources:execute` permission — producing an auth signature is the same
+// authority as opening a shell. Imported keys cannot sign (only their public
+// half is stored). Every call is audited.
+//
+// POST /api/org/{orgId}/ssh-keys/{id}/sign
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *SSHKeysNamespace) Sign(ctx context.Context, params SSHKeysSignParams, opts ...RequestOption) (*SignSSHKeyResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ssh-keys/{id}/sign")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *SignSSHKeyResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
