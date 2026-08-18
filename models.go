@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.28.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.29.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.28.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.29.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1449,6 +1449,93 @@ type BusinessMetricValuesInput struct {
 	// re-ran. A batch naming the same day twice keeps the last value, applying
 	// the same rule within a batch that restatement applies between them.
 	Values []BusinessMetricValuesInputValues `json:"values"`
+}
+
+// CalendarEvent is the `CalendarEvent` schema.
+type CalendarEvent struct {
+	// ID: Stable across renders for the same underlying thing, because it
+	// becomes the iCalendar UID. Recurring sources (sleep windows, cron runs)
+	// key it by occurrence.
+	ID string `json:"id"`
+	// Kind: Which of the organization's own records the event was projected
+	// from. The kinds are sources rather than a severity taxonomy: a reader
+	// scanning a month wants to know that one bar is a freeze and another is a
+	// certificate.
+	//
+	// One of "change-freeze", "sleep-schedule", "expiry", "commitment-expiry",
+	// "workflow-schedule", "incident".
+	Kind   string  `json:"kind"`
+	Title  string  `json:"title"`
+	Detail *string `json:"detail"`
+	// StartsAt: Clamped to the requested window's lower bound when the
+	// underlying span began earlier; `openEnded` says so.
+	StartsAt string `json:"startsAt"`
+	// EndsAt: Null means a point in time — a deadline, a scheduled run — or a
+	// span whose end is not known. `openEnded` distinguishes the two.
+	EndsAt *string `json:"endsAt"`
+	// OpenEnded: The span continues past an edge of the window, or has no
+	// declared end at all (a freeze held until further notice, an unresolved
+	// incident).
+	OpenEnded bool `json:"openEnded"`
+	// AllDay: The event is meaningful only to the day — a deadline read off a
+	// date field. Rendering such a thing at the provider's stored midnight would
+	// be false precision.
+	AllDay bool `json:"allDay"`
+	// Severity: One of "critical", "warning", "info".
+	Severity string            `json:"severity"`
+	Link     CalendarEventLink `json:"link"`
+}
+
+// CalendarEventLink: Where opening the event should go — a hint rather than a
+// URL, because each surface addresses its own pages differently.
+//
+// The API may send null in its place.
+type CalendarEventLink = any
+
+// CalendarResponse is the `CalendarResponse` schema.
+type CalendarResponse struct {
+	// Events: Soonest first; longer spans before shorter ones.
+	Events []CalendarEvent `json:"events"`
+	From   string          `json:"from"`
+	To     string          `json:"to"`
+	// EmptyKinds: Kinds that were asked for and produced no events in this
+	// window.
+	EmptyKinds []string `json:"emptyKinds"`
+	// FailedKinds: Sources that threw. Reported rather than swallowed: 'nothing
+	// scheduled' and 'we could not read it' are different answers, and one
+	// failing source must not empty the page.
+	FailedKinds []string `json:"failedKinds"`
+	GeneratedAt string   `json:"generatedAt"`
+}
+
+// CalendarSubscription is the `CalendarSubscription` schema.
+type CalendarSubscription struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Kinds: Kinds the feed carries. Empty means every kind, including ones
+	// added later.
+	Kinds []string `json:"kinds"`
+	// URL: The subscription URL, returned **only** by the create call — the
+	// token it contains is stored hashed and cannot be shown again. Lose it and
+	// mint a new feed.
+	URL       *string `json:"url,omitempty"`
+	CreatedAt string  `json:"createdAt"`
+	// LastAccessedAt: Last fetch, written at most hourly. Its purpose is
+	// answering 'is anyone still using this?' before revoking, which an hour of
+	// staleness cannot change.
+	LastAccessedAt *string `json:"lastAccessedAt"`
+	RevokedAt      *string `json:"revokedAt"`
+}
+
+// CalendarSubscriptionCreate is the `CalendarSubscriptionCreate` schema.
+type CalendarSubscriptionCreate struct {
+	Name  string   `json:"name"`
+	Kinds []string `json:"kinds,omitempty"`
+}
+
+// CalendarSubscriptionList is the `CalendarSubscriptionList` schema.
+type CalendarSubscriptionList struct {
+	Subscriptions []CalendarSubscription `json:"subscriptions"`
 }
 
 // CapacityCheckoutRequest is the `CapacityCheckoutRequest` schema.
@@ -9337,10 +9424,10 @@ type SyntheticProbeUpdate struct {
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
-	// "expiring", "posture", "access-review", "backups", "wallboard", "dns",
-	// "iac", "environment-diff", "environments", "ssh-fanout", "metric-alerts",
-	// "probes", "status-pages", "quotas", "incidents", "workflows",
-	// "deployments", "settings", "chat", "linux-app".
+	// "expiring", "posture", "access-review", "backups", "wallboard",
+	// "calendar", "dns", "iac", "environment-diff", "environments",
+	// "ssh-fanout", "metric-alerts", "probes", "status-pages", "quotas",
+	// "incidents", "workflows", "deployments", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.28.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.29.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.28.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.29.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -71,6 +71,8 @@ type APIV1Client struct {
 	Budgets *BudgetsNamespace
 	// BusinessMetrics: `client.businessMetrics`.
 	BusinessMetrics *BusinessMetricsNamespace
+	// Calendar: `client.calendar`.
+	Calendar *CalendarNamespace
 	// ChangeFreezes: `client.changeFreezes`.
 	ChangeFreezes *ChangeFreezesNamespace
 	// Changes: `client.changes`.
@@ -245,6 +247,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.BlastRadius = newBlastRadiusNamespace(t)
 	c.Budgets = newBudgetsNamespace(t)
 	c.BusinessMetrics = newBusinessMetricsNamespace(t)
+	c.Calendar = newCalendarNamespace(t)
 	c.ChangeFreezes = newChangeFreezesNamespace(t)
 	c.Changes = newChangesNamespace(t)
 	c.Chat = newChatNamespace(t)
@@ -3563,6 +3566,173 @@ func (n *BusinessMetricsValuesNamespace) Get(ctx context.Context, params Busines
 	r.setPath("id", params.ID)
 	r.addQuery("limit", params.Limit)
 	var out *BusinessMetricsValuesGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CalendarNamespace is `client.calendar`.
+type CalendarNamespace struct {
+	t *transport
+
+	// Subscriptions: `client.calendar.subscriptions`.
+	Subscriptions *CalendarSubscriptionsNamespace
+}
+
+func newCalendarNamespace(t *transport) *CalendarNamespace {
+	n := &CalendarNamespace{t: t}
+	n.Subscriptions = newCalendarSubscriptionsNamespace(t)
+	return n
+}
+
+// CalendarGetParams holds the parameters for `client.calendar.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CalendarGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// From: Inclusive lower bound. Defaults to 7 days ago.
+	From *string
+	// To: Exclusive upper bound. Defaults to 35 days ahead.
+	To *string
+	// Kinds: Comma-separated `CalendarEventKind`s. Unknown members are ignored
+	// rather than rejected; omitting the parameter returns every kind.
+	Kinds *string
+}
+
+// Get: List dated operational events in a window
+//
+// One time axis over six things the organization already stores: change freezes,
+// sleep/wake schedules, declared deadlines (certificates, domains, keys and
+// resource leases), commitment term ends, cron-triggered workflow runs, and
+// declared incidents. Nothing here is a new record — the calendar is recomputed
+// on every read, exactly as posture findings and backup coverage are.
+//
+// The window defaults to the last 7 and next 35 days and may span at most 400.
+// Recurring sources are expanded to at most 400 occurrences each, so one nightly
+// schedule cannot flood a year-long query.
+//
+// GET /api/org/{orgId}/calendar
+//
+// Raises on 400: Bad request
+func (n *CalendarNamespace) Get(ctx context.Context, params *CalendarGetParams, opts ...RequestOption) (*CalendarResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/calendar")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("from", params.From)
+		r.addQuery("to", params.To)
+		r.addQuery("kinds", params.Kinds)
+	}
+	var out *CalendarResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CalendarSubscriptionsNamespace is `client.calendar.subscriptions`.
+type CalendarSubscriptionsNamespace struct {
+	t *transport
+}
+
+func newCalendarSubscriptionsNamespace(t *transport) *CalendarSubscriptionsNamespace {
+	n := &CalendarSubscriptionsNamespace{t: t}
+	return n
+}
+
+// CalendarSubscriptionsCreateParams holds the parameters for
+// `client.calendar.subscriptions.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CalendarSubscriptionsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *CalendarSubscriptionCreate
+}
+
+// Create: Mint an iCalendar subscription URL
+//
+// Returns the only copy of the feed URL. The token in it is 32 random bytes,
+// stored as a SHA-256 hash, and is the sole credential on a route that runs
+// outside every auth layer — treat the URL as a secret. The URL deliberately
+// contains no organization id.
+//
+// An organization may hold 25 live subscriptions; revoking makes room.
+//
+// POST /api/org/{orgId}/calendar/subscriptions
+//
+// Raises on 400: Bad request
+func (n *CalendarSubscriptionsNamespace) Create(ctx context.Context, params *CalendarSubscriptionsCreateParams, opts ...RequestOption) (*CalendarSubscription, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/calendar/subscriptions")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *CalendarSubscription
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CalendarSubscriptionsDeleteParams holds the parameters for
+// `client.calendar.subscriptions.delete`.
+type CalendarSubscriptionsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	SubscriptionID string
+}
+
+// Delete: Revoke an iCalendar subscription
+//
+// The URL stops working immediately. The row is kept, and revoking twice is not
+// an error.
+//
+// DELETE /api/org/{orgId}/calendar/subscriptions/{subscriptionId}
+//
+// Raises on 404: Not found
+func (n *CalendarSubscriptionsNamespace) Delete(ctx context.Context, params CalendarSubscriptionsDeleteParams, opts ...RequestOption) (*CalendarSubscription, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/calendar/subscriptions/{subscriptionId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("subscriptionId", params.SubscriptionID)
+	var out *CalendarSubscription
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CalendarSubscriptionsGetParams holds the parameters for
+// `client.calendar.subscriptions.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CalendarSubscriptionsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List the organization's iCalendar subscriptions
+//
+// Feed URLs that have been minted, including revoked ones — a revoked row is
+// kept so the audit trail still resolves. The token itself is never returned.
+//
+// GET /api/org/{orgId}/calendar/subscriptions
+func (n *CalendarSubscriptionsNamespace) Get(ctx context.Context, params *CalendarSubscriptionsGetParams, opts ...RequestOption) (*CalendarSubscriptionList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/calendar/subscriptions")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CalendarSubscriptionList
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
