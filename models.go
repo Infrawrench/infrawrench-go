@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.29.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.29.1 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.29.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.29.1).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -9701,8 +9701,7 @@ type WallboardResponse struct {
 	Tiles  []WallboardTile `json:"tiles"`
 	// Incidents: Unresolved incidents, newest first.
 	Incidents []WallboardIncidentLine `json:"incidents"`
-	// Failures: Probes that are down, monitors breaching, accounts that stopped
-	// syncing.
+	// Failures: Probes that are down, accounts that stopped syncing.
 	Failures []WallboardFailureLine `json:"failures"`
 	// FailedSources: Sources that could not be read, **named on the screen**. A
 	// wallboard showing green because a query failed is worse than a blank one —
