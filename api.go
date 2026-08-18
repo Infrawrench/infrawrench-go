@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.30.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.31.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.30.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.31.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -49,6 +49,8 @@ type APIV1Client struct {
 	AlertRules *AlertRulesNamespace
 	// APIKeys: `client.apiKeys`.
 	APIKeys *APIKeysNamespace
+	// Apps: `client.apps`.
+	Apps *AppsNamespace
 	// Artifacts: `client.artifacts`.
 	Artifacts *ArtifactsNamespace
 	// Associations: `client.associations`.
@@ -236,6 +238,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Agents = newAgentsNamespace(t)
 	c.AlertRules = newAlertRulesNamespace(t)
 	c.APIKeys = newAPIKeysNamespace(t)
+	c.Apps = newAppsNamespace(t)
 	c.Artifacts = newArtifactsNamespace(t)
 	c.Associations = newAssociationsNamespace(t)
 	c.AuditLogs = newAuditLogsNamespace(t)
@@ -2212,6 +2215,94 @@ func (n *APIKeysNamespace) Rotate(ctx context.Context, params APIKeysRotateParam
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
 	var out *CreatedAPIKey
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AppsNamespace is `client.apps`.
+type AppsNamespace struct {
+	t *transport
+}
+
+func newAppsNamespace(t *transport) *AppsNamespace {
+	n := &AppsNamespace{t: t}
+	return n
+}
+
+// AppsCheckParams holds the parameters for `client.apps.check`.
+type AppsCheckParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body LinuxAppHostTarget
+}
+
+// Check: Check whether a host can run Linux applications
+//
+// Runs a read-only shell probe over SSH and reports what the host is missing,
+// plus the packages and commands that would fix it. A POST because it opens a
+// connection to the named host and must never be cached — its whole value is
+// saying what the host is now.
+//
+// POST /api/org/{orgId}/apps/check
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: The host key is new or has changed; trust it and retry
+//
+// Raises on 502: The host could not be reached or probed
+func (n *AppsNamespace) Check(ctx context.Context, params AppsCheckParams, opts ...RequestOption) (*LinuxAppHostCheck, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/apps/check")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *LinuxAppHostCheck
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AppsSetupParams holds the parameters for `client.apps.setup`.
+type AppsSetupParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body LinuxAppSetupRequest
+}
+
+// Setup: Install what a host needs to run Linux applications
+//
+// Installs the named requirements using the host's own package manager, then
+// re-probes and reports what the host now is. Takes requirement ids, never
+// commands — the commands are derived server-side from a fresh probe. Needs root
+// or passwordless sudo on the host, respects change freezes, and is audited as
+// `linux_app.host_setup`.
+//
+// Responds with `application/x-ndjson`: one `{"line":"…"}` per line of
+// package-manager output, then a final `{"outcome":{…}}`. A failure arrives as
+// `{"error":"…"}` inside the stream, because the status line has already been
+// sent by then.
+//
+// POST /api/org/{orgId}/apps/setup
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: A change freeze is in effect, or the host key needs trusting
+func (n *AppsNamespace) Setup(ctx context.Context, params AppsSetupParams, opts ...RequestOption) (*LinuxAppSetupEvent, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/apps/setup")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *LinuxAppSetupEvent
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

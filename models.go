@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.30.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.31.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.30.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.31.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -5506,6 +5506,109 @@ type LinearVerifyResult struct {
 	ID    string  `json:"id"`
 	Name  string  `json:"name"`
 	Email *string `json:"email"`
+}
+
+// LinuxAppHostCheck is the `LinuxAppHostCheck` schema.
+type LinuxAppHostCheck struct {
+	Preflight LinuxAppHostPreflight `json:"preflight"`
+	Plan      *LinuxAppInstallPlan  `json:"plan"`
+}
+
+// LinuxAppHostPreflight is the `LinuxAppHostPreflight` schema.
+type LinuxAppHostPreflight struct {
+	Arch   string `json:"arch"`
+	OsID   string `json:"osId"`
+	OsName string `json:"osName"`
+	// PackageManager: One of "apt-get", "dnf", "yum", "apk", "pacman", "zypper".
+	PackageManager *string `json:"packageManager"`
+	// Privilege: One of "root", "sudo", "sudo-password", "none".
+	Privilege    string                `json:"privilege"`
+	Requirements []LinuxAppRequirement `json:"requirements"`
+	// Staging: A writable, exec-capable directory was found to stage the app
+	// server in. False means every candidate is missing, unwritable, or mounted
+	// noexec — which no package fixes.
+	Staging  bool  `json:"staging"`
+	AppCount int64 `json:"appCount"`
+	Ready    bool  `json:"ready"`
+}
+
+// LinuxAppHostTarget is the `LinuxAppHostTarget` schema.
+type LinuxAppHostTarget struct {
+	AccountID  string `json:"accountId"`
+	ResourceID string `json:"resourceId"`
+	SSHKeyID   string `json:"sshKeyId"`
+	Host       string `json:"host"`
+	Username   string `json:"username"`
+	Port       *int64 `json:"port,omitempty"`
+}
+
+// LinuxAppInstallOutcome is the `LinuxAppInstallOutcome` schema.
+type LinuxAppInstallOutcome struct {
+	Log       []string              `json:"log"`
+	Failed    []string              `json:"failed"`
+	Preflight LinuxAppHostPreflight `json:"preflight"`
+}
+
+// LinuxAppInstallPlan is the `LinuxAppInstallPlan` schema.
+//
+// The API may send null in its place.
+type LinuxAppInstallPlan struct {
+	// PackageManager: One of "apt-get", "dnf", "yum", "apk", "pacman", "zypper".
+	PackageManager string `json:"packageManager"`
+	// Privilege: One of "root", "sudo", "sudo-password", "none".
+	Privilege    string                  `json:"privilege"`
+	Requirements []LinuxAppRequirementID `json:"requirements"`
+	Packages     []string                `json:"packages"`
+	// Commands: Exactly what would run on the host, privilege prefix included.
+	Commands      []string `json:"commands"`
+	CanInstall    bool     `json:"canInstall"`
+	BlockedReason *string  `json:"blockedReason,omitempty"`
+}
+
+// LinuxAppRequirement is the `LinuxAppRequirement` schema.
+type LinuxAppRequirement struct {
+	ID LinuxAppRequirementID `json:"id"`
+	// Severity: One of "required", "recommended".
+	Severity string `json:"severity"`
+	Title    string `json:"title"`
+	Summary  string `json:"summary"`
+	OK       bool   `json:"ok"`
+}
+
+// LinuxAppRequirementID: gzip unpacks the uploaded app server; xkb is the
+// keyboard layout data xkbcommon compiles a keymap from; dbus is the session bus
+// GTK applications wait for; fonts, mesa and icons decide what an application
+// then looks like.
+//
+// Spec schema: `LinuxAppRequirementId`.
+type LinuxAppRequirementID = string
+
+// The values LinuxAppRequirementID takes.
+const (
+	LinuxAppRequirementIDGzip  LinuxAppRequirementID = "gzip"
+	LinuxAppRequirementIDXkb   LinuxAppRequirementID = "xkb"
+	LinuxAppRequirementIDDbus  LinuxAppRequirementID = "dbus"
+	LinuxAppRequirementIDFonts LinuxAppRequirementID = "fonts"
+	LinuxAppRequirementIDMesa  LinuxAppRequirementID = "mesa"
+	LinuxAppRequirementIDIcons LinuxAppRequirementID = "icons"
+)
+
+// LinuxAppSetupEvent is the `LinuxAppSetupEvent` schema.
+type LinuxAppSetupEvent struct {
+	Line    *string                 `json:"line,omitempty"`
+	Outcome *LinuxAppInstallOutcome `json:"outcome,omitempty"`
+	Error   *string                 `json:"error,omitempty"`
+}
+
+// LinuxAppSetupRequest is the `LinuxAppSetupRequest` schema.
+type LinuxAppSetupRequest struct {
+	AccountID    string                  `json:"accountId"`
+	ResourceID   string                  `json:"resourceId"`
+	SSHKeyID     string                  `json:"sshKeyId"`
+	Host         string                  `json:"host"`
+	Username     string                  `json:"username"`
+	Port         *int64                  `json:"port,omitempty"`
+	Requirements []LinuxAppRequirementID `json:"requirements,omitempty"`
 }
 
 // LiteralAssociationRequest is the `LiteralAssociationRequest` schema.
