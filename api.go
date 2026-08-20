@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.33.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.34.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.33.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.34.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -159,6 +159,8 @@ type APIV1Client struct {
 	Msteams *MsteamsNamespace
 	// NetworkFlows: `client.networkFlows`.
 	NetworkFlows *NetworkFlowsNamespace
+	// OnCall: `client.onCall`.
+	OnCall *OnCallNamespace
 	// Orgs: `client.orgs`.
 	Orgs *OrgsNamespace
 	// Orphans: `client.orphans`.
@@ -295,6 +297,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Moment = newMomentNamespace(t)
 	c.Msteams = newMsteamsNamespace(t)
 	c.NetworkFlows = newNetworkFlowsNamespace(t)
+	c.OnCall = newOnCallNamespace(t)
 	c.Orgs = newOrgsNamespace(t)
 	c.Orphans = newOrphansNamespace(t)
 	c.Ownership = newOwnershipNamespace(t)
@@ -12557,6 +12560,324 @@ func (n *NetworkFlowsSettingsNamespace) Update(ctx context.Context, params Netwo
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *NetworkFlowSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OnCallNamespace is `client.onCall`.
+type OnCallNamespace struct {
+	t *transport
+
+	// Overrides: `client.onCall.overrides`.
+	Overrides *OnCallOverridesNamespace
+	// Schedules: `client.onCall.schedules`.
+	Schedules *OnCallSchedulesNamespace
+}
+
+func newOnCallNamespace(t *transport) *OnCallNamespace {
+	n := &OnCallNamespace{t: t}
+	n.Overrides = newOnCallOverridesNamespace(t)
+	n.Schedules = newOnCallSchedulesNamespace(t)
+	return n
+}
+
+// OnCallNowParams holds the parameters for `client.onCall.now`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OnCallNowParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Now: Who is on call right now
+//
+// One entry per rotation: the shift in effect, and the next person in the
+// rotation. Takes `team:read` — knowing who is on call is something every member
+// needs and nobody should have to ask an admin for.
+//
+// GET /api/org/{orgId}/on-call/now
+func (n *OnCallNamespace) Now(ctx context.Context, params *OnCallNowParams, opts ...RequestOption) (*OnCallNowResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/on-call/now")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OnCallNowResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OnCallOverridesNamespace is `client.onCall.overrides`.
+type OnCallOverridesNamespace struct {
+	t *transport
+}
+
+func newOnCallOverridesNamespace(t *transport) *OnCallOverridesNamespace {
+	n := &OnCallOverridesNamespace{t: t}
+	return n
+}
+
+// OnCallOverridesCreateParams holds the parameters for
+// `client.onCall.overrides.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OnCallOverridesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *OnCallOverrideCreate
+}
+
+// Create: Arrange cover
+//
+// A cover beats the rotation for exactly its window. Among several overlapping
+// covers the one that **started most recently** wins, so a later-written cover
+// supersedes an earlier one rather than the answer depending on row order.
+//
+// Takes `team:read`, not a settings permission: cover is arranged at 17:55 on a
+// Friday and the person handing over is rarely an org admin. Every cover is
+// audit-logged, which is the control that makes the looser permission safe.
+//
+// POST /api/org/{orgId}/on-call/overrides
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *OnCallOverridesNamespace) Create(ctx context.Context, params *OnCallOverridesCreateParams, opts ...RequestOption) (*OnCallOverride, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/on-call/overrides")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *OnCallOverride
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OnCallOverridesDeleteParams holds the parameters for
+// `client.onCall.overrides.delete`.
+type OnCallOverridesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	OverrideID string
+}
+
+// Delete: Cancel a cover
+//
+// DELETE /api/org/{orgId}/on-call/overrides/{overrideId}
+//
+// Raises on 404: Not found
+func (n *OnCallOverridesNamespace) Delete(ctx context.Context, params OnCallOverridesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/on-call/overrides/{overrideId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("overrideId", params.OverrideID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// OnCallOverridesGetParams holds the parameters for
+// `client.onCall.overrides.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OnCallOverridesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ScheduleID *string
+}
+
+// Get: List covers
+//
+// GET /api/org/{orgId}/on-call/overrides
+func (n *OnCallOverridesNamespace) Get(ctx context.Context, params *OnCallOverridesGetParams, opts ...RequestOption) (*OnCallOverridesGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/on-call/overrides")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("scheduleId", params.ScheduleID)
+	}
+	var out *OnCallOverridesGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OnCallSchedulesNamespace is `client.onCall.schedules`.
+type OnCallSchedulesNamespace struct {
+	t *transport
+}
+
+func newOnCallSchedulesNamespace(t *transport) *OnCallSchedulesNamespace {
+	n := &OnCallSchedulesNamespace{t: t}
+	return n
+}
+
+// OnCallSchedulesCreateParams holds the parameters for
+// `client.onCall.schedules.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OnCallSchedulesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *OnCallScheduleCreate
+}
+
+// Create: Create an on-call rotation
+//
+// Shift boundaries are calendar-day arithmetic in the rotation's own zone, not
+// 24-hour arithmetic: a rotation stepped in fixed milliseconds drifts an hour at
+// each daylight-saving change until the 09:00 Monday handover happens at 08:00 —
+// or until two people each think the other is on call.
+//
+// Writing takes `org:settings:write`: a rotation decides who gets woken up.
+//
+// POST /api/org/{orgId}/on-call/schedules
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: Conflict
+func (n *OnCallSchedulesNamespace) Create(ctx context.Context, params *OnCallSchedulesCreateParams, opts ...RequestOption) (*OnCallSchedule, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/on-call/schedules")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *OnCallSchedule
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OnCallSchedulesDeleteParams holds the parameters for
+// `client.onCall.schedules.delete`.
+type OnCallSchedulesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ScheduleID string
+}
+
+// Delete: Delete an on-call rotation
+//
+// Takes its covers with it. Routing rules naming it resolve to nobody
+// afterwards.
+//
+// DELETE /api/org/{orgId}/on-call/schedules/{scheduleId}
+//
+// Raises on 404: Not found
+func (n *OnCallSchedulesNamespace) Delete(ctx context.Context, params OnCallSchedulesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/on-call/schedules/{scheduleId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("scheduleId", params.ScheduleID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// OnCallSchedulesGetParams holds the parameters for
+// `client.onCall.schedules.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OnCallSchedulesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List on-call rotations
+//
+// GET /api/org/{orgId}/on-call/schedules
+func (n *OnCallSchedulesNamespace) Get(ctx context.Context, params *OnCallSchedulesGetParams, opts ...RequestOption) (*OnCallScheduleList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/on-call/schedules")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OnCallScheduleList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OnCallSchedulesShiftsParams holds the parameters for
+// `client.onCall.schedules.shifts`.
+type OnCallSchedulesShiftsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ScheduleID string
+	Count      *int64
+}
+
+// Shifts: Preview upcoming shifts
+//
+// The same computation the alert path resolves with, so a preview can never
+// disagree with who actually gets woken up.
+//
+// GET /api/org/{orgId}/on-call/schedules/{scheduleId}/shifts
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *OnCallSchedulesNamespace) Shifts(ctx context.Context, params OnCallSchedulesShiftsParams, opts ...RequestOption) (*OnCallShiftsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/on-call/schedules/{scheduleId}/shifts")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("scheduleId", params.ScheduleID)
+	r.addQuery("count", params.Count)
+	var out *OnCallShiftsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OnCallSchedulesUpdateParams holds the parameters for
+// `client.onCall.schedules.update`.
+type OnCallSchedulesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ScheduleID string
+	// Body: the JSON request body.
+	Body *OnCallScheduleUpdate
+}
+
+// Update: Edit an on-call rotation
+//
+// Omitted fields are left alone, and the result is validated after merging.
+// Sending `participantUserIds` replaces the list wholesale — position is
+// rotation order, so reordering re-plans the future.
+//
+// PATCH /api/org/{orgId}/on-call/schedules/{scheduleId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *OnCallSchedulesNamespace) Update(ctx context.Context, params OnCallSchedulesUpdateParams, opts ...RequestOption) (*OnCallSchedule, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/on-call/schedules/{scheduleId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("scheduleId", params.ScheduleID)
+	r.setJSONBody(params.Body)
+	var out *OnCallSchedule
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

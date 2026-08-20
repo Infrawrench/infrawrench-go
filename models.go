@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.33.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.34.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.33.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.34.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -542,6 +542,12 @@ type AlertDelivery struct {
 // organization's phones, still filtered by each member's own mutes — an
 // organization rule decides whether the org is told, a member decides whether
 // their phone rings.
+//
+// `on-call` resolves to one person at delivery time, so a rule reading "database
+// alerts → whoever is on call" needs no edit at handover. A rotation that
+// resolves to nobody — disabled, empty, not yet started — contributes nobody and
+// the rule's **other** destinations still deliver: an alert lost to a
+// misconfigured rotation would be the worst outcome the feature could have.
 type AlertDestination = any
 
 // AlertRule is the `AlertRule` schema.
@@ -587,6 +593,11 @@ type AlertRulesResponse struct {
 	SlackChannels   []AlertRulesResponseSlackChannels   `json:"slackChannels"`
 	MsTeamsWebhooks []AlertRulesResponseMsTeamsWebhooks `json:"msTeamsWebhooks"`
 	Accounts        []AlertRulesResponseAccounts        `json:"accounts"`
+	// OnCallSchedules: Live on-call rotations, so the editor can offer 'whoever
+	// is on call' as a destination. Disabled rotations are omitted for the same
+	// reason a disconnected Slack install is: offering one would let the editor
+	// build a rule that routes nowhere.
+	OnCallSchedules []AlertRulesResponseOnCallSchedules `json:"onCallSchedules"`
 }
 
 // AlertSeverity: Alert severity, ordered info < warning < critical.
@@ -6296,6 +6307,131 @@ type OK struct {
 	OK bool `json:"ok"`
 }
 
+// OnCallNowEntry is the `OnCallNowEntry` schema.
+type OnCallNowEntry struct {
+	ScheduleID   string             `json:"scheduleId"`
+	ScheduleName string             `json:"scheduleName"`
+	Enabled      bool               `json:"enabled"`
+	Shift        *OnCallShift       `json:"shift"`
+	Next         *OnCallParticipant `json:"next"`
+}
+
+// OnCallNowResponse is the `OnCallNowResponse` schema.
+type OnCallNowResponse struct {
+	OnCall      []OnCallNowEntry `json:"onCall"`
+	GeneratedAt string           `json:"generatedAt"`
+}
+
+// OnCallOverride is the `OnCallOverride` schema.
+type OnCallOverride struct {
+	ID              string  `json:"id"`
+	ScheduleID      string  `json:"scheduleId"`
+	UserID          string  `json:"userId"`
+	UserName        *string `json:"userName"`
+	StartsAt        string  `json:"startsAt"`
+	EndsAt          string  `json:"endsAt"`
+	Reason          *string `json:"reason"`
+	CreatedByUserID *string `json:"createdByUserId"`
+	CreatedAt       string  `json:"createdAt"`
+}
+
+// OnCallOverrideCreate is the `OnCallOverrideCreate` schema.
+type OnCallOverrideCreate struct {
+	ScheduleID string  `json:"scheduleId"`
+	UserID     string  `json:"userId"`
+	StartsAt   string  `json:"startsAt"`
+	EndsAt     string  `json:"endsAt"`
+	Reason     *string `json:"reason,omitempty"`
+}
+
+// OnCallParticipant: The next person in the rotation — where an escalation goes.
+// Resolved from the rotation and never from a cover: a cover is somebody
+// standing in for one shift.
+//
+// The API may send null in its place.
+type OnCallParticipant struct {
+	UserID string  `json:"userId"`
+	Name   *string `json:"name"`
+	Email  *string `json:"email"`
+}
+
+// OnCallSchedule is the `OnCallSchedule` schema.
+type OnCallSchedule struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Timezone string `json:"timezone"`
+	// RotationDays: Days per shift. 7 is the common case; 1 gives a daily
+	// rotation.
+	RotationDays int64 `json:"rotationDays"`
+	// HandoffTime: Wall-clock time in `timezone` at which the shift changes
+	// hands.
+	HandoffTime string `json:"handoffTime"`
+	// StartDate: The calendar date in `timezone` the first shift begins on.
+	// Every later boundary is derived from it, so moving this re-anchors the
+	// whole rotation.
+	StartDate string `json:"startDate"`
+	// Participants: Rotation order. Reordering re-plans the future,
+	// deliberately.
+	Participants []*OnCallParticipant `json:"participants"`
+	// Enabled: Off resolves to nobody. A routing destination pointing at a
+	// disabled rotation contributes nobody and the rule's other destinations
+	// still deliver.
+	Enabled   bool   `json:"enabled"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+// OnCallScheduleCreate is the `OnCallScheduleCreate` schema.
+type OnCallScheduleCreate struct {
+	Name               string   `json:"name"`
+	Timezone           string   `json:"timezone"`
+	RotationDays       int64    `json:"rotationDays"`
+	HandoffTime        string   `json:"handoffTime"`
+	StartDate          string   `json:"startDate"`
+	ParticipantUserIDs []string `json:"participantUserIds"`
+	Enabled            *bool    `json:"enabled,omitempty"`
+}
+
+// OnCallScheduleList is the `OnCallScheduleList` schema.
+type OnCallScheduleList struct {
+	Schedules []OnCallSchedule `json:"schedules"`
+}
+
+// OnCallScheduleUpdate is the `OnCallScheduleUpdate` schema.
+type OnCallScheduleUpdate struct {
+	Name               *string  `json:"name,omitempty"`
+	Timezone           *string  `json:"timezone,omitempty"`
+	RotationDays       *int64   `json:"rotationDays,omitempty"`
+	HandoffTime        *string  `json:"handoffTime,omitempty"`
+	StartDate          *string  `json:"startDate,omitempty"`
+	ParticipantUserIDs []string `json:"participantUserIds,omitempty"`
+	Enabled            *bool    `json:"enabled,omitempty"`
+}
+
+// OnCallShift is the `OnCallShift` schema.
+//
+// The API may send null in its place.
+type OnCallShift struct {
+	StartsAt string  `json:"startsAt"`
+	EndsAt   string  `json:"endsAt"`
+	UserID   string  `json:"userId"`
+	Name     *string `json:"name"`
+	Email    *string `json:"email"`
+	// Source: One of "rotation", "override".
+	Source        string `json:"source"`
+	RotationIndex *int64 `json:"rotationIndex"`
+}
+
+// OnCallShiftsResponse is the `OnCallShiftsResponse` schema.
+type OnCallShiftsResponse struct {
+	Shifts []*OnCallShift `json:"shifts"`
+	// Overrides: Covers overlapping the previewed window, returned
+	// **separately** rather than merged into the shifts: a preview that folded
+	// them in would make it impossible to see what the rotation itself does,
+	// which is the thing being edited.
+	Overrides []OnCallOverride `json:"overrides"`
+}
+
 // OrgConfigAlertSettings: Org-wide notification tuning. Cooldown claims
 // (`lastNotifiedAt`, `lastSentWeekStart`) are deliberately absent: they are
 // poller state, and resetting one from an apply would re-open a quiet period and
@@ -10200,6 +10336,12 @@ type AlertRulesResponseAccounts struct {
 	PluginID    string `json:"pluginId"`
 }
 
+// AlertRulesResponseOnCallSchedules is an object the spec declares inline.
+type AlertRulesResponseOnCallSchedules struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // BlastRadiusDependantVia is an object the spec declares inline.
 type BlastRadiusDependantVia struct {
 	// FieldKey: The dependant's field holding the reference.
@@ -11156,6 +11298,11 @@ type MsteamsTestResponse struct {
 	WebhookCount int64 `json:"webhookCount"`
 	Attempted    int64 `json:"attempted"`
 	Succeeded    int64 `json:"succeeded"`
+}
+
+// OnCallOverridesGetResponse is an object the spec declares inline.
+type OnCallOverridesGetResponse struct {
+	Overrides []OnCallOverride `json:"overrides"`
 }
 
 // ProfilePasswordResetResponse is an object the spec declares inline.
