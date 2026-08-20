@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.31.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.33.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.31.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.33.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -179,6 +179,8 @@ type APIV1Client struct {
 	Resources *ResourcesNamespace
 	// Rightsizing: `client.rightsizing`.
 	Rightsizing *RightsizingNamespace
+	// Runbooks: `client.runbooks`.
+	Runbooks *RunbooksNamespace
 	// SavedCostFilters: `client.savedCostFilters`.
 	SavedCostFilters *SavedCostFiltersNamespace
 	// Schedules: `client.schedules`.
@@ -303,6 +305,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Quotas = newQuotasNamespace(t)
 	c.Resources = newResourcesNamespace(t)
 	c.Rightsizing = newRightsizingNamespace(t)
+	c.Runbooks = newRunbooksNamespace(t)
 	c.SavedCostFilters = newSavedCostFiltersNamespace(t)
 	c.Schedules = newSchedulesNamespace(t)
 	c.Search = newSearchNamespace(t)
@@ -14828,6 +14831,388 @@ func (n *RightsizingNamespace) Get(ctx context.Context, params *RightsizingGetPa
 		r.addQuery("refresh", params.Refresh)
 	}
 	var out *RightsizingListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// RunbooksNamespace is `client.runbooks`.
+type RunbooksNamespace struct {
+	t *transport
+
+	// Get: `client.runbooks.get`.
+	Get *RunbooksGetNamespace
+	// Runs: `client.runbooks.runs`.
+	Runs *RunbooksRunsNamespace
+}
+
+func newRunbooksNamespace(t *transport) *RunbooksNamespace {
+	n := &RunbooksNamespace{t: t}
+	n.Get = newRunbooksGetNamespace(t)
+	n.Runs = newRunbooksRunsNamespace(t)
+	return n
+}
+
+// RunbooksCreateParams holds the parameters for `client.runbooks.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type RunbooksCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *RunbookCreate
+}
+
+// Create: Write a runbook
+//
+// Editing takes `org:settings:write` — a procedure is an org-wide statement
+// about how something is done, and it is read by strangers under pressure. Names
+// are unique within an organization: two runbooks called "Failover" is how the
+// wrong one gets run.
+//
+// POST /api/org/{orgId}/runbooks
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: Conflict
+func (n *RunbooksNamespace) Create(ctx context.Context, params *RunbooksCreateParams, opts ...RequestOption) (*Runbook, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/runbooks")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *Runbook
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// RunbooksDeleteParams holds the parameters for `client.runbooks.delete`.
+type RunbooksDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RunbookID string
+}
+
+// Delete: Delete a runbook
+//
+// Takes its run history with it. To retire a procedure without losing the record
+// of the runs performed against it, set `enabled` to false instead.
+//
+// DELETE /api/org/{orgId}/runbooks/{runbookId}
+//
+// Raises on 404: Not found
+func (n *RunbooksNamespace) Delete(ctx context.Context, params RunbooksDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/runbooks/{runbookId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runbookId", params.RunbookID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// RunbooksUpdateParams holds the parameters for `client.runbooks.update`.
+type RunbooksUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RunbookID string
+	// Body: the JSON request body.
+	Body *RunbookUpdate
+}
+
+// Update: Edit a runbook
+//
+// Omitted fields are left alone. The result is validated **after** merging, so a
+// patch that only changes the steps still has to produce a runbook that is valid
+// as a whole. A step sent with its `id` keeps its identity, so a run in progress
+// still matches it.
+//
+// PATCH /api/org/{orgId}/runbooks/{runbookId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *RunbooksNamespace) Update(ctx context.Context, params RunbooksUpdateParams, opts ...RequestOption) (*Runbook, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/runbooks/{runbookId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runbookId", params.RunbookID)
+	r.setJSONBody(params.Body)
+	var out *Runbook
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// RunbooksGetNamespace is `client.runbooks.get`.
+type RunbooksGetNamespace struct {
+	t *transport
+}
+
+func newRunbooksGetNamespace(t *transport) *RunbooksGetNamespace {
+	n := &RunbooksGetNamespace{t: t}
+	return n
+}
+
+// RunbooksGetGetParams holds the parameters for `client.runbooks.get.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type RunbooksGetGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List the organization's runbooks
+//
+// Every runbook, with how many times each has been run and when it was last
+// used. Reading takes `resources:read`: the person who can see the
+// infrastructure is the person who will be woken up about it.
+//
+// GET /api/org/{orgId}/runbooks
+func (n *RunbooksGetNamespace) Get(ctx context.Context, params *RunbooksGetGetParams, opts ...RequestOption) (*RunbookList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/runbooks")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *RunbookList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// RunbooksGetGetOrgOrgIDRunbooksRunbookIDParams holds the parameters for
+// `client.runbooks.get.getOrgOrgIdRunbooksRunbookId`.
+type RunbooksGetGetOrgOrgIDRunbooksRunbookIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RunbookID string
+}
+
+// GetOrgOrgIDRunbooksRunbookID: Get one runbook
+//
+// GET /api/org/{orgId}/runbooks/{runbookId}
+//
+// Raises on 404: Not found
+func (n *RunbooksGetNamespace) GetOrgOrgIDRunbooksRunbookID(ctx context.Context, params RunbooksGetGetOrgOrgIDRunbooksRunbookIDParams, opts ...RequestOption) (*Runbook, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/runbooks/{runbookId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runbookId", params.RunbookID)
+	var out *Runbook
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// RunbooksRunsNamespace is `client.runbooks.runs`.
+type RunbooksRunsNamespace struct {
+	t *transport
+
+	// Steps: `client.runbooks.runs.steps`.
+	Steps *RunbooksRunsStepsNamespace
+}
+
+func newRunbooksRunsNamespace(t *transport) *RunbooksRunsNamespace {
+	n := &RunbooksRunsNamespace{t: t}
+	n.Steps = newRunbooksRunsStepsNamespace(t)
+	return n
+}
+
+// RunbooksRunsCloseParams holds the parameters for `client.runbooks.runs.close`.
+type RunbooksRunsCloseParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	RunID string
+	// Body: the JSON request body.
+	Body *RunbookRunClose
+}
+
+// Close: Close a run out
+//
+// Closing does **not** settle outstanding steps. A run completed with three
+// steps still pending is a true and useful record — it says the incident ended
+// before the checklist did — and quietly marking them done would erase the one
+// thing a postmortem wants to know.
+//
+// POST /api/org/{orgId}/runbooks/runs/{runId}/close
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *RunbooksRunsNamespace) Close(ctx context.Context, params RunbooksRunsCloseParams, opts ...RequestOption) (*RunbookRun, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/runbooks/runs/{runId}/close")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runId", params.RunID)
+	r.setJSONBody(params.Body)
+	var out *RunbookRun
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// RunbooksRunsCreateParams holds the parameters for
+// `client.runbooks.runs.create`.
+type RunbooksRunsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RunbookID string
+	// Body: the JSON request body.
+	Body *RunbookRunStart
+}
+
+// Create: Start performing a runbook
+//
+// Copies every step's title and kind into the run, so the record of what
+// somebody was asked to do survives the runbook being rewritten next week.
+//
+// Takes `resources:read`, like ticking a step: performing a checklist is not an
+// act of configuration, and requiring an admin mid-incident is how a team stops
+// using it. Deliberately not deduplicated against a run already in progress —
+// performing the failover twice in one incident is a real thing, and refusing
+// the second would mean it goes unrecorded rather than not happening.
+//
+// POST /api/org/{orgId}/runbooks/{runbookId}/runs
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *RunbooksRunsNamespace) Create(ctx context.Context, params RunbooksRunsCreateParams, opts ...RequestOption) (*RunbookRun, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/runbooks/{runbookId}/runs")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runbookId", params.RunbookID)
+	r.setJSONBody(params.Body)
+	var out *RunbookRun
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// RunbooksRunsGetParams holds the parameters for `client.runbooks.runs.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type RunbooksRunsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	RunbookID  *string
+	IncidentID *string
+	Limit      *int64
+}
+
+// Get: List runbook runs
+//
+// Newest first, optionally narrowed to one runbook or one incident.
+//
+// GET /api/org/{orgId}/runbooks/runs
+//
+// Raises on 400: Bad request
+func (n *RunbooksRunsNamespace) Get(ctx context.Context, params *RunbooksRunsGetParams, opts ...RequestOption) (*RunbookRunList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/runbooks/runs")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("runbookId", params.RunbookID)
+		r.addQuery("incidentId", params.IncidentID)
+		r.addQuery("limit", params.Limit)
+	}
+	var out *RunbookRunList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// RunbooksRunsGetOrgOrgIDRunbooksRunsRunIDParams holds the parameters for
+// `client.runbooks.runs.getOrgOrgIdRunbooksRunsRunId`.
+type RunbooksRunsGetOrgOrgIDRunbooksRunsRunIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	RunID string
+}
+
+// GetOrgOrgIDRunbooksRunsRunID: Get one runbook run
+//
+// GET /api/org/{orgId}/runbooks/runs/{runId}
+//
+// Raises on 404: Not found
+func (n *RunbooksRunsNamespace) GetOrgOrgIDRunbooksRunsRunID(ctx context.Context, params RunbooksRunsGetOrgOrgIDRunbooksRunsRunIDParams, opts ...RequestOption) (*RunbookRun, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/runbooks/runs/{runId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runId", params.RunID)
+	var out *RunbookRun
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// RunbooksRunsStepsNamespace is `client.runbooks.runs.steps`.
+type RunbooksRunsStepsNamespace struct {
+	t *transport
+}
+
+func newRunbooksRunsStepsNamespace(t *transport) *RunbooksRunsStepsNamespace {
+	n := &RunbooksRunsStepsNamespace{t: t}
+	return n
+}
+
+// RunbooksRunsStepsUpdateParams holds the parameters for
+// `client.runbooks.runs.steps.update`.
+type RunbooksRunsStepsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID  *string
+	RunID  string
+	StepID string
+	// Body: the JSON request body.
+	Body *RunbookStepUpdate
+}
+
+// Update: Tick a step
+//
+// One targeted update on one row, so two responders working the same incident
+// can tick different steps at the same moment without either losing the other's
+// work.
+//
+// A closed run refuses updates, and reopening is not offered: a run is a record
+// of what happened. Start another run to record another attempt.
+//
+// PATCH /api/org/{orgId}/runbooks/runs/{runId}/steps/{stepId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *RunbooksRunsStepsNamespace) Update(ctx context.Context, params RunbooksRunsStepsUpdateParams, opts ...RequestOption) (*RunbookRun, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/runbooks/runs/{runId}/steps/{stepId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runId", params.RunID)
+	r.setPath("stepId", params.StepID)
+	r.setJSONBody(params.Body)
+	var out *RunbookRun
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

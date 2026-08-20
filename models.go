@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.31.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.33.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.31.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.33.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -8431,6 +8431,176 @@ type RoleUpdateRequest struct {
 	Permissions []Permission `json:"permissions,omitempty"`
 }
 
+// Runbook is the `Runbook` schema.
+type Runbook struct {
+	ID          string        `json:"id"`
+	Name        string        `json:"name"`
+	Description *string       `json:"description"`
+	Steps       []RunbookStep `json:"steps"`
+	// ResourceTypeIDs: Resource types this runbook is about; empty means it is
+	// not scoped to a type. Used to answer 'which runbooks apply here',
+	// **never** to restrict who may open it — a runbook nobody can find is the
+	// failure this feature exists to fix.
+	ResourceTypeIDs []string `json:"resourceTypeIds"`
+	// TagKey: Optional tag narrowing. Matched case-insensitively.
+	TagKey *string `json:"tagKey"`
+	// TagValue: Required value of `tagKey`, matched exactly.
+	TagValue *string `json:"tagValue"`
+	// Enabled: Off keeps the row and hides it from the 'what applies here'
+	// lookup. Retiring a runbook must not cost you the history of the runs
+	// performed against it.
+	Enabled         bool    `json:"enabled"`
+	CreatedByUserID *string `json:"createdByUserId"`
+	CreatedByName   *string `json:"createdByName"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+	RunCount        int64   `json:"runCount"`
+	LastRunAt       *string `json:"lastRunAt"`
+}
+
+// RunbookCreate is the `RunbookCreate` schema.
+type RunbookCreate struct {
+	Name            string             `json:"name"`
+	Description     *string            `json:"description,omitempty"`
+	Steps           []RunbookStepInput `json:"steps,omitempty"`
+	ResourceTypeIDs []string           `json:"resourceTypeIds,omitempty"`
+	TagKey          *string            `json:"tagKey,omitempty"`
+	TagValue        *string            `json:"tagValue,omitempty"`
+	Enabled         *bool              `json:"enabled,omitempty"`
+}
+
+// RunbookList is the `RunbookList` schema.
+type RunbookList struct {
+	Runbooks []Runbook `json:"runbooks"`
+}
+
+// RunbookRun is the `RunbookRun` schema.
+type RunbookRun struct {
+	ID        string `json:"id"`
+	RunbookID string `json:"runbookId"`
+	// RunbookName: The runbook's name when the run started.
+	RunbookName string `json:"runbookName"`
+	// Status: One of "running", "completed", "abandoned".
+	Status string `json:"status"`
+	// IncidentID: The incident this was performed under. Not a cascading
+	// reference: deleting the incident must not delete the record that somebody
+	// followed the failover procedure at 03:14.
+	IncidentID      *string          `json:"incidentId"`
+	StartedByUserID *string          `json:"startedByUserId"`
+	StartedByName   *string          `json:"startedByName"`
+	StartedAt       string           `json:"startedAt"`
+	CompletedAt     *string          `json:"completedAt"`
+	Summary         *string          `json:"summary"`
+	Steps           []RunbookRunStep `json:"steps"`
+}
+
+// RunbookRunClose is the `RunbookRunClose` schema.
+type RunbookRunClose struct {
+	// Status: One of "completed", "abandoned".
+	Status  string  `json:"status"`
+	Summary *string `json:"summary,omitempty"`
+}
+
+// RunbookRunList is the `RunbookRunList` schema.
+type RunbookRunList struct {
+	Runs []RunbookRun `json:"runs"`
+}
+
+// RunbookRunStart is the `RunbookRunStart` schema.
+type RunbookRunStart struct {
+	IncidentID *string `json:"incidentId,omitempty"`
+}
+
+// RunbookRunStep is the `RunbookRunStep` schema.
+type RunbookRunStep struct {
+	StepID string `json:"stepId"`
+	// Title: The step's title **when the run started**. Copied rather than
+	// joined: a runbook is edited between incidents, and a postmortem showing
+	// today's wording against last month's run is not stale, it is quietly
+	// wrong.
+	Title string `json:"title"`
+	// Kind: What the step does. Three kinds and not a scripting language: a
+	// runbook is written by whoever is on call for whoever is on call next, and
+	// the moment it needs a language it stops being written. `workflow` is the
+	// escape hatch — anything genuinely automated belongs in a workflow, which
+	// already has a sandbox, approvals, secrets and a history.
+	//
+	// One of "manual", "workflow", "link".
+	Kind string `json:"kind"`
+	// Status: One of "pending", "done", "skipped", "failed".
+	Status string `json:"status"`
+	// Note: What the responder typed — output, or why it was skipped.
+	Note *string `json:"note"`
+	// WorkflowRunID: The workflow run this step kicked off. Recorded here; the
+	// run itself goes through the workflow routes with their own permission,
+	// approvals and secrets.
+	WorkflowRunID *string `json:"workflowRunId"`
+	ActorUserID   *string `json:"actorUserId"`
+	ActorName     *string `json:"actorName"`
+	UpdatedAt     *string `json:"updatedAt"`
+}
+
+// RunbookStep is the `RunbookStep` schema.
+type RunbookStep struct {
+	// ID: Stable across edits, because a run's per-step records reference it.
+	// Reordering or retitling keeps the same step; deleting one orphans its
+	// history, which is why runs keep the title they saw.
+	ID string `json:"id"`
+	// Kind: What the step does. Three kinds and not a scripting language: a
+	// runbook is written by whoever is on call for whoever is on call next, and
+	// the moment it needs a language it stops being written. `workflow` is the
+	// escape hatch — anything genuinely automated belongs in a workflow, which
+	// already has a sandbox, approvals, secrets and a history.
+	//
+	// One of "manual", "workflow", "link".
+	Kind  string `json:"kind"`
+	Title string `json:"title"`
+	// Body: Markdown — the detail nobody remembers at 03:00.
+	Body string `json:"body"`
+	// WorkflowID: For `workflow` steps: which workflow the button runs.
+	WorkflowID *string `json:"workflowId,omitempty"`
+	// URL: For `link` steps. `https:` only.
+	URL *string `json:"url,omitempty"`
+}
+
+// RunbookStepInput is the `RunbookStepInput` schema.
+type RunbookStepInput struct {
+	// ID: Omitted for a new step; the server assigns one.
+	ID *string `json:"id,omitempty"`
+	// Kind: What the step does. Three kinds and not a scripting language: a
+	// runbook is written by whoever is on call for whoever is on call next, and
+	// the moment it needs a language it stops being written. `workflow` is the
+	// escape hatch — anything genuinely automated belongs in a workflow, which
+	// already has a sandbox, approvals, secrets and a history.
+	//
+	// One of "manual", "workflow", "link".
+	Kind       string  `json:"kind"`
+	Title      string  `json:"title"`
+	Body       *string `json:"body,omitempty"`
+	WorkflowID *string `json:"workflowId,omitempty"`
+	URL        *string `json:"url,omitempty"`
+}
+
+// RunbookStepUpdate is the `RunbookStepUpdate` schema.
+type RunbookStepUpdate struct {
+	// Status: One of "pending", "done", "skipped", "failed".
+	Status string `json:"status"`
+	// Note: Omitted leaves the note alone; `null` clears it.
+	Note          *string `json:"note,omitempty"`
+	WorkflowRunID *string `json:"workflowRunId,omitempty"`
+}
+
+// RunbookUpdate is the `RunbookUpdate` schema.
+type RunbookUpdate struct {
+	Name            *string            `json:"name,omitempty"`
+	Description     *string            `json:"description,omitempty"`
+	Steps           []RunbookStepInput `json:"steps,omitempty"`
+	ResourceTypeIDs []string           `json:"resourceTypeIds,omitempty"`
+	TagKey          *string            `json:"tagKey,omitempty"`
+	TagValue        *string            `json:"tagValue,omitempty"`
+	Enabled         *bool              `json:"enabled,omitempty"`
+}
+
 // SavedCostFilter is the `SavedCostFilter` schema.
 type SavedCostFilter struct {
 	ID          string                `json:"id"`
@@ -9566,7 +9736,7 @@ type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
 	// "expiring", "posture", "access-review", "backups", "wallboard",
-	// "calendar", "dns", "iac", "environment-diff", "environments",
+	// "calendar", "runbooks", "dns", "iac", "environment-diff", "environments",
 	// "ssh-fanout", "metric-alerts", "probes", "status-pages", "quotas",
 	// "incidents", "workflows", "deployments", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
