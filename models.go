@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.37.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.38.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.37.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.38.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -9842,27 +9842,20 @@ type StatusHistoryDay struct {
 // StatusPage is the `StatusPage` schema.
 type StatusPage struct {
 	ID string `json:"id"`
-	// Slug: The public URL segment on the app host, and the page's access
-	// credential there. Generated with real entropy rather than derived from the
-	// title.
+	// Slug: The public URL segment, and the page's only access credential.
+	// Generated with real entropy rather than derived from the title.
 	Slug        string  `json:"slug"`
 	Title       string  `json:"title"`
 	Description *string `json:"description"`
 	// Published: False until deliberately published; a fresh page is never
 	// reachable.
-	Published   bool    `json:"published"`
-	ShowHistory bool    `json:"showHistory"`
-	ShowUptime  bool    `json:"showUptime"`
-	SupportURL  *string `json:"supportUrl"`
-	// CustomHostname: Vanity subdomain (e.g. status.acme.com), or null when none
-	// is attached.
-	CustomHostname             *string                         `json:"customHostname"`
-	CustomHostnameStatus       StatusPageCustomHostnameStatus  `json:"customHostnameStatus"`
-	CustomHostnameError        *string                         `json:"customHostnameError"`
-	CustomHostnameVerification *StatusPageHostnameVerification `json:"customHostnameVerification"`
-	Components                 []StatusPageComponent           `json:"components"`
-	CreatedAt                  string                          `json:"createdAt"`
-	UpdatedAt                  string                          `json:"updatedAt"`
+	Published   bool                  `json:"published"`
+	ShowHistory bool                  `json:"showHistory"`
+	ShowUptime  bool                  `json:"showUptime"`
+	SupportURL  *string               `json:"supportUrl"`
+	Components  []StatusPageComponent `json:"components"`
+	CreatedAt   string                `json:"createdAt"`
+	UpdatedAt   string                `json:"updatedAt"`
 }
 
 // StatusPageComponent is the `StatusPageComponent` schema.
@@ -9900,38 +9893,6 @@ type StatusPageCreate struct {
 	SupportURL  *string `json:"supportUrl,omitempty"`
 	// Components: Order is significant — it is the public render order.
 	Components []StatusPageComponentInput `json:"components,omitempty"`
-}
-
-// StatusPageCustomHostnameAttach is the `StatusPageCustomHostnameAttach` schema.
-type StatusPageCustomHostnameAttach struct {
-	// Hostname: Subdomain to attach, e.g. status.example.com. Apex domains are
-	// not supported.
-	Hostname string `json:"hostname"`
-}
-
-// StatusPageCustomHostnameStatus is the `StatusPageCustomHostnameStatus` schema.
-type StatusPageCustomHostnameStatus = string
-
-// The values StatusPageCustomHostnameStatus takes.
-const (
-	StatusPageCustomHostnameStatusNone       StatusPageCustomHostnameStatus = "none"
-	StatusPageCustomHostnameStatusPendingDNS StatusPageCustomHostnameStatus = "pending_dns"
-	StatusPageCustomHostnameStatusPendingSSL StatusPageCustomHostnameStatus = "pending_ssl"
-	StatusPageCustomHostnameStatusActive     StatusPageCustomHostnameStatus = "active"
-	StatusPageCustomHostnameStatusError      StatusPageCustomHostnameStatus = "error"
-)
-
-// StatusPageHostnameVerification is the `StatusPageHostnameVerification` schema.
-//
-// The API may send null in its place.
-type StatusPageHostnameVerification struct {
-	// CnameTarget: Target of the customer's CNAME (e.g.
-	// statuspages.infrawrench.com).
-	CnameTarget string `json:"cnameTarget"`
-	// TxtName: Ownership TXT name, when Cloudflare asked for one.
-	TxtName *string `json:"txtName,omitempty"`
-	// TxtValue: Ownership TXT value, when Cloudflare asked for one.
-	TxtValue *string `json:"txtValue,omitempty"`
 }
 
 // StatusPageListResponse is the `StatusPageListResponse` schema.
