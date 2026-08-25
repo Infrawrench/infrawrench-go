@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.36.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.37.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.36.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.37.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -175,6 +175,8 @@ type APIV1Client struct {
 	Probes *ProbesNamespace
 	// Profile: `client.profile`.
 	Profile *ProfileNamespace
+	// QueryMonitors: `client.queryMonitors`.
+	QueryMonitors *QueryMonitorsNamespace
 	// Quotas: `client.quotas`.
 	Quotas *QuotasNamespace
 	// Resources: `client.resources`.
@@ -305,6 +307,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Posture = newPostureNamespace(t)
 	c.Probes = newProbesNamespace(t)
 	c.Profile = newProfileNamespace(t)
+	c.QueryMonitors = newQueryMonitorsNamespace(t)
 	c.Quotas = newQuotasNamespace(t)
 	c.Resources = newResourcesNamespace(t)
 	c.Rightsizing = newRightsizingNamespace(t)
@@ -14206,6 +14209,226 @@ func (n *ProfileSessionsNamespace) RevokeOthers(ctx context.Context, opts ...Req
 	return out, nil
 }
 
+// QueryMonitorsNamespace is `client.queryMonitors`.
+type QueryMonitorsNamespace struct {
+	t *transport
+
+	// Get: `client.queryMonitors.get`.
+	Get *QueryMonitorsGetNamespace
+}
+
+func newQueryMonitorsNamespace(t *transport) *QueryMonitorsNamespace {
+	n := &QueryMonitorsNamespace{t: t}
+	n.Get = newQueryMonitorsGetNamespace(t)
+	return n
+}
+
+// QueryMonitorsCreateParams holds the parameters for
+// `client.queryMonitors.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type QueryMonitorsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *QueryMonitorCreate
+}
+
+// Create: Create a query monitor
+//
+// A monitor may only run `select`, `with`, `show` or `explain`, and only a
+// **single** statement. That is a deliberate allowlist of leading keywords
+// rather than a denylist of dangerous ones: a denylist has to be right about
+// every dialect's spelling of every destructive verb, forever, and only has to
+// be wrong once. Comments are stripped before the check, so `-- harmless\nDROP
+// TABLE x` is rejected, and `SELECT 1; DROP TABLE x` is rejected by the
+// single-statement rule.
+//
+// Takes `resources:execute`, like the SQL editor: saving a monitor arranges for
+// a query to run against a customer database on a schedule, forever, which is a
+// strictly larger act than running one while watching it.
+//
+// POST /api/org/{orgId}/query-monitors
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *QueryMonitorsNamespace) Create(ctx context.Context, params *QueryMonitorsCreateParams, opts ...RequestOption) (*QueryMonitor, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/query-monitors")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *QueryMonitor
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// QueryMonitorsDeleteParams holds the parameters for
+// `client.queryMonitors.delete`.
+type QueryMonitorsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	MonitorID string
+}
+
+// Delete: Delete a query monitor
+//
+// DELETE /api/org/{orgId}/query-monitors/{monitorId}
+//
+// Raises on 404: Not found
+func (n *QueryMonitorsNamespace) Delete(ctx context.Context, params QueryMonitorsDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/query-monitors/{monitorId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("monitorId", params.MonitorID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// QueryMonitorsTestParams holds the parameters for `client.queryMonitors.test`.
+//
+// Every field is optional; pass nil to take the defaults.
+type QueryMonitorsTestParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *QueryMonitorCreate
+}
+
+// Test: Run a query once without saving it
+//
+// The editor's 'try it' button. Goes through the same read-only guard as a
+// scheduled run — a query that could not be saved as a monitor must not be
+// runnable through the monitor's own preview — and applies the threshold, so the
+// answer says whether it *would* be breaching rather than leaving the reader to
+// compare two numbers.
+//
+// POST /api/org/{orgId}/query-monitors/test
+//
+// Raises on 400: Bad request
+func (n *QueryMonitorsNamespace) Test(ctx context.Context, params *QueryMonitorsTestParams, opts ...RequestOption) (*QueryMonitorTestResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/query-monitors/test")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *QueryMonitorTestResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// QueryMonitorsUpdateParams holds the parameters for
+// `client.queryMonitors.update`.
+type QueryMonitorsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	MonitorID string
+	// Body: the JSON request body.
+	Body *QueryMonitorUpdate
+}
+
+// Update: Edit a query monitor
+//
+// Omitted fields are left alone and the result is validated after merging.
+// Changing the query, the mode, the operator or the threshold **re-arms** the
+// monitor: the stored breach streak was accumulated against a different
+// question, and carrying it forward would fire an alert on the first run of a
+// rule nobody has tested.
+//
+// PATCH /api/org/{orgId}/query-monitors/{monitorId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *QueryMonitorsNamespace) Update(ctx context.Context, params QueryMonitorsUpdateParams, opts ...RequestOption) (*QueryMonitor, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/query-monitors/{monitorId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("monitorId", params.MonitorID)
+	r.setJSONBody(params.Body)
+	var out *QueryMonitor
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// QueryMonitorsGetNamespace is `client.queryMonitors.get`.
+type QueryMonitorsGetNamespace struct {
+	t *transport
+}
+
+func newQueryMonitorsGetNamespace(t *transport) *QueryMonitorsGetNamespace {
+	n := &QueryMonitorsGetNamespace{t: t}
+	return n
+}
+
+// QueryMonitorsGetGetParams holds the parameters for
+// `client.queryMonitors.get.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type QueryMonitorsGetGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List query monitors
+//
+// GET /api/org/{orgId}/query-monitors
+func (n *QueryMonitorsGetNamespace) Get(ctx context.Context, params *QueryMonitorsGetGetParams, opts ...RequestOption) (*QueryMonitorList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/query-monitors")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *QueryMonitorList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// QueryMonitorsGetGetOrgOrgIDQueryMonitorsMonitorIDParams holds the parameters
+// for `client.queryMonitors.get.getOrgOrgIdQueryMonitorsMonitorId`.
+type QueryMonitorsGetGetOrgOrgIDQueryMonitorsMonitorIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	MonitorID string
+}
+
+// GetOrgOrgIDQueryMonitorsMonitorID: Get one query monitor
+//
+// GET /api/org/{orgId}/query-monitors/{monitorId}
+//
+// Raises on 404: Not found
+func (n *QueryMonitorsGetNamespace) GetOrgOrgIDQueryMonitorsMonitorID(ctx context.Context, params QueryMonitorsGetGetOrgOrgIDQueryMonitorsMonitorIDParams, opts ...RequestOption) (*QueryMonitor, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/query-monitors/{monitorId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("monitorId", params.MonitorID)
+	var out *QueryMonitor
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // QuotasNamespace is `client.quotas`.
 type QuotasNamespace struct {
 	t *transport
@@ -18977,9 +19200,10 @@ type WallboardGetParams struct {
 // would cross a room to look at. There is deliberately no history, no trend and
 // no breakdown — those belong on the page you open when you do walk over.
 //
-// Three sources — declared incidents, synthetic probes and account sync health —
-// each guarded independently, because a television that goes blank because one
-// query threw is showing nothing to a room that was relying on it.
+// Four sources — declared incidents, synthetic probes, query monitors and
+// account sync health — each guarded independently, because a television that
+// goes blank because one query threw is showing nothing to a room that was
+// relying on it.
 //
 // Session-authenticated on purpose: unlike the calendar feed or a public status
 // page, this carries incident titles, probe names and account names, and a

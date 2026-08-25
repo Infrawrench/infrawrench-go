@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.36.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.37.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.36.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.37.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7520,6 +7520,116 @@ type PushedCostRow struct {
 	AccountID *string `json:"accountId,omitempty"`
 }
 
+// QueryMonitor is the `QueryMonitor` schema.
+type QueryMonitor struct {
+	ID             string  `json:"id"`
+	Name           string  `json:"name"`
+	Description    *string `json:"description"`
+	AccountID      string  `json:"accountId"`
+	AccountName    *string `json:"accountName"`
+	ResourceID     *string `json:"resourceId"`
+	ResourceTypeID *string `json:"resourceTypeId"`
+	ResourceName   *string `json:"resourceName"`
+	SQL            string  `json:"sql"`
+	// Mode: How the result is reduced to one number. `scalar` reads the first
+	// column of the first row; `rowCount` counts the rows, which is what lets
+	// `SELECT … WHERE broken` be a monitor.
+	//
+	// One of "scalar", "rowCount".
+	Mode string `json:"mode"`
+	// Operator: One of "gt", "gte", "lt", "lte", "eq", "neq".
+	Operator        string  `json:"operator"`
+	Threshold       float64 `json:"threshold"`
+	IntervalMinutes int64   `json:"intervalMinutes"`
+	// ConsecutiveBreaches: Consecutive breaching runs before the alert fires. A
+	// query against a live table is a sample: a count that dips while a batch
+	// job is mid-write is not an incident, and a monitor that pages on it gets
+	// muted within a week.
+	ConsecutiveBreaches int64 `json:"consecutiveBreaches"`
+	Enabled             bool  `json:"enabled"`
+	// State: `unknown` is a first-class state, not an absence: a monitor whose
+	// query failed has not told you the data is fine, and rendering that as `ok`
+	// is how a broken monitor becomes indistinguishable from a healthy one.
+	//
+	// One of "ok", "breaching", "unknown".
+	State     string   `json:"state"`
+	LastValue *float64 `json:"lastValue"`
+	LastRunAt *string  `json:"lastRunAt"`
+	// LastError: Why the last run said nothing. Kept apart from the state
+	// because 'the monitor is broken' and 'the data is bad' need different
+	// people.
+	LastError       *string `json:"lastError"`
+	BreachStreak    int64   `json:"breachStreak"`
+	LastAlertedAt   *string `json:"lastAlertedAt"`
+	CreatedByUserID *string `json:"createdByUserId"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// QueryMonitorCreate is the `QueryMonitorCreate` schema.
+type QueryMonitorCreate struct {
+	Name           string  `json:"name"`
+	Description    *string `json:"description,omitempty"`
+	AccountID      string  `json:"accountId"`
+	ResourceID     *string `json:"resourceId,omitempty"`
+	ResourceTypeID *string `json:"resourceTypeId,omitempty"`
+	SQL            string  `json:"sql"`
+	// Mode: How the result is reduced to one number. `scalar` reads the first
+	// column of the first row; `rowCount` counts the rows, which is what lets
+	// `SELECT … WHERE broken` be a monitor.
+	//
+	// One of "scalar", "rowCount".
+	Mode string `json:"mode"`
+	// Operator: One of "gt", "gte", "lt", "lte", "eq", "neq".
+	Operator            string  `json:"operator"`
+	Threshold           float64 `json:"threshold"`
+	IntervalMinutes     int64   `json:"intervalMinutes"`
+	ConsecutiveBreaches *int64  `json:"consecutiveBreaches,omitempty"`
+	Enabled             *bool   `json:"enabled,omitempty"`
+}
+
+// QueryMonitorList is the `QueryMonitorList` schema.
+type QueryMonitorList struct {
+	Monitors []QueryMonitor `json:"monitors"`
+}
+
+// QueryMonitorTestResult is the `QueryMonitorTestResult` schema.
+type QueryMonitorTestResult struct {
+	Value *float64 `json:"value"`
+	// State: `unknown` is a first-class state, not an absence: a monitor whose
+	// query failed has not told you the data is fine, and rendering that as `ok`
+	// is how a broken monitor becomes indistinguishable from a healthy one.
+	//
+	// One of "ok", "breaching", "unknown".
+	State      string  `json:"state"`
+	Error      *string `json:"error"`
+	DurationMs int64   `json:"durationMs"`
+	// Rows: Up to 20 rows, for the preview.
+	Rows []map[string]any `json:"rows"`
+}
+
+// QueryMonitorUpdate is the `QueryMonitorUpdate` schema.
+type QueryMonitorUpdate struct {
+	Name           *string `json:"name,omitempty"`
+	Description    *string `json:"description,omitempty"`
+	AccountID      *string `json:"accountId,omitempty"`
+	ResourceID     *string `json:"resourceId,omitempty"`
+	ResourceTypeID *string `json:"resourceTypeId,omitempty"`
+	SQL            *string `json:"sql,omitempty"`
+	// Mode: How the result is reduced to one number. `scalar` reads the first
+	// column of the first row; `rowCount` counts the rows, which is what lets
+	// `SELECT … WHERE broken` be a monitor.
+	//
+	// One of "scalar", "rowCount".
+	Mode *string `json:"mode,omitempty"`
+	// Operator: One of "gt", "gte", "lt", "lte", "eq", "neq".
+	Operator            *string  `json:"operator,omitempty"`
+	Threshold           *float64 `json:"threshold,omitempty"`
+	IntervalMinutes     *int64   `json:"intervalMinutes,omitempty"`
+	ConsecutiveBreaches *int64   `json:"consecutiveBreaches,omitempty"`
+	Enabled             *bool    `json:"enabled,omitempty"`
+}
+
 // QuietHours: A recurring local-time window during which the rule holds its
 // alerts. Held, not dropped — a held alert is queued and delivered when the
 // window closes.
@@ -10014,9 +10124,10 @@ type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
 	// "expiring", "posture", "access-review", "backups", "wallboard",
-	// "calendar", "runbooks", "dns", "iac", "environment-diff", "environments",
-	// "ssh-fanout", "metric-alerts", "probes", "status-pages", "quotas",
-	// "incidents", "workflows", "deployments", "settings", "chat", "linux-app".
+	// "calendar", "runbooks", "query-monitors", "dns", "iac",
+	// "environment-diff", "environments", "ssh-fanout", "metric-alerts",
+	// "probes", "status-pages", "quotas", "incidents", "workflows",
+	// "deployments", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -10290,7 +10401,8 @@ type WallboardResponse struct {
 	Tiles  []WallboardTile `json:"tiles"`
 	// Incidents: Unresolved incidents, newest first.
 	Incidents []WallboardIncidentLine `json:"incidents"`
-	// Failures: Probes that are down, accounts that stopped syncing.
+	// Failures: Probes that are down, query monitors breaching or unable to run,
+	// accounts that stopped syncing.
 	Failures []WallboardFailureLine `json:"failures"`
 	// FailedSources: Sources that could not be read, **named on the screen**. A
 	// wallboard showing green because a query failed is worse than a blank one —
