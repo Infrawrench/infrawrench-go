@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.34.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.35.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.34.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.35.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -17869,10 +17869,14 @@ func (n *StatusIncidentsNamespace) Get(ctx context.Context, params *StatusIncide
 // StatusPagesNamespace is `client.statusPages`.
 type StatusPagesNamespace struct {
 	t *transport
+
+	// CustomHostname: `client.statusPages.customHostname`.
+	CustomHostname *StatusPagesCustomHostnameNamespace
 }
 
 func newStatusPagesNamespace(t *transport) *StatusPagesNamespace {
 	n := &StatusPagesNamespace{t: t}
+	n.CustomHostname = newStatusPagesCustomHostnameNamespace(t)
 	return n
 }
 
@@ -17982,7 +17986,9 @@ type StatusPagesRotateSlugParams struct {
 // RotateSlug: Issue a new public link
 //
 // Replaces the slug, revoking the current public URL immediately — the reroll
-// for a link that ended up somewhere unintended. The page stays published.
+// for a link that ended up somewhere unintended. The page stays published. If a
+// custom hostname is attached, its hostname→slug mapping is updated so the
+// vanity URL keeps working.
 //
 // _Requires permission: `resources:write`._
 //
@@ -18028,6 +18034,114 @@ func (n *StatusPagesNamespace) Update(ctx context.Context, params StatusPagesUpd
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
+	var out *StatusPage
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// StatusPagesCustomHostnameNamespace is `client.statusPages.customHostname`.
+type StatusPagesCustomHostnameNamespace struct {
+	t *transport
+}
+
+func newStatusPagesCustomHostnameNamespace(t *transport) *StatusPagesCustomHostnameNamespace {
+	n := &StatusPagesCustomHostnameNamespace{t: t}
+	return n
+}
+
+// StatusPagesCustomHostnameCreateParams holds the parameters for
+// `client.statusPages.customHostname.create`.
+type StatusPagesCustomHostnameCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *StatusPageCustomHostnameAttach
+}
+
+// Create: Attach a custom domain
+//
+// Creates a Cloudflare Custom Hostname for a subdomain and returns the DNS
+// records the customer must add. Paid plan only. Apex domains are rejected. At
+// most one hostname per page.
+//
+// POST /api/org/{orgId}/status-pages/{id}/custom-hostname
+//
+// Raises on 400: Bad request
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
+//
+// Raises on 404: Not found
+func (n *StatusPagesCustomHostnameNamespace) Create(ctx context.Context, params StatusPagesCustomHostnameCreateParams, opts ...RequestOption) (*StatusPage, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/status-pages/{id}/custom-hostname")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *StatusPage
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// StatusPagesCustomHostnameDeleteParams holds the parameters for
+// `client.statusPages.customHostname.delete`.
+type StatusPagesCustomHostnameDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Detach a custom domain
+//
+// Removes the Cloudflare Custom Hostname and the edge hostname→slug mapping. The
+// secret slug URL is unaffected.
+//
+// DELETE /api/org/{orgId}/status-pages/{id}/custom-hostname
+//
+// Raises on 404: Not found
+func (n *StatusPagesCustomHostnameNamespace) Delete(ctx context.Context, params StatusPagesCustomHostnameDeleteParams, opts ...RequestOption) (*StatusPage, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/status-pages/{id}/custom-hostname")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *StatusPage
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// StatusPagesCustomHostnameRefreshParams holds the parameters for
+// `client.statusPages.customHostname.refresh`.
+type StatusPagesCustomHostnameRefreshParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Refresh: Refresh custom domain status
+//
+// Re-fetches Cloudflare hostname and certificate status and updates the page
+// record.
+//
+// POST /api/org/{orgId}/status-pages/{id}/custom-hostname/refresh
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *StatusPagesCustomHostnameNamespace) Refresh(ctx context.Context, params StatusPagesCustomHostnameRefreshParams, opts ...RequestOption) (*StatusPage, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/status-pages/{id}/custom-hostname/refresh")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
 	var out *StatusPage
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
