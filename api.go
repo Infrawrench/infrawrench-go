@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.38.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.39.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.38.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.39.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -14290,6 +14290,41 @@ func (n *QueryMonitorsNamespace) Delete(ctx context.Context, params QueryMonitor
 	r.setPath("orgId", params.OrgID)
 	r.setPath("monitorId", params.MonitorID)
 	return n.t.do(ctx, r, nil, opts)
+}
+
+// QueryMonitorsTargetsParams holds the parameters for
+// `client.queryMonitors.targets`.
+//
+// Every field is optional; pass nil to take the defaults.
+type QueryMonitorsTargetsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Targets: List what a monitor can run against
+//
+// The editor's target picker: each account with a SQL driver of its own, plus
+// the SQL-capable resources inside it — a database that is a *resource* (a
+// ClickHouse service, a D1 or Turso database, a Databricks SQL warehouse, a
+// BigQuery dataset) rather than the account's own connection. Accounts with
+// neither are omitted; a monitor pointed at one could only ever fail. Pass a
+// resource's `id` (and optionally its `resourceTypeId` — the server fills it
+// from the synced resource either way) when creating a monitor to scope the
+// query to that resource.
+//
+// GET /api/org/{orgId}/query-monitors/targets
+func (n *QueryMonitorsNamespace) Targets(ctx context.Context, params *QueryMonitorsTargetsParams, opts ...RequestOption) (*QueryMonitorTargets, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/query-monitors/targets")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *QueryMonitorTargets
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // QueryMonitorsTestParams holds the parameters for `client.queryMonitors.test`.

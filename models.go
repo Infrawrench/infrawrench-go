@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.38.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.39.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.38.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.39.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7591,6 +7591,30 @@ type QueryMonitorCreate struct {
 // QueryMonitorList is the `QueryMonitorList` schema.
 type QueryMonitorList struct {
 	Monitors []QueryMonitor `json:"monitors"`
+}
+
+// QueryMonitorTargetAccount is the `QueryMonitorTargetAccount` schema.
+type QueryMonitorTargetAccount struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// AccountSQL: The account itself has a SQL driver, so it is a valid target
+	// on its own.
+	AccountSQL bool                         `json:"accountSql"`
+	Resources  []QueryMonitorTargetResource `json:"resources"`
+}
+
+// QueryMonitorTargetResource is the `QueryMonitorTargetResource` schema.
+type QueryMonitorTargetResource struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	ResourceTypeID string `json:"resourceTypeId"`
+	// TypeName: The resource type's display name, e.g. 'D1 Database'.
+	TypeName string `json:"typeName"`
+}
+
+// QueryMonitorTargets is the `QueryMonitorTargets` schema.
+type QueryMonitorTargets struct {
+	Accounts []QueryMonitorTargetAccount `json:"accounts"`
 }
 
 // QueryMonitorTestResult is the `QueryMonitorTestResult` schema.
