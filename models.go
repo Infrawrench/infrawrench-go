@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.35.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.36.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.35.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.36.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -4093,6 +4093,61 @@ type DriftAlertSettingsUpdate struct {
 	CooldownMinutes *int64   `json:"cooldownMinutes,omitempty"`
 	MinChanges      *int64   `json:"minChanges,omitempty"`
 	AccountIDs      []string `json:"accountIds,omitempty"`
+}
+
+// DrillCoverageResponse is the `DrillCoverageResponse` schema.
+type DrillCoverageResponse struct {
+	Rows      []DrillCoverageRow `json:"rows"`
+	Summary   DrillSummary       `json:"summary"`
+	ValidDays int64              `json:"validDays"`
+	// OrphanedDrills: Drills against a resource no longer in the inventory.
+	// Reported rather than dropped: 'we tested this and then removed it' is a
+	// fact an auditor asks about.
+	OrphanedDrills []RestoreDrill `json:"orphanedDrills"`
+	GeneratedAt    string         `json:"generatedAt"`
+}
+
+// DrillCoverageRow is the `DrillCoverageRow` schema.
+type DrillCoverageRow struct {
+	ResourceID     string  `json:"resourceId"`
+	ResourceName   *string `json:"resourceName"`
+	AccountID      *string `json:"accountId"`
+	AccountName    *string `json:"accountName"`
+	ResourceTypeID *string `json:"resourceTypeId"`
+	// Standing: `never` and `stale` are kept apart because they call for
+	// different conversations: one is 'nobody has ever tried', the other is 'it
+	// worked in March'.
+	//
+	// One of "verified", "stale", "failed", "never".
+	Standing    string  `json:"standing"`
+	LastDrillAt *string `json:"lastDrillAt"`
+	// LastOutcome: How the drill ended. Only `verified` counts as evidence the
+	// backup works: a restore that produced a running system nobody looked
+	// inside is exactly how a team discovers, mid-incident, that the dump had
+	// been empty for months. `restored-unverified` is recorded because doing the
+	// restore is worth recording, but it does not reset the clock.
+	//
+	// One of "verified", "restored-unverified", "failed", "blocked".
+	LastOutcome        *string `json:"lastOutcome"`
+	LastVerifiedAt     *string `json:"lastVerifiedAt"`
+	VerifiedRtoMinutes *int64  `json:"verifiedRtoMinutes"`
+	DaysUntilStale     *int64  `json:"daysUntilStale"`
+}
+
+// DrillSummary is the `DrillSummary` schema.
+type DrillSummary struct {
+	// EligibleCount: Resources with something to restore from. A resource with
+	// no backup cannot be drilled, and listing it here would duplicate the
+	// coverage page's own unprotected finding.
+	EligibleCount int64 `json:"eligibleCount"`
+	VerifiedCount int64 `json:"verifiedCount"`
+	StaleCount    int64 `json:"staleCount"`
+	FailedCount   int64 `json:"failedCount"`
+	NeverCount    int64 `json:"neverCount"`
+	// WorstRtoMinutes: Over currently-verified rows only; null when nothing is
+	// verified, never zero.
+	WorstRtoMinutes  *int64 `json:"worstRtoMinutes"`
+	MedianRtoMinutes *int64 `json:"medianRtoMinutes"`
 }
 
 // EditableField is the `EditableField` schema.
@@ -8438,6 +8493,54 @@ type ResourceTypeSummary struct {
 	Schedulable *bool `json:"schedulable,omitempty"`
 }
 
+// RestoreDrill is the `RestoreDrill` schema.
+type RestoreDrill struct {
+	ID           string  `json:"id"`
+	ResourceID   string  `json:"resourceId"`
+	ResourceName *string `json:"resourceName"`
+	AccountID    *string `json:"accountId"`
+	AccountName  *string `json:"accountName"`
+	// PerformedAt: When the drill was performed, which is **not** when it was
+	// recorded — people write these up on Monday for a drill they ran on
+	// Saturday, and every staleness computation uses this.
+	PerformedAt string `json:"performedAt"`
+	// Outcome: How the drill ended. Only `verified` counts as evidence the
+	// backup works: a restore that produced a running system nobody looked
+	// inside is exactly how a team discovers, mid-incident, that the dump had
+	// been empty for months. `restored-unverified` is recorded because doing the
+	// restore is worth recording, but it does not reset the clock.
+	//
+	// One of "verified", "restored-unverified", "failed", "blocked".
+	Outcome string `json:"outcome"`
+	// RtoMinutes: Measured wall-clock minutes. Null when the drill never got
+	// that far; a blocked drill has no RTO, and an invented one would be the
+	// most dangerous number on the page.
+	RtoMinutes *int64 `json:"rtoMinutes"`
+	// RestoredFrom: Snapshot id, S3 key, a date — free text.
+	RestoredFrom      *string `json:"restoredFrom"`
+	Notes             *string `json:"notes"`
+	PerformedByUserID *string `json:"performedByUserId"`
+	PerformedByName   *string `json:"performedByName"`
+	CreatedAt         string  `json:"createdAt"`
+}
+
+// RestoreDrillCreate is the `RestoreDrillCreate` schema.
+type RestoreDrillCreate struct {
+	ResourceID  string `json:"resourceId"`
+	PerformedAt string `json:"performedAt"`
+	// Outcome: How the drill ended. Only `verified` counts as evidence the
+	// backup works: a restore that produced a running system nobody looked
+	// inside is exactly how a team discovers, mid-incident, that the dump had
+	// been empty for months. `restored-unverified` is recorded because doing the
+	// restore is worth recording, but it does not reset the clock.
+	//
+	// One of "verified", "restored-unverified", "failed", "blocked".
+	Outcome      string  `json:"outcome"`
+	RtoMinutes   *int64  `json:"rtoMinutes,omitempty"`
+	RestoredFrom *string `json:"restoredFrom,omitempty"`
+	Notes        *string `json:"notes,omitempty"`
+}
+
 // RevertApplyResponse is the `RevertApplyResponse` schema.
 type RevertApplyResponse struct {
 	ChangeID   string     `json:"changeId"`
@@ -11221,6 +11324,11 @@ type AlertRulesDeliveriesCancelRequest struct {
 // AlertRulesDeliveriesCancelResponse is an object the spec declares inline.
 type AlertRulesDeliveriesCancelResponse struct {
 	Cancelled int64 `json:"cancelled"`
+}
+
+// BackupsDrillsLogResponse is an object the spec declares inline.
+type BackupsDrillsLogResponse struct {
+	Drills []RestoreDrill `json:"drills"`
 }
 
 // BusinessMetricsGetGetResponse is an object the spec declares inline.
