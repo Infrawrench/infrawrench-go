@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.42.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.42.2 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.42.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.42.2).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -17463,9 +17463,12 @@ type SlackInstallURLParams struct {
 
 // InstallURL: Get the Add to Slack URL
 //
-// Returns a slack.com/oauth/v2/authorize URL carrying a signed `state` that
-// binds the resulting install to this organization. Send the user's browser
-// there; Slack redirects back to /api/slack/oauth/callback.
+// Returns a URL on this server (/api/slack/oauth/start) carrying a signed
+// `state` that binds the resulting install to this organization and to the
+// calling user. Open it in that user's browser within 30 minutes: it asks them
+// to sign in if needed, then redirects to Slack's approval screen, and Slack
+// redirects back to /api/slack/oauth/callback. The install only completes in the
+// browser that opened the link as that user.
 //
 // GET /api/org/{orgId}/slack/install-url
 //
