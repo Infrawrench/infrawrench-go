@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.41.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.42.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.41.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.42.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1607,6 +1607,130 @@ type CapacityStatus struct {
 	// Slots: Every purchase ever made, newest first, including lapsed and
 	// refunded.
 	Slots []CapacitySlot `json:"slots"`
+}
+
+// CarbonAssumptions is the `CarbonAssumptions` schema.
+type CarbonAssumptions struct {
+	// CPUUtilization: Assumed average CPU utilisation, 0 to 1. **The largest
+	// single source of error**, stated here rather than buried in a constant:
+	// the product does not collect per-resource CPU history for every provider,
+	// and a figure derived from the few that do would be quietly inconsistent
+	// across an estate.
+	CPUUtilization float64 `json:"cpuUtilization"`
+	// Pue: Fleet Power Usage Effectiveness, per contributing grid.
+	Pue                map[string]float64                         `json:"pue"`
+	VcpuWatts          map[string]CarbonAssumptionsVcpuWattsValue `json:"vcpuWatts"`
+	CoefficientSource  string                                     `json:"coefficientSource"`
+	CoefficientVintage string                                     `json:"coefficientVintage"`
+	// Scope: What the estimate covers, in one sentence a reader can check.
+	Scope string `json:"scope"`
+}
+
+// CarbonEstimate is the `CarbonEstimate` schema.
+type CarbonEstimate struct {
+	WindowDays     int64                  `json:"windowDays"`
+	TotalKgCo2e    float64                `json:"totalKgCo2e"`
+	TotalKwh       float64                `json:"totalKwh"`
+	EstimatedCount int64                  `json:"estimatedCount"`
+	Unestimated    []CarbonUnestimatedRow `json:"unestimated"`
+	// UnestimatedCount: Total unestimated resources; `unestimated` is capped at 200.
+	UnestimatedCount int64 `json:"unestimatedCount"`
+	// DuplicateCount: Kubernetes nodes skipped because their machine is already
+	// counted as an instance (a GKE node is also a GCE instance). Counted once,
+	// and the number skipped is said.
+	DuplicateCount int64             `json:"duplicateCount"`
+	ByRegion       []CarbonGroup     `json:"byRegion"`
+	ByAccount      []CarbonGroup     `json:"byAccount"`
+	ByProvider     []CarbonGroup     `json:"byProvider"`
+	Rows           []CarbonRow       `json:"rows"`
+	Assumptions    CarbonAssumptions `json:"assumptions"`
+	GeneratedAt    string            `json:"generatedAt"`
+}
+
+// CarbonFootprint: Monthly (730 h) footprint, or null.
+//
+// The API may send null in its place.
+type CarbonFootprint struct {
+	// Vcpus: vCPUs per unit.
+	Vcpus float64 `json:"vcpus"`
+	// Count: Units the figure covers (node count); 1 for one machine.
+	Count  int64  `json:"count"`
+	Region string `json:"region"`
+	// Grid: The coefficient table the region resolved in: `aws`, `gcp`, `azure`,
+	// `hetzner`...
+	Grid string `json:"grid"`
+	// GridIntensity: Grams CO2e per kWh used for this row: the published figure,
+	// not a band.
+	GridIntensity float64 `json:"gridIntensity"`
+	// GridZone: What the grid figure describes, e.g. `Germany`.
+	GridZone string `json:"gridZone"`
+	// GridBasis: `ccf`: Cloud Carbon Footprint's per-region table. `ember-2024`:
+	// Ember's 2024 lifecycle figure for the country.
+	//
+	// One of "ccf", "ember-2024".
+	GridBasis string `json:"gridBasis"`
+	// Pue: Datacentre overhead used: regional where published, else fleet.
+	Pue    float64 `json:"pue"`
+	Kwh    float64 `json:"kwh"`
+	KgCo2e float64 `json:"kgCo2e"`
+}
+
+// CarbonGroup is the `CarbonGroup` schema.
+type CarbonGroup struct {
+	Key           string  `json:"key"`
+	Label         string  `json:"label"`
+	KgCo2e        float64 `json:"kgCo2e"`
+	Kwh           float64 `json:"kwh"`
+	ResourceCount int64   `json:"resourceCount"`
+}
+
+// CarbonRow is the `CarbonRow` schema.
+type CarbonRow struct {
+	// Vcpus: vCPUs per unit.
+	Vcpus float64 `json:"vcpus"`
+	// Count: Units the figure covers (node count); 1 for one machine.
+	Count  int64  `json:"count"`
+	Region string `json:"region"`
+	// Grid: The coefficient table the region resolved in: `aws`, `gcp`, `azure`,
+	// `hetzner`...
+	Grid string `json:"grid"`
+	// GridIntensity: Grams CO2e per kWh used for this row: the published figure,
+	// not a band.
+	GridIntensity float64 `json:"gridIntensity"`
+	// GridZone: What the grid figure describes, e.g. `Germany`.
+	GridZone string `json:"gridZone"`
+	// GridBasis: `ccf`: Cloud Carbon Footprint's per-region table. `ember-2024`:
+	// Ember's 2024 lifecycle figure for the country.
+	//
+	// One of "ccf", "ember-2024".
+	GridBasis string `json:"gridBasis"`
+	// Pue: Datacentre overhead used: regional where published, else fleet.
+	Pue            float64 `json:"pue"`
+	Kwh            float64 `json:"kwh"`
+	KgCo2e         float64 `json:"kgCo2e"`
+	ResourceID     string  `json:"resourceId"`
+	DisplayName    string  `json:"displayName"`
+	PluginID       string  `json:"pluginId"`
+	ResourceTypeID string  `json:"resourceTypeId"`
+	AccountID      string  `json:"accountId"`
+	AccountName    *string `json:"accountName"`
+}
+
+// CarbonUnestimatedRow is the `CarbonUnestimatedRow` schema.
+type CarbonUnestimatedRow struct {
+	ResourceID     string  `json:"resourceId"`
+	DisplayName    string  `json:"displayName"`
+	PluginID       string  `json:"pluginId"`
+	ResourceTypeID string  `json:"resourceTypeId"`
+	AccountID      string  `json:"accountId"`
+	AccountName    *string `json:"accountName"`
+	Region         *string `json:"region"`
+	// Reason: Why a resource has no estimate. Reported per resource rather than
+	// folded into the total: a figure that quietly excluded a third of the
+	// estate would read as a complete answer.
+	//
+	// One of "unsupported-provider", "unknown-region", "unknown-size".
+	Reason string `json:"reason"`
 }
 
 // ChangeCostBasis: Which charge-type basis both windows are read on. `cash` (the
@@ -4249,9 +4373,16 @@ type EnvironmentCostEstimate struct {
 	MonthlyAmount *float64 `json:"monthlyAmount"`
 	Currency      *string  `json:"currency"`
 	// Partial: True when at least one member is unpriced — read as 'at least'.
-	Partial       bool                             `json:"partial"`
-	UnpricedCount int64                            `json:"unpricedCount"`
-	Members       []EnvironmentCostEstimateMembers `json:"members"`
+	Partial       bool  `json:"partial"`
+	UnpricedCount int64 `json:"unpricedCount"`
+	// MonthlyKgCo2e: Estimated monthly kg CO2e of the members that could be
+	// placed against a published grid figure. Null when none could. See the
+	// Carbon tag for the method.
+	MonthlyKgCo2e *float64 `json:"monthlyKgCo2e"`
+	// UncarbonedCount: Sized compute members whose carbon could not be
+	// estimated.
+	UncarbonedCount int64                            `json:"uncarbonedCount"`
+	Members         []EnvironmentCostEstimateMembers `json:"members"`
 }
 
 // EnvironmentDiffEntry is the `EnvironmentDiffEntry` schema.
@@ -6891,6 +7022,13 @@ type OversizedResource struct {
 	// MonthlySaving: Current minus recommended monthly price; null when either
 	// side is unpriced.
 	MonthlySaving *float64 `json:"monthlySaving"`
+	// CurrentMonthlyKgCo2e: Estimated monthly kg CO2e of the current size where
+	// it runs; null when the region has no published grid figure. See the Carbon
+	// tag for the method.
+	CurrentMonthlyKgCo2e *float64 `json:"currentMonthlyKgCo2e"`
+	// MonthlyKgCo2eSaving: Estimated monthly kg CO2e the resize would save; null
+	// as above.
+	MonthlyKgCo2eSaving *float64 `json:"monthlyKgCo2eSaving"`
 	// ResizeNote: Plugin-authored caveat (e.g. the provider requires the machine
 	// stopped).
 	ResizeNote   *string `json:"resizeNote"`
@@ -7951,6 +8089,31 @@ type Resource struct {
 	FieldsJSON       JSONObject  `json:"fieldsJson"`
 	OutputsJSON      JSONObject  `json:"outputsJson"`
 	ParentResourceID *ResourceID `json:"parentResourceId"`
+}
+
+// ResourceCarbonEstimate: Estimated monthly CO2e of the same configuration,
+// beside its price. Null for a peer resource or when the size catalogue could
+// not be read.
+//
+// The API may send null in its place.
+type ResourceCarbonEstimate struct {
+	Estimate *CarbonFootprint `json:"estimate"`
+	// Reason: Why a resource has no estimate. Reported per resource rather than
+	// folded into the total: a figure that quietly excluded a third of the
+	// estate would read as a complete answer.
+	//
+	// One of "unsupported-provider", "unknown-region", "unknown-size".
+	Reason *string `json:"reason"`
+	// InScope: False when the type declares nothing to read: a bucket, a DNS
+	// record.
+	InScope bool `json:"inScope"`
+	// Role: `aggregate`: a group (a managed cluster) whose machines are also
+	// listed in their own right; shown per resource, never summed into the org
+	// total.
+	//
+	// One of "instance", "aggregate".
+	Role        string                            `json:"role"`
+	Assumptions ResourceCarbonEstimateAssumptions `json:"assumptions"`
 }
 
 // ResourceChangeEntry is the `ResourceChangeEntry` schema.
@@ -10799,6 +10962,12 @@ type BusinessMetricValuesInputValues struct {
 	Value float64 `json:"value"`
 }
 
+// CarbonAssumptionsVcpuWattsValue is an object the spec declares inline.
+type CarbonAssumptionsVcpuWattsValue struct {
+	Min float64 `json:"min"`
+	Max float64 `json:"max"`
+}
+
 // ChangeFreezeBlockedFreeze is an object the spec declares inline.
 type ChangeFreezeBlockedFreeze struct {
 	ID       string  `json:"id"`
@@ -10980,6 +11149,7 @@ type EnvironmentCostEstimateMembers struct {
 	DisplayName   string   `json:"displayName"`
 	MonthlyAmount *float64 `json:"monthlyAmount"`
 	Currency      *string  `json:"currency"`
+	MonthlyKgCo2e *float64 `json:"monthlyKgCo2e"`
 }
 
 // EnvironmentParameterOptions is an object the spec declares inline.
@@ -11326,6 +11496,20 @@ type ReportNotificationSendResultTeams struct {
 type ReportNotificationSendResultEmail struct {
 	Attempted int64 `json:"attempted"`
 	Succeeded int64 `json:"succeeded"`
+}
+
+// ResourceCarbonEstimateAssumptions is an object the spec declares inline.
+type ResourceCarbonEstimateAssumptions struct {
+	// CPUUtilization: Assumed average CPU utilisation, 0 to 1. **The largest
+	// single source of error**, stated here rather than buried in a constant:
+	// the product does not collect per-resource CPU history for every provider,
+	// and a figure derived from the few that do would be quietly inconsistent
+	// across an estate.
+	CPUUtilization     float64 `json:"cpuUtilization"`
+	CoefficientSource  string  `json:"coefficientSource"`
+	CoefficientVintage string  `json:"coefficientVintage"`
+	// Scope: What the estimate covers, in one sentence a reader can check.
+	Scope string `json:"scope"`
 }
 
 // ResourceTypeSummaryAttachTargets is an object the spec declares inline.
@@ -11785,7 +11969,8 @@ type ProfileSessionsRevokeOthersResponse struct {
 
 // ResourcesCostEstimateResponse is an object the spec declares inline.
 type ResourcesCostEstimateResponse struct {
-	Estimate *CostEstimate `json:"estimate"`
+	Estimate *CostEstimate           `json:"estimate"`
+	Carbon   *ResourceCarbonEstimate `json:"carbon"`
 }
 
 // ResourcesNoSqlcommandResponse is an object the spec declares inline.

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.41.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.42.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.41.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.42.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -75,6 +75,8 @@ type APIV1Client struct {
 	BusinessMetrics *BusinessMetricsNamespace
 	// Calendar: `client.calendar`.
 	Calendar *CalendarNamespace
+	// Carbon: `client.carbon`.
+	Carbon *CarbonNamespace
 	// ChangeFreezes: `client.changeFreezes`.
 	ChangeFreezes *ChangeFreezesNamespace
 	// Changes: `client.changes`.
@@ -257,6 +259,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Budgets = newBudgetsNamespace(t)
 	c.BusinessMetrics = newBusinessMetricsNamespace(t)
 	c.Calendar = newCalendarNamespace(t)
+	c.Carbon = newCarbonNamespace(t)
 	c.ChangeFreezes = newChangeFreezesNamespace(t)
 	c.Changes = newChangesNamespace(t)
 	c.Chat = newChatNamespace(t)
@@ -3978,6 +3981,76 @@ func (n *CalendarSubscriptionsNamespace) Get(ctx context.Context, params *Calend
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *CalendarSubscriptionList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CarbonNamespace is `client.carbon`.
+type CarbonNamespace struct {
+	t *transport
+}
+
+func newCarbonNamespace(t *transport) *CarbonNamespace {
+	n := &CarbonNamespace{t: t}
+	return n
+}
+
+// CarbonGetParams holds the parameters for `client.carbon.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CarbonGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// WindowDays: Defaults to 30.
+	WindowDays *int64
+}
+
+// Get: Estimated operational carbon, with its assumptions
+//
+// An **estimate**, in the same sense the cost estimates here are, and built to
+// be honest about that in three ways.
+//
+// **A resource that cannot be placed is never guessed.** No published figure for
+// the provider, no entry for the region, no vCPU count: each produces an
+// `unestimated` row with a stated reason and contributes nothing to the total. A
+// carbon figure computed against a guessed grid is worse than no figure, because
+// it is a number somebody will put in a report.
+//
+// **The assumptions travel with the answer**: utilisation, PUE, the coefficient
+// source and its vintage are all on the response.
+//
+// **It covers processors and says so.** Virtual machines, Kubernetes nodes and
+// sized managed services; storage, memory, network egress and embodied
+// (manufacturing) emissions are excluded. Types with nothing to read (a bucket,
+// a DNS record) are out of scope, not unestimated.
+//
+// What to read comes from each plugin's `carbon` declaration (or its
+// `rightsizing` one): the region field, and vCPUs either directly or through the
+// create form's size catalogue. Managed clusters whose nodes are listed in their
+// own right are left out of the total, and a Kubernetes node that is also an
+// instance is counted once (`duplicateCount`).
+//
+// Grid figures are Cloud Carbon Footprint's (Apache-2.0) for AWS, GCP and Azure,
+// and Ember's 2024 country figures for every other provider; each row says which
+// (`gridBasis`). They are not measured by us. One resource's monthly figure
+// rides `POST /resources/cost-estimate` as `carbon`, beside its price.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/carbon
+//
+// Raises on 400: Bad request
+func (n *CarbonNamespace) Get(ctx context.Context, params *CarbonGetParams, opts ...RequestOption) (*CarbonEstimate, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/carbon")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("windowDays", params.WindowDays)
+	}
+	var out *CarbonEstimate
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
