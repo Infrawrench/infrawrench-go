@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.42.2 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.42.3 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.42.2).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.42.3).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -19680,7 +19680,7 @@ type WorkflowsScheduleDeleteParams struct {
 // Reverts the workflow's trigger to manual and clears the pending fire time. A
 // no-op when the trigger is not cron.
 //
-// _Requires permission: `dashboards:write`._
+// _Requires permission: `workflows:write`._
 //
 // DELETE /api/org/{orgId}/workflows/{id}/schedule
 //
@@ -19713,7 +19713,7 @@ type WorkflowsScheduleGetParams struct {
 // times. `schedule` is null when the workflow is triggered some other way
 // (manual, git, budget).
 //
-// _Requires permission: `dashboards:read`._
+// _Requires permission: `workflows:read`._
 //
 // GET /api/org/{orgId}/workflows/{id}/schedule
 //
@@ -19748,7 +19748,11 @@ type WorkflowsScheduleUpdateParams struct {
 // validating both, and computes the next fire time. The workflow fires at the
 // schedule's next occurrence — never immediately on save.
 //
-// _Requires permission: `dashboards:write`._
+// Changing the schedule makes scheduled runs act with the permissions of the
+// caller from then on, the same as editing the workflow's code. When the
+// workflow has secrets assigned, the caller also needs `secrets:read`.
+//
+// _Requires permission: `workflows:write`._
 //
 // PUT /api/org/{orgId}/workflows/{id}/schedule
 //
