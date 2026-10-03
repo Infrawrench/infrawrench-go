@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.39.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.40.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.39.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.40.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -457,6 +457,14 @@ type AgentRevoked struct {
 	Revoked bool `json:"revoked"`
 }
 
+// AgentServiceInstall is the `AgentServiceInstall` schema.
+type AgentServiceInstall struct {
+	AccountID string  `json:"accountId"`
+	PluginID  string  `json:"pluginId"`
+	Message   string  `json:"message"`
+	Address   *string `json:"address,omitempty"`
+}
+
 // AgentSession is the `AgentSession` schema.
 type AgentSession struct {
 	ID             string `json:"id"`
@@ -469,8 +477,14 @@ type AgentSession struct {
 	// Tool: One of "codex", "claude-code".
 	Tool string `json:"tool"`
 	// Surface: One of "terminal", "t3-code".
-	Surface    *string `json:"surface,omitempty"`
-	BranchName string  `json:"branchName"`
+	Surface *string `json:"surface,omitempty"`
+	// ServiceAccountIDs: Accounts whose plugin installs a service on the VM over
+	// SSH after setup (e.g. Tailscale). See GET /resources/ssh-install/accounts.
+	ServiceAccountIDs []string `json:"serviceAccountIds,omitempty"`
+	// T3Access: One of "t3-connect", "tailscale".
+	T3Access        *string               `json:"t3Access,omitempty"`
+	ServiceInstalls []AgentServiceInstall `json:"serviceInstalls,omitempty"`
+	BranchName      string                `json:"branchName"`
 	// Status: One of "pending", "provisioning", "setting-up", "up", "failed",
 	// "stopped".
 	Status       string   `json:"status"`
@@ -492,6 +506,11 @@ type AgentSettings struct {
 	// Surface: One of "terminal", "t3-code".
 	Surface *string           `json:"surface,omitempty"`
 	Fields  map[string]string `json:"fields"`
+	// ServiceAccountIDs: Accounts whose plugin installs a service on the VM over
+	// SSH after setup (e.g. Tailscale). See GET /resources/ssh-install/accounts.
+	ServiceAccountIDs []string `json:"serviceAccountIds,omitempty"`
+	// T3Access: One of "t3-connect", "tailscale".
+	T3Access *string `json:"t3Access,omitempty"`
 }
 
 // AgentVMAccount is the `AgentVmAccount` schema.
@@ -7171,6 +7190,7 @@ const (
 	PluginIDScaleway     PluginID = "scaleway"
 	PluginIDSpeechmatics PluginID = "speechmatics"
 	PluginIDSSH          PluginID = "ssh"
+	PluginIDTailscale    PluginID = "tailscale"
 	PluginIDTogether     PluginID = "together"
 	PluginIDTurso        PluginID = "turso"
 	PluginIDUploadthing  PluginID = "uploadthing"
@@ -8040,13 +8060,16 @@ type ResourceDetail struct {
 	HasDockerActions        bool               `json:"hasDockerActions"`
 	HasSSHTerminal          bool               `json:"hasSshTerminal"`
 	HasSFTPBrowser          bool               `json:"hasSftpBrowser"`
-	SSHHost                 *string            `json:"sshHost"`
-	SSHPrivateHost          *string            `json:"sshPrivateHost,omitempty"`
-	DefaultSSHUsername      *string            `json:"defaultSshUsername"`
-	ContainerID             string             `json:"containerId"`
-	DatabaseName            string             `json:"databaseName"`
-	StorageBucketName       string             `json:"storageBucketName"`
-	SupportsMetrics         bool               `json:"supportsMetrics"`
+	// SupportsSSHInstall: Whether the generic SSH service installer can target
+	// this resource.
+	SupportsSSHInstall *bool   `json:"supportsSshInstall,omitempty"`
+	SSHHost            *string `json:"sshHost"`
+	SSHPrivateHost     *string `json:"sshPrivateHost,omitempty"`
+	DefaultSSHUsername *string `json:"defaultSshUsername"`
+	ContainerID        string  `json:"containerId"`
+	DatabaseName       string  `json:"databaseName"`
+	StorageBucketName  string  `json:"storageBucketName"`
+	SupportsMetrics    bool    `json:"supportsMetrics"`
 	// Schedulable: The type declares lifecycle start/stop actions, so this
 	// resource can carry a sleep/wake schedule.
 	Schedulable bool `json:"schedulable"`
@@ -8353,6 +8376,7 @@ const (
 	ResourceTypeIDDedicatedInference             ResourceTypeID = "dedicated-inference"
 	ResourceTypeIDDeployedModel                  ResourceTypeID = "deployed-model"
 	ResourceTypeIDDeployment                     ResourceTypeID = "deployment"
+	ResourceTypeIDDevice                         ResourceTypeID = "device"
 	ResourceTypeIDDirectory                      ResourceTypeID = "directory"
 	ResourceTypeIDDirectoryGroup                 ResourceTypeID = "directory-group"
 	ResourceTypeIDDirectoryUser                  ResourceTypeID = "directory-user"
@@ -9752,6 +9776,56 @@ type SSHFanoutTarget struct {
 // Spec schema: `SshFanoutTargetsResponse`.
 type SSHFanoutTargetsResponse struct {
 	Targets []SSHFanoutTarget `json:"targets"`
+}
+
+// SSHInstallAccount is the `SshInstallAccount` schema.
+//
+// Spec schema: `SshInstallAccount`.
+type SSHInstallAccount struct {
+	AccountID   string  `json:"accountId"`
+	DisplayName string  `json:"displayName"`
+	PluginID    string  `json:"pluginId"`
+	ServiceName string  `json:"serviceName"`
+	Description string  `json:"description"`
+	LogoSvg     *string `json:"logoSvg,omitempty"`
+}
+
+// SSHInstallRequest is the `SshInstallRequest` schema.
+//
+// Spec schema: `SshInstallRequest`.
+type SSHInstallRequest struct {
+	InstallerAccountID string                  `json:"installerAccountId"`
+	Target             SshinstallRequestTarget `json:"target"`
+	SSHKeyID           *string                 `json:"sshKeyId,omitempty"`
+	Username           *string                 `json:"username,omitempty"`
+	Port               *int64                  `json:"port,omitempty"`
+}
+
+// SSHInstallResult is the `SshInstallResult` schema.
+//
+// Spec schema: `SshInstallResult`.
+type SSHInstallResult struct {
+	Message  string   `json:"message"`
+	Address  *string  `json:"address,omitempty"`
+	Warnings []string `json:"warnings,omitempty"`
+	// Ref: Opaque, plugin-owned handle to what was installed (e.g. a tailnet
+	// device id).
+	Ref *string `json:"ref,omitempty"`
+}
+
+// SSHInstallTrustRequired is the `SshInstallTrustRequired` schema.
+//
+// Spec schema: `SshInstallTrustRequired`.
+type SSHInstallTrustRequired struct {
+	// Error: One of "ssh_host_key_trust_required".
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	// Kind: One of "unknown", "mismatch".
+	Kind                 string  `json:"kind"`
+	Host                 string  `json:"host"`
+	Port                 int64   `json:"port"`
+	PresentedFingerprint string  `json:"presentedFingerprint"`
+	StoredFingerprint    *string `json:"storedFingerprint"`
 }
 
 // SSHKey is the `SshKey` schema.
@@ -11221,6 +11295,13 @@ type SshfanoutRunRequestTargets struct {
 	// Kind: One of "account", "resource".
 	Kind string `json:"kind"`
 	ID   string `json:"id"`
+}
+
+// SshinstallRequestTarget is an object the spec declares inline.
+type SshinstallRequestTarget struct {
+	AccountID      string     `json:"accountId"`
+	ResourceTypeID string     `json:"resourceTypeId"`
+	ResourceID     ResourceID `json:"resourceId"`
 }
 
 // TerraformExportExported is an object the spec declares inline.

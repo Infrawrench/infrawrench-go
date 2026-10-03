@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.39.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.40.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.39.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.40.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -14600,12 +14600,15 @@ type ResourcesNamespace struct {
 	Manifest *ResourcesManifestNamespace
 	// SecretVersions: `client.resources.secretVersions`.
 	SecretVersions *ResourcesSecretVersionsNamespace
+	// SSHInstall: `client.resources.sshInstall`.
+	SSHInstall *ResourcesSSHInstallNamespace
 }
 
 func newResourcesNamespace(t *transport) *ResourcesNamespace {
 	n := &ResourcesNamespace{t: t}
 	n.Manifest = newResourcesManifestNamespace(t)
 	n.SecretVersions = newResourcesSecretVersionsNamespace(t)
+	n.SSHInstall = newResourcesSSHInstallNamespace(t)
 	return n
 }
 
@@ -15504,6 +15507,87 @@ func (n *ResourcesSecretVersionsNamespace) Modify(ctx context.Context, params Re
 	r.setPath("typeId", params.TypeID)
 	r.setJSONBody(params.Body)
 	var out *SecretVersionResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ResourcesSSHInstallNamespace is `client.resources.sshInstall`.
+type ResourcesSSHInstallNamespace struct {
+	t *transport
+}
+
+func newResourcesSSHInstallNamespace(t *transport) *ResourcesSSHInstallNamespace {
+	n := &ResourcesSSHInstallNamespace{t: t}
+	return n
+}
+
+// ResourcesSSHInstallAccountsParams holds the parameters for
+// `client.resources.sshInstall.accounts`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ResourcesSSHInstallAccountsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Accounts: List service accounts that can enroll an SSH server
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/resources/ssh-install/accounts
+//
+// Raises on 403: Forbidden
+func (n *ResourcesSSHInstallNamespace) Accounts(ctx context.Context, params *ResourcesSSHInstallAccountsParams, opts ...RequestOption) ([]SSHInstallAccount, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/resources/ssh-install/accounts")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []SSHInstallAccount
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ResourcesSSHInstallCreateParams holds the parameters for
+// `client.resources.sshInstall.create`.
+type ResourcesSSHInstallCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body SSHInstallRequest
+}
+
+// Create: Install and enroll a service on an existing SSH target
+//
+// Requires resources:write and resources:execute. Uses the selected target's
+// saved SSH connection or an org SSH key. Respects change freezes and host-key
+// trust. Enrollment credentials never appear in the response or audit log.
+//
+// _Requires permission: `resources:execute`._
+//
+// POST /api/org/{orgId}/resources/ssh-install
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 409: SSH host-key trust is required before installation can begin
+//
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
+func (n *ResourcesSSHInstallNamespace) Create(ctx context.Context, params ResourcesSSHInstallCreateParams, opts ...RequestOption) (*SSHInstallResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/resources/ssh-install")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *SSHInstallResult
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
