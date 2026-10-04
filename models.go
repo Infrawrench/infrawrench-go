@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.42.3 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.43.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.42.3).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.43.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7319,6 +7319,7 @@ const (
 	PluginIDOpenai       PluginID = "openai"
 	PluginIDOpenrouter   PluginID = "openrouter"
 	PluginIDOpensearch   PluginID = "opensearch"
+	PluginIDOracleCloud  PluginID = "oracle-cloud"
 	PluginIDOVH          PluginID = "ovh"
 	PluginIDPlanetscale  PluginID = "planetscale"
 	PluginIDPostgres     PluginID = "postgres"
@@ -8442,6 +8443,7 @@ const (
 	ResourceTypeIDArtifactRegistryRepo           ResourceTypeID = "artifact-registry-repo"
 	ResourceTypeIDAuditEvent                     ResourceTypeID = "audit-event"
 	ResourceTypeIDAutoScalingGroup               ResourceTypeID = "auto-scaling-group"
+	ResourceTypeIDAutonomousDatabase             ResourceTypeID = "autonomous-database"
 	ResourceTypeIDAutoscalePool                  ResourceTypeID = "autoscale-pool"
 	ResourceTypeIDAzureAiServices                ResourceTypeID = "azure-ai-services"
 	ResourceTypeIDAzureAksCluster                ResourceTypeID = "azure-aks-cluster"
@@ -8496,6 +8498,10 @@ const (
 	ResourceTypeIDBigqueryTable                  ResourceTypeID = "bigquery-table"
 	ResourceTypeIDBigtableInstance               ResourceTypeID = "bigtable-instance"
 	ResourceTypeIDBlockVolume                    ResourceTypeID = "block-volume"
+	ResourceTypeIDBootVolume                     ResourceTypeID = "boot-volume"
+	ResourceTypeIDBucket                         ResourceTypeID = "bucket"
+	ResourceTypeIDBudget                         ResourceTypeID = "budget"
+	ResourceTypeIDBudgetAlertRule                ResourceTypeID = "budget-alert-rule"
 	ResourceTypeIDByokCredential                 ResourceTypeID = "byok-credential"
 	ResourceTypeIDCacheRule                      ResourceTypeID = "cache-rule"
 	ResourceTypeIDCachedContent                  ResourceTypeID = "cached-content"
@@ -8531,6 +8537,7 @@ const (
 	ResourceTypeIDCognitoUserPool                ResourceTypeID = "cognito-user-pool"
 	ResourceTypeIDCollection                     ResourceTypeID = "collection"
 	ResourceTypeIDCollectionDocument             ResourceTypeID = "collection-document"
+	ResourceTypeIDCompartment                    ResourceTypeID = "compartment"
 	ResourceTypeIDComposerEnvironment            ResourceTypeID = "composer-environment"
 	ResourceTypeIDConnection                     ResourceTypeID = "connection"
 	ResourceTypeIDContainer                      ResourceTypeID = "container"
@@ -8742,9 +8749,11 @@ const (
 	ResourceTypeIDNetlifySnippet                 ResourceTypeID = "netlify-snippet"
 	ResourceTypeIDNetwork                        ResourceTypeID = "network"
 	ResourceTypeIDNfsShare                       ResourceTypeID = "nfs-share"
+	ResourceTypeIDNodePool                       ResourceTypeID = "node-pool"
 	ResourceTypeIDNotificationPolicy             ResourceTypeID = "notification-policy"
 	ResourceTypeIDObjectStorageBucket            ResourceTypeID = "object-storage-bucket"
 	ResourceTypeIDOctaviaLoadBalancer            ResourceTypeID = "octavia-load-balancer"
+	ResourceTypeIDOkeCluster                     ResourceTypeID = "oke-cluster"
 	ResourceTypeIDOpensearchCluster              ResourceTypeID = "opensearch-cluster"
 	ResourceTypeIDOpensearchDomain               ResourceTypeID = "opensearch-domain"
 	ResourceTypeIDOrganization                   ResourceTypeID = "organization"
@@ -8810,6 +8819,7 @@ const (
 	ResourceTypeIDSecretsManagerSecret           ResourceTypeID = "secrets-manager-secret"
 	ResourceTypeIDSecretsStoreSecret             ResourceTypeID = "secrets-store-secret"
 	ResourceTypeIDSecurityGroup                  ResourceTypeID = "security-group"
+	ResourceTypeIDSecurityList                   ResourceTypeID = "security-list"
 	ResourceTypeIDSentimentJob                   ResourceTypeID = "sentiment-job"
 	ResourceTypeIDServer                         ResourceTypeID = "server"
 	ResourceTypeIDServerlessContainer            ResourceTypeID = "serverless-container"
@@ -8839,6 +8849,7 @@ const (
 	ResourceTypeIDSupervisedFineTuningJob        ResourceTypeID = "supervised-fine-tuning-job"
 	ResourceTypeIDTailnet                        ResourceTypeID = "tailnet"
 	ResourceTypeIDTargetGroup                    ResourceTypeID = "target-group"
+	ResourceTypeIDTenancy                        ResourceTypeID = "tenancy"
 	ResourceTypeIDTopicJob                       ResourceTypeID = "topic-job"
 	ResourceTypeIDTraining                       ResourceTypeID = "training"
 	ResourceTypeIDTranscript                     ResourceTypeID = "transcript"
@@ -8862,6 +8873,7 @@ const (
 	ResourceTypeIDUserInvite                     ResourceTypeID = "user-invite"
 	ResourceTypeIDUtApp                          ResourceTypeID = "ut-app"
 	ResourceTypeIDUtFile                         ResourceTypeID = "ut-file"
+	ResourceTypeIDVcn                            ResourceTypeID = "vcn"
 	ResourceTypeIDVectorStore                    ResourceTypeID = "vector-store"
 	ResourceTypeIDVectorizeIndex                 ResourceTypeID = "vectorize-index"
 	ResourceTypeIDVercelDeployment               ResourceTypeID = "vercel-deployment"
