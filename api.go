@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.43.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.44.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.43.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.44.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -105,6 +105,8 @@ type APIV1Client struct {
 	CostReports *CostReportsNamespace
 	// CostScenarios: `client.costScenarios`.
 	CostScenarios *CostScenariosNamespace
+	// CostVisibility: `client.costVisibility`.
+	CostVisibility *CostVisibilityNamespace
 	// Costs: `client.costs`.
 	Costs *CostsNamespace
 	// CredentialHygiene: `client.credentialHygiene`.
@@ -199,6 +201,8 @@ type APIV1Client struct {
 	SFTP *SFTPNamespace
 	// SharedConsoles: `client.sharedConsoles`.
 	SharedConsoles *SharedConsolesNamespace
+	// Sharing: `client.sharing`.
+	Sharing *SharingNamespace
 	// Slack: `client.slack`.
 	Slack *SlackNamespace
 	// SQL: `client.sql`.
@@ -274,6 +278,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.CostReportNotifications = newCostReportNotificationsNamespace(t)
 	c.CostReports = newCostReportsNamespace(t)
 	c.CostScenarios = newCostScenariosNamespace(t)
+	c.CostVisibility = newCostVisibilityNamespace(t)
 	c.Costs = newCostsNamespace(t)
 	c.CredentialHygiene = newCredentialHygieneNamespace(t)
 	c.Credits = newCreditsNamespace(t)
@@ -321,6 +326,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.SessionRecordings = newSessionRecordingsNamespace(t)
 	c.SFTP = newSFTPNamespace(t)
 	c.SharedConsoles = newSharedConsolesNamespace(t)
+	c.Sharing = newSharingNamespace(t)
 	c.Slack = newSlackNamespace(t)
 	c.SQL = newSQLNamespace(t)
 	c.SSHFanout = newSSHFanoutNamespace(t)
@@ -884,6 +890,42 @@ func (n *AccountsNamespace) Create(ctx context.Context, params AccountsCreatePar
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *CreateAccountResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AccountsCredentialOptionsParams holds the parameters for
+// `client.accounts.credentialOptions`.
+type AccountsCredentialOptionsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CredentialOptionsRequest
+}
+
+// CredentialOptions: List the provider's choices for a credential field
+//
+// For credential fields that declare `providerOptions` (an account picker filled
+// from the API key, say): asks the provider for the choices the submitted
+// credentials can see. Nothing is stored. A 400 carries the provider's reason,
+// and clients fall back to a text input.
+//
+// _Requires permission: `accounts:write`._
+//
+// POST /api/org/{orgId}/accounts/credential-options
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *AccountsNamespace) CredentialOptions(ctx context.Context, params AccountsCredentialOptionsParams, opts ...RequestOption) (*CredentialOptionsResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/accounts/credential-options")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CredentialOptionsResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -6749,6 +6791,121 @@ func (n *CostScenariosGetNamespace) GetOrgOrgIDCostScenariosID(ctx context.Conte
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
 	var out *CostScenarioModel
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostVisibilityNamespace is `client.costVisibility`.
+type CostVisibilityNamespace struct {
+	t *transport
+}
+
+func newCostVisibilityNamespace(t *transport) *CostVisibilityNamespace {
+	n := &CostVisibilityNamespace{t: t}
+	return n
+}
+
+// CostVisibilityDeleteParams holds the parameters for
+// `client.costVisibility.delete`.
+type CostVisibilityDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID         *string
+	PrincipalKind CostVisibilityPrincipalKind
+	PrincipalID   string
+}
+
+// Delete: Remove a cost visibility scope
+//
+// _Requires permission: `team:role:write`._
+//
+// DELETE /api/org/{orgId}/cost-visibility/{principalKind}/{principalId}
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *CostVisibilityNamespace) Delete(ctx context.Context, params CostVisibilityDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/cost-visibility/{principalKind}/{principalId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("principalKind", params.PrincipalKind)
+	r.setPath("principalId", params.PrincipalID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostVisibilityGetParams holds the parameters for `client.costVisibility.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostVisibilityGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List cost visibility scopes
+//
+// Every scope narrowing which cost rows a role, member or API key can see.
+// Scopes that apply to one caller are intersected.
+//
+// _Requires permission: `team:read`._
+//
+// GET /api/org/{orgId}/cost-visibility
+//
+// Raises on 403: Forbidden
+func (n *CostVisibilityNamespace) Get(ctx context.Context, params *CostVisibilityGetParams, opts ...RequestOption) (*CostVisibilityGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-visibility")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CostVisibilityGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostVisibilityUpdateParams holds the parameters for
+// `client.costVisibility.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostVisibilityUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *CostVisibilityScopeInput
+}
+
+// Update: Create or replace a cost visibility scope
+//
+// Upserts the scope of one principal. Roles and members need `team:role:write`;
+// an API key's owner may also scope their own key with `apikeys:write`. Owners
+// cannot be scoped, and cost-scoped callers cannot change scopes.
+//
+// _Requires permission: `team:role:write`._
+//
+// PUT /api/org/{orgId}/cost-visibility
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *CostVisibilityNamespace) Update(ctx context.Context, params *CostVisibilityUpdateParams, opts ...RequestOption) (*CostVisibilityScope, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/cost-visibility")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *CostVisibilityScope
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -17428,6 +17585,116 @@ func (n *SharedConsolesParticipantsNamespace) Delete(ctx context.Context, params
 	r.setPath("consoleId", params.ConsoleID)
 	r.setPath("participantId", params.ParticipantID)
 	var out *SharedConsoleState
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharingNamespace is `client.sharing`.
+type SharingNamespace struct {
+	t *transport
+}
+
+func newSharingNamespace(t *transport) *SharingNamespace {
+	n := &SharingNamespace{t: t}
+	return n
+}
+
+// SharingDeleteParams holds the parameters for `client.sharing.delete`.
+type SharingDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ObjectType ShareableObjectType
+	ObjectID   string
+}
+
+// Delete: Reset an object's sharing to the default
+//
+// Removes every grant and the org-wide setting, so everyone in the organization
+// can edit again. Owner only. A report's creator remains its owner.
+//
+// DELETE /api/org/{orgId}/sharing/{objectType}/{objectId}
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *SharingNamespace) Delete(ctx context.Context, params SharingDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/sharing/{objectType}/{objectId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("objectType", params.ObjectType)
+	r.setPath("objectId", params.ObjectID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharingGetParams holds the parameters for `client.sharing.get`.
+type SharingGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ObjectType ShareableObjectType
+	ObjectID   string
+}
+
+// Get: Get an object's sharing
+//
+// Who can open or edit a cost report, report folder or dashboard. Needs viewer
+// on the object and the family's read permission (`costs:read` /
+// `dashboards:read`).
+//
+// GET /api/org/{orgId}/sharing/{objectType}/{objectId}
+//
+// Raises on 404: Not found
+func (n *SharingNamespace) Get(ctx context.Context, params SharingGetParams, opts ...RequestOption) (*ObjectSharing, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/sharing/{objectType}/{objectId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("objectType", params.ObjectType)
+	r.setPath("objectId", params.ObjectID)
+	var out *ObjectSharing
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SharingUpdateParams holds the parameters for `client.sharing.update`.
+type SharingUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ObjectType ShareableObjectType
+	ObjectID   string
+	// Body: the JSON request body.
+	Body *ObjectSharingInput
+}
+
+// Update: Replace an object's sharing
+//
+// Replaces the org-wide default and every grant. Owner on the object plus the
+// family's write permission. At least one owner must remain.
+//
+// PUT /api/org/{orgId}/sharing/{objectType}/{objectId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *SharingNamespace) Update(ctx context.Context, params SharingUpdateParams, opts ...RequestOption) (*ObjectSharing, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/sharing/{objectType}/{objectId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("objectType", params.ObjectType)
+	r.setPath("objectId", params.ObjectID)
+	r.setJSONBody(params.Body)
+	var out *ObjectSharing
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

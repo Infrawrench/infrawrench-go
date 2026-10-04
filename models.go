@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.43.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.44.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.43.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.44.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3198,6 +3198,66 @@ type CostSeriesPoint struct {
 	Amount float64 `json:"amount"`
 }
 
+// CostVisibilityPrincipalKind: What a cost visibility scope attaches to.
+type CostVisibilityPrincipalKind = string
+
+// The values CostVisibilityPrincipalKind takes.
+const (
+	CostVisibilityPrincipalKindRole   CostVisibilityPrincipalKind = "role"
+	CostVisibilityPrincipalKindMember CostVisibilityPrincipalKind = "member"
+	CostVisibilityPrincipalKindAPIKey CostVisibilityPrincipalKind = "api_key"
+)
+
+// CostVisibilityScope is the `CostVisibilityScope` schema.
+type CostVisibilityScope struct {
+	ID            string                      `json:"id"`
+	PrincipalKind CostVisibilityPrincipalKind `json:"principalKind"`
+	// PrincipalID: Role id, member user id, or API key id.
+	PrincipalID string `json:"principalId"`
+	// PrincipalLabel: Role name, member email or key name; null when the
+	// principal no longer exists.
+	PrincipalLabel *string  `json:"principalLabel"`
+	CostCentreIDs  []string `json:"costCentreIds"`
+	AccountIDs     []string `json:"accountIds"`
+	SavedFilterID  *string  `json:"savedFilterId"`
+	CreatedAt      string   `json:"createdAt"`
+	UpdatedAt      string   `json:"updatedAt"`
+}
+
+// CostVisibilityScopeInput is the `CostVisibilityScopeInput` schema.
+type CostVisibilityScopeInput struct {
+	PrincipalKind CostVisibilityPrincipalKind `json:"principalKind"`
+	PrincipalID   string                      `json:"principalId"`
+	// CostCentreIDs: Rows the allocation rules assign to these cost centres (or
+	// their children).
+	CostCentreIDs []string `json:"costCentreIds"`
+	// AccountIDs: Rows on these connected accounts.
+	AccountIDs []string `json:"accountIds"`
+	// SavedFilterID: A saved filter ANDed onto the scope. With no centres and no
+	// accounts it decides alone; a scope with nothing at all matches no rows.
+	SavedFilterID *string `json:"savedFilterId"`
+}
+
+// CostVisibilitySource is the `CostVisibilitySource` schema.
+type CostVisibilitySource struct {
+	Kind          CostVisibilityPrincipalKind `json:"kind"`
+	Label         *string                     `json:"label"`
+	CostCentreIDs []string                    `json:"costCentreIds"`
+	AccountIDs    []string                    `json:"accountIds"`
+	SavedFilterID *string                     `json:"savedFilterId"`
+}
+
+// CostVisibilitySummary: The caller's cost visibility scope. Every cost read
+// enforces it server-side.
+type CostVisibilitySummary struct {
+	// Restricted: False means the caller sees every cost row the organization
+	// holds.
+	Restricted bool `json:"restricted"`
+	// Sources: Every scope that applies to the caller. A cost row must match all
+	// of them.
+	Sources []CostVisibilitySource `json:"sources"`
+}
+
 // CreateAccountRequest is the `CreateAccountRequest` schema.
 type CreateAccountRequest struct {
 	PluginID    string            `json:"pluginId"`
@@ -3374,15 +3434,27 @@ type CredentialExport struct {
 
 // CredentialField is the `CredentialField` schema.
 type CredentialField struct {
-	Key          string                   `json:"key"`
-	Label        string                   `json:"label"`
-	Description  *string                  `json:"description,omitempty"`
-	Placeholder  *string                  `json:"placeholder,omitempty"`
-	Sensitive    *bool                    `json:"sensitive,omitempty"`
-	Multiline    *bool                    `json:"multiline,omitempty"`
-	DefaultValue *string                  `json:"defaultValue,omitempty"`
-	Regions      []CredentialFieldRegion  `json:"regions,omitempty"`
-	HelpLink     *CredentialFieldHelpLink `json:"helpLink,omitempty"`
+	Key          string                  `json:"key"`
+	Label        string                  `json:"label"`
+	Description  *string                 `json:"description,omitempty"`
+	Placeholder  *string                 `json:"placeholder,omitempty"`
+	Sensitive    *bool                   `json:"sensitive,omitempty"`
+	Multiline    *bool                   `json:"multiline,omitempty"`
+	DefaultValue *string                 `json:"defaultValue,omitempty"`
+	Regions      []CredentialFieldRegion `json:"regions,omitempty"`
+	// ProviderOptions: Present when the field's choices come from the provider.
+	// Once every field in `dependsOn` has a value, `POST
+	// /accounts/credential-options` returns them.
+	ProviderOptions *CredentialFieldProviderOptions `json:"providerOptions,omitempty"`
+	HelpLink        *CredentialFieldHelpLink        `json:"helpLink,omitempty"`
+}
+
+// CredentialFieldOption is the `CredentialFieldOption` schema.
+type CredentialFieldOption struct {
+	// ID: The value to store in the credential field.
+	ID          string  `json:"id"`
+	Label       string  `json:"label"`
+	Description *string `json:"description,omitempty"`
 }
 
 // CredentialFieldRegion is the `CredentialFieldRegion` schema.
@@ -3407,6 +3479,27 @@ type CredentialFormat struct {
 	// FilenameTemplate: Suggested filename; `{resource}` is replaced with the
 	// resource's external id.
 	FilenameTemplate *string `json:"filenameTemplate,omitempty"`
+}
+
+// CredentialOptionsRequest is the `CredentialOptionsRequest` schema.
+type CredentialOptionsRequest struct {
+	PluginID string `json:"pluginId"`
+	// FieldKey: A credential field that declares `providerOptions`.
+	FieldKey string `json:"fieldKey"`
+	// Credentials: The credential values entered so far. Used for the lookup
+	// only; nothing is stored.
+	Credentials map[string]string `json:"credentials"`
+	// BastionID: Look up through this bastion, matching how the account will
+	// egress once created.
+	BastionID *string `json:"bastionId,omitempty"`
+	// AccountID: When editing an existing account, its id; the lookup then
+	// egresses through that account's bastion binding.
+	AccountID *string `json:"accountId,omitempty"`
+}
+
+// CredentialOptionsResponse is the `CredentialOptionsResponse` schema.
+type CredentialOptionsResponse struct {
+	Options []CredentialFieldOption `json:"options"`
 }
 
 // CreditBurndown is the `CreditBurndown` schema.
@@ -6029,10 +6122,11 @@ type Manifest struct {
 
 // MeResponse is the `MeResponse` schema.
 type MeResponse struct {
-	UserID      string       `json:"userId"`
-	Email       string       `json:"email"`
-	Role        *RoleSummary `json:"role"`
-	Permissions []Permission `json:"permissions"`
+	UserID         string                 `json:"userId"`
+	Email          string                 `json:"email"`
+	Role           *RoleSummary           `json:"role"`
+	Permissions    []Permission           `json:"permissions"`
+	CostVisibility *CostVisibilitySummary `json:"costVisibility,omitempty"`
 }
 
 // MetricAlertEvent is the `MetricAlertEvent` schema.
@@ -6505,6 +6599,49 @@ type NoSQLCommandRequest struct {
 	ParentResourceID *ResourceID `json:"parentResourceId,omitempty"`
 }
 
+// ObjectAccessGrant is the `ObjectAccessGrant` schema.
+type ObjectAccessGrant struct {
+	// PrincipalKind: One of "member", "role".
+	PrincipalKind  string            `json:"principalKind"`
+	PrincipalID    string            `json:"principalId"`
+	PrincipalLabel *string           `json:"principalLabel"`
+	Level          ObjectAccessLevel `json:"level"`
+	// Implicit: The report creator's ownership, implied rather than stored.
+	// Never send it back.
+	Implicit bool `json:"implicit"`
+}
+
+// ObjectAccessLevel is the `ObjectAccessLevel` schema.
+type ObjectAccessLevel = string
+
+// The values ObjectAccessLevel takes.
+const (
+	ObjectAccessLevelOwner  ObjectAccessLevel = "owner"
+	ObjectAccessLevelEditor ObjectAccessLevel = "editor"
+	ObjectAccessLevelViewer ObjectAccessLevel = "viewer"
+)
+
+// ObjectSharing is the `ObjectSharing` schema.
+type ObjectSharing struct {
+	ObjectType ShareableObjectType `json:"objectType"`
+	ObjectID   string              `json:"objectId"`
+	OrgAccess  OrgAccessLevel      `json:"orgAccess"`
+	Grants     []ObjectAccessGrant `json:"grants"`
+	// CallerLevel: What the caller can do with this object.
+	//
+	// One of "owner", "editor", "viewer", "none".
+	CallerLevel string `json:"callerLevel"`
+	// InheritedFrom: Access the containing folder's explicit sharing already
+	// gives the caller.
+	InheritedFrom *ObjectSharingInheritedFrom `json:"inheritedFrom"`
+}
+
+// ObjectSharingInput is the `ObjectSharingInput` schema.
+type ObjectSharingInput struct {
+	OrgAccess OrgAccessLevel             `json:"orgAccess"`
+	Grants    []ObjectSharingInputGrants `json:"grants"`
+}
+
 // OK is the `Ok` schema.
 //
 // Spec schema: `Ok`.
@@ -6636,6 +6773,17 @@ type OnCallShiftsResponse struct {
 	// which is the thing being edited.
 	Overrides []OnCallOverride `json:"overrides"`
 }
+
+// OrgAccessLevel: What everyone in the organization can do with the object.
+// `editor` is the default for an object nobody has shared.
+type OrgAccessLevel = string
+
+// The values OrgAccessLevel takes.
+const (
+	OrgAccessLevelEditor OrgAccessLevel = "editor"
+	OrgAccessLevelViewer OrgAccessLevel = "viewer"
+	OrgAccessLevelNone   OrgAccessLevel = "none"
+)
 
 // OrgConfigAlertSettings: Org-wide notification tuning. Cooldown claims
 // (`lastNotifiedAt`, `lastSentWeekStart`) are deliberately absent: they are
@@ -7212,6 +7360,7 @@ const (
 	PermissionInvoicesWrite          Permission = "invoices:write"
 	PermissionInvoicesIssue          Permission = "invoices:issue"
 	PermissionPagesWrite             Permission = "pages:write"
+	PermissionSharingOverride        Permission = "sharing:override"
 	PermissionOrgSettingsWrite       Permission = "org:settings:write"
 )
 
@@ -7285,57 +7434,76 @@ type PluginID = string
 
 // The values PluginID takes.
 const (
-	PluginIDAnthropic    PluginID = "anthropic"
-	PluginIDAssemblyai   PluginID = "assemblyai"
-	PluginIDAWS          PluginID = "aws"
-	PluginIDAzure        PluginID = "azure"
-	PluginIDCartesia     PluginID = "cartesia"
-	PluginIDClickhouse   PluginID = "clickhouse"
-	PluginIDCloudflare   PluginID = "cloudflare"
-	PluginIDCloudinary   PluginID = "cloudinary"
-	PluginIDCohere       PluginID = "cohere"
-	PluginIDDatabricks   PluginID = "databricks"
-	PluginIDDeepgram     PluginID = "deepgram"
-	PluginIDDeepseek     PluginID = "deepseek"
-	PluginIDDigitalocean PluginID = "digitalocean"
-	PluginIDDocker       PluginID = "docker"
-	PluginIDElevenlabs   PluginID = "elevenlabs"
-	PluginIDFireworks    PluginID = "fireworks"
-	PluginIDFly          PluginID = "fly"
-	PluginIDGCP          PluginID = "gcp"
-	PluginIDGemini       PluginID = "gemini"
-	PluginIDGladia       PluginID = "gladia"
-	PluginIDGroq         PluginID = "groq"
-	PluginIDHetzner      PluginID = "hetzner"
-	PluginIDKafka        PluginID = "kafka"
-	PluginIDKubernetes   PluginID = "kubernetes"
-	PluginIDMemcached    PluginID = "memcached"
-	PluginIDMistral      PluginID = "mistral"
-	PluginIDMongodb      PluginID = "mongodb"
-	PluginIDMssql        PluginID = "mssql"
-	PluginIDMysql        PluginID = "mysql"
-	PluginIDNeon         PluginID = "neon"
-	PluginIDNetlify      PluginID = "netlify"
-	PluginIDOpenai       PluginID = "openai"
-	PluginIDOpenrouter   PluginID = "openrouter"
-	PluginIDOpensearch   PluginID = "opensearch"
-	PluginIDOracleCloud  PluginID = "oracle-cloud"
-	PluginIDOVH          PluginID = "ovh"
-	PluginIDPlanetscale  PluginID = "planetscale"
-	PluginIDPostgres     PluginID = "postgres"
-	PluginIDRedis        PluginID = "redis"
-	PluginIDReplicate    PluginID = "replicate"
-	PluginIDRevai        PluginID = "revai"
-	PluginIDScaleway     PluginID = "scaleway"
-	PluginIDSpeechmatics PluginID = "speechmatics"
-	PluginIDSSH          PluginID = "ssh"
-	PluginIDTailscale    PluginID = "tailscale"
-	PluginIDTogether     PluginID = "together"
-	PluginIDTurso        PluginID = "turso"
-	PluginIDUploadthing  PluginID = "uploadthing"
-	PluginIDVercel       PluginID = "vercel"
-	PluginIDWorkos       PluginID = "workos"
-	PluginIDXai          PluginID = "xai"
+	PluginIDAnthropic      PluginID = "anthropic"
+	PluginIDAssemblyai     PluginID = "assemblyai"
+	PluginIDAWS            PluginID = "aws"
+	PluginIDAzure          PluginID = "azure"
+	PluginIDCartesia       PluginID = "cartesia"
+	PluginIDCircleci       PluginID = "circleci"
+	PluginIDClickhouse     PluginID = "clickhouse"
+	PluginIDCloudflare     PluginID = "cloudflare"
+	PluginIDCloudinary     PluginID = "cloudinary"
+	PluginIDCohere         PluginID = "cohere"
+	PluginIDConfluentCloud PluginID = "confluent-cloud"
+	PluginIDCoralogix      PluginID = "coralogix"
+	PluginIDCoreweave      PluginID = "coreweave"
+	PluginIDCrusoe         PluginID = "crusoe"
+	PluginIDCursor         PluginID = "cursor"
+	PluginIDDatabricks     PluginID = "databricks"
+	PluginIDDeepgram       PluginID = "deepgram"
+	PluginIDDeepseek       PluginID = "deepseek"
+	PluginIDDepot          PluginID = "depot"
+	PluginIDDevin          PluginID = "devin"
+	PluginIDDigitalocean   PluginID = "digitalocean"
+	PluginIDDocker         PluginID = "docker"
+	PluginIDElasticCloud   PluginID = "elastic-cloud"
+	PluginIDElevenlabs     PluginID = "elevenlabs"
+	PluginIDFastly         PluginID = "fastly"
+	PluginIDFireworks      PluginID = "fireworks"
+	PluginIDFly            PluginID = "fly"
+	PluginIDGCP            PluginID = "gcp"
+	PluginIDGemini         PluginID = "gemini"
+	PluginIDGithub         PluginID = "github"
+	PluginIDGladia         PluginID = "gladia"
+	PluginIDGroq           PluginID = "groq"
+	PluginIDHetzner        PluginID = "hetzner"
+	PluginIDKafka          PluginID = "kafka"
+	PluginIDKubernetes     PluginID = "kubernetes"
+	PluginIDLinode         PluginID = "linode"
+	PluginIDMemcached      PluginID = "memcached"
+	PluginIDMistral        PluginID = "mistral"
+	PluginIDModal          PluginID = "modal"
+	PluginIDMongodb        PluginID = "mongodb"
+	PluginIDMongodbAtlas   PluginID = "mongodb-atlas"
+	PluginIDMssql          PluginID = "mssql"
+	PluginIDMysql          PluginID = "mysql"
+	PluginIDNeon           PluginID = "neon"
+	PluginIDNetlify        PluginID = "netlify"
+	PluginIDOpenai         PluginID = "openai"
+	PluginIDOpenrouter     PluginID = "openrouter"
+	PluginIDOpensearch     PluginID = "opensearch"
+	PluginIDOracleCloud    PluginID = "oracle-cloud"
+	PluginIDOVH            PluginID = "ovh"
+	PluginIDPlanetscale    PluginID = "planetscale"
+	PluginIDPostgres       PluginID = "postgres"
+	PluginIDRedis          PluginID = "redis"
+	PluginIDRedisCloud     PluginID = "redis-cloud"
+	PluginIDReplicate      PluginID = "replicate"
+	PluginIDRevai          PluginID = "revai"
+	PluginIDScaleway       PluginID = "scaleway"
+	PluginIDSentry         PluginID = "sentry"
+	PluginIDSnowflake      PluginID = "snowflake"
+	PluginIDSpeechmatics   PluginID = "speechmatics"
+	PluginIDSSH            PluginID = "ssh"
+	PluginIDTailscale      PluginID = "tailscale"
+	PluginIDTemporalCloud  PluginID = "temporal-cloud"
+	PluginIDTogether       PluginID = "together"
+	PluginIDTurso          PluginID = "turso"
+	PluginIDTwilio         PluginID = "twilio"
+	PluginIDUploadthing    PluginID = "uploadthing"
+	PluginIDVercel         PluginID = "vercel"
+	PluginIDWorkos         PluginID = "workos"
+	PluginIDXai            PluginID = "xai"
 )
 
 // PluginSummary is the `PluginSummary` schema.
@@ -8417,9 +8585,11 @@ type ResourceTypeID = string
 // The values ResourceTypeID takes.
 const (
 	ResourceTypeIDAccessApplication              ResourceTypeID = "access-application"
+	ResourceTypeIDAccessKey                      ResourceTypeID = "access-key"
 	ResourceTypeIDAccessPolicy                   ResourceTypeID = "access-policy"
 	ResourceTypeIDAccount                        ResourceTypeID = "account"
 	ResourceTypeIDAcmCertificate                 ResourceTypeID = "acm-certificate"
+	ResourceTypeIDActionsCache                   ResourceTypeID = "actions-cache"
 	ResourceTypeIDAdminAPIKey                    ResourceTypeID = "admin-api-key"
 	ResourceTypeIDAgent                          ResourceTypeID = "agent"
 	ResourceTypeIDAgentAPIKey                    ResourceTypeID = "agent-api-key"
@@ -8429,6 +8599,8 @@ const (
 	ResourceTypeIDAiGateway                      ResourceTypeID = "ai-gateway"
 	ResourceTypeIDAiSearch                       ResourceTypeID = "ai-search"
 	ResourceTypeIDAlb                            ResourceTypeID = "alb"
+	ResourceTypeIDAlert                          ResourceTypeID = "alert"
+	ResourceTypeIDAlertConfiguration             ResourceTypeID = "alert-configuration"
 	ResourceTypeIDAlertPolicy                    ResourceTypeID = "alert-policy"
 	ResourceTypeIDAlignmentJob                   ResourceTypeID = "alignment-job"
 	ResourceTypeIDAlloydbCluster                 ResourceTypeID = "alloydb-cluster"
@@ -8436,6 +8608,7 @@ const (
 	ResourceTypeIDAnalyticsEngineDataset         ResourceTypeID = "analytics-engine-dataset"
 	ResourceTypeIDAPIGateway                     ResourceTypeID = "api-gateway"
 	ResourceTypeIDAPIKey                         ResourceTypeID = "api-key"
+	ResourceTypeIDAPIToken                       ResourceTypeID = "api-token"
 	ResourceTypeIDApp                            ResourceTypeID = "app"
 	ResourceTypeIDAppEngineService               ResourceTypeID = "app-engine-service"
 	ResourceTypeIDAppSecret                      ResourceTypeID = "app-secret"
@@ -8443,6 +8616,7 @@ const (
 	ResourceTypeIDArtifactRegistryRepo           ResourceTypeID = "artifact-registry-repo"
 	ResourceTypeIDAuditEvent                     ResourceTypeID = "audit-event"
 	ResourceTypeIDAutoScalingGroup               ResourceTypeID = "auto-scaling-group"
+	ResourceTypeIDAutomation                     ResourceTypeID = "automation"
 	ResourceTypeIDAutonomousDatabase             ResourceTypeID = "autonomous-database"
 	ResourceTypeIDAutoscalePool                  ResourceTypeID = "autoscale-pool"
 	ResourceTypeIDAzureAiServices                ResourceTypeID = "azure-ai-services"
@@ -8482,7 +8656,10 @@ const (
 	ResourceTypeIDAzureSubnet                    ResourceTypeID = "azure-subnet"
 	ResourceTypeIDAzureVM                        ResourceTypeID = "azure-vm"
 	ResourceTypeIDAzureVnet                      ResourceTypeID = "azure-vnet"
+	ResourceTypeIDBackend                        ResourceTypeID = "backend"
 	ResourceTypeIDBackendService                 ResourceTypeID = "backend-service"
+	ResourceTypeIDBackupPolicy                   ResourceTypeID = "backup-policy"
+	ResourceTypeIDBackupSnapshot                 ResourceTypeID = "backup-snapshot"
 	ResourceTypeIDBackupVault                    ResourceTypeID = "backup-vault"
 	ResourceTypeIDBalance                        ResourceTypeID = "balance"
 	ResourceTypeIDBasinCatalog                   ResourceTypeID = "basin-catalog"
@@ -8497,6 +8674,8 @@ const (
 	ResourceTypeIDBigqueryDataset                ResourceTypeID = "bigquery-dataset"
 	ResourceTypeIDBigqueryTable                  ResourceTypeID = "bigquery-table"
 	ResourceTypeIDBigtableInstance               ResourceTypeID = "bigtable-instance"
+	ResourceTypeIDBillingAccount                 ResourceTypeID = "billing-account"
+	ResourceTypeIDBillingGroup                   ResourceTypeID = "billing-group"
 	ResourceTypeIDBlockVolume                    ResourceTypeID = "block-volume"
 	ResourceTypeIDBootVolume                     ResourceTypeID = "boot-volume"
 	ResourceTypeIDBucket                         ResourceTypeID = "bucket"
@@ -8514,6 +8693,8 @@ const (
 	ResourceTypeIDChMember                       ResourceTypeID = "ch-member"
 	ResourceTypeIDChPostgres                     ResourceTypeID = "ch-postgres"
 	ResourceTypeIDChService                      ResourceTypeID = "ch-service"
+	ResourceTypeIDCksCluster                     ResourceTypeID = "cks-cluster"
+	ResourceTypeIDClientKey                      ResourceTypeID = "client-key"
 	ResourceTypeIDCloudArmorPolicy               ResourceTypeID = "cloud-armor-policy"
 	ResourceTypeIDCloudBuildTrigger              ResourceTypeID = "cloud-build-trigger"
 	ResourceTypeIDCloudDeployPipeline            ResourceTypeID = "cloud-deploy-pipeline"
@@ -8532,19 +8713,33 @@ const (
 	ResourceTypeIDCloudtrailTrail                ResourceTypeID = "cloudtrail-trail"
 	ResourceTypeIDCloudwatchAlarm                ResourceTypeID = "cloudwatch-alarm"
 	ResourceTypeIDCloudwatchLogGroup             ResourceTypeID = "cloudwatch-log-group"
+	ResourceTypeIDCluster                        ResourceTypeID = "cluster"
 	ResourceTypeIDCodebuildProject               ResourceTypeID = "codebuild-project"
 	ResourceTypeIDCodepipelinePipeline           ResourceTypeID = "codepipeline-pipeline"
+	ResourceTypeIDCodespace                      ResourceTypeID = "codespace"
 	ResourceTypeIDCognitoUserPool                ResourceTypeID = "cognito-user-pool"
 	ResourceTypeIDCollection                     ResourceTypeID = "collection"
 	ResourceTypeIDCollectionDocument             ResourceTypeID = "collection-document"
 	ResourceTypeIDCompartment                    ResourceTypeID = "compartment"
 	ResourceTypeIDComposerEnvironment            ResourceTypeID = "composer-environment"
+	ResourceTypeIDConfigStore                    ResourceTypeID = "config-store"
 	ResourceTypeIDConnection                     ResourceTypeID = "connection"
+	ResourceTypeIDConnectivityRule               ResourceTypeID = "connectivity-rule"
+	ResourceTypeIDConnector                      ResourceTypeID = "connector"
 	ResourceTypeIDContainer                      ResourceTypeID = "container"
 	ResourceTypeIDContainerRegistry              ResourceTypeID = "container-registry"
+	ResourceTypeIDContext                        ResourceTypeID = "context"
+	ResourceTypeIDContextVariable                ResourceTypeID = "context-variable"
+	ResourceTypeIDCopilotSeat                    ResourceTypeID = "copilot-seat"
+	ResourceTypeIDCostCenter                     ResourceTypeID = "cost-center"
+	ResourceTypeIDCronMonitor                    ResourceTypeID = "cron-monitor"
+	ResourceTypeIDCustomEnrichment               ResourceTypeID = "custom-enrichment"
 	ResourceTypeIDCustomHostname                 ResourceTypeID = "custom-hostname"
 	ResourceTypeIDCustomVoice                    ResourceTypeID = "custom-voice"
 	ResourceTypeIDD1Database                     ResourceTypeID = "d1-database"
+	ResourceTypeIDDashboard                      ResourceTypeID = "dashboard"
+	ResourceTypeIDDatabase                       ResourceTypeID = "database"
+	ResourceTypeIDDatabaseUser                   ResourceTypeID = "database-user"
 	ResourceTypeIDDatabricksApp                  ResourceTypeID = "databricks-app"
 	ResourceTypeIDDatabricksCatalog              ResourceTypeID = "databricks-catalog"
 	ResourceTypeIDDatabricksCluster              ResourceTypeID = "databricks-cluster"
@@ -8576,10 +8771,19 @@ const (
 	ResourceTypeIDDedicatedInference             ResourceTypeID = "dedicated-inference"
 	ResourceTypeIDDeployedModel                  ResourceTypeID = "deployed-model"
 	ResourceTypeIDDeployment                     ResourceTypeID = "deployment"
+	ResourceTypeIDDepotActionsRepo               ResourceTypeID = "depot-actions-repo"
+	ResourceTypeIDDepotBuild                     ResourceTypeID = "depot-build"
+	ResourceTypeIDDepotProject                   ResourceTypeID = "depot-project"
+	ResourceTypeIDDepotRegistryImage             ResourceTypeID = "depot-registry-image"
+	ResourceTypeIDDepotToken                     ResourceTypeID = "depot-token"
+	ResourceTypeIDDepotTrustPolicy               ResourceTypeID = "depot-trust-policy"
 	ResourceTypeIDDevice                         ResourceTypeID = "device"
+	ResourceTypeIDDict                           ResourceTypeID = "dict"
+	ResourceTypeIDDictionary                     ResourceTypeID = "dictionary"
 	ResourceTypeIDDirectory                      ResourceTypeID = "directory"
 	ResourceTypeIDDirectoryGroup                 ResourceTypeID = "directory-group"
 	ResourceTypeIDDirectoryUser                  ResourceTypeID = "directory-user"
+	ResourceTypeIDDisk                           ResourceTypeID = "disk"
 	ResourceTypeIDDistributionCredential         ResourceTypeID = "distribution-credential"
 	ResourceTypeIDDNSRecord                      ResourceTypeID = "dns-record"
 	ResourceTypeIDDNSZone                        ResourceTypeID = "dns-zone"
@@ -8590,6 +8794,7 @@ const (
 	ResourceTypeIDDocumentdbCluster              ResourceTypeID = "documentdb-cluster"
 	ResourceTypeIDDoksCluster                    ResourceTypeID = "doks-cluster"
 	ResourceTypeIDDomain                         ResourceTypeID = "domain"
+	ResourceTypeIDDomainRecord                   ResourceTypeID = "domain-record"
 	ResourceTypeIDDpoJob                         ResourceTypeID = "dpo-job"
 	ResourceTypeIDDroplet                        ResourceTypeID = "droplet"
 	ResourceTypeIDDurableObjectNamespace         ResourceTypeID = "durable-object-namespace"
@@ -8605,12 +8810,18 @@ const (
 	ResourceTypeIDElasticacheServerlessCache     ResourceTypeID = "elasticache-serverless-cache"
 	ResourceTypeIDEmailRoutingRule               ResourceTypeID = "email-routing-rule"
 	ResourceTypeIDEmbedJob                       ResourceTypeID = "embed-job"
+	ResourceTypeIDEncryptionKey                  ResourceTypeID = "encryption-key"
 	ResourceTypeIDEndpoint                       ResourceTypeID = "endpoint"
+	ResourceTypeIDEnrichment                     ResourceTypeID = "enrichment"
+	ResourceTypeIDEnvironment                    ResourceTypeID = "environment"
 	ResourceTypeIDEval                           ResourceTypeID = "eval"
 	ResourceTypeIDEvaluation                     ResourceTypeID = "evaluation"
 	ResourceTypeIDEvaluationJob                  ResourceTypeID = "evaluation-job"
 	ResourceTypeIDEvaluator                      ResourceTypeID = "evaluator"
 	ResourceTypeIDEventbridgeRule                ResourceTypeID = "eventbridge-rule"
+	ResourceTypeIDEvents2metrics                 ResourceTypeID = "events2metrics"
+	ResourceTypeIDExportSink                     ResourceTypeID = "export-sink"
+	ResourceTypeIDExtension                      ResourceTypeID = "extension"
 	ResourceTypeIDFeatureFlag                    ResourceTypeID = "feature-flag"
 	ResourceTypeIDFile                           ResourceTypeID = "file"
 	ResourceTypeIDFileSearchDocument             ResourceTypeID = "file-search-document"
@@ -8621,10 +8832,13 @@ const (
 	ResourceTypeIDFirestoreDatabase              ResourceTypeID = "firestore-database"
 	ResourceTypeIDFirewall                       ResourceTypeID = "firewall"
 	ResourceTypeIDFirewallRule                   ResourceTypeID = "firewall-rule"
+	ResourceTypeIDFlexCluster                    ResourceTypeID = "flex-cluster"
 	ResourceTypeIDFlexibleIP                     ResourceTypeID = "flexible-ip"
+	ResourceTypeIDFlinkComputePool               ResourceTypeID = "flink-compute-pool"
 	ResourceTypeIDFloatingIP                     ResourceTypeID = "floating-ip"
 	ResourceTypeIDFolder                         ResourceTypeID = "folder"
 	ResourceTypeIDForwardingRule                 ResourceTypeID = "forwarding-rule"
+	ResourceTypeIDFunction                       ResourceTypeID = "function"
 	ResourceTypeIDGateway                        ResourceTypeID = "gateway"
 	ResourceTypeIDGceDisk                        ResourceTypeID = "gce-disk"
 	ResourceTypeIDGceInstance                    ResourceTypeID = "gce-instance"
@@ -8647,6 +8861,7 @@ const (
 	ResourceTypeIDHealthCheck                    ResourceTypeID = "health-check"
 	ResourceTypeIDHealthcheck                    ResourceTypeID = "healthcheck"
 	ResourceTypeIDHistoryItem                    ResourceTypeID = "history-item"
+	ResourceTypeIDHostedRunner                   ResourceTypeID = "hosted-runner"
 	ResourceTypeIDHyperdrive                     ResourceTypeID = "hyperdrive"
 	ResourceTypeIDIamRole                        ResourceTypeID = "iam-role"
 	ResourceTypeIDIamUser                        ResourceTypeID = "iam-user"
@@ -8655,12 +8870,15 @@ const (
 	ResourceTypeIDInstance                       ResourceTypeID = "instance"
 	ResourceTypeIDInstanceGroup                  ResourceTypeID = "instance-group"
 	ResourceTypeIDInstanceTemplate               ResourceTypeID = "instance-template"
+	ResourceTypeIDInstanceType                   ResourceTypeID = "instance-type"
 	ResourceTypeIDInternetGateway                ResourceTypeID = "internet-gateway"
 	ResourceTypeIDInvitation                     ResourceTypeID = "invitation"
 	ResourceTypeIDInvite                         ResourceTypeID = "invite"
 	ResourceTypeIDInvoice                        ResourceTypeID = "invoice"
+	ResourceTypeIDIPAccessEntry                  ResourceTypeID = "ip-access-entry"
 	ResourceTypeIDIPAccessRule                   ResourceTypeID = "ip-access-rule"
 	ResourceTypeIDIPAllocation                   ResourceTypeID = "ip-allocation"
+	ResourceTypeIDIssue                          ResourceTypeID = "issue"
 	ResourceTypeIDJob                            ResourceTypeID = "job"
 	ResourceTypeIDK8sCluster                     ResourceTypeID = "k8s-cluster"
 	ResourceTypeIDK8sConfigmap                   ResourceTypeID = "k8s-configmap"
@@ -8684,13 +8902,21 @@ const (
 	ResourceTypeIDKmsKey                         ResourceTypeID = "kms-key"
 	ResourceTypeIDKmsKeyRing                     ResourceTypeID = "kms-key-ring"
 	ResourceTypeIDKnowledgeBaseDocument          ResourceTypeID = "knowledge-base-document"
+	ResourceTypeIDKnowledgeNote                  ResourceTypeID = "knowledge-note"
+	ResourceTypeIDKsqldbCluster                  ResourceTypeID = "ksqldb-cluster"
+	ResourceTypeIDKubernetesCluster              ResourceTypeID = "kubernetes-cluster"
 	ResourceTypeIDKVNamespace                    ResourceTypeID = "kv-namespace"
+	ResourceTypeIDKVStore                        ResourceTypeID = "kv-store"
 	ResourceTypeIDLambdaFunction                 ResourceTypeID = "lambda-function"
 	ResourceTypeIDLanguageIDJob                  ResourceTypeID = "language-id-job"
+	ResourceTypeIDLinode                         ResourceTypeID = "linode"
 	ResourceTypeIDLiveSession                    ResourceTypeID = "live-session"
+	ResourceTypeIDLkeCluster                     ResourceTypeID = "lke-cluster"
+	ResourceTypeIDLkeNodePool                    ResourceTypeID = "lke-node-pool"
 	ResourceTypeIDLlmModel                       ResourceTypeID = "llm-model"
 	ResourceTypeIDLoadBalancer                   ResourceTypeID = "load-balancer"
 	ResourceTypeIDLogSink                        ResourceTypeID = "log-sink"
+	ResourceTypeIDLoggingEndpoint                ResourceTypeID = "logging-endpoint"
 	ResourceTypeIDLogpushJob                     ResourceTypeID = "logpush-job"
 	ResourceTypeIDMachine                        ResourceTypeID = "machine"
 	ResourceTypeIDManagedDatabase                ResourceTypeID = "managed-database"
@@ -8704,6 +8930,7 @@ const (
 	ResourceTypeIDMemorystoreRedis               ResourceTypeID = "memorystore-redis"
 	ResourceTypeIDMemorystoreValkey              ResourceTypeID = "memorystore-valkey"
 	ResourceTypeIDMessageBatch                   ResourceTypeID = "message-batch"
+	ResourceTypeIDMessagingService               ResourceTypeID = "messaging-service"
 	ResourceTypeIDMistralAgent                   ResourceTypeID = "mistral-agent"
 	ResourceTypeIDMistralAPIKey                  ResourceTypeID = "mistral-api-key"
 	ResourceTypeIDMistralBatchJob                ResourceTypeID = "mistral-batch-job"
@@ -8717,10 +8944,12 @@ const (
 	ResourceTypeIDModelEndpoint                  ResourceTypeID = "model-endpoint"
 	ResourceTypeIDModelVersion                   ResourceTypeID = "model-version"
 	ResourceTypeIDMongodbDatabase                ResourceTypeID = "mongodb-database"
+	ResourceTypeIDMonitor                        ResourceTypeID = "monitor"
 	ResourceTypeIDMqBroker                       ResourceTypeID = "mq-broker"
 	ResourceTypeIDMskCluster                     ResourceTypeID = "msk-cluster"
 	ResourceTypeIDMssqlDatabase                  ResourceTypeID = "mssql-database"
 	ResourceTypeIDMysqlDatabase                  ResourceTypeID = "mysql-database"
+	ResourceTypeIDNamespace                      ResourceTypeID = "namespace"
 	ResourceTypeIDNatGateway                     ResourceTypeID = "nat-gateway"
 	ResourceTypeIDNeonAiGateway                  ResourceTypeID = "neon-ai-gateway"
 	ResourceTypeIDNeonAuth                       ResourceTypeID = "neon-auth"
@@ -8748,12 +8977,16 @@ const (
 	ResourceTypeIDNetlifySite                    ResourceTypeID = "netlify-site"
 	ResourceTypeIDNetlifySnippet                 ResourceTypeID = "netlify-snippet"
 	ResourceTypeIDNetwork                        ResourceTypeID = "network"
+	ResourceTypeIDNetworkConnection              ResourceTypeID = "network-connection"
+	ResourceTypeIDNexusEndpoint                  ResourceTypeID = "nexus-endpoint"
 	ResourceTypeIDNfsShare                       ResourceTypeID = "nfs-share"
 	ResourceTypeIDNodePool                       ResourceTypeID = "node-pool"
+	ResourceTypeIDNodebalancer                   ResourceTypeID = "nodebalancer"
 	ResourceTypeIDNotificationPolicy             ResourceTypeID = "notification-policy"
 	ResourceTypeIDObjectStorageBucket            ResourceTypeID = "object-storage-bucket"
 	ResourceTypeIDOctaviaLoadBalancer            ResourceTypeID = "octavia-load-balancer"
 	ResourceTypeIDOkeCluster                     ResourceTypeID = "oke-cluster"
+	ResourceTypeIDOnlineArchive                  ResourceTypeID = "online-archive"
 	ResourceTypeIDOpensearchCluster              ResourceTypeID = "opensearch-cluster"
 	ResourceTypeIDOpensearchDomain               ResourceTypeID = "opensearch-domain"
 	ResourceTypeIDOrganization                   ResourceTypeID = "organization"
@@ -8762,16 +8995,21 @@ const (
 	ResourceTypeIDOrganizationMembership         ResourceTypeID = "organization-membership"
 	ResourceTypeIDOrganizationRole               ResourceTypeID = "organization-role"
 	ResourceTypeIDOrganizationUser               ResourceTypeID = "organization-user"
+	ResourceTypeIDOutgoingWebhook                ResourceTypeID = "outgoing-webhook"
 	ResourceTypeIDPageRule                       ResourceTypeID = "page-rule"
+	ResourceTypeIDParsingRuleGroup               ResourceTypeID = "parsing-rule-group"
 	ResourceTypeIDPermission                     ResourceTypeID = "permission"
 	ResourceTypeIDPgDatabase                     ResourceTypeID = "pg-database"
 	ResourceTypeIDPgSchema                       ResourceTypeID = "pg-schema"
 	ResourceTypeIDPhoneNumber                    ResourceTypeID = "phone-number"
+	ResourceTypeIDPipeline                       ResourceTypeID = "pipeline"
 	ResourceTypeIDPlacementGroup                 ResourceTypeID = "placement-group"
+	ResourceTypeIDPlaybook                       ResourceTypeID = "playbook"
 	ResourceTypeIDPostgresCluster                ResourceTypeID = "postgres-cluster"
 	ResourceTypeIDPostureIntegration             ResourceTypeID = "posture-integration"
 	ResourceTypeIDPrediction                     ResourceTypeID = "prediction"
 	ResourceTypeIDPrimaryIP                      ResourceTypeID = "primary-ip"
+	ResourceTypeIDPrivateEndpointService         ResourceTypeID = "private-endpoint-service"
 	ResourceTypeIDPrivateNetwork                 ResourceTypeID = "private-network"
 	ResourceTypeIDProductEnvironment             ResourceTypeID = "product-environment"
 	ResourceTypeIDProject                        ResourceTypeID = "project"
@@ -8779,6 +9017,7 @@ const (
 	ResourceTypeIDProjectRateLimit               ResourceTypeID = "project-rate-limit"
 	ResourceTypeIDProjectServiceAccount          ResourceTypeID = "project-service-account"
 	ResourceTypeIDProjectUser                    ResourceTypeID = "project-user"
+	ResourceTypeIDProjectVariable                ResourceTypeID = "project-variable"
 	ResourceTypeIDPronunciationDict              ResourceTypeID = "pronunciation-dict"
 	ResourceTypeIDPronunciationDictionary        ResourceTypeID = "pronunciation-dictionary"
 	ResourceTypeIDProvider                       ResourceTypeID = "provider"
@@ -8794,9 +9033,20 @@ const (
 	ResourceTypeIDPurchase                       ResourceTypeID = "purchase"
 	ResourceTypeIDQueue                          ResourceTypeID = "queue"
 	ResourceTypeIDQuota                          ResourceTypeID = "quota"
+	ResourceTypeIDQuotaRule                      ResourceTypeID = "quota-rule"
 	ResourceTypeIDR2Bucket                       ResourceTypeID = "r2-bucket"
 	ResourceTypeIDRateLimit                      ResourceTypeID = "rate-limit"
 	ResourceTypeIDRateLimitRule                  ResourceTypeID = "rate-limit-rule"
+	ResourceTypeIDRcAccount                      ResourceTypeID = "rc-account"
+	ResourceTypeIDRcACLRole                      ResourceTypeID = "rc-acl-role"
+	ResourceTypeIDRcACLRule                      ResourceTypeID = "rc-acl-rule"
+	ResourceTypeIDRcACLUser                      ResourceTypeID = "rc-acl-user"
+	ResourceTypeIDRcCloudAccount                 ResourceTypeID = "rc-cloud-account"
+	ResourceTypeIDRcDatabase                     ResourceTypeID = "rc-database"
+	ResourceTypeIDRcPscEndpoint                  ResourceTypeID = "rc-psc-endpoint"
+	ResourceTypeIDRcSubscription                 ResourceTypeID = "rc-subscription"
+	ResourceTypeIDRcTransitGateway               ResourceTypeID = "rc-transit-gateway"
+	ResourceTypeIDRcVpcPeering                   ResourceTypeID = "rc-vpc-peering"
 	ResourceTypeIDRdbInstance                    ResourceTypeID = "rdb-instance"
 	ResourceTypeIDRdsCluster                     ResourceTypeID = "rds-cluster"
 	ResourceTypeIDRdsInstance                    ResourceTypeID = "rds-instance"
@@ -8805,6 +9055,9 @@ const (
 	ResourceTypeIDRedshiftCluster                ResourceTypeID = "redshift-cluster"
 	ResourceTypeIDRegistryNamespace              ResourceTypeID = "registry-namespace"
 	ResourceTypeIDReinforcementFineTuningJob     ResourceTypeID = "reinforcement-fine-tuning-job"
+	ResourceTypeIDRelease                        ResourceTypeID = "release"
+	ResourceTypeIDRepoBlocklist                  ResourceTypeID = "repo-blocklist"
+	ResourceTypeIDReservation                    ResourceTypeID = "reservation"
 	ResourceTypeIDReservedIP                     ResourceTypeID = "reserved-ip"
 	ResourceTypeIDRole                           ResourceTypeID = "role"
 	ResourceTypeIDRouteTable                     ResourceTypeID = "route-table"
@@ -8812,10 +9065,17 @@ const (
 	ResourceTypeIDRoute53HostedZone              ResourceTypeID = "route53-hosted-zone"
 	ResourceTypeIDRoute53RecordSet               ResourceTypeID = "route53-record-set"
 	ResourceTypeIDRouter                         ResourceTypeID = "router"
+	ResourceTypeIDRunner                         ResourceTypeID = "runner"
+	ResourceTypeIDRunnerResourceClass            ResourceTypeID = "runner-resource-class"
 	ResourceTypeIDS3Bucket                       ResourceTypeID = "s3-bucket"
 	ResourceTypeIDSagemakerEndpoint              ResourceTypeID = "sagemaker-endpoint"
+	ResourceTypeIDSchedule                       ResourceTypeID = "schedule"
+	ResourceTypeIDScheduledFunction              ResourceTypeID = "scheduled-function"
+	ResourceTypeIDSchemaRegistry                 ResourceTypeID = "schema-registry"
+	ResourceTypeIDSearchIndex                    ResourceTypeID = "search-index"
 	ResourceTypeIDSecret                         ResourceTypeID = "secret"
 	ResourceTypeIDSecretManagerSecret            ResourceTypeID = "secret-manager-secret"
+	ResourceTypeIDSecretStore                    ResourceTypeID = "secret-store"
 	ResourceTypeIDSecretsManagerSecret           ResourceTypeID = "secrets-manager-secret"
 	ResourceTypeIDSecretsStoreSecret             ResourceTypeID = "secrets-store-secret"
 	ResourceTypeIDSecurityGroup                  ResourceTypeID = "security-group"
@@ -8824,10 +9084,25 @@ const (
 	ResourceTypeIDServer                         ResourceTypeID = "server"
 	ResourceTypeIDServerlessContainer            ResourceTypeID = "serverless-container"
 	ResourceTypeIDServerlessFunction             ResourceTypeID = "serverless-function"
+	ResourceTypeIDServerlessInstance             ResourceTypeID = "serverless-instance"
+	ResourceTypeIDServerlessTrafficFilter        ResourceTypeID = "serverless-traffic-filter"
 	ResourceTypeIDService                        ResourceTypeID = "service"
+	ResourceTypeIDServiceAccount                 ResourceTypeID = "service-account"
+	ResourceTypeIDServiceVersion                 ResourceTypeID = "service-version"
+	ResourceTypeIDSession                        ResourceTypeID = "session"
 	ResourceTypeIDSharedVolume                   ResourceTypeID = "shared-volume"
 	ResourceTypeIDSkill                          ResourceTypeID = "skill"
 	ResourceTypeIDSnapshot                       ResourceTypeID = "snapshot"
+	ResourceTypeIDSnowflakeAccount               ResourceTypeID = "snowflake-account"
+	ResourceTypeIDSnowflakeDatabase              ResourceTypeID = "snowflake-database"
+	ResourceTypeIDSnowflakeDynamicTable          ResourceTypeID = "snowflake-dynamic-table"
+	ResourceTypeIDSnowflakePipe                  ResourceTypeID = "snowflake-pipe"
+	ResourceTypeIDSnowflakeResourceMonitor       ResourceTypeID = "snowflake-resource-monitor"
+	ResourceTypeIDSnowflakeRole                  ResourceTypeID = "snowflake-role"
+	ResourceTypeIDSnowflakeSchema                ResourceTypeID = "snowflake-schema"
+	ResourceTypeIDSnowflakeTask                  ResourceTypeID = "snowflake-task"
+	ResourceTypeIDSnowflakeUser                  ResourceTypeID = "snowflake-user"
+	ResourceTypeIDSnowflakeWarehouse             ResourceTypeID = "snowflake-warehouse"
 	ResourceTypeIDSnsTopic                       ResourceTypeID = "sns-topic"
 	ResourceTypeIDSpacesBucket                   ResourceTypeID = "spaces-bucket"
 	ResourceTypeIDSpannerBackup                  ResourceTypeID = "spanner-backup"
@@ -8842,15 +9117,23 @@ const (
 	ResourceTypeIDSSHTarget                      ResourceTypeID = "ssh-target"
 	ResourceTypeIDSSLCertificate                 ResourceTypeID = "ssl-certificate"
 	ResourceTypeIDSsmParameter                   ResourceTypeID = "ssm-parameter"
+	ResourceTypeIDStackscript                    ResourceTypeID = "stackscript"
 	ResourceTypeIDStaticIP                       ResourceTypeID = "static-ip"
 	ResourceTypeIDStepFunction                   ResourceTypeID = "step-function"
 	ResourceTypeIDStorageBox                     ResourceTypeID = "storage-box"
+	ResourceTypeIDSubaccount                     ResourceTypeID = "subaccount"
 	ResourceTypeIDSubnet                         ResourceTypeID = "subnet"
 	ResourceTypeIDSupervisedFineTuningJob        ResourceTypeID = "supervised-fine-tuning-job"
 	ResourceTypeIDTailnet                        ResourceTypeID = "tailnet"
 	ResourceTypeIDTargetGroup                    ResourceTypeID = "target-group"
+	ResourceTypeIDTcoPolicy                      ResourceTypeID = "tco-policy"
+	ResourceTypeIDTeam                           ResourceTypeID = "team"
+	ResourceTypeIDTeamMember                     ResourceTypeID = "team-member"
 	ResourceTypeIDTenancy                        ResourceTypeID = "tenancy"
+	ResourceTypeIDTLSCertificate                 ResourceTypeID = "tls-certificate"
+	ResourceTypeIDTLSSubscription                ResourceTypeID = "tls-subscription"
 	ResourceTypeIDTopicJob                       ResourceTypeID = "topic-job"
+	ResourceTypeIDTrafficFilter                  ResourceTypeID = "traffic-filter"
 	ResourceTypeIDTraining                       ResourceTypeID = "training"
 	ResourceTypeIDTranscript                     ResourceTypeID = "transcript"
 	ResourceTypeIDTranscription                  ResourceTypeID = "transcription"
@@ -8866,9 +9149,12 @@ const (
 	ResourceTypeIDTursoLocation                  ResourceTypeID = "turso-location"
 	ResourceTypeIDTursoOrganizationInvite        ResourceTypeID = "turso-organization-invite"
 	ResourceTypeIDTursoOrganizationMember        ResourceTypeID = "turso-organization-member"
+	ResourceTypeIDTwimlApp                       ResourceTypeID = "twiml-app"
 	ResourceTypeIDUploadMapping                  ResourceTypeID = "upload-mapping"
 	ResourceTypeIDUploadPreset                   ResourceTypeID = "upload-preset"
 	ResourceTypeIDUptimeCheck                    ResourceTypeID = "uptime-check"
+	ResourceTypeIDUptimeMonitor                  ResourceTypeID = "uptime-monitor"
+	ResourceTypeIDUsageTrigger                   ResourceTypeID = "usage-trigger"
 	ResourceTypeIDUser                           ResourceTypeID = "user"
 	ResourceTypeIDUserInvite                     ResourceTypeID = "user-invite"
 	ResourceTypeIDUtApp                          ResourceTypeID = "ut-app"
@@ -8883,8 +9169,10 @@ const (
 	ResourceTypeIDVercelProject                  ResourceTypeID = "vercel-project"
 	ResourceTypeIDVercelTeam                     ResourceTypeID = "vercel-team"
 	ResourceTypeIDVercelWebhook                  ResourceTypeID = "vercel-webhook"
+	ResourceTypeIDVerifyService                  ResourceTypeID = "verify-service"
 	ResourceTypeIDVertexAiEndpoint               ResourceTypeID = "vertex-ai-endpoint"
 	ResourceTypeIDVertexGeminiModel              ResourceTypeID = "vertex-gemini-model"
+	ResourceTypeIDVM                             ResourceTypeID = "vm"
 	ResourceTypeIDVocabulary                     ResourceTypeID = "vocabulary"
 	ResourceTypeIDVoice                          ResourceTypeID = "voice"
 	ResourceTypeIDVoiceAgent                     ResourceTypeID = "voice-agent"
@@ -8894,6 +9182,7 @@ const (
 	ResourceTypeIDVpcNatGateway                  ResourceTypeID = "vpc-nat-gateway"
 	ResourceTypeIDVpcNetwork                     ResourceTypeID = "vpc-network"
 	ResourceTypeIDVpcPeering                     ResourceTypeID = "vpc-peering"
+	ResourceTypeIDVpcSubnet                      ResourceTypeID = "vpc-subnet"
 	ResourceTypeIDWafWebACL                      ResourceTypeID = "waf-web-acl"
 	ResourceTypeIDWaitingRoom                    ResourceTypeID = "waiting-room"
 	ResourceTypeIDWebhook                        ResourceTypeID = "webhook"
@@ -9304,7 +9593,8 @@ type SavedCostFilterInput struct {
 
 // SavedCostFilterReferent is the `SavedCostFilterReferent` schema.
 type SavedCostFilterReferent struct {
-	// Kind: One of "budget", "cost_report", "cost_graph_widget".
+	// Kind: One of "budget", "cost_report", "cost_graph_widget",
+	// "cost_visibility_scope".
 	Kind string `json:"kind"`
 	// ID: Budget id, report id, or dashboard-widget id.
 	ID string `json:"id"`
@@ -9572,6 +9862,16 @@ type SFTPUploadForm struct {
 	SSHHost     *string   `json:"sshHost,omitempty"`
 	SSHUsername *string   `json:"sshUsername,omitempty"`
 }
+
+// ShareableObjectType is the `ShareableObjectType` schema.
+type ShareableObjectType = string
+
+// The values ShareableObjectType takes.
+const (
+	ShareableObjectTypeCostReport       ShareableObjectType = "cost_report"
+	ShareableObjectTypeCostReportFolder ShareableObjectType = "cost_report_folder"
+	ShareableObjectTypeDashboard        ShareableObjectType = "dashboard"
+)
 
 // SharedConsole is the `SharedConsole` schema.
 type SharedConsole struct {
@@ -11069,6 +11369,12 @@ type CredentialExportFields struct {
 	Hint      *string `json:"hint,omitempty"`
 }
 
+// CredentialFieldProviderOptions is an object the spec declares inline.
+type CredentialFieldProviderOptions struct {
+	DependsOn  []string `json:"dependsOn"`
+	EmptyLabel *string  `json:"emptyLabel,omitempty"`
+}
+
 // CredentialFieldHelpLink is an object the spec declares inline.
 type CredentialFieldHelpLink struct {
 	Label string `json:"label"`
@@ -11327,6 +11633,22 @@ type NetworkFlowFeedTotals struct {
 	Currency          string  `json:"currency"`
 	UnattributedBytes float64 `json:"unattributedBytes"`
 	TruncatedBytes    float64 `json:"truncatedBytes"`
+}
+
+// ObjectSharingInheritedFrom is an object the spec declares inline.
+type ObjectSharingInheritedFrom struct {
+	FolderID   string `json:"folderId"`
+	FolderName string `json:"folderName"`
+	// Level: One of "owner", "editor", "viewer", "none".
+	Level string `json:"level"`
+}
+
+// ObjectSharingInputGrants is an object the spec declares inline.
+type ObjectSharingInputGrants struct {
+	// PrincipalKind: One of "member", "role".
+	PrincipalKind string            `json:"principalKind"`
+	PrincipalID   string            `json:"principalId"`
+	Level         ObjectAccessLevel `json:"level"`
 }
 
 // OrgConfigAlertSettingsCostAnomaly is an object the spec declares inline.
@@ -11843,6 +12165,11 @@ type CostScenariosReferentsResponse struct {
 // CostScenariosGetGetResponse is an object the spec declares inline.
 type CostScenariosGetGetResponse struct {
 	Models []CostScenarioModel `json:"models"`
+}
+
+// CostVisibilityGetResponse is an object the spec declares inline.
+type CostVisibilityGetResponse struct {
+	Scopes []CostVisibilityScope `json:"scopes"`
 }
 
 // CostsEfficiencyAlertsResponse is an object the spec declares inline.
