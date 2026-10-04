@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.44.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.45.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.44.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.45.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3666,6 +3666,93 @@ type DashboardFull struct {
 	UpdatedAt      string  `json:"updatedAt"`
 	DeletedAt      *string `json:"deletedAt"`
 	SyncVersion    int64   `json:"syncVersion"`
+}
+
+// DashboardNotification is the `DashboardNotification` schema.
+type DashboardNotification struct {
+	ID          string `json:"id"`
+	DashboardID string `json:"dashboardId"`
+	// Cadence: How often the schedule fires. The report itself decides what
+	// window it charts.
+	//
+	// One of "daily", "weekly", "monthly".
+	Cadence         string   `json:"cadence"`
+	SendDay         int64    `json:"sendDay"`
+	SendDayOfMonth  int64    `json:"sendDayOfMonth"`
+	Hour            int64    `json:"hour"`
+	Timezone        string   `json:"timezone"`
+	SlackChannelIDs []string `json:"slackChannelIds"`
+	TeamsWebhookIDs []string `json:"teamsWebhookIds"`
+	EmailRecipients []string `json:"emailRecipients"`
+	Enabled         bool     `json:"enabled"`
+	// AttachPdf: Attach the rendered PDF: as a file on every email, and uploaded
+	// into the Slack message's thread (needs the Slack app's `files:write`
+	// scope; without it the message still posts). Teams incoming webhooks cannot
+	// carry files, so Teams always gets the summary and a link.
+	AttachPdf bool `json:"attachPdf"`
+	// NextSendAt: When the next scheduled send is due; null while disabled.
+	NextSendAt *string `json:"nextSendAt"`
+	// LastSentAt: When a delivery last actually reached at least one
+	// destination.
+	LastSentAt *string `json:"lastSentAt"`
+	// LastStatus: What the last attempt did. `partial` is never retried
+	// automatically.
+	//
+	// One of "pending", "succeeded", "partial", "failed", "no_targets".
+	LastStatus      *string `json:"lastStatus"`
+	LastError       *string `json:"lastError"`
+	CreatedByUserID *string `json:"createdByUserId"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// DashboardNotificationInput: A full replace. At least one destination is
+// required. The same schedule shape as a cost report's delivery schedule, plus
+// `attachPdf`.
+type DashboardNotificationInput struct {
+	// Cadence: How often the schedule fires. The report itself decides what
+	// window it charts.
+	//
+	// One of "daily", "weekly", "monthly".
+	Cadence string `json:"cadence"`
+	// SendDay: ISO day of week (1 = Monday … 7 = Sunday); read only when cadence
+	// is weekly.
+	SendDay *int64 `json:"sendDay,omitempty"`
+	// SendDayOfMonth: Day of month; read only when cadence is monthly. A day the
+	// month doesn't have clamps to its last day, so 31 means month end
+	// everywhere.
+	SendDayOfMonth *int64 `json:"sendDayOfMonth,omitempty"`
+	// Hour: Local hour in `timezone` the delivery fires at.
+	Hour int64 `json:"hour"`
+	// Timezone: IANA zone, e.g. `Europe/Berlin`. Validated server-side.
+	Timezone string `json:"timezone"`
+	// SlackChannelIDs: Stored Slack channel row ids (from the targets endpoint)
+	// to post to.
+	SlackChannelIDs []string `json:"slackChannelIds"`
+	// TeamsWebhookIDs: Stored Teams webhook row ids (from the targets endpoint)
+	// to post to.
+	TeamsWebhookIDs []string `json:"teamsWebhookIds"`
+	// EmailRecipients: Email addresses; normalized (lowercased) server-side. At
+	// most 20.
+	EmailRecipients []string `json:"emailRecipients"`
+	Enabled         bool     `json:"enabled"`
+	// AttachPdf: Absent means `true`.
+	AttachPdf *bool `json:"attachPdf,omitempty"`
+}
+
+// DashboardNotificationSendResult is the `DashboardNotificationSendResult`
+// schema.
+type DashboardNotificationSendResult struct {
+	Attempted int64                                `json:"attempted"`
+	Succeeded int64                                `json:"succeeded"`
+	Slack     DashboardNotificationSendResultSlack `json:"slack"`
+	Teams     DashboardNotificationSendResultTeams `json:"teams"`
+	Email     DashboardNotificationSendResultEmail `json:"email"`
+	// PdfAttached: Whether a PDF was rendered and sent.
+	PdfAttached bool `json:"pdfAttached"`
+	// SlackFilesUploaded: Slack channels that also received the PDF. Lower than
+	// `slack.succeeded` when the Slack install predates the `files:write` scope.
+	SlackFilesUploaded int64 `json:"slackFilesUploaded"`
 }
 
 // DashboardPin is the `DashboardPin` schema.
@@ -7465,6 +7552,7 @@ const (
 	PluginIDGemini         PluginID = "gemini"
 	PluginIDGithub         PluginID = "github"
 	PluginIDGladia         PluginID = "gladia"
+	PluginIDGrafanaCloud   PluginID = "grafana-cloud"
 	PluginIDGroq           PluginID = "groq"
 	PluginIDHetzner        PluginID = "hetzner"
 	PluginIDKafka          PluginID = "kafka"
@@ -8587,6 +8675,7 @@ const (
 	ResourceTypeIDAccessApplication              ResourceTypeID = "access-application"
 	ResourceTypeIDAccessKey                      ResourceTypeID = "access-key"
 	ResourceTypeIDAccessPolicy                   ResourceTypeID = "access-policy"
+	ResourceTypeIDAccessPolicyToken              ResourceTypeID = "access-policy-token"
 	ResourceTypeIDAccount                        ResourceTypeID = "account"
 	ResourceTypeIDAcmCertificate                 ResourceTypeID = "acm-certificate"
 	ResourceTypeIDActionsCache                   ResourceTypeID = "actions-cache"
@@ -8602,6 +8691,7 @@ const (
 	ResourceTypeIDAlert                          ResourceTypeID = "alert"
 	ResourceTypeIDAlertConfiguration             ResourceTypeID = "alert-configuration"
 	ResourceTypeIDAlertPolicy                    ResourceTypeID = "alert-policy"
+	ResourceTypeIDAlertRule                      ResourceTypeID = "alert-rule"
 	ResourceTypeIDAlignmentJob                   ResourceTypeID = "alignment-job"
 	ResourceTypeIDAlloydbCluster                 ResourceTypeID = "alloydb-cluster"
 	ResourceTypeIDAlloydbInstance                ResourceTypeID = "alloydb-instance"
@@ -8726,6 +8816,7 @@ const (
 	ResourceTypeIDConnection                     ResourceTypeID = "connection"
 	ResourceTypeIDConnectivityRule               ResourceTypeID = "connectivity-rule"
 	ResourceTypeIDConnector                      ResourceTypeID = "connector"
+	ResourceTypeIDContactPoint                   ResourceTypeID = "contact-point"
 	ResourceTypeIDContainer                      ResourceTypeID = "container"
 	ResourceTypeIDContainerRegistry              ResourceTypeID = "container-registry"
 	ResourceTypeIDContext                        ResourceTypeID = "context"
@@ -8766,6 +8857,7 @@ const (
 	ResourceTypeIDDatabricksWorkspaceObject      ResourceTypeID = "databricks-workspace-object"
 	ResourceTypeIDDataflowJob                    ResourceTypeID = "dataflow-job"
 	ResourceTypeIDDataset                        ResourceTypeID = "dataset"
+	ResourceTypeIDDatasource                     ResourceTypeID = "datasource"
 	ResourceTypeIDDBSubnetGroup                  ResourceTypeID = "db-subnet-group"
 	ResourceTypeIDDBUser                         ResourceTypeID = "db-user"
 	ResourceTypeIDDedicatedInference             ResourceTypeID = "dedicated-inference"
@@ -9117,6 +9209,8 @@ const (
 	ResourceTypeIDSSHTarget                      ResourceTypeID = "ssh-target"
 	ResourceTypeIDSSLCertificate                 ResourceTypeID = "ssl-certificate"
 	ResourceTypeIDSsmParameter                   ResourceTypeID = "ssm-parameter"
+	ResourceTypeIDStack                          ResourceTypeID = "stack"
+	ResourceTypeIDStackPlugin                    ResourceTypeID = "stack-plugin"
 	ResourceTypeIDStackscript                    ResourceTypeID = "stackscript"
 	ResourceTypeIDStaticIP                       ResourceTypeID = "static-ip"
 	ResourceTypeIDStepFunction                   ResourceTypeID = "step-function"
@@ -9124,6 +9218,7 @@ const (
 	ResourceTypeIDSubaccount                     ResourceTypeID = "subaccount"
 	ResourceTypeIDSubnet                         ResourceTypeID = "subnet"
 	ResourceTypeIDSupervisedFineTuningJob        ResourceTypeID = "supervised-fine-tuning-job"
+	ResourceTypeIDSyntheticCheck                 ResourceTypeID = "synthetic-check"
 	ResourceTypeIDTailnet                        ResourceTypeID = "tailnet"
 	ResourceTypeIDTargetGroup                    ResourceTypeID = "target-group"
 	ResourceTypeIDTcoPolicy                      ResourceTypeID = "tco-policy"
@@ -11395,6 +11490,24 @@ type CustomGraphRenderResultLogs struct {
 	// Level: One of "info", "warn", "error".
 	Level   string `json:"level"`
 	Message string `json:"message"`
+}
+
+// DashboardNotificationSendResultSlack is an object the spec declares inline.
+type DashboardNotificationSendResultSlack struct {
+	Attempted int64 `json:"attempted"`
+	Succeeded int64 `json:"succeeded"`
+}
+
+// DashboardNotificationSendResultTeams is an object the spec declares inline.
+type DashboardNotificationSendResultTeams struct {
+	Attempted int64 `json:"attempted"`
+	Succeeded int64 `json:"succeeded"`
+}
+
+// DashboardNotificationSendResultEmail is an object the spec declares inline.
+type DashboardNotificationSendResultEmail struct {
+	Attempted int64 `json:"attempted"`
+	Succeeded int64 `json:"succeeded"`
 }
 
 // DashboardWorkflowPinMetrics is an object the spec declares inline.

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.44.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.45.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.44.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.45.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -117,6 +117,8 @@ type APIV1Client struct {
 	Currency *CurrencyNamespace
 	// CustomGraphs: `client.customGraphs`.
 	CustomGraphs *CustomGraphsNamespace
+	// DashboardNotifications: `client.dashboardNotifications`.
+	DashboardNotifications *DashboardNotificationsNamespace
 	// Dashboards: `client.dashboards`.
 	Dashboards *DashboardsNamespace
 	// DependencyGraph: `client.dependencyGraph`.
@@ -284,6 +286,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Credits = newCreditsNamespace(t)
 	c.Currency = newCurrencyNamespace(t)
 	c.CustomGraphs = newCustomGraphsNamespace(t)
+	c.DashboardNotifications = newDashboardNotificationsNamespace(t)
 	c.Dashboards = newDashboardsNamespace(t)
 	c.DependencyGraph = newDependencyGraphNamespace(t)
 	c.Deployments = newDeploymentsNamespace(t)
@@ -6289,6 +6292,36 @@ func (n *CostReportsNamespace) List(ctx context.Context, params *CostReportsList
 	return out, nil
 }
 
+// CostReportsPdfParams holds the parameters for `client.costReports.pdf`.
+type CostReportsPdfParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Tz: IANA zone the document's generated-at line is written in, e.g.
+	// `Europe/Berlin`. UTC when absent or unknown.
+	Tz *string
+}
+
+// Pdf: Export a saved cost report as a PDF
+//
+// The report's chart and totals table for its saved window, rendered server-side
+// and converted to the org's display currency where configured.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-reports/{id}/pdf
+//
+// Raises on 404: Not found
+func (n *CostReportsNamespace) Pdf(ctx context.Context, params CostReportsPdfParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-reports/{id}/pdf")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.addQuery("tz", params.Tz)
+	return n.t.stream(ctx, r, opts)
+}
+
 // CostReportsRunParams holds the parameters for `client.costReports.run`.
 type CostReportsRunParams struct {
 	// OrgID: Organization id
@@ -8011,12 +8044,52 @@ func (n *CustomGraphsNamespace) Update(ctx context.Context, params CustomGraphsU
 	return out, nil
 }
 
+// DashboardNotificationsNamespace is `client.dashboardNotifications`.
+type DashboardNotificationsNamespace struct {
+	t *transport
+}
+
+func newDashboardNotificationsNamespace(t *transport) *DashboardNotificationsNamespace {
+	n := &DashboardNotificationsNamespace{t: t}
+	return n
+}
+
+// DashboardNotificationsListParams holds the parameters for
+// `client.dashboardNotifications.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DashboardNotificationsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List every dashboard delivery schedule in the organization
+//
+// _Requires permission: `dashboards:read`._
+//
+// GET /api/org/{orgId}/dashboard-notifications
+func (n *DashboardNotificationsNamespace) List(ctx context.Context, params *DashboardNotificationsListParams, opts ...RequestOption) ([]DashboardNotification, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/dashboard-notifications")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []DashboardNotification
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // DashboardsNamespace is `client.dashboards`.
 type DashboardsNamespace struct {
 	t *transport
 
 	// Default: `client.dashboards.default`.
 	Default *DashboardsDefaultNamespace
+	// Notifications: `client.dashboards.notifications`.
+	Notifications *DashboardsNotificationsNamespace
 	// Pin: `client.dashboards.pin`.
 	Pin *DashboardsPinNamespace
 	// Widgets: `client.dashboards.widgets`.
@@ -8026,6 +8099,7 @@ type DashboardsNamespace struct {
 func newDashboardsNamespace(t *transport) *DashboardsNamespace {
 	n := &DashboardsNamespace{t: t}
 	n.Default = newDashboardsDefaultNamespace(t)
+	n.Notifications = newDashboardsNotificationsNamespace(t)
 	n.Pin = newDashboardsPinNamespace(t)
 	n.Widgets = newDashboardsWidgetsNamespace(t)
 	return n
@@ -8140,6 +8214,40 @@ func (n *DashboardsNamespace) List(ctx context.Context, params *DashboardsListPa
 		return out, err
 	}
 	return out, nil
+}
+
+// DashboardsPdfParams holds the parameters for `client.dashboards.pdf`.
+type DashboardsPdfParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Tz: IANA zone the document's generated-at line is written in, e.g.
+	// `Europe/Berlin`. UTC when absent or unknown.
+	Tz *string
+}
+
+// Pdf: Export a dashboard as a PDF
+//
+// Renders every card server-side: cost graphs and saved reports (chart plus a
+// totals table, converted to the org's display currency where configured),
+// budgets (spend against the amount, forecast and thresholds), custom graphs
+// (including their KPI and table forms) and pinned resources and workflows. Cost
+// cards need `costs:read` as well and are replaced by a note without it. A card
+// that fails renders its error in place.
+//
+// _Requires permission: `dashboards:read`._
+//
+// GET /api/org/{orgId}/dashboards/{id}/pdf
+//
+// Raises on 404: Not found
+func (n *DashboardsNamespace) Pdf(ctx context.Context, params DashboardsPdfParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/dashboards/{id}/pdf")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.addQuery("tz", params.Tz)
+	return n.t.stream(ctx, r, opts)
 }
 
 // DashboardsProbeParams holds the parameters for `client.dashboards.probe`.
@@ -8371,6 +8479,210 @@ func (n *DashboardsDefaultNamespace) Full(ctx context.Context, params *Dashboard
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *DashboardWithPins
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DashboardsNotificationsNamespace is `client.dashboards.notifications`.
+type DashboardsNotificationsNamespace struct {
+	t *transport
+}
+
+func newDashboardsNotificationsNamespace(t *transport) *DashboardsNotificationsNamespace {
+	n := &DashboardsNotificationsNamespace{t: t}
+	return n
+}
+
+// DashboardsNotificationsCreateParams holds the parameters for
+// `client.dashboards.notifications.create`.
+type DashboardsNotificationsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body DashboardNotificationInput
+}
+
+// Create: Create a dashboard delivery schedule
+//
+// On its cadence the server renders the dashboard as a PDF and sends a short
+// summary (one line per card with a figure to quote) and a deep link to the
+// schedule's destinations, with the PDF attached to emails and uploaded to Slack
+// when `attachPdf` is on.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/dashboards/{id}/notifications
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *DashboardsNotificationsNamespace) Create(ctx context.Context, params DashboardsNotificationsCreateParams, opts ...RequestOption) (*DashboardNotification, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/dashboards/{id}/notifications")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *DashboardNotification
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DashboardsNotificationsDeleteParams holds the parameters for
+// `client.dashboards.notifications.delete`.
+type DashboardsNotificationsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	ID             string
+	NotificationID string
+}
+
+// Delete: Delete a dashboard delivery schedule
+//
+// _Requires permission: `org:settings:write`._
+//
+// DELETE /api/org/{orgId}/dashboards/{id}/notifications/{notificationId}
+//
+// Raises on 404: Not found
+func (n *DashboardsNotificationsNamespace) Delete(ctx context.Context, params DashboardsNotificationsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/dashboards/{id}/notifications/{notificationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("notificationId", params.NotificationID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DashboardsNotificationsListParams holds the parameters for
+// `client.dashboards.notifications.list`.
+type DashboardsNotificationsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// List: List a dashboard's delivery schedules
+//
+// _Requires permission: `dashboards:read`._
+//
+// GET /api/org/{orgId}/dashboards/{id}/notifications
+//
+// Raises on 404: Not found
+func (n *DashboardsNotificationsNamespace) List(ctx context.Context, params DashboardsNotificationsListParams, opts ...RequestOption) ([]DashboardNotification, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/dashboards/{id}/notifications")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out []DashboardNotification
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DashboardsNotificationsSendParams holds the parameters for
+// `client.dashboards.notifications.send`.
+type DashboardsNotificationsSendParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	ID             string
+	NotificationID string
+}
+
+// Send: Send a dashboard schedule now
+//
+// Renders and delivers immediately, ignoring the schedule and its enabled flag.
+// Fails with a 400 naming the reason when nothing could be delivered.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/dashboards/{id}/notifications/{notificationId}/send
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *DashboardsNotificationsNamespace) Send(ctx context.Context, params DashboardsNotificationsSendParams, opts ...RequestOption) (*DashboardNotificationSendResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/dashboards/{id}/notifications/{notificationId}/send")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("notificationId", params.NotificationID)
+	var out *DashboardNotificationSendResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DashboardsNotificationsTargetsParams holds the parameters for
+// `client.dashboards.notifications.targets`.
+type DashboardsNotificationsTargetsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Targets: List the destinations a dashboard schedule can deliver to
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/dashboards/{id}/notifications/targets
+//
+// Raises on 404: Not found
+func (n *DashboardsNotificationsNamespace) Targets(ctx context.Context, params DashboardsNotificationsTargetsParams, opts ...RequestOption) (*ReportDeliveryTargets, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/dashboards/{id}/notifications/targets")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *ReportDeliveryTargets
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DashboardsNotificationsUpdateParams holds the parameters for
+// `client.dashboards.notifications.update`.
+type DashboardsNotificationsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	ID             string
+	NotificationID string
+	// Body: the JSON request body.
+	Body DashboardNotificationInput
+}
+
+// Update: Update a dashboard delivery schedule
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/dashboards/{id}/notifications/{notificationId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *DashboardsNotificationsNamespace) Update(ctx context.Context, params DashboardsNotificationsUpdateParams, opts ...RequestOption) (*DashboardNotification, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/dashboards/{id}/notifications/{notificationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("notificationId", params.NotificationID)
+	r.setJSONBody(params.Body)
+	var out *DashboardNotification
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
