@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.45.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.46.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.45.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.46.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7567,6 +7567,7 @@ const (
 	PluginIDMysql          PluginID = "mysql"
 	PluginIDNeon           PluginID = "neon"
 	PluginIDNetlify        PluginID = "netlify"
+	PluginIDNewrelic       PluginID = "newrelic"
 	PluginIDOpenai         PluginID = "openai"
 	PluginIDOpenrouter     PluginID = "openrouter"
 	PluginIDOpensearch     PluginID = "opensearch"
@@ -8689,6 +8690,7 @@ const (
 	ResourceTypeIDAiSearch                       ResourceTypeID = "ai-search"
 	ResourceTypeIDAlb                            ResourceTypeID = "alb"
 	ResourceTypeIDAlert                          ResourceTypeID = "alert"
+	ResourceTypeIDAlertCondition                 ResourceTypeID = "alert-condition"
 	ResourceTypeIDAlertConfiguration             ResourceTypeID = "alert-configuration"
 	ResourceTypeIDAlertPolicy                    ResourceTypeID = "alert-policy"
 	ResourceTypeIDAlertRule                      ResourceTypeID = "alert-rule"
@@ -8699,6 +8701,7 @@ const (
 	ResourceTypeIDAPIGateway                     ResourceTypeID = "api-gateway"
 	ResourceTypeIDAPIKey                         ResourceTypeID = "api-key"
 	ResourceTypeIDAPIToken                       ResourceTypeID = "api-token"
+	ResourceTypeIDApmApplication                 ResourceTypeID = "apm-application"
 	ResourceTypeIDApp                            ResourceTypeID = "app"
 	ResourceTypeIDAppEngineService               ResourceTypeID = "app-engine-service"
 	ResourceTypeIDAppSecret                      ResourceTypeID = "app-secret"
@@ -8768,6 +8771,7 @@ const (
 	ResourceTypeIDBillingGroup                   ResourceTypeID = "billing-group"
 	ResourceTypeIDBlockVolume                    ResourceTypeID = "block-volume"
 	ResourceTypeIDBootVolume                     ResourceTypeID = "boot-volume"
+	ResourceTypeIDBrowserApplication             ResourceTypeID = "browser-application"
 	ResourceTypeIDBucket                         ResourceTypeID = "bucket"
 	ResourceTypeIDBudget                         ResourceTypeID = "budget"
 	ResourceTypeIDBudgetAlertRule                ResourceTypeID = "budget-alert-rule"
@@ -8953,6 +8957,7 @@ const (
 	ResourceTypeIDHealthCheck                    ResourceTypeID = "health-check"
 	ResourceTypeIDHealthcheck                    ResourceTypeID = "healthcheck"
 	ResourceTypeIDHistoryItem                    ResourceTypeID = "history-item"
+	ResourceTypeIDHost                           ResourceTypeID = "host"
 	ResourceTypeIDHostedRunner                   ResourceTypeID = "hosted-runner"
 	ResourceTypeIDHyperdrive                     ResourceTypeID = "hyperdrive"
 	ResourceTypeIDIamRole                        ResourceTypeID = "iam-role"
@@ -9219,6 +9224,7 @@ const (
 	ResourceTypeIDSubnet                         ResourceTypeID = "subnet"
 	ResourceTypeIDSupervisedFineTuningJob        ResourceTypeID = "supervised-fine-tuning-job"
 	ResourceTypeIDSyntheticCheck                 ResourceTypeID = "synthetic-check"
+	ResourceTypeIDSyntheticMonitor               ResourceTypeID = "synthetic-monitor"
 	ResourceTypeIDTailnet                        ResourceTypeID = "tailnet"
 	ResourceTypeIDTargetGroup                    ResourceTypeID = "target-group"
 	ResourceTypeIDTcoPolicy                      ResourceTypeID = "tco-policy"
@@ -9287,6 +9293,7 @@ const (
 	ResourceTypeIDWorkerRoute                    ResourceTypeID = "worker-route"
 	ResourceTypeIDWorkersAiModel                 ResourceTypeID = "workers-ai-model"
 	ResourceTypeIDWorkflow                       ResourceTypeID = "workflow"
+	ResourceTypeIDWorkload                       ResourceTypeID = "workload"
 	ResourceTypeIDWorkspace                      ResourceTypeID = "workspace"
 	ResourceTypeIDWorkspaceMember                ResourceTypeID = "workspace-member"
 	ResourceTypeIDZone                           ResourceTypeID = "zone"
