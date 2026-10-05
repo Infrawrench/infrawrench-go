@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.55.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.56.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.55.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.56.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -529,6 +529,145 @@ type AgentVMAccount struct {
 	DefaultFieldLabels map[string]string `json:"defaultFieldLabels,omitempty"`
 	CreateFields       []JSONObject      `json:"createFields,omitempty"`
 	HiddenFieldKeys    []string          `json:"hiddenFieldKeys"`
+}
+
+// AiAttributionDimension is the `AiAttributionDimension` schema.
+type AiAttributionDimension struct {
+	ID           string   `json:"id"`
+	Key          string   `json:"key"`
+	Label        string   `json:"label"`
+	MetadataKeys []string `json:"metadataKeys"`
+	CreatedAt    string   `json:"createdAt"`
+	UpdatedAt    string   `json:"updatedAt"`
+}
+
+// AiAttributionDimensionInput is the `AiAttributionDimensionInput` schema.
+type AiAttributionDimensionInput struct {
+	// Key: Becomes the tag key `caller:<key>` in cost reports.
+	Key   string `json:"key"`
+	Label string `json:"label"`
+	// MetadataKeys: Request-metadata keys feeding the dimension, first present
+	// wins.
+	MetadataKeys []string `json:"metadataKeys"`
+}
+
+// AiAttributionStats is the `AiAttributionStats` schema.
+type AiAttributionStats struct {
+	From           string               `json:"from"`
+	To             string               `json:"to"`
+	Sources        []AiSourceMatchStats `json:"sources"`
+	Providers      []AiProviderCoverage `json:"providers"`
+	AttributedDays int64                `json:"attributedDays"`
+}
+
+// AiProviderCoverage is the `AiProviderCoverage` schema.
+type AiProviderCoverage struct {
+	Provider           string  `json:"provider"`
+	Currency           string  `json:"currency"`
+	BilledAmount       float64 `json:"billedAmount"`
+	AttributedAmount   float64 `json:"attributedAmount"`
+	UnattributedAmount float64 `json:"unattributedAmount"`
+}
+
+// AiRequestLogLocation is the `AiRequestLogLocation` schema.
+type AiRequestLogLocation struct {
+	ID          string            `json:"id"`
+	Label       string            `json:"label"`
+	Detail      *string           `json:"detail,omitempty"`
+	Location    map[string]string `json:"location"`
+	Recommended *bool             `json:"recommended,omitempty"`
+}
+
+// AiRequestSource is the `AiRequestSource` schema.
+type AiRequestSource struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Kind: One of "plugin", "litellm".
+	Kind                  string             `json:"kind"`
+	PluginID              *string            `json:"pluginId"`
+	AccountID             *string            `json:"accountId"`
+	AccountName           *string            `json:"accountName"`
+	SourceKindID          string             `json:"sourceKindId"`
+	Location              map[string]string  `json:"location"`
+	Enabled               bool               `json:"enabled"`
+	LookbackDays          int64              `json:"lookbackDays"`
+	BaseURL               *string            `json:"baseUrl"`
+	HasAPIKey             bool               `json:"hasApiKey"`
+	CollectedThrough      *string            `json:"collectedThrough"`
+	LastRunAt             *string            `json:"lastRunAt"`
+	NextRunAt             *string            `json:"nextRunAt"`
+	LastError             *string            `json:"lastError"`
+	LastErrorHelpURL      *string            `json:"lastErrorHelpUrl"`
+	FailureCount          int64              `json:"failureCount"`
+	ObservedMetadataKeys  map[string]float64 `json:"observedMetadataKeys"`
+	LastQueryBytesScanned *float64           `json:"lastQueryBytesScanned"`
+	CreatedAt             string             `json:"createdAt"`
+	UpdatedAt             string             `json:"updatedAt"`
+}
+
+// AiRequestSourceInput is the `AiRequestSourceInput` schema.
+type AiRequestSourceInput struct {
+	Name string `json:"name"`
+	// Kind: One of "plugin", "litellm".
+	Kind string `json:"kind"`
+	// AccountID: Required for `plugin` sources.
+	AccountID    *string `json:"accountId,omitempty"`
+	SourceKindID string  `json:"sourceKindId"`
+	// Location: What the location picker returned, plus `prefix` where the kind
+	// accepts one.
+	Location     map[string]string `json:"location"`
+	Enabled      bool              `json:"enabled"`
+	LookbackDays int64             `json:"lookbackDays"`
+	// BaseURL: LiteLLM only: the proxy's https URL.
+	BaseURL *string `json:"baseUrl,omitempty"`
+	// APIKey: LiteLLM only. Write-only; omit on update to keep the stored key.
+	APIKey *string `json:"apiKey,omitempty"`
+}
+
+// AiRequestSourceKindOption is the `AiRequestSourceKindOption` schema.
+type AiRequestSourceKindOption struct {
+	// Kind: One of "plugin", "litellm".
+	Kind           string  `json:"kind"`
+	PluginID       *string `json:"pluginId"`
+	PluginName     *string `json:"pluginName"`
+	SourceKindID   string  `json:"sourceKindId"`
+	Label          string  `json:"label"`
+	Description    string  `json:"description"`
+	LocationLabel  string  `json:"locationLabel"`
+	MaxHistoryDays int64   `json:"maxHistoryDays"`
+	// QueriesBillable: Reading this source is billed to the account's own
+	// provider (Logs Insights).
+	QueriesBillable bool                                `json:"queriesBillable"`
+	AcceptsPrefix   bool                                `json:"acceptsPrefix"`
+	HelpURL         *string                             `json:"helpUrl"`
+	Accounts        []AiRequestSourceKindOptionAccounts `json:"accounts"`
+}
+
+// AiSourceMatchStats is the `AiSourceMatchStats` schema.
+type AiSourceMatchStats struct {
+	SourceID          string   `json:"sourceId"`
+	Name              string   `json:"name"`
+	Days              int64    `json:"days"`
+	Requests          float64  `json:"requests"`
+	MatchedRequests   float64  `json:"matchedRequests"`
+	AmbiguousRequests float64  `json:"ambiguousRequests"`
+	UnmatchedRequests float64  `json:"unmatchedRequests"`
+	SkippedRecords    float64  `json:"skippedRecords"`
+	Currency          *string  `json:"currency"`
+	AttributedAmount  float64  `json:"attributedAmount"`
+	BilledAmount      float64  `json:"billedAmount"`
+	CoveragePercent   *float64 `json:"coveragePercent"`
+	DegradedDays      int64    `json:"degradedDays"`
+	TruncatedDays     int64    `json:"truncatedDays"`
+}
+
+// AiSpendBreakdown is the `AiSpendBreakdown` schema.
+type AiSpendBreakdown struct {
+	From      string                 `json:"from"`
+	To        string                 `json:"to"`
+	Dimension string                 `json:"dimension"`
+	TagKey    string                 `json:"tagKey"`
+	Rows      []AiSpendBreakdownRows `json:"rows"`
 }
 
 // AlertCondition: One clause of a rule. A rule matches when every condition
@@ -12136,6 +12275,19 @@ type AccountDetailAccount struct {
 	DisplayName string `json:"displayName"`
 }
 
+// AiRequestSourceKindOptionAccounts is an object the spec declares inline.
+type AiRequestSourceKindOptionAccounts struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// AiSpendBreakdownRows is an object the spec declares inline.
+type AiSpendBreakdownRows struct {
+	Value    string  `json:"value"`
+	Currency string  `json:"currency"`
+	Amount   float64 `json:"amount"`
+}
+
 // AlertRulesResponseSlackChannels is an object the spec declares inline.
 type AlertRulesResponseSlackChannels struct {
 	ID        string `json:"id"`
@@ -13149,6 +13301,53 @@ type AgentsSessionsOpenResponse struct {
 type AgentsSessionsReconcileResponse struct {
 	BranchName string `json:"branchName"`
 	Message    string `json:"message"`
+}
+
+// AiAttributionLocationsResponse is an object the spec declares inline.
+type AiAttributionLocationsResponse struct {
+	Locations []AiRequestLogLocation `json:"locations"`
+}
+
+// AiAttributionReattributeRequest is an object the spec declares inline.
+type AiAttributionReattributeRequest struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+}
+
+// AiAttributionReattributeResponse is an object the spec declares inline.
+type AiAttributionReattributeResponse struct {
+	OK   bool  `json:"ok"`
+	Days int64 `json:"days"`
+}
+
+// AiAttributionSourceKindsResponse is an object the spec declares inline.
+type AiAttributionSourceKindsResponse struct {
+	SourceKinds []AiRequestSourceKindOption `json:"sourceKinds"`
+}
+
+// AiAttributionDimensionsDeleteResponse is an object the spec declares inline.
+type AiAttributionDimensionsDeleteResponse struct {
+	OK bool `json:"ok"`
+}
+
+// AiAttributionDimensionsGetResponse is an object the spec declares inline.
+type AiAttributionDimensionsGetResponse struct {
+	Dimensions []AiAttributionDimension `json:"dimensions"`
+}
+
+// AiAttributionSourcesDeleteResponse is an object the spec declares inline.
+type AiAttributionSourcesDeleteResponse struct {
+	OK bool `json:"ok"`
+}
+
+// AiAttributionSourcesGetResponse is an object the spec declares inline.
+type AiAttributionSourcesGetResponse struct {
+	Sources []AiRequestSource `json:"sources"`
+}
+
+// AiAttributionSourcesRecollectRequest is an object the spec declares inline.
+type AiAttributionSourcesRecollectRequest struct {
+	From string `json:"from"`
 }
 
 // AlertRulesAdoptDefaultsResponse is an object the spec declares inline.

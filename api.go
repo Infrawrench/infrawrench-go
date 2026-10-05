@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.55.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.56.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.55.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.56.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -45,6 +45,8 @@ type APIV1Client struct {
 	AgentRegistrations *AgentRegistrationsNamespace
 	// Agents: `client.agents`.
 	Agents *AgentsNamespace
+	// AiAttribution: `client.aiAttribution`.
+	AiAttribution *AiAttributionNamespace
 	// AlertRules: `client.alertRules`.
 	AlertRules *AlertRulesNamespace
 	// APIKeys: `client.apiKeys`.
@@ -256,6 +258,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Agent = newAgentNamespace(t)
 	c.AgentRegistrations = newAgentRegistrationsNamespace(t)
 	c.Agents = newAgentsNamespace(t)
+	c.AiAttribution = newAiAttributionNamespace(t)
 	c.AlertRules = newAlertRulesNamespace(t)
 	c.APIKeys = newAPIKeysNamespace(t)
 	c.Apps = newAppsNamespace(t)
@@ -1951,6 +1954,502 @@ func (n *AgentsSettingsNamespace) Update(ctx context.Context, params AgentsSetti
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *AgentSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionNamespace is `client.aiAttribution`.
+type AiAttributionNamespace struct {
+	t *transport
+
+	// Dimensions: `client.aiAttribution.dimensions`.
+	Dimensions *AiAttributionDimensionsNamespace
+	// Sources: `client.aiAttribution.sources`.
+	Sources *AiAttributionSourcesNamespace
+}
+
+func newAiAttributionNamespace(t *transport) *AiAttributionNamespace {
+	n := &AiAttributionNamespace{t: t}
+	n.Dimensions = newAiAttributionDimensionsNamespace(t)
+	n.Sources = newAiAttributionSourcesNamespace(t)
+	return n
+}
+
+// AiAttributionLocationsParams holds the parameters for
+// `client.aiAttribution.locations`.
+type AiAttributionLocationsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID        *string
+	AccountID    string
+	SourceKindID string
+}
+
+// Locations: Discover locations (buckets, log groups, gateways) for a source
+// kind
+//
+// GET /api/org/{orgId}/ai-attribution/locations
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *AiAttributionNamespace) Locations(ctx context.Context, params AiAttributionLocationsParams, opts ...RequestOption) (*AiAttributionLocationsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ai-attribution/locations")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("accountId", params.AccountID)
+	r.addQuery("sourceKindId", params.SourceKindID)
+	var out *AiAttributionLocationsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionReattributeParams holds the parameters for
+// `client.aiAttribution.reattribute`.
+type AiAttributionReattributeParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body AiAttributionReattributeRequest
+}
+
+// Reattribute: Re-split a range of days now
+//
+// POST /api/org/{orgId}/ai-attribution/reattribute
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+func (n *AiAttributionNamespace) Reattribute(ctx context.Context, params AiAttributionReattributeParams, opts ...RequestOption) (*AiAttributionReattributeResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ai-attribution/reattribute")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *AiAttributionReattributeResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionSourceKindsParams holds the parameters for
+// `client.aiAttribution.sourceKinds`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AiAttributionSourceKindsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// SourceKinds: List the request-log source kinds the org can add
+//
+// GET /api/org/{orgId}/ai-attribution/source-kinds
+func (n *AiAttributionNamespace) SourceKinds(ctx context.Context, params *AiAttributionSourceKindsParams, opts ...RequestOption) (*AiAttributionSourceKindsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ai-attribution/source-kinds")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *AiAttributionSourceKindsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionSpendParams holds the parameters for
+// `client.aiAttribution.spend`.
+type AiAttributionSpendParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// From: Inclusive start day. Defaults to 29 days ago.
+	From *string
+	// To: Inclusive end day. Defaults to today.
+	To        *string
+	Dimension string
+}
+
+// Spend: Attributed AI spend by one caller dimension
+//
+// Includes the `(unattributed)` remainder and `(not set)` for matched requests
+// that lacked every mapped key. For time series, group a cost report by the tag
+// key `caller:<dimension>`.
+//
+// GET /api/org/{orgId}/ai-attribution/spend
+//
+// Raises on 400: Bad request
+func (n *AiAttributionNamespace) Spend(ctx context.Context, params AiAttributionSpendParams, opts ...RequestOption) (*AiSpendBreakdown, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ai-attribution/spend")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("from", params.From)
+	r.addQuery("to", params.To)
+	r.addQuery("dimension", params.Dimension)
+	var out *AiSpendBreakdown
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionStatsParams holds the parameters for
+// `client.aiAttribution.stats`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AiAttributionStatsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// From: Inclusive start day. Defaults to 29 days ago.
+	From *string
+	// To: Inclusive end day. Defaults to today.
+	To *string
+}
+
+// Stats: Match-rate statistics per source and coverage per provider
+//
+// GET /api/org/{orgId}/ai-attribution/stats
+//
+// Raises on 400: Bad request
+func (n *AiAttributionNamespace) Stats(ctx context.Context, params *AiAttributionStatsParams, opts ...RequestOption) (*AiAttributionStats, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ai-attribution/stats")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("from", params.From)
+		r.addQuery("to", params.To)
+	}
+	var out *AiAttributionStats
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionDimensionsNamespace is `client.aiAttribution.dimensions`.
+type AiAttributionDimensionsNamespace struct {
+	t *transport
+}
+
+func newAiAttributionDimensionsNamespace(t *transport) *AiAttributionDimensionsNamespace {
+	n := &AiAttributionDimensionsNamespace{t: t}
+	return n
+}
+
+// AiAttributionDimensionsCreateParams holds the parameters for
+// `client.aiAttribution.dimensions.create`.
+type AiAttributionDimensionsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body AiAttributionDimensionInput
+}
+
+// Create: Map request-metadata keys to a caller dimension
+//
+// POST /api/org/{orgId}/ai-attribution/dimensions
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+func (n *AiAttributionDimensionsNamespace) Create(ctx context.Context, params AiAttributionDimensionsCreateParams, opts ...RequestOption) (*AiAttributionDimension, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ai-attribution/dimensions")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *AiAttributionDimension
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionDimensionsDeleteParams holds the parameters for
+// `client.aiAttribution.dimensions.delete`.
+type AiAttributionDimensionsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a caller dimension
+//
+// DELETE /api/org/{orgId}/ai-attribution/dimensions/{id}
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *AiAttributionDimensionsNamespace) Delete(ctx context.Context, params AiAttributionDimensionsDeleteParams, opts ...RequestOption) (*AiAttributionDimensionsDeleteResponse, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/ai-attribution/dimensions/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *AiAttributionDimensionsDeleteResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionDimensionsGetParams holds the parameters for
+// `client.aiAttribution.dimensions.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AiAttributionDimensionsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List caller dimensions
+//
+// GET /api/org/{orgId}/ai-attribution/dimensions
+func (n *AiAttributionDimensionsNamespace) Get(ctx context.Context, params *AiAttributionDimensionsGetParams, opts ...RequestOption) (*AiAttributionDimensionsGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ai-attribution/dimensions")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *AiAttributionDimensionsGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionDimensionsUpdateParams holds the parameters for
+// `client.aiAttribution.dimensions.update`.
+type AiAttributionDimensionsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body AiAttributionDimensionInput
+}
+
+// Update: Update a caller dimension
+//
+// PUT /api/org/{orgId}/ai-attribution/dimensions/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *AiAttributionDimensionsNamespace) Update(ctx context.Context, params AiAttributionDimensionsUpdateParams, opts ...RequestOption) (*AiAttributionDimension, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/ai-attribution/dimensions/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *AiAttributionDimension
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionSourcesNamespace is `client.aiAttribution.sources`.
+type AiAttributionSourcesNamespace struct {
+	t *transport
+}
+
+func newAiAttributionSourcesNamespace(t *transport) *AiAttributionSourcesNamespace {
+	n := &AiAttributionSourcesNamespace{t: t}
+	return n
+}
+
+// AiAttributionSourcesCreateParams holds the parameters for
+// `client.aiAttribution.sources.create`.
+type AiAttributionSourcesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body AiRequestSourceInput
+}
+
+// Create: Add a request-log source
+//
+// Governed by `org:settings:write`: a source authorizes a daily read of the
+// org's request logs, and the Bedrock CloudWatch kind runs a Logs Insights query
+// billed to the org's own AWS account per GB scanned. Audit-logged.
+//
+// POST /api/org/{orgId}/ai-attribution/sources
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *AiAttributionSourcesNamespace) Create(ctx context.Context, params AiAttributionSourcesCreateParams, opts ...RequestOption) (*AiRequestSource, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ai-attribution/sources")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *AiRequestSource
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionSourcesDeleteParams holds the parameters for
+// `client.aiAttribution.sources.delete`.
+type AiAttributionSourcesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a request-log source
+//
+// DELETE /api/org/{orgId}/ai-attribution/sources/{id}
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *AiAttributionSourcesNamespace) Delete(ctx context.Context, params AiAttributionSourcesDeleteParams, opts ...RequestOption) (*AiAttributionSourcesDeleteResponse, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/ai-attribution/sources/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *AiAttributionSourcesDeleteResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionSourcesGetParams holds the parameters for
+// `client.aiAttribution.sources.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AiAttributionSourcesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List request-log sources
+//
+// GET /api/org/{orgId}/ai-attribution/sources
+func (n *AiAttributionSourcesNamespace) Get(ctx context.Context, params *AiAttributionSourcesGetParams, opts ...RequestOption) (*AiAttributionSourcesGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ai-attribution/sources")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *AiAttributionSourcesGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionSourcesGetOrgOrgIDAiAttributionSourcesIDParams holds the
+// parameters for
+// `client.aiAttribution.sources.getOrgOrgIdAiAttributionSourcesId`.
+type AiAttributionSourcesGetOrgOrgIDAiAttributionSourcesIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// GetOrgOrgIDAiAttributionSourcesID: Read one request-log source
+//
+// GET /api/org/{orgId}/ai-attribution/sources/{id}
+//
+// Raises on 404: Not found
+func (n *AiAttributionSourcesNamespace) GetOrgOrgIDAiAttributionSourcesID(ctx context.Context, params AiAttributionSourcesGetOrgOrgIDAiAttributionSourcesIDParams, opts ...RequestOption) (*AiRequestSource, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ai-attribution/sources/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *AiRequestSource
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionSourcesRecollectParams holds the parameters for
+// `client.aiAttribution.sources.recollect`.
+type AiAttributionSourcesRecollectParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body AiAttributionSourcesRecollectRequest
+}
+
+// Recollect: Re-read a source's history from a day
+//
+// Aggregates keep only mapped metadata keys, so a newly mapped dimension reaches
+// history only by re-reading it. Clamped to the source kind's history limit.
+//
+// POST /api/org/{orgId}/ai-attribution/sources/{id}/recollect
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *AiAttributionSourcesNamespace) Recollect(ctx context.Context, params AiAttributionSourcesRecollectParams, opts ...RequestOption) (*AiRequestSource, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ai-attribution/sources/{id}/recollect")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *AiRequestSource
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AiAttributionSourcesUpdateParams holds the parameters for
+// `client.aiAttribution.sources.update`.
+type AiAttributionSourcesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body AiRequestSourceInput
+}
+
+// Update: Update a request-log source
+//
+// Pointing a source at a different location restarts its collection history.
+//
+// PUT /api/org/{orgId}/ai-attribution/sources/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *AiAttributionSourcesNamespace) Update(ctx context.Context, params AiAttributionSourcesUpdateParams, opts ...RequestOption) (*AiRequestSource, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/ai-attribution/sources/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *AiRequestSource
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
