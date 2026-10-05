@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.56.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.57.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.56.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.57.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -4039,16 +4039,16 @@ type BudgetsGetParams struct {
 	ID    string
 }
 
-// Get: Get a budget with current-month status
+// Get: Get a budget with current-period status
 //
 // GET /api/org/{orgId}/budgets/{id}
 //
 // Raises on 404: Not found
-func (n *BudgetsNamespace) Get(ctx context.Context, params BudgetsGetParams, opts ...RequestOption) (*BudgetFull, error) {
+func (n *BudgetsNamespace) Get(ctx context.Context, params BudgetsGetParams, opts ...RequestOption) (*BudgetWithStatus, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/budgets/{id}")
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
-	var out *BudgetFull
+	var out *BudgetWithStatus
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -4065,7 +4065,7 @@ type BudgetsListParams struct {
 	OrgID *string
 }
 
-// List: List budgets with current-month actuals and forecasts
+// List: List budgets with current-period actuals and forecasts
 //
 // GET /api/org/{orgId}/budgets
 func (n *BudgetsNamespace) List(ctx context.Context, params *BudgetsListParams, opts ...RequestOption) ([]BudgetWithStatus, error) {
@@ -8154,17 +8154,18 @@ type CostsDimensionsParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Dimension: One of "provider", "account", "service", "region", "resource",
-	// "tag", "charge_type", "commitment", "tag-keys".
+	// "tag", "charge_type", "commitment", "tag-keys", "usage-units".
 	Dimension string
 	TagKey    *string
 }
 
 // Dimensions: List distinct values for a cost dimension
 //
-// Feeds the filter and group-by pickers. Pass dimension=tag-keys for tag keys;
-// dimension=tag requires tagKey. `charge_type` answers from the fixed set of
-// charge types rather than from the stored data, so the picker is populated
-// before any provider has reported one.
+// Feeds the filter and group-by pickers. Pass dimension=tag-keys for tag keys,
+// or dimension=usage-units for the usage units providers report (a usage
+// budget's unit); dimension=tag requires tagKey. `charge_type` answers from the
+// fixed set of charge types rather than from the stored data, so the picker is
+// populated before any provider has reported one.
 //
 // _Requires permission: `costs:read`._
 //

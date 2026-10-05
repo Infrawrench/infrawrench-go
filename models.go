@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.56.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.57.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.56.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.57.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1408,6 +1408,15 @@ type BudgetAlertEvent struct {
 	ActualAmountCents   int64  `json:"actualAmountCents"`
 	ForecastAmountCents *int64 `json:"forecastAmountCents"`
 	TriggeredAt         string `json:"triggeredAt"`
+	// PeriodStart: First day of the period the crossing was observed in; null on
+	// events from before budget periods were configurable (those are calendar
+	// months: see `month`).
+	PeriodStart *string `json:"periodStart"`
+	PeriodEnd   *string `json:"periodEnd"`
+	// ActualUsage: A usage budget's period-to-date usage at the crossing (the
+	// cents fields are 0).
+	ActualUsage   *float64 `json:"actualUsage"`
+	ForecastUsage *float64 `json:"forecastUsage"`
 }
 
 // BudgetCostBasis: The basis `actualCents` and `forecastCents` were measured on.
@@ -1428,6 +1437,14 @@ type BudgetCostFilter struct {
 	Op     string   `json:"op"`
 	Values []string `json:"values"`
 	TagKey *string  `json:"tagKey,omitempty"`
+}
+
+// BudgetExplicitPeriods is the `BudgetExplicitPeriods` schema.
+type BudgetExplicitPeriods struct {
+	// Kind: One of "explicit".
+	Kind string `json:"kind"`
+	// Periods: Non-overlapping, inclusive periods, each with its own amount.
+	Periods []BudgetExplicitPeriodsPeriods `json:"periods"`
 }
 
 // BudgetFull is the `BudgetFull` schema.
@@ -1464,17 +1481,49 @@ type BudgetFull struct {
 	// month-to-date internal spend is as marked up as the forecast is. The alert
 	// body says the figure is adjusted and names the collected one. Updates are
 	// full replaces, so omitting it on PUT clears the opt-in.
-	UseAdjustedSpend bool    `json:"useAdjustedSpend"`
-	CreatedByUserID  *string `json:"createdByUserId"`
-	DeletedAt        *string `json:"deletedAt"`
-	CreatedAt        string  `json:"createdAt"`
-	UpdatedAt        string  `json:"updatedAt"`
+	UseAdjustedSpend bool          `json:"useAdjustedSpend"`
+	CreatedByUserID  *string       `json:"createdByUserId"`
+	DeletedAt        *string       `json:"deletedAt"`
+	CreatedAt        string        `json:"createdAt"`
+	UpdatedAt        string        `json:"updatedAt"`
+	Measure          BudgetMeasure `json:"measure"`
+	// UsageUnit: The usage unit a usage budget counts, exactly as the providers
+	// report it.
+	UsageUnit *string `json:"usageUnit"`
+	// UsageAmount: A usage budget's limit per period, in `usageUnit`.
+	UsageAmount *float64     `json:"usageAmount"`
+	Period      BudgetPeriod `json:"period"`
+	// ParentBudgetID: The budget this one rolls up into. A parent's actual and
+	// forecast are the sum of its children's, each measured over the parent's
+	// period; parent and children must count the same thing (one currency, or
+	// one usage unit). Hierarchies are at most 4 levels deep. Deleting a budget
+	// moves its children up to its own parent. Updates are full replaces, so
+	// omitting it on PUT makes the budget a root.
+	ParentBudgetID *string `json:"parentBudgetId"`
+}
+
+// BudgetHierarchyWarning is the `BudgetHierarchyWarning` schema.
+type BudgetHierarchyWarning struct {
+	// Kind: `allocation`: the children's own amounts for this period (children
+	// on the same period only) add up to more than the parent's. `actual`:
+	// together they have already spent more. `forecast`: together they are
+	// projected to.
+	//
+	// One of "allocation", "actual", "forecast".
+	Kind string `json:"kind"`
+	// ChildTotal: The children's total, in the parent's unit.
+	ChildTotal float64 `json:"childTotal"`
+	// ParentLimit: The parent's limit for the period, in the same unit.
+	ParentLimit float64 `json:"parentLimit"`
 }
 
 // BudgetInput is the `BudgetInput` schema.
 type BudgetInput struct {
-	Name        string             `json:"name"`
-	AmountCents int64              `json:"amountCents"`
+	Name string `json:"name"`
+	// AmountCents: The limit per period of a spend budget, in minor units of
+	// `currency`. Required (and positive) for a spend budget unless `period` is
+	// an explicit list; ignored by a usage budget. Defaults to 0.
+	AmountCents *int64             `json:"amountCents,omitempty"`
 	Currency    *string            `json:"currency,omitempty"`
 	Filters     []BudgetCostFilter `json:"filters,omitempty"`
 	// SavedFilterID: A saved cost filter (see /saved-cost-filters) applied by
@@ -1503,7 +1552,55 @@ type BudgetInput struct {
 	// month-to-date internal spend is as marked up as the forecast is. The alert
 	// body says the figure is adjusted and names the collected one. Updates are
 	// full replaces, so omitting it on PUT clears the opt-in.
-	UseAdjustedSpend *bool `json:"useAdjustedSpend,omitempty"`
+	UseAdjustedSpend *bool          `json:"useAdjustedSpend,omitempty"`
+	Measure          *BudgetMeasure `json:"measure,omitempty"`
+	// UsageUnit: The usage unit a usage budget counts, exactly as the providers
+	// report it.
+	UsageUnit *string `json:"usageUnit,omitempty"`
+	// UsageAmount: A usage budget's limit per period, in `usageUnit`.
+	UsageAmount *float64 `json:"usageAmount,omitempty"`
+	Period      any      `json:"period,omitempty"`
+	// ParentBudgetID: The budget this one rolls up into. A parent's actual and
+	// forecast are the sum of its children's, each measured over the parent's
+	// period; parent and children must count the same thing (one currency, or
+	// one usage unit). Hierarchies are at most 4 levels deep. Deleting a budget
+	// moves its children up to its own parent. Updates are full replaces, so
+	// omitting it on PUT makes the budget a root.
+	ParentBudgetID *string `json:"parentBudgetId,omitempty"`
+}
+
+// BudgetMeasure: What the budget counts. `cost` (the default) is money in
+// `currency`, against `amountCents`. `usage` sums the cost rows' usage quantity
+// in `usageUnit` against `usageAmount` (tokens, GB, instance-hours, requests:
+// whatever the providers report; list them with GET
+// /costs/dimensions?dimension=usage-units). Units are matched exactly and never
+// converted. A usage budget takes no scenario model and no billing rules.
+type BudgetMeasure = string
+
+// The values BudgetMeasure takes.
+const (
+	BudgetMeasureCost  BudgetMeasure = "cost"
+	BudgetMeasureUsage BudgetMeasure = "usage"
+)
+
+// BudgetPeriod: Which periods the budget covers. Omitted (or null) is the
+// calendar month. `recurring` repeats every `interval` × `unit` from
+// `startDate`; `explicit` lists the periods with an amount each, and the
+// top-level amount is then ignored. Thresholds fire once per period; days
+// outside every period are not measured.
+//
+// The API may send null in its place.
+type BudgetPeriod = any
+
+// BudgetRecurringPeriod is the `BudgetRecurringPeriod` schema.
+type BudgetRecurringPeriod struct {
+	// Kind: One of "recurring".
+	Kind string `json:"kind"`
+	// Unit: One of "day", "week", "month", "quarter", "year".
+	Unit     string `json:"unit"`
+	Interval int64  `json:"interval"`
+	// StartDate: First day of the first period (UTC, inclusive).
+	StartDate string `json:"startDate"`
 }
 
 // BudgetThreshold is the `BudgetThreshold` schema.
@@ -1568,6 +1665,39 @@ type BudgetWithStatus struct {
 	ScenarioForecastCents *int64                               `json:"scenarioForecastCents"`
 	CurrentMonthEvents    []BudgetWithStatusCurrentMonthEvents `json:"currentMonthEvents"`
 	Placements            []BudgetWithStatusPlacements         `json:"placements"`
+	Measure               BudgetMeasure                        `json:"measure"`
+	// UsageUnit: The usage unit a usage budget counts, exactly as the providers
+	// report it.
+	UsageUnit *string `json:"usageUnit"`
+	// UsageAmount: A usage budget's limit per period, in `usageUnit`.
+	UsageAmount *float64     `json:"usageAmount"`
+	Period      BudgetPeriod `json:"period"`
+	// ParentBudgetID: The budget this one rolls up into. A parent's actual and
+	// forecast are the sum of its children's, each measured over the parent's
+	// period; parent and children must count the same thing (one currency, or
+	// one usage unit). Hierarchies are at most 4 levels deep. Deleting a budget
+	// moves its children up to its own parent. Updates are full replaces, so
+	// omitting it on PUT makes the budget a root.
+	ParentBudgetID *string `json:"parentBudgetId"`
+	// PeriodStart: First day of the period being measured. Null when the
+	// budget's periods do not cover today (a cadence not started yet, a gap in
+	// an explicit list): nothing is measured.
+	PeriodStart *string `json:"periodStart"`
+	PeriodEnd   *string `json:"periodEnd"`
+	// PeriodLimit: This period's limit in the budget's unit: cents for a spend
+	// budget, the quantity for a usage budget. Null when no period is active.
+	PeriodLimit *float64 `json:"periodLimit"`
+	// ActualUsage: Period-to-date usage, for a usage budget (whose `actualCents`
+	// is 0).
+	ActualUsage *float64 `json:"actualUsage"`
+	// ForecastUsage: Projected period-end usage, for a usage budget.
+	ForecastUsage *float64 `json:"forecastUsage"`
+	// RolledUp: True when the budget has children, so its figures are the sum of
+	// theirs over its period rather than a measurement of its own scope.
+	RolledUp bool `json:"rolledUp"`
+	// ChildCount: Number of direct child budgets.
+	ChildCount        int64                    `json:"childCount"`
+	HierarchyWarnings []BudgetHierarchyWarning `json:"hierarchyWarnings"`
 }
 
 // BusinessMetric is the `BusinessMetric` schema.
@@ -12335,6 +12465,16 @@ type BlastRadiusReportFlowTotals struct {
 	Bytes         float64 `json:"bytes"`
 	EstimatedCost float64 `json:"estimatedCost"`
 	Currency      string  `json:"currency"`
+}
+
+// BudgetExplicitPeriodsPeriods is an object the spec declares inline.
+type BudgetExplicitPeriodsPeriods struct {
+	Start string `json:"start"`
+	End   string `json:"end"`
+	// AmountCents: This period's limit, for a spend budget.
+	AmountCents *int64 `json:"amountCents,omitempty"`
+	// UsageAmount: This period's limit, for a usage budget.
+	UsageAmount *float64 `json:"usageAmount,omitempty"`
 }
 
 // BudgetWithStatusCurrentMonthEvents is an object the spec declares inline.
