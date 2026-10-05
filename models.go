@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.49.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.50.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.49.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.50.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2724,8 +2724,9 @@ type CostExport struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	// Format: One of "csv", "ndjson".
-	Format string          `json:"format"`
-	Query  CostExportQuery `json:"query"`
+	Format string           `json:"format"`
+	Schema CostExportSchema `json:"schema"`
+	Query  CostExportQuery  `json:"query"`
 	// Cadence: One of "daily", "weekly", "monthly".
 	Cadence         string                `json:"cadence"`
 	Hour            int64                 `json:"hour"`
@@ -2769,8 +2770,9 @@ type CostExportFilter struct {
 type CostExportInput struct {
 	Name string `json:"name"`
 	// Format: One of "csv", "ndjson".
-	Format string          `json:"format"`
-	Query  CostExportQuery `json:"query"`
+	Format string            `json:"format"`
+	Schema *CostExportSchema `json:"schema,omitempty"`
+	Query  CostExportQuery   `json:"query"`
 	// Cadence: How often a run happens and — because a run writes one object per
 	// period — what a period is: a calendar day, an ISO week (Monday-start), or
 	// a calendar month.
@@ -2844,6 +2846,20 @@ type CostExportRunResult struct {
 	CollectionWatermark *string `json:"collectionWatermark"`
 	Error               *string `json:"error"`
 }
+
+// CostExportSchema: Which columns an object carries. `native` is Infrawrench's
+// own layout, shaped by `query.dimensions` and `query.tagKeys`. `focus-1.3`
+// writes the FinOps Open Cost and Usage Specification v1.3 columns at the full
+// row grain, with `BilledCost` (cash) and `EffectiveCost` (amortized) side by
+// side; `query.dimensions`, `query.tagKeys` and `query.costBasis` do not apply
+// to it, `query.filters` and `query.chargeTypes` still do.
+type CostExportSchema = string
+
+// The values CostExportSchema takes.
+const (
+	CostExportSchemaNative  CostExportSchema = "native"
+	CostExportSchemaFocus13 CostExportSchema = "focus-1.3"
+)
 
 // CostFilter is the `CostFilter` schema.
 type CostFilter struct {
@@ -4988,6 +5004,46 @@ type FieldActionRequest struct {
 type FieldActionResponse struct {
 	Value  string                     `json:"value"`
 	Option *FieldActionResponseOption `json:"option,omitempty"`
+}
+
+// FocusExportRequest is the `FocusExportRequest` schema.
+type FocusExportRequest struct {
+	From    string       `json:"from"`
+	To      string       `json:"to"`
+	Filters []CostFilter `json:"filters,omitempty"`
+	// Query: The same filter written as text, in the cost query language — an
+	// alternative to `filters`, compiled server-side into exactly that
+	// structure.
+	//
+	// Grammar: a conjunction of equality terms joined by `AND`. A term is
+	// `dimension = 'value'`, `dimension != 'value'`, `dimension IN ('a','b')` or
+	// `dimension NOT IN ('a','b')`; the tag dimension takes its key in brackets,
+	// `tag['owner'] = 'platform'`. Keywords are case-insensitive, strings may be
+	// single- or double-quoted, and a quote inside a value is escaped by
+	// doubling it (`'it''s'`) or with a backslash (`'it\'s'`).
+	//
+	// `OR` is deliberately not supported: the stored filter is a conjunction, so
+	// several values of one dimension go in an `IN` list and unrelated
+	// alternatives need separate queries. Anything the structured filter cannot
+	// express is a parse error rather than a second execution path.
+	//
+	// Sending both `query` and a non-empty `filters` is a 400, not a precedence
+	// rule. A parse failure is a 400 whose body carries `queryError` with the
+	// character `offset`, the `length` of the offending span, and the `expected`
+	// alternatives there.
+	Query *string `json:"query,omitempty"`
+	// SavedFilterID: A saved cost filter (see /saved-cost-filters) applied by
+	// reference. Resolved server-side at query time and AND-composed with
+	// whichever of `filters`/`query` is present — unlike those two it is a
+	// composition, not an alternative. An id that does not resolve to a live
+	// filter is a 400; the query is never silently run unfiltered.
+	SavedFilterID *string `json:"savedFilterId,omitempty"`
+	// ChargeTypes: Restrict to these kinds of charge. Omitted is all of them,
+	// which is what makes an unfiltered total net rather than gross — credits,
+	// refunds and commitment discounts are included. Rows collected before
+	// charge types existed, and rows from providers that cannot distinguish
+	// them, are `usage`.
+	ChargeTypes []CostChargeType `json:"chargeTypes,omitempty"`
 }
 
 // GenerateSSHKeyRequest is the `GenerateSshKeyRequest` schema.

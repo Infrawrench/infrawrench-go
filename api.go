@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.49.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.50.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.49.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.50.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7045,6 +7045,45 @@ func (n *CostsNamespace) EfficiencyAlerts(ctx context.Context, params *CostsEffi
 		return out, err
 	}
 	return out, nil
+}
+
+// CostsFocusExportParams holds the parameters for `client.costs.focusExport`.
+type CostsFocusExportParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body FocusExportRequest
+}
+
+// FocusExport: Download cost rows as a FOCUS 1.3 CSV
+//
+// The rows a cost query selects, written as a CSV in the FinOps Open Cost and
+// Usage Specification (FOCUS) v1.3 layout: one row per account, service, region,
+// resource, tag set, charge type and commitment per day, with `BilledCost`
+// (cash) and `EffectiveCost` (amortized) side by side, `ChargeCategory`,
+// `ServiceCategory`/`ServiceSubcategory`, `Tags` as a JSON object and the
+// commitment columns where the provider reports a commitment. Custom columns
+// follow, prefixed `x_`. The same mapping a `focus-1.3` scheduled export writes
+// (see /cost-exports).
+//
+// Takes the cost query's filter in either spelling (`filters` or `query`, never
+// both), an optional saved filter, and charge types. The range spans at most 366
+// days; for anything longer, or for a recurring feed, use a scheduled export.
+// Validation errors are a 400 before any CSV is written; the body is then
+// streamed.
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/costs/focus-export
+//
+// Raises on 400: Bad request
+func (n *CostsNamespace) FocusExport(ctx context.Context, params CostsFocusExportParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/costs/focus-export")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	return n.t.stream(ctx, r, opts)
 }
 
 // CostsQueryParams holds the parameters for `client.costs.query`.
