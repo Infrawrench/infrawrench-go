@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.57.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.58.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.57.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.58.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7511,13 +7511,19 @@ type CostReportsRunParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	ID    string
+	// Body: the JSON request body.
+	Body *CostReportRunOverrides
 }
 
 // Run: Run a cost report
 //
 // Executes the report's saved config and returns the series, along with the
-// inclusive window a relative preset resolved to. Takes no body: the report *is*
-// the query, so a caller never has to reassemble its config to get the numbers.
+// inclusive window a relative preset resolved to. The body is optional: the
+// report *is* the query, so a caller never has to reassemble its config to get
+// the numbers. It may carry one-off display overrides (`measure`, `usageUnit`,
+// `binning`, `cumulative`) that apply to this run only and are never saved;
+// switching a run to `usage` or `count` drops the saved forecast, scenario and
+// billing rules, which only apply to money.
 //
 // _Requires permission: `costs:read`._
 //
@@ -7530,6 +7536,7 @@ func (n *CostReportsNamespace) Run(ctx context.Context, params CostReportsRunPar
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-reports/{id}/run")
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
 	var out *CostReportRunResult
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
@@ -8165,7 +8172,9 @@ type CostsDimensionsParams struct {
 // or dimension=usage-units for the usage units providers report (a usage
 // budget's unit); dimension=tag requires tagKey. `charge_type` answers from the
 // fixed set of charge types rather than from the stored data, so the picker is
-// populated before any provider has reported one.
+// populated before any provider has reported one. `usage-units` lists the usage
+// units present in the cost data, most common first, for the `usage` measure's
+// unit picker.
 //
 // _Requires permission: `costs:read`._
 //

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.57.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.58.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.57.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.58.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2568,7 +2568,13 @@ type CostAccountStatus struct {
 	// cannot be reconciled against an invoice: resources deleted part-way
 	// through a period are no longer in inventory to be priced, all rates are
 	// list rather than negotiated, and credits, tax and refunds never appear.
-	Estimated            bool    `json:"estimated"`
+	Estimated bool `json:"estimated"`
+	// Granularity: The granularity this account's cost rows are stored at.
+	// `daily` for every provider today; hourly bins are offered only once some
+	// account reports `hourly`.
+	//
+	// One of "daily", "hourly".
+	Granularity          string  `json:"granularity"`
 	CostLastPolledAt     *string `json:"costLastPolledAt"`
 	CostBackfilledAt     *string `json:"costBackfilledAt"`
 	CostPollFailureCount int64   `json:"costPollFailureCount"`
@@ -2860,6 +2866,24 @@ type CostBasis = string
 const (
 	CostBasisCash      CostBasis = "cash"
 	CostBasisAmortized CostBasis = "amortized"
+)
+
+// CostBinning: Time bucket of the x axis. Weeks start on Monday and quarters on
+// the first of January, April, July and October (UTC). `cumulative` is the older
+// spelling of daily bins with `cumulative: true`, kept so stored configs and
+// existing clients keep working. `hourly` is refused with a 400 while no
+// connected account stores hourly cost rows: every provider's spend is collected
+// per UTC day today (see `granularity` on /costs/status).
+type CostBinning = string
+
+// The values CostBinning takes.
+const (
+	CostBinningHourly     CostBinning = "hourly"
+	CostBinningDaily      CostBinning = "daily"
+	CostBinningWeekly     CostBinning = "weekly"
+	CostBinningMonthly    CostBinning = "monthly"
+	CostBinningQuarterly  CostBinning = "quarterly"
+	CostBinningCumulative CostBinning = "cumulative"
 )
 
 // CostCanvas is the `CostCanvas` schema.
@@ -3357,10 +3381,14 @@ type CostFilter struct {
 // name and an id.
 type CostGraphConfig struct {
 	Version float64 `json:"version"`
-	// ChartType: One of "stacked_bar", "multi_bar", "line", "area", "pie".
-	ChartType string `json:"chartType"`
-	// Binning: One of "daily", "weekly", "monthly", "cumulative".
-	Binning   string        `json:"binning"`
+	// ChartType: How the series are drawn. `pie` and `donut` draw period totals
+	// per group; `table` lists every bucket as a row with a column per series
+	// and a total.
+	//
+	// One of "stacked_bar", "multi_bar", "line", "area", "pie", "donut",
+	// "table".
+	ChartType string        `json:"chartType"`
+	Binning   CostBinning   `json:"binning"`
 	DateRange CostDateRange `json:"dateRange"`
 	// GroupBy: One of "none", "provider", "account", "service", "region",
 	// "resource", "tag", "charge_type", "commitment".
@@ -3382,8 +3410,34 @@ type CostGraphConfig struct {
 	// alongside `showForecast`.
 	ScenarioModelID *string `json:"scenarioModelId,omitempty"`
 	// CostBasis: One of "cash", "amortized".
-	CostBasis *string `json:"costBasis,omitempty"`
+	CostBasis *string      `json:"costBasis,omitempty"`
+	Measure   *CostMeasure `json:"measure,omitempty"`
+	// UsageUnit: The usage unit a `usage` measure sums, exactly as the provider
+	// spells it (`Hrs`, `GB-Mo`). List them with GET
+	// /costs/dimensions?dimension=usage-units. Required for `usage`, refused for
+	// any other measure.
+	UsageUnit *string `json:"usageUnit,omitempty"`
+	// Cumulative: Running totals from the start of the range, at any bin size.
+	// Omitted is off. Totals then report the last point rather than the sum.
+	Cumulative *bool `json:"cumulative,omitempty"`
 }
+
+// CostMeasure: What the Y axis sums. `cost` (the default) is money per currency.
+// `usage` sums the usage quantity providers report beside the money and requires
+// `usageUnit`, because quantities in different units cannot be added. `count` is
+// how many distinct values of the `groupBy` dimension had nonzero cost in each
+// bin (how many services were billed each day) and requires a `groupBy`; its
+// range total is a distinct count, not a sum of the bins. `usage` and `count`
+// cannot carry a forecast, a scenario or billing rules (a 400), `count` cannot
+// be cumulative, and a display currency is ignored for both.
+type CostMeasure = string
+
+// The values CostMeasure takes.
+const (
+	CostMeasureCost  CostMeasure = "cost"
+	CostMeasureUsage CostMeasure = "usage"
+	CostMeasureCount CostMeasure = "count"
+)
 
 // CostPushRequest is the `CostPushRequest` schema.
 type CostPushRequest struct {
@@ -3402,10 +3456,9 @@ type CostPushResponse struct {
 
 // CostQueryRequest is the `CostQueryRequest` schema.
 type CostQueryRequest struct {
-	From string `json:"from"`
-	To   string `json:"to"`
-	// Binning: One of "daily", "weekly", "monthly", "cumulative".
-	Binning string `json:"binning"`
+	From    string      `json:"from"`
+	To      string      `json:"to"`
+	Binning CostBinning `json:"binning"`
 	// GroupBy: One of "none", "provider", "account", "service", "region",
 	// "resource", "tag", "charge_type", "commitment".
 	GroupBy       string       `json:"groupBy"`
@@ -3463,7 +3516,16 @@ type CostQueryRequest struct {
 	// and the rules that moved them; it is set even for an organization with no
 	// rules, because the absence of that field is the only signal that a figure
 	// is unadjusted.
-	Adjusted *bool `json:"adjusted,omitempty"`
+	Adjusted *bool        `json:"adjusted,omitempty"`
+	Measure  *CostMeasure `json:"measure,omitempty"`
+	// UsageUnit: The usage unit a `usage` measure sums, exactly as the provider
+	// spells it (`Hrs`, `GB-Mo`). List them with GET
+	// /costs/dimensions?dimension=usage-units. Required for `usage`, refused for
+	// any other measure.
+	UsageUnit *string `json:"usageUnit,omitempty"`
+	// Cumulative: Running totals from the start of the range, at any bin size.
+	// Omitted is off. Totals then report the last point rather than the sum.
+	Cumulative *bool `json:"cumulative,omitempty"`
 }
 
 // CostQueryResponse is the `CostQueryResponse` schema.
@@ -3483,6 +3545,14 @@ type CostQueryResponse struct {
 	Totals         map[string]float64     `json:"totals"`
 	PreviousTotals map[string]float64     `json:"previousTotals,omitempty"`
 	Adjustment     *CostAdjustmentSummary `json:"adjustment,omitempty"`
+	// Measure: Set when the request measured something other than money; absent
+	// means every amount is money in its series' currency. For both, series
+	// carry `currency: ""` and the totals are keyed by `""`.
+	//
+	// One of "usage", "count".
+	Measure *string `json:"measure,omitempty"`
+	// UsageUnit: The unit a `usage` response is in.
+	UsageUnit *string `json:"usageUnit,omitempty"`
 }
 
 // CostQuerySeries is the `CostQuerySeries` schema.
@@ -3563,6 +3633,20 @@ type CostReportPlacement struct {
 	WidgetID      string `json:"widgetId"`
 	DashboardID   string `json:"dashboardId"`
 	DashboardName string `json:"dashboardName"`
+}
+
+// CostReportRunOverrides is the `CostReportRunOverrides` schema.
+type CostReportRunOverrides struct {
+	Measure *CostMeasure `json:"measure,omitempty"`
+	// UsageUnit: The usage unit a `usage` measure sums, exactly as the provider
+	// spells it (`Hrs`, `GB-Mo`). List them with GET
+	// /costs/dimensions?dimension=usage-units. Required for `usage`, refused for
+	// any other measure.
+	UsageUnit *string      `json:"usageUnit,omitempty"`
+	Binning   *CostBinning `json:"binning,omitempty"`
+	// Cumulative: Running totals from the start of the range, at any bin size.
+	// Omitted is off. Totals then report the last point rather than the sum.
+	Cumulative *bool `json:"cumulative,omitempty"`
 }
 
 // CostReportRunResult is the `CostReportRunResult` schema.
@@ -12061,7 +12145,8 @@ type UnitCostQueryRequest struct {
 	// From: Inclusive, YYYY-MM-DD.
 	From string `json:"from"`
 	To   string `json:"to"`
-	// Binning: One of "daily", "weekly", "monthly", "cumulative".
+	// Binning: One of "hourly", "daily", "weekly", "monthly", "quarterly",
+	// "cumulative".
 	Binning string `json:"binning"`
 	// Mode: Absent is `unit_cost` (spend ÷ metric value). `margin` is `(revenue
 	// − spend) ÷ revenue` as a fraction, and is a 400 for a metric whose `kind`
@@ -12089,7 +12174,8 @@ type UnitCostQueryResponse struct {
 	Metric UnitCostQueryResponseMetric `json:"metric"`
 	// Mode: One of "unit_cost", "margin".
 	Mode string `json:"mode"`
-	// Binning: One of "daily", "weekly", "monthly", "cumulative".
+	// Binning: One of "hourly", "daily", "weekly", "monthly", "quarterly",
+	// "cumulative".
 	Binning string `json:"binning"`
 	// Series: One series per currency the numerator ended up in — usually one.
 	// More than one means the organization has spend in a currency it holds no
