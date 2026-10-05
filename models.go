@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.59.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.60.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.59.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.60.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1702,19 +1702,20 @@ type BudgetWithStatus struct {
 
 // BusinessMetric is the `BusinessMetric` schema.
 type BusinessMetric struct {
-	ID              string                    `json:"id"`
-	Key             string                    `json:"key"`
-	Name            string                    `json:"name"`
-	Unit            string                    `json:"unit"`
-	Description     *string                   `json:"description"`
-	Kind            BusinessMetricKind        `json:"kind"`
-	Currency        *string                   `json:"currency"`
-	CostScope       []BusinessMetricScopeTerm `json:"costScope"`
-	SavedFilterID   *string                   `json:"savedFilterId"`
-	CreatedByUserID *string                   `json:"createdByUserId"`
-	CreatedAt       string                    `json:"createdAt"`
-	UpdatedAt       string                    `json:"updatedAt"`
-	Coverage        *BusinessMetricCoverage   `json:"coverage"`
+	ID              string                         `json:"id"`
+	Key             string                         `json:"key"`
+	Name            string                         `json:"name"`
+	Unit            string                         `json:"unit"`
+	Description     *string                        `json:"description"`
+	Kind            BusinessMetricKind             `json:"kind"`
+	Currency        *string                        `json:"currency"`
+	CostScope       []BusinessMetricScopeTerm      `json:"costScope"`
+	SavedFilterID   *string                        `json:"savedFilterId"`
+	CreatedByUserID *string                        `json:"createdByUserId"`
+	CreatedAt       string                         `json:"createdAt"`
+	UpdatedAt       string                         `json:"updatedAt"`
+	Coverage        *BusinessMetricCoverage        `json:"coverage"`
+	Importer        *BusinessMetricImporterSummary `json:"importer"`
 }
 
 // BusinessMetricCoverage: Null when the metric has no values at all — not an
@@ -1728,6 +1729,151 @@ type BusinessMetricCoverage struct {
 	// ReportedDays: Days carrying a value — compare against the span to spot a
 	// sparse series.
 	ReportedDays int64 `json:"reportedDays"`
+}
+
+// BusinessMetricImportAggregation: How several points the source returns for one
+// day (and label) become that day's value. A SQL query grouped by day returns
+// one row per day and every choice agrees.
+type BusinessMetricImportAggregation = string
+
+// The values BusinessMetricImportAggregation takes.
+const (
+	BusinessMetricImportAggregationSum     BusinessMetricImportAggregation = "sum"
+	BusinessMetricImportAggregationAverage BusinessMetricImportAggregation = "average"
+	BusinessMetricImportAggregationMin     BusinessMetricImportAggregation = "min"
+	BusinessMetricImportAggregationMax     BusinessMetricImportAggregation = "max"
+	BusinessMetricImportAggregationLast    BusinessMetricImportAggregation = "last"
+	BusinessMetricImportAggregationCount   BusinessMetricImportAggregation = "count"
+)
+
+// BusinessMetricImportPreview is the `BusinessMetricImportPreview` schema.
+type BusinessMetricImportPreview struct {
+	From       string                              `json:"from"`
+	To         string                              `json:"to"`
+	Values     []BusinessMetricImportPreviewValues `json:"values"`
+	PointsRead int64                               `json:"pointsRead"`
+	Days       int64                               `json:"days"`
+	Notes      []string                            `json:"notes"`
+	DurationMs int64                               `json:"durationMs"`
+	DryRun     *BusinessMetricImportPreviewDryRun  `json:"dryRun,omitempty"`
+}
+
+// BusinessMetricImportPreviewRequest is the `BusinessMetricImportPreviewRequest`
+// schema.
+type BusinessMetricImportPreviewRequest struct {
+	AccountID string `json:"accountId"`
+	// Params: The source plugin's form values, keyed by field (see `GET
+	// /business-metrics/importer-sources`). SQL fields must be a single SELECT
+	// or WITH statement; `{{from}}`, `{{to}}`, `{{to_exclusive}}` and
+	// `{{timezone}}` are replaced with quoted literals.
+	Params map[string]string `json:"params"`
+	// From: Default: 14 days ending yesterday.
+	From        *string                          `json:"from,omitempty"`
+	To          *string                          `json:"to,omitempty"`
+	Timezone    *string                          `json:"timezone,omitempty"`
+	Aggregation *BusinessMetricImportAggregation `json:"aggregation,omitempty"`
+	// DryRun: Validate with the provider without reading data, where the source
+	// supports it.
+	DryRun *bool `json:"dryRun,omitempty"`
+}
+
+// BusinessMetricImportRun is the `BusinessMetricImportRun` schema.
+type BusinessMetricImportRun struct {
+	ID         string `json:"id"`
+	ImporterID string `json:"importerId"`
+	// Trigger: One of "schedule", "manual".
+	Trigger string `json:"trigger"`
+	// Status: One of "running", "success", "error".
+	Status string `json:"status"`
+	// From: First day, inclusive, in the importer's timezone.
+	From        string   `json:"from"`
+	To          string   `json:"to"`
+	PointsRead  int64    `json:"pointsRead"`
+	DaysWritten int64    `json:"daysWritten"`
+	Error       *string  `json:"error"`
+	Notes       []string `json:"notes"`
+	StartedAt   string   `json:"startedAt"`
+	FinishedAt  *string  `json:"finishedAt"`
+	DurationMs  *int64   `json:"durationMs"`
+}
+
+// BusinessMetricImportSchedule is the `BusinessMetricImportSchedule` schema.
+type BusinessMetricImportSchedule = string
+
+// The values BusinessMetricImportSchedule takes.
+const (
+	BusinessMetricImportScheduleEvery6Hours  BusinessMetricImportSchedule = "every_6_hours"
+	BusinessMetricImportScheduleEvery12Hours BusinessMetricImportSchedule = "every_12_hours"
+	BusinessMetricImportScheduleDaily        BusinessMetricImportSchedule = "daily"
+	BusinessMetricImportScheduleWeekly       BusinessMetricImportSchedule = "weekly"
+)
+
+// BusinessMetricImporter is the `BusinessMetricImporter` schema.
+//
+// The API may send null in its place.
+type BusinessMetricImporter struct {
+	ID           string                          `json:"id"`
+	MetricID     string                          `json:"metricId"`
+	AccountID    string                          `json:"accountId"`
+	AccountName  *string                         `json:"accountName"`
+	PluginID     *string                         `json:"pluginId"`
+	SourceLabel  *string                         `json:"sourceLabel"`
+	Params       map[string]string               `json:"params"`
+	Schedule     BusinessMetricImportSchedule    `json:"schedule"`
+	BackfillDays int64                           `json:"backfillDays"`
+	Timezone     string                          `json:"timezone"`
+	Aggregation  BusinessMetricImportAggregation `json:"aggregation"`
+	Enabled      bool                            `json:"enabled"`
+	NextRunAt    *string                         `json:"nextRunAt"`
+	LastRunAt    *string                         `json:"lastRunAt"`
+	// LastStatus: One of "success", "error".
+	LastStatus *string `json:"lastStatus"`
+	LastError  *string `json:"lastError"`
+	// ConsecutiveFailures: Failed runs in a row; scheduling backs off on it and
+	// a success resets it.
+	ConsecutiveFailures int64   `json:"consecutiveFailures"`
+	CreatedByUserID     *string `json:"createdByUserId"`
+	CreatedAt           string  `json:"createdAt"`
+	UpdatedAt           string  `json:"updatedAt"`
+}
+
+// BusinessMetricImporterInput is the `BusinessMetricImporterInput` schema.
+type BusinessMetricImporterInput struct {
+	// AccountID: A connected account whose plugin declares a business-metric
+	// source.
+	AccountID string `json:"accountId"`
+	// Params: The source plugin's form values, keyed by field (see `GET
+	// /business-metrics/importer-sources`). SQL fields must be a single SELECT
+	// or WITH statement; `{{from}}`, `{{to}}`, `{{to_exclusive}}` and
+	// `{{timezone}}` are replaced with quoted literals.
+	Params   map[string]string             `json:"params"`
+	Schedule *BusinessMetricImportSchedule `json:"schedule,omitempty"`
+	// BackfillDays: Trailing closed days each scheduled run restates, ending
+	// yesterday. Absent is 7.
+	BackfillDays *int64 `json:"backfillDays,omitempty"`
+	// Timezone: IANA timezone the days are counted in. Absent is `UTC`.
+	Timezone    *string                          `json:"timezone,omitempty"`
+	Aggregation *BusinessMetricImportAggregation `json:"aggregation,omitempty"`
+	// Enabled: Absent is true.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// BusinessMetricImporterSummary: The scheduled importer feeding this metric, or
+// null when its values are only pushed.
+//
+// The API may send null in its place.
+type BusinessMetricImporterSummary struct {
+	AccountID   string  `json:"accountId"`
+	AccountName *string `json:"accountName"`
+	PluginID    *string `json:"pluginId"`
+	// SourceLabel: The source plugin's name for itself, e.g. "CloudWatch
+	// metric".
+	SourceLabel *string `json:"sourceLabel"`
+	Enabled     bool    `json:"enabled"`
+	LastRunAt   *string `json:"lastRunAt"`
+	// LastStatus: One of "success", "error".
+	LastStatus *string `json:"lastStatus"`
+	LastError  *string `json:"lastError"`
 }
 
 // BusinessMetricInput is the `BusinessMetricInput` schema.
@@ -1784,12 +1930,39 @@ type BusinessMetricScopeTerm struct {
 	TagKey *string  `json:"tagKey,omitempty"`
 }
 
+// BusinessMetricSourceAccount is the `BusinessMetricSourceAccount` schema.
+type BusinessMetricSourceAccount struct {
+	AccountID   string                            `json:"accountId"`
+	AccountName string                            `json:"accountName"`
+	PluginID    string                            `json:"pluginId"`
+	PluginName  string                            `json:"pluginName"`
+	Source      BusinessMetricSourceAccountSource `json:"source"`
+}
+
+// BusinessMetricSourceField is the `BusinessMetricSourceField` schema.
+type BusinessMetricSourceField struct {
+	Key   string `json:"key"`
+	Label string `json:"label"`
+	// Type: One of "select", "sql", "text", "number".
+	Type         string                             `json:"type"`
+	Required     *bool                              `json:"required,omitempty"`
+	Description  *string                            `json:"description,omitempty"`
+	Placeholder  *string                            `json:"placeholder,omitempty"`
+	DefaultValue *string                            `json:"defaultValue,omitempty"`
+	Options      []BusinessMetricSourceFieldOptions `json:"options,omitempty"`
+	DependsOn    []string                           `json:"dependsOn,omitempty"`
+	AllowCustom  *bool                              `json:"allowCustom,omitempty"`
+}
+
 // BusinessMetricValue is the `BusinessMetricValue` schema.
 type BusinessMetricValue struct {
 	// Day: UTC day, YYYY-MM-DD.
 	Day   string  `json:"day"`
 	Value float64 `json:"value"`
-	// Source: One of "api", "workflow".
+	// Label: Optional breakdown label; a day's total is the sum across its
+	// labels.
+	Label *string `json:"label"`
+	// Source: One of "api", "workflow", "import".
 	Source    string `json:"source"`
 	UpdatedAt string `json:"updatedAt"`
 }
@@ -8595,6 +8768,7 @@ const (
 	PluginIDKubernetes     PluginID = "kubernetes"
 	PluginIDLinode         PluginID = "linode"
 	PluginIDMemcached      PluginID = "memcached"
+	PluginIDMetronome      PluginID = "metronome"
 	PluginIDMistral        PluginID = "mistral"
 	PluginIDModal          PluginID = "modal"
 	PluginIDMongodb        PluginID = "mongodb"
@@ -10059,6 +10233,7 @@ const (
 	ResourceTypeIDBigqueryDataset                ResourceTypeID = "bigquery-dataset"
 	ResourceTypeIDBigqueryTable                  ResourceTypeID = "bigquery-table"
 	ResourceTypeIDBigtableInstance               ResourceTypeID = "bigtable-instance"
+	ResourceTypeIDBillableMetric                 ResourceTypeID = "billable-metric"
 	ResourceTypeIDBillingAccount                 ResourceTypeID = "billing-account"
 	ResourceTypeIDBillingGroup                   ResourceTypeID = "billing-group"
 	ResourceTypeIDBlockVolume                    ResourceTypeID = "block-volume"
@@ -10126,6 +10301,7 @@ const (
 	ResourceTypeIDCustomEnrichment               ResourceTypeID = "custom-enrichment"
 	ResourceTypeIDCustomHostname                 ResourceTypeID = "custom-hostname"
 	ResourceTypeIDCustomVoice                    ResourceTypeID = "custom-voice"
+	ResourceTypeIDCustomer                       ResourceTypeID = "customer"
 	ResourceTypeIDD1Database                     ResourceTypeID = "d1-database"
 	ResourceTypeIDDashboard                      ResourceTypeID = "dashboard"
 	ResourceTypeIDDatabase                       ResourceTypeID = "database"
@@ -12698,10 +12874,45 @@ type BudgetWithStatusPlacements struct {
 	DashboardName string `json:"dashboardName"`
 }
 
+// BusinessMetricImportPreviewValues is an object the spec declares inline.
+type BusinessMetricImportPreviewValues struct {
+	Date  string  `json:"date"`
+	Value float64 `json:"value"`
+	Label *string `json:"label,omitempty"`
+}
+
+// BusinessMetricImportPreviewDryRun is an object the spec declares inline.
+type BusinessMetricImportPreviewDryRun struct {
+	Valid          bool     `json:"valid"`
+	Message        string   `json:"message"`
+	BytesProcessed *float64 `json:"bytesProcessed,omitempty"`
+}
+
+// BusinessMetricSourceAccountSource is an object the spec declares inline.
+type BusinessMetricSourceAccountSource struct {
+	Label       string  `json:"label"`
+	Description *string `json:"description,omitempty"`
+	// Kind: One of "sql", "metric".
+	Kind       string                      `json:"kind"`
+	Fields     []BusinessMetricSourceField `json:"fields"`
+	SQLDialect *string                     `json:"sqlDialect,omitempty"`
+	// ReadOnly: One of "enforced", "validated".
+	ReadOnly       *string `json:"readOnly,omitempty"`
+	SupportsDryRun *bool   `json:"supportsDryRun,omitempty"`
+}
+
+// BusinessMetricSourceFieldOptions is an object the spec declares inline.
+type BusinessMetricSourceFieldOptions struct {
+	ID          string  `json:"id"`
+	Label       string  `json:"label"`
+	Description *string `json:"description,omitempty"`
+}
+
 // BusinessMetricValuesInputValues is an object the spec declares inline.
 type BusinessMetricValuesInputValues struct {
 	Date  string  `json:"date"`
 	Value float64 `json:"value"`
+	Label *string `json:"label,omitempty"`
 }
 
 // CarbonAssumptionsVcpuWattsValue is an object the spec declares inline.
@@ -13746,9 +13957,46 @@ type BackupsDrillsLogResponse struct {
 	Drills []RestoreDrill `json:"drills"`
 }
 
+// BusinessMetricsImporterOptionsRequest is an object the spec declares inline.
+type BusinessMetricsImporterOptionsRequest struct {
+	AccountID string `json:"accountId"`
+	FieldKey  string `json:"fieldKey"`
+	// Params: The source plugin's form values, keyed by field (see `GET
+	// /business-metrics/importer-sources`). SQL fields must be a single SELECT
+	// or WITH statement; `{{from}}`, `{{to}}`, `{{to_exclusive}}` and
+	// `{{timezone}}` are replaced with quoted literals.
+	Params map[string]string `json:"params"`
+}
+
+// BusinessMetricsImporterOptionsResponse is an object the spec declares inline.
+type BusinessMetricsImporterOptionsResponse struct {
+	Options []BusinessMetricsImporterOptionsResponseOptions `json:"options"`
+}
+
+// BusinessMetricsImporterSourcesResponse is an object the spec declares inline.
+type BusinessMetricsImporterSourcesResponse struct {
+	Sources []BusinessMetricSourceAccount `json:"sources"`
+}
+
 // BusinessMetricsGetGetResponse is an object the spec declares inline.
 type BusinessMetricsGetGetResponse struct {
 	Metrics []BusinessMetric `json:"metrics"`
+}
+
+// BusinessMetricsImporterGetResponse is an object the spec declares inline.
+type BusinessMetricsImporterGetResponse struct {
+	Importer *BusinessMetricImporter `json:"importer"`
+}
+
+// BusinessMetricsImporterRunRequest is an object the spec declares inline.
+type BusinessMetricsImporterRunRequest struct {
+	From *string `json:"from,omitempty"`
+	To   *string `json:"to,omitempty"`
+}
+
+// BusinessMetricsImporterRunsResponse is an object the spec declares inline.
+type BusinessMetricsImporterRunsResponse struct {
+	Runs []BusinessMetricImportRun `json:"runs"`
 }
 
 // BusinessMetricsValuesCreateResponse is an object the spec declares inline.
@@ -14063,4 +14311,12 @@ type SshtunnelsOpenRequest struct {
 type SshtunnelsOpenResponse struct {
 	TunnelID  string `json:"tunnelId"`
 	LocalPort int64  `json:"localPort"`
+}
+
+// BusinessMetricsImporterOptionsResponseOptions is an object the spec declares
+// inline.
+type BusinessMetricsImporterOptionsResponseOptions struct {
+	ID          string  `json:"id"`
+	Label       string  `json:"label"`
+	Description *string `json:"description,omitempty"`
 }

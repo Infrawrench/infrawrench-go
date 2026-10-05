@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.59.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.60.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.59.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.60.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -4119,6 +4119,8 @@ type BusinessMetricsNamespace struct {
 
 	// Get: `client.businessMetrics.get`.
 	Get *BusinessMetricsGetNamespace
+	// Importer: `client.businessMetrics.importer`.
+	Importer *BusinessMetricsImporterNamespace
 	// Values: `client.businessMetrics.values`.
 	Values *BusinessMetricsValuesNamespace
 }
@@ -4126,6 +4128,7 @@ type BusinessMetricsNamespace struct {
 func newBusinessMetricsNamespace(t *transport) *BusinessMetricsNamespace {
 	n := &BusinessMetricsNamespace{t: t}
 	n.Get = newBusinessMetricsGetNamespace(t)
+	n.Importer = newBusinessMetricsImporterNamespace(t)
 	n.Values = newBusinessMetricsValuesNamespace(t)
 	return n
 }
@@ -4192,6 +4195,108 @@ func (n *BusinessMetricsNamespace) Delete(ctx context.Context, params BusinessMe
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
 	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BusinessMetricsImporterOptionsParams holds the parameters for
+// `client.businessMetrics.importerOptions`.
+type BusinessMetricsImporterOptionsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body BusinessMetricsImporterOptionsRequest
+}
+
+// ImporterOptions: List an importer picker's choices
+//
+// Choices for one `select` field of a source's form, given the values picked so
+// far. Needs `resources:execute` and `costs:write`: it calls the provider with
+// the account's credentials.
+//
+// _Requires permission: `resources:execute`._
+//
+// POST /api/org/{orgId}/business-metrics/importer-options
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *BusinessMetricsNamespace) ImporterOptions(ctx context.Context, params BusinessMetricsImporterOptionsParams, opts ...RequestOption) (*BusinessMetricsImporterOptionsResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/business-metrics/importer-options")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *BusinessMetricsImporterOptionsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BusinessMetricsImporterPreviewParams holds the parameters for
+// `client.businessMetrics.importerPreview`.
+type BusinessMetricsImporterPreviewParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body BusinessMetricImportPreviewRequest
+}
+
+// ImporterPreview: Preview an importer
+//
+// Run a source over a window and return the values it would write, writing
+// nothing; or, with `dryRun`, validate the query with the provider without
+// reading data. Read-only queries only, with the same row limit and timeout as a
+// scheduled run.
+//
+// _Requires permission: `resources:execute`._
+//
+// POST /api/org/{orgId}/business-metrics/importer-preview
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *BusinessMetricsNamespace) ImporterPreview(ctx context.Context, params BusinessMetricsImporterPreviewParams, opts ...RequestOption) (*BusinessMetricImportPreview, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/business-metrics/importer-preview")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *BusinessMetricImportPreview
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BusinessMetricsImporterSourcesParams holds the parameters for
+// `client.businessMetrics.importerSources`.
+//
+// Every field is optional; pass nil to take the defaults.
+type BusinessMetricsImporterSourcesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// ImporterSources: List importer sources
+//
+// Connected accounts whose plugin can feed a business metric on a schedule, each
+// with the plugin's importer form: which fields to fill and which are pickers.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/business-metrics/importer-sources
+func (n *BusinessMetricsNamespace) ImporterSources(ctx context.Context, params *BusinessMetricsImporterSourcesParams, opts ...RequestOption) (*BusinessMetricsImporterSourcesResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/business-metrics/importer-sources")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *BusinessMetricsImporterSourcesResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -4352,6 +4457,192 @@ func (n *BusinessMetricsGetNamespace) GetOrgOrgIDBusinessMetricsID(ctx context.C
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
 	var out *BusinessMetric
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BusinessMetricsImporterNamespace is `client.businessMetrics.importer`.
+type BusinessMetricsImporterNamespace struct {
+	t *transport
+}
+
+func newBusinessMetricsImporterNamespace(t *transport) *BusinessMetricsImporterNamespace {
+	n := &BusinessMetricsImporterNamespace{t: t}
+	return n
+}
+
+// BusinessMetricsImporterDeleteParams holds the parameters for
+// `client.businessMetrics.importer.delete`.
+type BusinessMetricsImporterDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Metric id or key
+	ID string
+}
+
+// Delete: Delete a metric's importer
+//
+// Stops importing and drops the run history. Values already imported stay.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/business-metrics/{id}/importer
+//
+// Raises on 404: Not found
+func (n *BusinessMetricsImporterNamespace) Delete(ctx context.Context, params BusinessMetricsImporterDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/business-metrics/{id}/importer")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BusinessMetricsImporterGetParams holds the parameters for
+// `client.businessMetrics.importer.get`.
+type BusinessMetricsImporterGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Metric id or key
+	ID string
+}
+
+// Get: Get a metric's importer
+//
+// `importer` is null when the metric's values are only pushed.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/business-metrics/{id}/importer
+//
+// Raises on 404: Not found
+func (n *BusinessMetricsImporterNamespace) Get(ctx context.Context, params BusinessMetricsImporterGetParams, opts ...RequestOption) (*BusinessMetricsImporterGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/business-metrics/{id}/importer")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *BusinessMetricsImporterGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BusinessMetricsImporterRunParams holds the parameters for
+// `client.businessMetrics.importer.run`.
+type BusinessMetricsImporterRunParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Metric id or key
+	ID string
+	// Body: the JSON request body.
+	Body *BusinessMetricsImporterRunRequest
+}
+
+// Run: Run a metric's importer now
+//
+// Runs synchronously and returns the finished run, failed or not. With no body
+// it reads the importer's own window; `from`/`to` backfill a wider one (at most
+// 730 days).
+//
+// _Requires permission: `resources:execute`._
+//
+// POST /api/org/{orgId}/business-metrics/{id}/importer/run
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *BusinessMetricsImporterNamespace) Run(ctx context.Context, params BusinessMetricsImporterRunParams, opts ...RequestOption) (*BusinessMetricImportRun, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/business-metrics/{id}/importer/run")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *BusinessMetricImportRun
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BusinessMetricsImporterRunsParams holds the parameters for
+// `client.businessMetrics.importer.runs`.
+type BusinessMetricsImporterRunsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Metric id or key
+	ID string
+	// Limit: Default 20.
+	Limit *int64
+}
+
+// Runs: List a metric's import runs
+//
+// Newest first; the most recent 50 are kept.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/business-metrics/{id}/importer/runs
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *BusinessMetricsImporterNamespace) Runs(ctx context.Context, params BusinessMetricsImporterRunsParams, opts ...RequestOption) (*BusinessMetricsImporterRunsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/business-metrics/{id}/importer/runs")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.addQuery("limit", params.Limit)
+	var out *BusinessMetricsImporterRunsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BusinessMetricsImporterUpdateParams holds the parameters for
+// `client.businessMetrics.importer.update`.
+type BusinessMetricsImporterUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Metric id or key
+	ID string
+	// Body: the JSON request body.
+	Body BusinessMetricImporterInput
+}
+
+// Update: Create or replace a metric's importer
+//
+// One importer per metric. A full replace: omitted fields take their defaults.
+// Each run restates whole days (every label a day carried is replaced by what
+// the source returned), never touches days the source returned nothing for, and
+// ignores points outside the window. Changing the account, the params or the
+// schedule makes it due immediately.
+//
+// _Requires permission: `resources:execute`._
+//
+// PUT /api/org/{orgId}/business-metrics/{id}/importer
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *BusinessMetricsImporterNamespace) Update(ctx context.Context, params BusinessMetricsImporterUpdateParams, opts ...RequestOption) (*BusinessMetricImporter, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/business-metrics/{id}/importer")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *BusinessMetricImporter
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
