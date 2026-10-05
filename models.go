@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.50.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.52.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.50.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.52.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2810,7 +2810,8 @@ type CostExportObject struct {
 	To          string `json:"to"`
 	// Key: `{prefix}/cost-export/{exportId}/{cadence}/{periodStart}.{format}`.
 	// Deterministic, so re-exporting a restated period overwrites this object
-	// instead of adding a second copy.
+	// instead of adding a second copy. For a warehouse destination, the table
+	// and the period's days (`byteCount` is 0).
 	Key       string `json:"key"`
 	RowCount  int64  `json:"rowCount"`
 	ByteCount int64  `json:"byteCount"`
@@ -2860,6 +2861,44 @@ const (
 	CostExportSchemaNative  CostExportSchema = "native"
 	CostExportSchemaFocus13 CostExportSchema = "focus-1.3"
 )
+
+// CostExportWarehouseOption is the `CostExportWarehouseOption` schema.
+type CostExportWarehouseOption struct {
+	ID          string  `json:"id"`
+	Label       string  `json:"label"`
+	Description *string `json:"description,omitempty"`
+}
+
+// CostExportWarehouseSetup is the `CostExportWarehouseSetup` schema.
+type CostExportWarehouseSetup struct {
+	// SQL: GRANT statements to run once, with comments.
+	SQL   string   `json:"sql"`
+	Notes []string `json:"notes"`
+}
+
+// CostExportWarehouseSink is the `CostExportWarehouseSink` schema.
+type CostExportWarehouseSink struct {
+	PluginID     string                            `json:"pluginId"`
+	DisplayName  string                            `json:"displayName"`
+	Label        string                            `json:"label"`
+	Description  *string                           `json:"description"`
+	TargetFields []CostExportWarehouseTargetField  `json:"targetFields"`
+	Accounts     []CostExportWarehouseSinkAccounts `json:"accounts"`
+}
+
+// CostExportWarehouseTargetField is the `CostExportWarehouseTargetField` schema.
+type CostExportWarehouseTargetField struct {
+	Key         string   `json:"key"`
+	Label       string   `json:"label"`
+	Description *string  `json:"description"`
+	DependsOn   []string `json:"dependsOn"`
+	Optional    bool     `json:"optional"`
+	// AllowCustom: A value outside the listed options is accepted (a table
+	// created on first run).
+	AllowCustom bool    `json:"allowCustom"`
+	Placeholder *string `json:"placeholder"`
+	EmptyLabel  *string `json:"emptyLabel"`
+}
 
 // CostFilter is the `CostFilter` schema.
 type CostFilter struct {
@@ -7829,6 +7868,190 @@ type PreflightRequest struct {
 	BastionID *string `json:"bastionId,omitempty"`
 }
 
+// PriceCatalogArea: Coarse geography. A provider without the requested region is
+// priced in its first declared region in this area.
+type PriceCatalogArea = string
+
+// The values PriceCatalogArea takes.
+const (
+	PriceCatalogAreaNorthAmerica PriceCatalogArea = "north-america"
+	PriceCatalogAreaSouthAmerica PriceCatalogArea = "south-america"
+	PriceCatalogAreaEurope       PriceCatalogArea = "europe"
+	PriceCatalogAreaAsiaPacific  PriceCatalogArea = "asia-pacific"
+	PriceCatalogAreaMiddleEast   PriceCatalogArea = "middle-east"
+	PriceCatalogAreaAfrica       PriceCatalogArea = "africa"
+	PriceCatalogAreaOceania      PriceCatalogArea = "oceania"
+)
+
+// PriceCatalogComparable: Monthly amount in the org's display currency
+// (converted at the org's stated rate), or in the native currency when no
+// display currency is configured; null when there is no rate. Sorting and
+// `maxMonthlyPrice` use it.
+//
+// The API may send null in its place.
+type PriceCatalogComparable struct {
+	Amount   float64 `json:"amount"`
+	Currency string  `json:"currency"`
+}
+
+// PriceCatalogCompareProvider is the `PriceCatalogCompareProvider` schema.
+type PriceCatalogCompareProvider struct {
+	PluginID     PluginID                  `json:"pluginId"`
+	PluginName   string                    `json:"pluginName"`
+	Region       *string                   `json:"region"`
+	RegionLabel  *string                   `json:"regionLabel"`
+	State        PriceCatalogProviderState `json:"state"`
+	Error        *string                   `json:"error"`
+	Best         any                       `json:"best"`
+	Alternatives []PriceCatalogRow         `json:"alternatives"`
+}
+
+// PriceCatalogCompareResponse is the `PriceCatalogCompareResponse` schema.
+type PriceCatalogCompareResponse struct {
+	Target          PriceCatalogCompareTarget     `json:"target"`
+	Reference       any                           `json:"reference"`
+	Area            PriceCatalogArea              `json:"area"`
+	RateType        PriceRateType                 `json:"rateType"`
+	Providers       []PriceCatalogCompareProvider `json:"providers"`
+	DisplayCurrency *string                       `json:"displayCurrency"`
+	MixedCurrencies bool                          `json:"mixedCurrencies"`
+	GeneratedAt     string                        `json:"generatedAt"`
+}
+
+// PriceCatalogCompareTarget is the `PriceCatalogCompareTarget` schema.
+type PriceCatalogCompareTarget struct {
+	Vcpus    *float64 `json:"vcpus"`
+	MemoryGb *float64 `json:"memoryGb"`
+	GpuCount *float64 `json:"gpuCount"`
+	GpuModel *string  `json:"gpuModel"`
+}
+
+// PriceCatalogPrice is the `PriceCatalogPrice` schema.
+type PriceCatalogPrice struct {
+	Region   string        `json:"region"`
+	RateType PriceRateType `json:"rateType"`
+	// Unit: One of "hour", "month", "gb-month".
+	Unit string `json:"unit"`
+	// Amount: Price per `unit` in `currency`, the provider's list price.
+	Amount   float64 `json:"amount"`
+	Currency string  `json:"currency"`
+	// Term: Commitment term for reserved / savings plan: `1yr`, `3yr`.
+	Term          *string `json:"term,omitempty"`
+	PaymentOption *string `json:"paymentOption,omitempty"`
+	// EffectiveDate: When the provider says the rate took effect. Absent when
+	// the source does not say.
+	EffectiveDate *string `json:"effectiveDate,omitempty"`
+}
+
+// PriceCatalogProductFamily is the `PriceCatalogProductFamily` schema.
+type PriceCatalogProductFamily = string
+
+// The values PriceCatalogProductFamily takes.
+const (
+	PriceCatalogProductFamilyCompute        PriceCatalogProductFamily = "compute"
+	PriceCatalogProductFamilyGpu            PriceCatalogProductFamily = "gpu"
+	PriceCatalogProductFamilyDatabase       PriceCatalogProductFamily = "database"
+	PriceCatalogProductFamilyKubernetesNode PriceCatalogProductFamily = "kubernetes-node"
+	PriceCatalogProductFamilyStorage        PriceCatalogProductFamily = "storage"
+)
+
+// PriceCatalogProviderState: `no-account`: the provider's price API needs
+// credentials and the org has no account on it. `loading`: the first fetch is
+// still running, ask again shortly.
+type PriceCatalogProviderState = string
+
+// The values PriceCatalogProviderState takes.
+const (
+	PriceCatalogProviderStateReady     PriceCatalogProviderState = "ready"
+	PriceCatalogProviderStateNoAccount PriceCatalogProviderState = "no-account"
+	PriceCatalogProviderStateNoRegion  PriceCatalogProviderState = "no-region"
+	PriceCatalogProviderStateLoading   PriceCatalogProviderState = "loading"
+	PriceCatalogProviderStateError     PriceCatalogProviderState = "error"
+)
+
+// PriceCatalogProviderStatus is the `PriceCatalogProviderStatus` schema.
+type PriceCatalogProviderStatus struct {
+	PluginID            PluginID                             `json:"pluginId"`
+	PluginName          string                               `json:"pluginName"`
+	RequiresCredentials bool                                 `json:"requiresCredentials"`
+	Permission          *string                              `json:"permission"`
+	Source              PriceCatalogProviderStatusSource     `json:"source"`
+	RefreshHours        float64                              `json:"refreshHours"`
+	Services            []PriceCatalogProviderStatusServices `json:"services"`
+	Regions             []PriceCatalogProviderStatusRegions  `json:"regions"`
+	State               PriceCatalogProviderState            `json:"state"`
+	Region              *string                              `json:"region"`
+	Error               *string                              `json:"error"`
+	FetchedAt           *string                              `json:"fetchedAt"`
+	Truncated           bool                                 `json:"truncated"`
+}
+
+// PriceCatalogRow is the `PriceCatalogRow` schema.
+type PriceCatalogRow struct {
+	PluginID     PluginID                  `json:"pluginId"`
+	PluginName   string                    `json:"pluginName"`
+	ServiceID    string                    `json:"serviceId"`
+	ServiceLabel string                    `json:"serviceLabel"`
+	Sku          string                    `json:"sku"`
+	Name         string                    `json:"name"`
+	Family       PriceCatalogProductFamily `json:"family"`
+	Series       *string                   `json:"series"`
+	Specs        PriceCatalogSpecs         `json:"specs"`
+	Region       string                    `json:"region"`
+	RegionLabel  string                    `json:"regionLabel"`
+	Price        PriceCatalogPrice         `json:"price"`
+	// MonthlyAmount: `price` as a 730-hour month.
+	MonthlyAmount *float64                `json:"monthlyAmount"`
+	Comparable    *PriceCatalogComparable `json:"comparable"`
+	// OtherPrices: The product's other rates in the same region.
+	OtherPrices []PriceCatalogPrice `json:"otherPrices"`
+	// Estimate: Create-form prefill for the plugin's estimate, with the region
+	// filled in.
+	Estimate *PriceCatalogRowEstimate `json:"estimate"`
+}
+
+// PriceCatalogSearchResponse is the `PriceCatalogSearchResponse` schema.
+type PriceCatalogSearchResponse struct {
+	Rows            []PriceCatalogRow            `json:"rows"`
+	Total           int64                        `json:"total"`
+	Offset          int64                        `json:"offset"`
+	Limit           int64                        `json:"limit"`
+	Area            PriceCatalogArea             `json:"area"`
+	RateType        PriceRateType                `json:"rateType"`
+	Providers       []PriceCatalogProviderStatus `json:"providers"`
+	DisplayCurrency *string                      `json:"displayCurrency"`
+	Currencies      []string                     `json:"currencies"`
+	// MixedCurrencies: True when rows were sorted across currencies with no
+	// common comparable figure.
+	MixedCurrencies bool     `json:"mixedCurrencies"`
+	GpuModels       []string `json:"gpuModels"`
+	GeneratedAt     string   `json:"generatedAt"`
+}
+
+// PriceCatalogSpecs is the `PriceCatalogSpecs` schema.
+type PriceCatalogSpecs struct {
+	Vcpus        *float64 `json:"vcpus,omitempty"`
+	MemoryGb     *float64 `json:"memoryGb,omitempty"`
+	GpuCount     *float64 `json:"gpuCount,omitempty"`
+	GpuModel     *string  `json:"gpuModel,omitempty"`
+	GpuMemoryGb  *float64 `json:"gpuMemoryGb,omitempty"`
+	StorageGb    *float64 `json:"storageGb,omitempty"`
+	StorageType  *string  `json:"storageType,omitempty"`
+	Architecture *string  `json:"architecture,omitempty"`
+	Network      *string  `json:"network,omitempty"`
+}
+
+// PriceRateType is the `PriceRateType` schema.
+type PriceRateType = string
+
+// The values PriceRateType takes.
+const (
+	PriceRateTypeOnDemand    PriceRateType = "on-demand"
+	PriceRateTypeSpot        PriceRateType = "spot"
+	PriceRateTypeReserved    PriceRateType = "reserved"
+	PriceRateTypeSavingsPlan PriceRateType = "savings-plan"
+)
+
 // ProbeMetricSeries is the `ProbeMetricSeries` schema.
 type ProbeMetricSeries struct {
 	// Label: "Latency" (ms) or "Up" (1/0).
@@ -10930,8 +11153,8 @@ type TabTarget struct {
 	// "expiring", "posture", "access-review", "backups", "wallboard",
 	// "calendar", "runbooks", "query-monitors", "dns", "iac",
 	// "environment-diff", "environments", "ssh-fanout", "metric-alerts",
-	// "probes", "status-pages", "quotas", "incidents", "workflows",
-	// "deployments", "settings", "chat", "linux-app".
+	// "probes", "status-pages", "quotas", "price-catalog", "incidents",
+	// "workflows", "deployments", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -11497,6 +11720,12 @@ type CostAnomalyAcknowledgement struct {
 	AnnotationID *string `json:"annotationId"`
 }
 
+// CostExportWarehouseSinkAccounts is an object the spec declares inline.
+type CostExportWarehouseSinkAccounts struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // CostScenarioResultContributions is an object the spec declares inline.
 type CostScenarioResultContributions struct {
 	AdjustmentID string `json:"adjustmentId"`
@@ -11962,6 +12191,32 @@ type PreflightDeclarationTemplateFormat struct {
 	Language string `json:"language"`
 }
 
+// PriceCatalogProviderStatusSource is an object the spec declares inline.
+type PriceCatalogProviderStatusSource struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
+// PriceCatalogProviderStatusServices is an object the spec declares inline.
+type PriceCatalogProviderStatusServices struct {
+	ID     string                    `json:"id"`
+	Label  string                    `json:"label"`
+	Family PriceCatalogProductFamily `json:"family"`
+}
+
+// PriceCatalogProviderStatusRegions is an object the spec declares inline.
+type PriceCatalogProviderStatusRegions struct {
+	ID    string           `json:"id"`
+	Label string           `json:"label"`
+	Area  PriceCatalogArea `json:"area"`
+}
+
+// PriceCatalogRowEstimate is an object the spec declares inline.
+type PriceCatalogRowEstimate struct {
+	ResourceTypeID string            `json:"resourceTypeId"`
+	Fields         map[string]string `json:"fields"`
+}
+
 // ProbeMetricSeriesPoints is an object the spec declares inline.
 type ProbeMetricSeriesPoints struct {
 	// Timestamp: Unix epoch milliseconds.
@@ -12346,6 +12601,29 @@ type CostAnnotationsGetResponse struct {
 	Annotations []CostAnnotation `json:"annotations"`
 }
 
+// CostExportsWarehouseOptionsRequest is an object the spec declares inline.
+type CostExportsWarehouseOptionsRequest struct {
+	AccountID string            `json:"accountId"`
+	Field     string            `json:"field"`
+	Target    map[string]string `json:"target,omitempty"`
+}
+
+// CostExportsWarehouseOptionsResponse is an object the spec declares inline.
+type CostExportsWarehouseOptionsResponse struct {
+	Options []CostExportWarehouseOption `json:"options"`
+}
+
+// CostExportsWarehouseSetupRequest is an object the spec declares inline.
+type CostExportsWarehouseSetupRequest struct {
+	AccountID string            `json:"accountId"`
+	Target    map[string]string `json:"target,omitempty"`
+}
+
+// CostExportsWarehouseSinksResponse is an object the spec declares inline.
+type CostExportsWarehouseSinksResponse struct {
+	Sinks []CostExportWarehouseSink `json:"sinks"`
+}
+
 // CostScenariosReferentsResponse is an object the spec declares inline.
 type CostScenariosReferentsResponse struct {
 	Referents []CostScenarioReferent `json:"referents"`
@@ -12439,6 +12717,11 @@ type MsteamsTestResponse struct {
 // OnCallOverridesGetResponse is an object the spec declares inline.
 type OnCallOverridesGetResponse struct {
 	Overrides []OnCallOverride `json:"overrides"`
+}
+
+// PriceCatalogProvidersResponse is an object the spec declares inline.
+type PriceCatalogProvidersResponse struct {
+	Providers []PriceCatalogProviderStatus `json:"providers"`
 }
 
 // ProfilePasswordResetResponse is an object the spec declares inline.

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.50.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.52.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.50.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.52.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -177,6 +177,8 @@ type APIV1Client struct {
 	Pages *PagesNamespace
 	// Posture: `client.posture`.
 	Posture *PostureNamespace
+	// PriceCatalog: `client.priceCatalog`.
+	PriceCatalog *PriceCatalogNamespace
 	// Probes: `client.probes`.
 	Probes *ProbesNamespace
 	// Profile: `client.profile`.
@@ -316,6 +318,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Ownership = newOwnershipNamespace(t)
 	c.Pages = newPagesNamespace(t)
 	c.Posture = newPostureNamespace(t)
+	c.PriceCatalog = newPriceCatalogNamespace(t)
 	c.Probes = newProbesNamespace(t)
 	c.Profile = newProfileNamespace(t)
 	c.QueryMonitors = newQueryMonitorsNamespace(t)
@@ -5813,8 +5816,10 @@ type CostExportsCreateParams struct {
 
 // Create: Create a cost export
 //
-// Credentials are required on create. They are encrypted at rest and no route
-// ever returns them; responses carry a redacted `credentialHint` instead.
+// Credentials are required on create for S3 and HTTPS destinations. They are
+// encrypted at rest and no route ever returns them; responses carry a redacted
+// `credentialHint` instead. A warehouse destination takes none: it loads with
+// the connected account's credentials.
 //
 // _Requires permission: `org:settings:write`._
 //
@@ -5979,6 +5984,103 @@ func (n *CostExportsNamespace) Update(ctx context.Context, params CostExportsUpd
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *CostExport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostExportsWarehouseOptionsParams holds the parameters for
+// `client.costExports.warehouseOptions`.
+type CostExportsWarehouseOptionsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostExportsWarehouseOptionsRequest
+}
+
+// WarehouseOptions: List options for a warehouse target field
+//
+// Reads the provider live with the account's credentials (warehouses, databases
+// or catalogs, schemas, tables). A provider refusal is a 400 carrying its
+// message.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/cost-exports/warehouse-options
+//
+// Raises on 400: Bad request
+func (n *CostExportsNamespace) WarehouseOptions(ctx context.Context, params CostExportsWarehouseOptionsParams, opts ...RequestOption) (*CostExportsWarehouseOptionsResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-exports/warehouse-options")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostExportsWarehouseOptionsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostExportsWarehouseSetupParams holds the parameters for
+// `client.costExports.warehouseSetup`.
+type CostExportsWarehouseSetupParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostExportsWarehouseSetupRequest
+}
+
+// WarehouseSetup: Least-privilege setup for a warehouse target
+//
+// The GRANT statements the connected role or principal needs for a target, plus
+// any non-SQL steps (for Databricks, CAN USE on the SQL warehouse).
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/cost-exports/warehouse-setup
+//
+// Raises on 400: Bad request
+func (n *CostExportsNamespace) WarehouseSetup(ctx context.Context, params CostExportsWarehouseSetupParams, opts ...RequestOption) (*CostExportWarehouseSetup, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-exports/warehouse-setup")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostExportWarehouseSetup
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostExportsWarehouseSinksParams holds the parameters for
+// `client.costExports.warehouseSinks`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostExportsWarehouseSinksParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// WarehouseSinks: List warehouse destination types
+//
+// Plugins that can load an export into a table in their own warehouse
+// (Snowflake, Databricks), each with the organization's connected accounts and
+// the target fields to fill.
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/cost-exports/warehouse-sinks
+func (n *CostExportsNamespace) WarehouseSinks(ctx context.Context, params *CostExportsWarehouseSinksParams, opts ...RequestOption) (*CostExportsWarehouseSinksResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-exports/warehouse-sinks")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CostExportsWarehouseSinksResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -14158,6 +14260,256 @@ func (n *PostureSettingsNamespace) Update(ctx context.Context, params *PostureSe
 		r.setJSONBody(params.Body)
 	}
 	var out *PostureAlertSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PriceCatalogNamespace is `client.priceCatalog`.
+type PriceCatalogNamespace struct {
+	t *transport
+}
+
+func newPriceCatalogNamespace(t *transport) *PriceCatalogNamespace {
+	n := &PriceCatalogNamespace{t: t}
+	return n
+}
+
+// PriceCatalogCompareParams holds the parameters for
+// `client.priceCatalog.compare`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PriceCatalogCompareParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Vcpus: Minimum vCPUs.
+	Vcpus *string
+	// MemoryGb: Minimum memory, GB.
+	MemoryGb *string
+	// GpuCount: Minimum GPUs.
+	GpuCount          *string
+	GpuModel          *string
+	ReferencePluginID *string
+	ReferenceSku      *string
+	Area              *PriceCatalogArea
+	RateType          *PriceRateType
+	// PluginIDs: Comma-separated plugin ids.
+	PluginIDs *string
+	// Alternatives: Runners-up per provider, 0 to 10. Default 2.
+	Alternatives *string
+}
+
+// Compare: Compare equivalent instances across providers
+//
+// The cheapest product per provider that meets every stated spec (at least the
+// vCPUs, memory and GPUs asked for), in each provider's region for the area.
+// Give the target as specs, or name a reference product and its specs are used.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/price-catalog/compare
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PriceCatalogNamespace) Compare(ctx context.Context, params *PriceCatalogCompareParams, opts ...RequestOption) (*PriceCatalogCompareResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/price-catalog/compare")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("vcpus", params.Vcpus)
+		r.addQuery("memoryGb", params.MemoryGb)
+		r.addQuery("gpuCount", params.GpuCount)
+		r.addQuery("gpuModel", params.GpuModel)
+		r.addQuery("referencePluginId", params.ReferencePluginID)
+		r.addQuery("referenceSku", params.ReferenceSku)
+		r.addQuery("area", params.Area)
+		r.addQuery("rateType", params.RateType)
+		r.addQuery("pluginIds", params.PluginIDs)
+		r.addQuery("alternatives", params.Alternatives)
+	}
+	var out *PriceCatalogCompareResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PriceCatalogProvidersParams holds the parameters for
+// `client.priceCatalog.providers`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PriceCatalogProvidersParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Providers: List the providers that publish a price catalog
+//
+// Every plugin that declares a price catalog, with its source, refresh cadence,
+// services, regions and whether its price API needs credentials. A credentialed
+// provider the org has no account on reports `no-account`.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/price-catalog/providers
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PriceCatalogNamespace) Providers(ctx context.Context, params *PriceCatalogProvidersParams, opts ...RequestOption) (*PriceCatalogProvidersResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/price-catalog/providers")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *PriceCatalogProvidersResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PriceCatalogSearchParams holds the parameters for
+// `client.priceCatalog.search`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PriceCatalogSearchParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Q: Free text over SKU, name, series and GPU model.
+	Q *string
+	// PluginIDs: Comma-separated plugin ids.
+	PluginIDs *string
+	// ServiceIDs: Comma-separated service ids (from the providers list).
+	ServiceIDs *string
+	// Families: Comma-separated product families.
+	Families *string
+	// Region: Exact provider region, for providers that declare it.
+	Region *string
+	Area   *PriceCatalogArea
+	// MinVcpus: Minimum vCPUs.
+	MinVcpus *string
+	// MaxVcpus: Maximum vCPUs.
+	MaxVcpus *string
+	// MinMemoryGb: Minimum memory, GB.
+	MinMemoryGb *string
+	// MaxMemoryGb: Maximum memory, GB.
+	MaxMemoryGb *string
+	// Gpu: One of "any", "required", "none".
+	Gpu *string
+	// GpuModel: Case-insensitive substring, e.g. `H100`.
+	GpuModel *string
+	// MinGpus: Minimum GPU count.
+	MinGpus *string
+	// MaxMonthlyPrice: Upper bound on the comparable monthly price.
+	MaxMonthlyPrice *string
+	RateType        *PriceRateType
+	// Term: `1yr` or `3yr` for commitments.
+	Term *string
+	// Sort: One of "price", "vcpus", "memory", "gpus", "name".
+	Sort *string
+	// Order: One of "asc", "desc".
+	Order *string
+	// Limit: Rows per page, 1 to 500. Default 100.
+	Limit *string
+	// Offset: Rows to skip.
+	Offset *string
+}
+
+// Search: Search provider list prices
+//
+// Search instance types across every catalog provider: one row per product
+// priced at the requested rate type in the region chosen for each provider.
+// Filters narrow by provider, service, specs, GPU and price; rows sort by
+// monthly price by default.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/price-catalog/search
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required — the organization's plan does not include
+// this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PriceCatalogNamespace) Search(ctx context.Context, params *PriceCatalogSearchParams, opts ...RequestOption) (*PriceCatalogSearchResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/price-catalog/search")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("q", params.Q)
+		r.addQuery("pluginIds", params.PluginIDs)
+		r.addQuery("serviceIds", params.ServiceIDs)
+		r.addQuery("families", params.Families)
+		r.addQuery("region", params.Region)
+		r.addQuery("area", params.Area)
+		r.addQuery("minVcpus", params.MinVcpus)
+		r.addQuery("maxVcpus", params.MaxVcpus)
+		r.addQuery("minMemoryGb", params.MinMemoryGb)
+		r.addQuery("maxMemoryGb", params.MaxMemoryGb)
+		r.addQuery("gpu", params.Gpu)
+		r.addQuery("gpuModel", params.GpuModel)
+		r.addQuery("minGpus", params.MinGpus)
+		r.addQuery("maxMonthlyPrice", params.MaxMonthlyPrice)
+		r.addQuery("rateType", params.RateType)
+		r.addQuery("term", params.Term)
+		r.addQuery("sort", params.Sort)
+		r.addQuery("order", params.Order)
+		r.addQuery("limit", params.Limit)
+		r.addQuery("offset", params.Offset)
+	}
+	var out *PriceCatalogSearchResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
