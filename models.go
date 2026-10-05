@@ -96,7 +96,7 @@ type AccessPrincipal struct {
 	// ExternalID: Provider-native id, when known.
 	ExternalID *string `json:"externalId"`
 	// Role: What kind of identity the principal is, from the resource type's
-	// `principalRole` declaration. Grouping and labels only — it is not a
+	// `principalRole` declaration. Grouping and labels only; it is not a
 	// permission model.
 	//
 	// One of "user", "group", "role", "service-account", "key", "binding".
@@ -107,8 +107,8 @@ type AccessPrincipal struct {
 	DaysSinceLastUsed *int64  `json:"daysSinceLastUsed"`
 	// Activity: What could be established about the principal's last use.
 	// `unknown` means the resource type declares no last-used field, or the
-	// provider stored nothing parseable — it is a first-class answer and is
-	// never reported as `stale`.
+	// provider stored nothing parseable; it is a first-class answer and is never
+	// reported as `stale`.
 	//
 	// One of "active", "stale", "unknown".
 	Activity  string  `json:"activity"`
@@ -118,9 +118,9 @@ type AccessPrincipal struct {
 	// the type declares none.
 	Admin *bool `json:"admin"`
 	// MFA: Multi-factor state, only on types that declare an MFA field. Null
-	// everywhere else — "not synced" is not "MFA is off".
+	// everywhere else; "not synced" is not "MFA is off".
 	MFA *bool `json:"mfa"`
-	// Parent: The principal this one hangs off — a key's owner, a binding's
+	// Parent: The principal this one hangs off; a key's owner, a binding's
 	// subject.
 	Parent *string               `json:"parent"`
 	Owner  *AccessPrincipalOwner `json:"owner"`
@@ -173,7 +173,7 @@ type AccessRequest struct {
 	RevokedAt      *string `json:"revokedAt"`
 	RevokedByName  *string `json:"revokedByName"`
 	// Active: True when this row is granting permissions right now. Evaluated,
-	// never swept — a grant stops applying the instant it lapses.
+	// never swept; a grant stops applying the instant it lapses.
 	Active    bool   `json:"active"`
 	CreatedAt string `json:"createdAt"`
 }
@@ -229,7 +229,7 @@ type AccessReviewDismissalCreate struct {
 // AccessReviewResponse is the `AccessReviewResponse` schema.
 type AccessReviewResponse struct {
 	// Principals: Every synced principal, by account then type then name. Never
-	// filtered by dismissals — accepting a finding must not remove a principal
+	// filtered by dismissals; accepting a finding must not remove a principal
 	// from the inventory.
 	Principals []AccessPrincipal `json:"principals"`
 	// Findings: Live findings, worst severity first. Dismissed findings are not
@@ -309,7 +309,7 @@ type AccountDeleted struct {
 
 // AccountDeletionPreview is the `AccountDeletionPreview` schema.
 type AccountDeletionPreview struct {
-	// OrganizationsToDelete: Deleted with the account — the caller is their only
+	// OrganizationsToDelete: Deleted with the account; the caller is their only
 	// member.
 	OrganizationsToDelete []OrganizationRef `json:"organizationsToDelete"`
 	// OrganizationsToLeave: Survive; the caller's membership is removed.
@@ -356,8 +356,8 @@ type AgentClaimLookup struct {
 	TrialExpiresInMs *int64 `json:"trialExpiresInMs"`
 	// MergeTargets: Organizations this user may merge the workspace into: ones
 	// they already belong to AND hold `accounts:write` in. A merge writes cloud
-	// credentials, so membership alone is not enough — the confirm route
-	// enforces the same rule.
+	// credentials, so membership alone is not enough: the confirm route enforces
+	// the same rule.
 	MergeTargets []AgentClaimMergeTarget `json:"mergeTargets"`
 }
 
@@ -385,7 +385,7 @@ type AgentClaimRequest struct {
 	// TargetOrganizationID: Required when `mode` is merge.
 	TargetOrganizationID *string `json:"targetOrganizationId,omitempty"`
 	// MoveHistory: Merge only: also re-parent the trial's metrics and cost
-	// history. Off by default — it changes numbers the target organization may
+	// history. Off by default; it changes numbers the target organization may
 	// already be reporting on. Needs `costs:write`.
 	MoveHistory *bool `json:"moveHistory,omitempty"`
 }
@@ -407,7 +407,7 @@ type AgentClaimStarted struct {
 	UserCode        string `json:"user_code"`
 	VerificationURI string `json:"verification_uri"`
 	// VerificationURIComplete: The verification page with the code pre-filled.
-	// Convenient, but it puts a live bearer secret in a URL — prefer
+	// Convenient, but it puts a live bearer secret in a URL; prefer
 	// `verification_uri` plus the code shown separately.
 	VerificationURIComplete string `json:"verification_uri_complete"`
 	ExpiresAt               string `json:"expires_at"`
@@ -453,7 +453,7 @@ type AgentRegistration struct {
 type AgentRevoked struct {
 	OK bool `json:"ok"`
 	// Revoked: False when the registration was already revoked. The request
-	// still succeeds — revocation is idempotent — but nothing changed.
+	// still succeeds (revocation is idempotent) but nothing changed.
 	Revoked bool `json:"revoked"`
 }
 
@@ -672,7 +672,7 @@ type AiSpendBreakdown struct {
 
 // AlertCondition: One clause of a rule. A rule matches when every condition
 // matches; 'or' is expressed by writing a second rule. A condition on a fact the
-// alert does not carry never matches — in either direction, so `accountId notIn
+// alert does not carry never matches; in either direction, so `accountId notIn
 // [x]` does not match an alert with no account.
 type AlertCondition = any
 
@@ -697,13 +697,13 @@ type AlertDelivery struct {
 }
 
 // AlertDestination: One place a matched alert goes. `push` reaches the
-// organization's phones, still filtered by each member's own mutes — an
+// organization's phones, still filtered by each member's own mutes; an
 // organization rule decides whether the org is told, a member decides whether
 // their phone rings.
 //
 // `on-call` resolves to one person at delivery time, so a rule reading "database
 // alerts → whoever is on call" needs no edit at handover. A rotation that
-// resolves to nobody — disabled, empty, not yet started — contributes nobody and
+// resolves to nobody (disabled, empty, not yet started) contributes nobody and
 // the rule's **other** destinations still deliver: an alert lost to a
 // misconfigured rotation would be the worst outcome the feature could have.
 //
@@ -826,7 +826,7 @@ type AlertRuleInput struct {
 type AlertRulesResponse struct {
 	Rules []AlertRule `json:"rules"`
 	// UsingDefaults: True when the organization has saved no rules and `rules`
-	// is the synthesized default — everything except drift, to every connected
+	// is the synthesized default; everything except drift, to every connected
 	// channel and to mobile push.
 	UsingDefaults   bool                                `json:"usingDefaults"`
 	SlackChannels   []AlertRulesResponseSlackChannels   `json:"slackChannels"`
@@ -1040,8 +1040,8 @@ type BackupCoverageRow struct {
 	// State: How the resource reads at a glance. `automated` means the provider
 	// is taking backups we cannot enumerate, so there is a restore point but no
 	// listable one. `unknown` means the resource type declares a provider-native
-	// automated-backup signal but this instance's value could not be read — it
-	// is unassessed, not a confirmed gap, and never produces a finding.
+	// automated-backup signal but this instance's value could not be read; it is
+	// unassessed, not a confirmed gap, and never produces a finding.
 	//
 	// One of "protected", "automated", "stale", "unknown", "unprotected".
 	State string `json:"state"`
@@ -1052,11 +1052,11 @@ type BackupCoverageRow struct {
 	LatestBackupAt   *string  `json:"latestBackupAt"`
 	RpoHours         *float64 `json:"rpoHours"`
 	// AutomatedBackups: Whether provider-native automated backups are on. Null
-	// means the plugin syncs no signal either way — which never counts as
+	// means the plugin syncs no signal either way; which never counts as
 	// protection and never counts as a fault.
 	AutomatedBackups *bool    `json:"automatedBackups"`
 	RetentionDays    *float64 `json:"retentionDays"`
-	// RpoPolicyID: The policy supplying `maxRpoHours` — the strictest RPO among
+	// RpoPolicyID: The policy supplying `maxRpoHours`: the strictest RPO among
 	// those selecting this resource. Tracked separately from the retention
 	// policy because the two strictest demands routinely come from different
 	// policies.
@@ -1084,7 +1084,7 @@ type BackupCoverageSummary struct {
 	UnknownCount        int64 `json:"unknownCount"`
 	BackupCount         int64 `json:"backupCount"`
 	OrphanedBackupCount int64 `json:"orphanedBackupCount"`
-	// UnattributableBackupCount: Backups whose source could not be determined —
+	// UnattributableBackupCount: Backups whose source could not be determined;
 	// the plugin syncs no source field, the field was empty, or more than one
 	// resource answered to it. Reported rather than hidden: 'we found no
 	// orphans' and 'we could not tell' are different answers.
@@ -1120,15 +1120,15 @@ type BackupFinding struct {
 	// One of "unprotected", "rpo-breach", "retention-below-policy",
 	// "orphaned-snapshot".
 	Kind string `json:"kind"`
-	// Severity: How bad the gap is. Orphaned backups are always `low` — they
-	// cost money, not data.
+	// Severity: How bad the gap is. Orphaned backups are always `low`: they cost
+	// money, not data.
 	//
 	// One of "critical", "high", "medium", "low".
 	Severity string `json:"severity"`
 	Title    string `json:"title"`
 	// Detail: Sentence explaining the gap and what would close it.
 	Detail string `json:"detail"`
-	// PolicyID: The policy supplying the objective this finding breaches — the
+	// PolicyID: The policy supplying the objective this finding breaches; the
 	// RPO policy for `rpo-breach`, the retention policy for
 	// `retention-below-policy`. Null when no policy applies.
 	PolicyID   *string `json:"policyId"`
@@ -1148,7 +1148,7 @@ type BackupFinding struct {
 	// SizeGb: Size of an orphaned backup in GiB, when the plugin syncs one.
 	SizeGb *float64 `json:"sizeGb"`
 	// MonthlyCost: Trailing-30-day spend on an orphaned backup. Null means the
-	// cost could not be determined — never that the backup is free.
+	// cost could not be determined: never that the backup is free.
 	MonthlyCost *float64 `json:"monthlyCost"`
 	Currency    *string  `json:"currency"`
 }
@@ -1393,7 +1393,7 @@ type BlastRadiusDependant struct {
 
 // BlastRadiusFlowPeer is the `BlastRadiusFlowPeer` schema.
 type BlastRadiusFlowPeer struct {
-	// Ref: The peer's flow ref — a provider resource id, or a class token like
+	// Ref: The peer's flow ref; a provider resource id, or a class token like
 	// `internet`.
 	Ref   string `json:"ref"`
 	Label string `json:"label"`
@@ -1407,7 +1407,7 @@ type BlastRadiusFlowPeer struct {
 	Bytes         float64 `json:"bytes"`
 	EstimatedCost float64 `json:"estimatedCost"`
 	Currency      string  `json:"currency"`
-	// Days: Days in the window this peer appeared on — a spike versus a standing
+	// Days: Days in the window this peer appeared on; a spike versus a standing
 	// flow.
 	Days       int64       `json:"days"`
 	ResourceID *ResourceID `json:"resourceId"`
@@ -1452,7 +1452,7 @@ type BlastRadiusReference struct {
 	Name string `json:"name"`
 	// Detail: One extra clause of context.
 	Detail *string `json:"detail,omitempty"`
-	// UserFacing: Set when the reference is visible outside the organization — a
+	// UserFacing: Set when the reference is visible outside the organization; a
 	// published status page component, or the probe behind one. Any user-facing
 	// reference makes the report high severity on its own.
 	UserFacing *bool `json:"userFacing,omitempty"`
@@ -1470,7 +1470,7 @@ type BlastRadiusReport struct {
 	// user-facing ones first.
 	References []BlastRadiusReference `json:"references"`
 	// FlowPeers: Measured network peers over the last 14 days, heaviest first.
-	// Empty when flow collection is off — see `unchecked`.
+	// Empty when flow collection is off, see `unchecked`.
 	FlowPeers []BlastRadiusFlowPeer `json:"flowPeers"`
 	// FlowTotals: Totals over `flowPeers`, or null when traffic could not be
 	// measured at all. Zeroed totals mean collection is on and the resource is
@@ -1604,22 +1604,22 @@ type BudgetFull struct {
 	// measuring all spend.
 	SavedFilterID *string `json:"savedFilterId"`
 	// ScenarioModelID: A scenario model (see /cost-scenarios) this budget's
-	// **forecast** thresholds are measured against. Null — the default, and the
-	// value for every budget nobody deliberately opts in — keeps them on the
-	// bare trend. Opting in is per-budget on purpose: a hypothesis somebody
-	// typed into a form must not silently change when real people get paged.
-	// `actual` thresholds are never affected; they measure money already spent.
-	// Updates are full replaces, so omitting it on PUT clears the opt-in.
+	// **forecast** thresholds are measured against. Null (the default, and the
+	// value for every budget nobody deliberately opts in) keeps them on the bare
+	// trend. Opting in is per-budget on purpose: a hypothesis somebody typed
+	// into a form must not silently change when real people get paged. `actual`
+	// thresholds are never affected; they measure money already spent. Updates
+	// are full replaces, so omitting it on PUT clears the opt-in.
 	ScenarioModelID *string           `json:"scenarioModelId"`
 	Thresholds      []BudgetThreshold `json:"thresholds"`
 	CostBasis       BudgetCostBasis   `json:"costBasis"`
 	// UseAdjustedSpend: Measure this budget against billing-rule-adjusted spend
-	// — the internal figure — instead of what the providers charged. False by
+	// (the internal figure) instead of what the providers charged. False by
 	// default, and for every budget nobody opted in. The default is a deliberate
 	// refusal: a markup is organisation policy and a budget threshold pages a
 	// real person, so adding one settings row must not be able to move every
 	// on-call rota at once. Unlike a scenario this affects `actual` thresholds
-	// too — an opted-in budget is measuring the internal number, and
+	// too; an opted-in budget is measuring the internal number, and
 	// month-to-date internal spend is as marked up as the forecast is. The alert
 	// body says the figure is adjusted and names the collected one. Updates are
 	// full replaces, so omitting it on PUT clears the opt-in.
@@ -1676,22 +1676,22 @@ type BudgetInput struct {
 	// measuring all spend.
 	SavedFilterID *string `json:"savedFilterId,omitempty"`
 	// ScenarioModelID: A scenario model (see /cost-scenarios) this budget's
-	// **forecast** thresholds are measured against. Null — the default, and the
-	// value for every budget nobody deliberately opts in — keeps them on the
-	// bare trend. Opting in is per-budget on purpose: a hypothesis somebody
-	// typed into a form must not silently change when real people get paged.
-	// `actual` thresholds are never affected; they measure money already spent.
-	// Updates are full replaces, so omitting it on PUT clears the opt-in.
+	// **forecast** thresholds are measured against. Null (the default, and the
+	// value for every budget nobody deliberately opts in) keeps them on the bare
+	// trend. Opting in is per-budget on purpose: a hypothesis somebody typed
+	// into a form must not silently change when real people get paged. `actual`
+	// thresholds are never affected; they measure money already spent. Updates
+	// are full replaces, so omitting it on PUT clears the opt-in.
 	ScenarioModelID *string           `json:"scenarioModelId,omitempty"`
 	Thresholds      []BudgetThreshold `json:"thresholds"`
 	CostBasis       *BudgetCostBasis  `json:"costBasis,omitempty"`
 	// UseAdjustedSpend: Measure this budget against billing-rule-adjusted spend
-	// — the internal figure — instead of what the providers charged. False by
+	// (the internal figure) instead of what the providers charged. False by
 	// default, and for every budget nobody opted in. The default is a deliberate
 	// refusal: a markup is organisation policy and a budget threshold pages a
 	// real person, so adding one settings row must not be able to move every
 	// on-call rota at once. Unlike a scenario this affects `actual` thresholds
-	// too — an opted-in budget is measuring the internal number, and
+	// too; an opted-in budget is measuring the internal number, and
 	// month-to-date internal spend is as marked up as the forecast is. The alert
 	// body says the figure is adjusted and names the collected one. Updates are
 	// full replaces, so omitting it on PUT clears the opt-in.
@@ -1770,23 +1770,23 @@ type BudgetWithStatus struct {
 	// measuring all spend.
 	SavedFilterID *string `json:"savedFilterId"`
 	// ScenarioModelID: A scenario model (see /cost-scenarios) this budget's
-	// **forecast** thresholds are measured against. Null — the default, and the
-	// value for every budget nobody deliberately opts in — keeps them on the
-	// bare trend. Opting in is per-budget on purpose: a hypothesis somebody
-	// typed into a form must not silently change when real people get paged.
-	// `actual` thresholds are never affected; they measure money already spent.
-	// Updates are full replaces, so omitting it on PUT clears the opt-in.
+	// **forecast** thresholds are measured against. Null (the default, and the
+	// value for every budget nobody deliberately opts in) keeps them on the bare
+	// trend. Opting in is per-budget on purpose: a hypothesis somebody typed
+	// into a form must not silently change when real people get paged. `actual`
+	// thresholds are never affected; they measure money already spent. Updates
+	// are full replaces, so omitting it on PUT clears the opt-in.
 	ScenarioModelID *string `json:"scenarioModelId"`
 	// ScenarioModelName: The opted-into model's name, so a card can say whose
 	// assumptions are in the number.
 	ScenarioModelName *string `json:"scenarioModelName"`
 	// UseAdjustedSpend: Measure this budget against billing-rule-adjusted spend
-	// — the internal figure — instead of what the providers charged. False by
+	// (the internal figure) instead of what the providers charged. False by
 	// default, and for every budget nobody opted in. The default is a deliberate
 	// refusal: a markup is organisation policy and a budget threshold pages a
 	// real person, so adding one settings row must not be able to move every
 	// on-call rota at once. Unlike a scenario this affects `actual` thresholds
-	// too — an opted-in budget is measuring the internal number, and
+	// too; an opted-in budget is measuring the internal number, and
 	// month-to-date internal spend is as marked up as the forecast is. The alert
 	// body says the figure is adjusted and names the collected one. Updates are
 	// full replaces, so omitting it on PUT clears the opt-in.
@@ -1802,7 +1802,7 @@ type BudgetWithStatus struct {
 	Month          string `json:"month"`
 	ActualCents    int64  `json:"actualCents"`
 	// ForecastCents: The **unadjusted trend** forecast, whether or not a
-	// scenario is applied — so both numbers are always comparable.
+	// scenario is applied; so both numbers are always comparable.
 	ForecastCents *int64 `json:"forecastCents"`
 	// ScenarioForecastCents: The scenario-adjusted month forecast, set only for
 	// a budget that opted into a model, and the number its forecast thresholds
@@ -1865,7 +1865,7 @@ type BusinessMetric struct {
 	Importer        *BusinessMetricImporterSummary `json:"importer"`
 }
 
-// BusinessMetricCoverage: Null when the metric has no values at all — not an
+// BusinessMetricCoverage: Null when the metric has no values at all; not an
 // error, but every unit-cost chart drawn from it is one continuous gap.
 //
 // The API may send null in its place.
@@ -1873,7 +1873,7 @@ type BusinessMetricCoverage struct {
 	// FirstDay: Earliest reported day, YYYY-MM-DD.
 	FirstDay string `json:"firstDay"`
 	LastDay  string `json:"lastDay"`
-	// ReportedDays: Days carrying a value — compare against the span to spot a
+	// ReportedDays: Days carrying a value; compare against the span to spot a
 	// sparse series.
 	ReportedDays int64 `json:"reportedDays"`
 }
@@ -2030,15 +2030,15 @@ type BusinessMetricInput struct {
 	// and independent of `name` so a rename never breaks a running job.
 	Key  string `json:"key"`
 	Name string `json:"name"`
-	// Unit: Singular unit label used for display — the noun in "USD per
+	// Unit: Singular unit label used for display; the noun in "USD per
 	// customer".
 	Unit        string             `json:"unit"`
 	Description *string            `json:"description,omitempty"`
 	Kind        BusinessMetricKind `json:"kind"`
 	// Currency: ISO-4217 code. **Required when `kind` is `currency`, and
-	// rejected otherwise** — a revenue metric with no currency cannot have
-	// margin computed against it, and a count metric carrying one would suggest
-	// its numbers are money when they are requests.
+	// rejected otherwise**; a revenue metric with no currency cannot have margin
+	// computed against it, and a count metric carrying one would suggest its
+	// numbers are money when they are requests.
 	Currency *string `json:"currency,omitempty"`
 	// CostScope: The spend this metric divides, in the same filter vocabulary
 	// cost graphs and budgets use. Empty (the default) is all of the
@@ -2062,7 +2062,7 @@ type BusinessMetricInput struct {
 // BusinessMetricKind: What the metric's numbers are. `count` is a unit-less
 // quantity (customers, requests, GB) and supports unit cost only. `currency` is
 // money the business took in, denominated in the metric's own `currency`, and is
-// the only kind margin can be computed against — `(revenue − cost) ÷ revenue`
+// the only kind margin can be computed against, `(revenue − cost) ÷ revenue`
 // subtracts money from money and is undefined otherwise.
 type BusinessMetricKind = string
 
@@ -2157,7 +2157,7 @@ type BusinessMetricValue struct {
 type BusinessMetricValuesInput struct {
 	// Values: Days to report. **Re-reporting a day (with the same labels)
 	// restates it rather than adding to it**, so an unattended nightly job is
-	// safe to retry — an accumulating write would double every number the first
+	// safe to retry; an accumulating write would double every number the first
 	// time the job re-ran. A batch naming the same day and labels twice keeps
 	// the last value, applying the same rule within a batch that restatement
 	// applies between them.
@@ -2183,14 +2183,14 @@ type CalendarEvent struct {
 	// StartsAt: Clamped to the requested window's lower bound when the
 	// underlying span began earlier; `openEnded` says so.
 	StartsAt string `json:"startsAt"`
-	// EndsAt: Null means a point in time — a deadline, a scheduled run — or a
-	// span whose end is not known. `openEnded` distinguishes the two.
+	// EndsAt: Null means a point in time (a deadline, a scheduled run) or a span
+	// whose end is not known. `openEnded` distinguishes the two.
 	EndsAt *string `json:"endsAt"`
 	// OpenEnded: The span continues past an edge of the window, or has no
 	// declared end at all (a freeze held until further notice, an unresolved
 	// incident).
 	OpenEnded bool `json:"openEnded"`
-	// AllDay: The event is meaningful only to the day — a deadline read off a
+	// AllDay: The event is meaningful only to the day; a deadline read off a
 	// date field. Rendering such a thing at the provider's stored midnight would
 	// be false precision.
 	AllDay bool `json:"allDay"`
@@ -2199,7 +2199,7 @@ type CalendarEvent struct {
 	Link     CalendarEventLink `json:"link"`
 }
 
-// CalendarEventLink: Where opening the event should go — a hint rather than a
+// CalendarEventLink: Where opening the event should go; a hint rather than a
 // URL, because each surface addresses its own pages differently.
 //
 // The API may send null in its place.
@@ -2228,9 +2228,9 @@ type CalendarSubscription struct {
 	// Kinds: Kinds the feed carries. Empty means every kind, including ones
 	// added later.
 	Kinds []string `json:"kinds"`
-	// URL: The subscription URL, returned **only** by the create call — the
-	// token it contains is stored hashed and cannot be shown again. Lose it and
-	// mint a new feed.
+	// URL: The subscription URL, returned **only** by the create call; the token
+	// it contains is stored hashed and cannot be shown again. Lose it and mint a
+	// new feed.
 	URL       *string `json:"url,omitempty"`
 	CreatedAt string  `json:"createdAt"`
 	// LastAccessedAt: Last fetch, written at most hourly. Its purpose is
@@ -2284,8 +2284,8 @@ type CapacityStatus struct {
 	// PriceUsd: List price of one slot in whole dollars, for display copy.
 	PriceUsd int64 `json:"priceUsd"`
 	// Seats: Seats from slots still inside their term, excluding lapsed and
-	// refunded. ADDITIONAL to `subscription.seatCount` — an org's capacity is
-	// the two summed, and an org can hold slots with no subscription at all.
+	// refunded. ADDITIONAL to `subscription.seatCount`: an org's capacity is the
+	// two summed, and an org can hold slots with no subscription at all.
 	Seats int64 `json:"seats"`
 	// Slots: Every purchase ever made, newest first, including lapsed and
 	// refunded.
@@ -2420,8 +2420,9 @@ type CarbonUnestimatedRow struct {
 // default) is what the provider charged on the day it charged it; `amortized`
 // spreads a commitment's up-front fee across the term it buys; `blended` also
 // spreads each commitment's discount evenly over the usage it could cover. It is
-// echoed on every response because a delta whose basis is unstated is unreadable
-// — an amortized 'after' against a cash 'before' looks exactly like a saving.
+// echoed on every response because a delta whose basis is unstated is
+// unreadable: an amortized 'after' against a cash 'before' looks exactly like a
+// saving.
 type ChangeCostBasis = string
 
 // The values ChangeCostBasis takes.
@@ -2440,7 +2441,7 @@ type ChangeCostImpact struct {
 	// EffectiveWindowDays: The half-window the data supported. Clamped
 	// symmetrically, so both means always average the same number of days.
 	EffectiveWindowDays int64 `json:"effectiveWindowDays"`
-	// EventDay: UTC day the change landed on. Excluded from both windows — it is
+	// EventDay: UTC day the change landed on. Excluded from both windows; it is
 	// a mixed day.
 	EventDay   string                     `json:"eventDay"`
 	Before     *ChangeCostImpactWindow    `json:"before"`
@@ -2521,18 +2522,18 @@ type ChangeCostImpactSeries struct {
 	// DeltaPerDay: `afterPerDay - beforePerDay`. Positive means the change costs
 	// more.
 	DeltaPerDay float64 `json:"deltaPerDay"`
-	// DeltaPercent: Null when the before window spent nothing — there is no
+	// DeltaPercent: Null when the before window spent nothing; there is no
 	// percentage.
 	DeltaPercent *float64 `json:"deltaPercent"`
 	BeforeTotal  float64  `json:"beforeTotal"`
 	AfterTotal   float64  `json:"afterTotal"`
 }
 
-// ChangeCostImpactStatus: `measured` — both windows had collected data and the
-// delta is real. `insufficient_data` — the windows exist but are too short to
-// compare. `unknown` — nothing here can answer the question. **`unknown` is
-// never zero**: a resource with no cost data reports that we cannot say, not
-// that the change was free.
+// ChangeCostImpactStatus: `measured`: both windows had collected data and the
+// delta is real. `insufficient_data`: the windows exist but are too short to
+// compare. `unknown`: nothing here can answer the question. **`unknown` is never
+// zero**: a resource with no cost data reports that we cannot say, not that the
+// change was free.
 type ChangeCostImpactStatus = string
 
 // The values ChangeCostImpactStatus takes.
@@ -2554,7 +2555,7 @@ type ChangeCostImpactWindow struct {
 
 // ChangeCostImpactsRequest is the `ChangeCostImpactsRequest` schema.
 type ChangeCostImpactsRequest struct {
-	// ChangeIDs: Change ids from `GET /changes`. At most 50 — one feed page.
+	// ChangeIDs: Change ids from `GET /changes`. At most 50: one feed page.
 	ChangeIDs []string `json:"changeIds"`
 	// WindowDays: Days either side of the change. Default 7; clamped
 	// server-side.
@@ -2654,7 +2655,7 @@ type ChildTypeRef struct {
 
 // CommitmentCoverage is the `CommitmentCoverage` schema.
 type CommitmentCoverage struct {
-	// Available: False when every in-scope account was excluded — 'we cannot
+	// Available: False when every in-scope account was excluded; 'we cannot
 	// tell' reported as unavailable, never as 0%.
 	Available  bool                         `json:"available"`
 	Currencies []CommitmentCoverageCurrency `json:"currencies"`
@@ -2671,7 +2672,7 @@ type CommitmentCoverageCurrency struct {
 	CoveredAmount   float64 `json:"coveredAmount"`
 	UncoveredAmount float64 `json:"uncoveredAmount"`
 	// UncoveredEligibleAmount: Uncovered usage in cells where a commitment
-	// landed in the window — provider evidence of committability, not a
+	// landed in the window; provider evidence of committability, not a
 	// hand-maintained service table.
 	UncoveredEligibleAmount float64 `json:"uncoveredEligibleAmount"`
 	// BroadRatio: Lower bound: covered ÷ (covered + all uncovered usage).
@@ -2686,21 +2687,21 @@ type CommitmentHolding struct {
 	AccountID   string   `json:"accountId"`
 	AccountName string   `json:"accountName"`
 	PluginID    PluginID `json:"pluginId"`
-	// CommitmentID: Provider-native id — the join key against cost rows'
+	// CommitmentID: Provider-native id: the join key against cost rows'
 	// commitment dimension (an ARN where billing data carries ARNs, the bare id
 	// where it does not).
 	CommitmentID string `json:"commitmentId"`
 	// Kind: One of "reservation", "savings_plan", "committed_use".
 	Kind        string `json:"kind"`
 	Description string `json:"description"`
-	// Scope: Provider scope qualifier — an AZ, an instance family, 'Shared'.
+	// Scope: Provider scope qualifier; an AZ, an instance family, 'Shared'.
 	Scope *string `json:"scope"`
 	// Region: Null means the commitment applies across regions (an AWS Compute
-	// Savings Plan) — a real state, rendered as 'All regions', not missing data.
+	// Savings Plan); a real state, rendered as 'All regions', not missing data.
 	Region    *string `json:"region"`
 	StartDate *string `json:"startDate"`
 	EndDate   *string `json:"endDate"`
-	// TermDays: Provider-reported term length — never derived from the dates,
+	// TermDays: Provider-reported term length; never derived from the dates,
 	// which stop spanning the term once a commitment is split or merged.
 	TermDays *int64 `json:"termDays"`
 	// PaymentOption: One of "all_upfront", "partial_upfront", "no_upfront",
@@ -2709,7 +2710,7 @@ type CommitmentHolding struct {
 	// Currency: Null when the provider reports no money at all for this record.
 	Currency *string `json:"currency"`
 	// UpfrontAmount: Null means the provider did not report a price (Azure's
-	// list API reports none) — 'not reported', never rendered as 'free'.
+	// list API reports none); 'not reported', never rendered as 'free'.
 	UpfrontAmount   *float64 `json:"upfrontAmount"`
 	RecurringAmount *float64 `json:"recurringAmount"`
 	// RecurringPeriod: Atomic with recurringAmount: an amount without a period
@@ -2717,17 +2718,18 @@ type CommitmentHolding struct {
 	//
 	// One of "hour", "month".
 	RecurringPeriod *string `json:"recurringPeriod"`
-	// HourlyCommitmentAmount: Committed spend per hour — what utilization is
+	// HourlyCommitmentAmount: Committed spend per hour; what utilization is
 	// measured against.
 	HourlyCommitmentAmount *float64 `json:"hourlyCommitmentAmount"`
 	// UnitCommitments: Committed resource quantities for unit-denominated
-	// commitments (GCP CUDs). A record has either this or hourlyCommitmentAmount
-	// — the split decides which utilization question is even askable.
+	// commitments (GCP CUDs). A record has either this or
+	// hourlyCommitmentAmount; the split decides which utilization question is
+	// even askable.
 	UnitCommitments []CommitmentUnitAmount `json:"unitCommitments"`
 	// State: One of "active", "expired", "queued".
 	State string `json:"state"`
 	// ProviderUtilization: The provider's own utilization aggregates (Azure
-	// reservations only), verbatim — never blended with the derived utilization
+	// reservations only), verbatim; never blended with the derived utilization
 	// below.
 	ProviderUtilization []CommitmentProviderUtilization `json:"providerUtilization"`
 	LastSeenAt          string                          `json:"lastSeenAt"`
@@ -2768,13 +2770,13 @@ type CommitmentRecommendation struct {
 	Region   string   `json:"region"`
 	Currency string   `json:"currency"`
 	// RecommendedDailyCommitment: p10 of daily uncovered usage spend,
-	// nearest-rank — the floor, not the average.
+	// nearest-rank; the floor, not the average.
 	RecommendedDailyCommitment  float64 `json:"recommendedDailyCommitment"`
 	RecommendedHourlyCommitment float64 `json:"recommendedHourlyCommitment"`
 	AnnualCommitment            float64 `json:"annualCommitment"`
 	P50DailySpend               float64 `json:"p50DailySpend"`
 	// SavingBasis: Published discounts are "up to" figures. `range` renders
-	// "$X–$Y"; `upper_bound` renders "up to $Y" — never a bare "$Y".
+	// "$X–$Y"; `upper_bound` renders "up to $Y"; never a bare "$Y".
 	//
 	// One of "range", "upper_bound".
 	SavingBasis              string   `json:"savingBasis"`
@@ -2787,7 +2789,7 @@ type CommitmentRecommendation struct {
 	// before committing was a mistake.
 	BreakEvenUtilization float64 `json:"breakEvenUtilization"`
 	// AnnualLossIfUsageHalves: max(0, annualCommitment × (0.5 − discount)) at
-	// the shallow end of the published discount — a ceiling on regret where no
+	// the shallow end of the published discount: a ceiling on regret where no
 	// floor rate is published.
 	AnnualLossIfUsageHalves float64 `json:"annualLossIfUsageHalves"`
 }
@@ -2798,8 +2800,8 @@ type CommitmentRejectedCell struct {
 	Service  string   `json:"service"`
 	Region   string   `json:"region"`
 	Currency string   `json:"currency"`
-	// Gate: First gate the cell failed, in evaluation order — the most
-	// actionable objection.
+	// Gate: First gate the cell failed, in evaluation order; the most actionable
+	// objection.
 	//
 	// One of "presence", "not_in_decline", "floor", "materiality".
 	Gate string `json:"gate"`
@@ -2807,7 +2809,7 @@ type CommitmentRejectedCell struct {
 
 // CommitmentUnitAmount is the `CommitmentUnitAmount` schema.
 type CommitmentUnitAmount struct {
-	// Unit: Provider-native unit label, untranslated — "VCPU", "MEMORY_MB",
+	// Unit: Provider-native unit label, untranslated, "VCPU", "MEMORY_MB",
 	// "LOCAL_SSD_GB".
 	Unit   string  `json:"unit"`
 	Amount float64 `json:"amount"`
@@ -2816,13 +2818,13 @@ type CommitmentUnitAmount struct {
 // CommitmentUtilization is the `CommitmentUtilization` schema.
 type CommitmentUtilization struct {
 	// Utilization: delivered ÷ obligation, unclamped (values above 1 mean spend
-	// past the commitment). **Null means not measurable** — never 0, which would
+	// past the commitment). **Null means not measurable**; never 0, which would
 	// read as 'unused'; the reason field says why.
 	Utilization *float64 `json:"utilization"`
-	// Reason: Why utilization is null: `unit_denominated` — the commitment is in
+	// Reason: Why utilization is null: `unit_denominated`: the commitment is in
 	// resource units (GCP CUDs) and cost rows cannot say how many ran;
-	// `no_active_days` — the term does not intersect the window; `no_data_days`
-	// — no cost data was collected on any active day; `unattributed_rows` — the
+	// `no_active_days`: the term does not intersect the window; `no_data_days`:
+	// no cost data was collected on any active day; `unattributed_rows`: the
 	// account's plugin does not stamp commitment ids onto cost rows, so
 	// delivered spend would falsely read as zero.
 	//
@@ -2835,9 +2837,9 @@ type CommitmentUtilization struct {
 	DeliveredAmount  float64  `json:"deliveredAmount"`
 	// ActiveDays: Days of the window the commitment was active.
 	ActiveDays int64 `json:"activeDays"`
-	// MeasuredDays: Active days with cost data — the only days in the
-	// obligation. Counting a day the collection never ran would make a
-	// fully-used plan read as under-utilized.
+	// MeasuredDays: Active days with cost data; the only days in the obligation.
+	// Counting a day the collection never ran would make a fully-used plan read
+	// as under-utilized.
 	MeasuredDays int64 `json:"measuredDays"`
 	// MissingDays: Active days without cost data, reported rather than silently
 	// counted.
@@ -2851,7 +2853,7 @@ type CommitmentsFeed struct {
 	Coverage CommitmentCoverage      `json:"coverage"`
 	Planner  CommitmentPlanner       `json:"planner"`
 	Failures []CommitmentPollFailure `json:"failures"`
-	// PendingAccountIDs: Commitment-capable accounts never yet collected — named
+	// PendingAccountIDs: Commitment-capable accounts never yet collected, named
 	// rather than omitted.
 	PendingAccountIDs     []string `json:"pendingAccountIds"`
 	UtilizationWindowDays int64    `json:"utilizationWindowDays"`
@@ -2916,7 +2918,7 @@ type CostAccountStatus struct {
 	PeriodNative  bool     `json:"periodNative"`
 	Dimensions    []string `json:"dimensions"`
 	// ChargeTypes: Whether this account's plugin can tell one kind of charge
-	// from another. False means every row it writes is recorded as `usage` — not
+	// from another. False means every row it writes is recorded as `usage`: not
 	// that the provider only bills usage.
 	ChargeTypes bool `json:"chargeTypes"`
 	// Amortization: Whether this account's plugin reports an amortized amount
@@ -2928,10 +2930,10 @@ type CostAccountStatus struct {
 	// discounts. Clients offer the blended cost basis only when at least one
 	// account says yes; elsewhere it reads as the amortized numbers.
 	Blending *bool `json:"blending,omitempty"`
-	// Estimated: Whether this account's amounts are derived by Infrawrench —
-	// inventory priced against a rate card, or metered usage priced at published
-	// list rates — rather than reported as billed spend. True means the series
-	// cannot be reconciled against an invoice: resources deleted part-way
+	// Estimated: Whether this account's amounts are derived by Infrawrench
+	// (inventory priced against a rate card, or metered usage priced at
+	// published list rates) rather than reported as billed spend. True means the
+	// series cannot be reconciled against an invoice: resources deleted part-way
 	// through a period are no longer in inventory to be priced, all rates are
 	// list rather than negotiated, and credits, tax and refunds never appear.
 	Estimated bool `json:"estimated"`
@@ -2953,15 +2955,15 @@ type CostAccountStatus struct {
 }
 
 // CostAdjustmentSummary: What an adjusted answer did. Present whenever the
-// request asked to be adjusted, even for an organisation with no rules — its
+// request asked to be adjusted, even for an organisation with no rules; its
 // absence means, and can only mean, that every figure in the response is exactly
 // what the providers charged.
 type CostAdjustmentSummary struct {
 	// Rules: The enabled rules in force for this answer, in evaluation order.
 	Rules []CostAdjustmentSummaryRules `json:"rules"`
 	// RawTotals: The collected, unadjusted totals for exactly the same rows,
-	// summed in the same scan. Always present on an adjusted answer — this is
-	// the figure that reconciles against an invoice. Per-series raw figures are
+	// summed in the same scan. Always present on an adjusted answer; this is the
+	// figure that reconciles against an invoice. Per-series raw figures are
 	// deliberately not offered: after a reallocation the series are a different
 	// partition of the same money.
 	RawTotals map[string]float64 `json:"rawTotals"`
@@ -3006,7 +3008,7 @@ type CostAlertEvent struct {
 	ID        string `json:"id"`
 	AlertID   string `json:"alertId"`
 	AlertName string `json:"alertName"`
-	// PeriodKey: The cadence period the firing belongs to — a day, an ISO week
+	// PeriodKey: The cadence period the firing belongs to; a day, an ISO week
 	// (2026-W32) or a month (2026-08). One period fires at most once per group
 	// and currency.
 	PeriodKey    string `json:"periodKey"`
@@ -3020,7 +3022,7 @@ type CostAlertEvent struct {
 	PreviousAmountCents int64  `json:"previousAmountCents"`
 	CurrentAmountCents  int64  `json:"currentAmountCents"`
 	// ChangePercent: Signed percent change. Null when the prior window had no
-	// spend at all (new spend — the change is infinite); -100 when the group
+	// spend at all (new spend; the change is infinite); -100 when the group
 	// vanished.
 	ChangePercent *int64 `json:"changePercent"`
 	// Direction: One of "increase", "decrease".
@@ -3069,14 +3071,14 @@ type CostAlertInput struct {
 type CostAnnotation struct {
 	ID string `json:"id"`
 	// StartDate: Inclusive first day (UTC) the note is about. Mapped to
-	// whichever bucket holds it at the chart's binning — daily and cumulative
-	// use the day itself, weekly the Monday that starts its week, monthly the
-	// first of its month.
+	// whichever bucket holds it at the chart's binning: daily and cumulative use
+	// the day itself, weekly the Monday that starts its week, monthly the first
+	// of its month.
 	StartDate string `json:"startDate"`
 	// EndDate: Inclusive last day, or null for a note about a single moment. A
 	// deploy is a moment; a migration is a week, and a week spelled as seven
 	// notes misstates how many things happened. An end equal to the start is
-	// stored as null — the same fact has one spelling.
+	// stored as null; the same fact has one spelling.
 	EndDate *string `json:"endDate"`
 	Text    string  `json:"text"`
 	// CostReportID: The report this note is scoped to, or null for **org-wide**.
@@ -3102,14 +3104,14 @@ type CostAnnotation struct {
 // CostAnnotationInput is the `CostAnnotationInput` schema.
 type CostAnnotationInput struct {
 	// StartDate: Inclusive first day (UTC) the note is about. Mapped to
-	// whichever bucket holds it at the chart's binning — daily and cumulative
-	// use the day itself, weekly the Monday that starts its week, monthly the
-	// first of its month.
+	// whichever bucket holds it at the chart's binning: daily and cumulative use
+	// the day itself, weekly the Monday that starts its week, monthly the first
+	// of its month.
 	StartDate string `json:"startDate"`
 	// EndDate: Inclusive last day, or null for a note about a single moment. A
 	// deploy is a moment; a migration is a week, and a week spelled as seven
 	// notes misstates how many things happened. An end equal to the start is
-	// stored as null — the same fact has one spelling.
+	// stored as null; the same fact has one spelling.
 	EndDate *string `json:"endDate,omitempty"`
 	Text    string  `json:"text"`
 	// CostReportID: The report this note is scoped to, or null for **org-wide**.
@@ -3126,7 +3128,7 @@ type CostAnomaly struct {
 	Day string `json:"day"`
 	// Kind: Which detection produced the row. `spike` is spend far above the
 	// key's own trailing baseline; `new_source` is a provider or service with no
-	// spend at all across the trailing window that suddenly has material spend —
+	// spend at all across the trailing window that suddenly has material spend;
 	// it can never be a `spike`, since a zero baseline has no mean or deviation
 	// to exceed. Rows written before new-source detection existed read as
 	// `spike`.
@@ -3135,12 +3137,12 @@ type CostAnomaly struct {
 	Kind string `json:"kind"`
 	// Dimension: One of "provider", "service".
 	Dimension string `json:"dimension"`
-	// DimensionKey: The dimension's value — a plugin id or a service name.
+	// DimensionKey: The dimension's value; a plugin id or a service name.
 	DimensionKey string `json:"dimensionKey"`
 	Currency     string `json:"currency"`
 	ActualCents  int64  `json:"actualCents"`
 	// BaselineCents: Mean daily spend over the trailing 28-day baseline, in
-	// cents. Zero, or near it, for a `new_source` — clients must not compute a
+	// cents. Zero, or near it, for a `new_source`: clients must not compute a
 	// percentage change from it.
 	BaselineCents int64 `json:"baselineCents"`
 	// ThresholdCents: The detection bar the day cleared, in cents: baseline mean + N·stddev for a `spike`, the new-source floor for a `new_source`.
@@ -3158,7 +3160,7 @@ type CostAnomaly struct {
 	Hints []string `json:"hints"`
 	// Acknowledgement: Present once somebody has explained this finding, null
 	// while it is still an open question. Acknowledging does not suppress
-	// detection — the same key spiking again on a later day is a new anomaly and
+	// detection; the same key spiking again on a later day is a new anomaly and
 	// fires as normal.
 	Acknowledgement *CostAnomalyAcknowledgement `json:"acknowledgement"`
 	Feedback        *CostAnomalyFeedback        `json:"feedback"`
@@ -3263,9 +3265,9 @@ type CostAnomalySensitivity struct {
 // CostAnomalySettings is the `CostAnomalySettings` schema.
 type CostAnomalySettings struct {
 	// Sigmas: Standard deviations above a key's own trailing mean that count as
-	// a spike. Lower is more sensitive. Bounded at 1 — below that roughly a
-	// third of ordinary days clear the bar — and at 10, above which nothing
-	// short of a 10x jump fires. Defaults to 3.
+	// a spike. Lower is more sensitive. Bounded at 1 (below that roughly a third
+	// of ordinary days clear the bar) and at 10, above which nothing short of a
+	// 10x jump fires. Defaults to 3.
 	Sigmas float64 `json:"sigmas"`
 	// MinDeltaCents: Minimum rise over the baseline mean before a spike alerts,
 	// in USD cents (converted per series, so it means the same real amount in
@@ -3277,13 +3279,13 @@ type CostAnomalySettings struct {
 	// service quiet. Defaults to 2500 ($25).
 	NewSourceMinCents int64 `json:"newSourceMinCents"`
 	// SmsAlerts: Which anomalies also text the organization's Twilio recipients.
-	// Defaults to `off` — an organization with Twilio configured for budgets
-	// does not start receiving anomaly texts until it asks to. `new_source`
-	// texts only about spend appearing from nothing, which is what a leaked key
-	// looks like on a bill; `all` adds spikes on existing lines. Delivery is
-	// batched — one SMS per detection pass summarizing what it alerted on, at
-	// most one every six hours per organization — and never places a voice call.
-	// Push, Slack and Teams delivery is unaffected by this setting.
+	// Defaults to `off`: an organization with Twilio configured for budgets does
+	// not start receiving anomaly texts until it asks to. `new_source` texts
+	// only about spend appearing from nothing, which is what a leaked key looks
+	// like on a bill; `all` adds spikes on existing lines. Delivery is batched
+	// (one SMS per detection pass summarizing what it alerted on, at most one
+	// every six hours per organization) and never places a voice call. Push,
+	// Slack and Teams delivery is unaffected by this setting.
 	//
 	// One of "off", "new_source", "all".
 	SmsAlerts string `json:"smsAlerts"`
@@ -3300,9 +3302,9 @@ type CostAnomalySettings struct {
 // CostAnomalySettingsView is the `CostAnomalySettingsView` schema.
 type CostAnomalySettingsView struct {
 	// Sigmas: Standard deviations above a key's own trailing mean that count as
-	// a spike. Lower is more sensitive. Bounded at 1 — below that roughly a
-	// third of ordinary days clear the bar — and at 10, above which nothing
-	// short of a 10x jump fires. Defaults to 3.
+	// a spike. Lower is more sensitive. Bounded at 1 (below that roughly a third
+	// of ordinary days clear the bar) and at 10, above which nothing short of a
+	// 10x jump fires. Defaults to 3.
 	Sigmas float64 `json:"sigmas"`
 	// MinDeltaCents: Minimum rise over the baseline mean before a spike alerts,
 	// in USD cents (converted per series, so it means the same real amount in
@@ -3314,13 +3316,13 @@ type CostAnomalySettingsView struct {
 	// service quiet. Defaults to 2500 ($25).
 	NewSourceMinCents int64 `json:"newSourceMinCents"`
 	// SmsAlerts: Which anomalies also text the organization's Twilio recipients.
-	// Defaults to `off` — an organization with Twilio configured for budgets
-	// does not start receiving anomaly texts until it asks to. `new_source`
-	// texts only about spend appearing from nothing, which is what a leaked key
-	// looks like on a bill; `all` adds spikes on existing lines. Delivery is
-	// batched — one SMS per detection pass summarizing what it alerted on, at
-	// most one every six hours per organization — and never places a voice call.
-	// Push, Slack and Teams delivery is unaffected by this setting.
+	// Defaults to `off`: an organization with Twilio configured for budgets does
+	// not start receiving anomaly texts until it asks to. `new_source` texts
+	// only about spend appearing from nothing, which is what a leaked key looks
+	// like on a bill; `all` adds spikes on existing lines. Delivery is batched
+	// (one SMS per detection pass summarizing what it alerted on, at most one
+	// every six hours per organization) and never places a voice call. Push,
+	// Slack and Teams delivery is unaffected by this setting.
 	//
 	// One of "off", "new_source", "all".
 	SmsAlerts string `json:"smsAlerts"`
@@ -3334,7 +3336,7 @@ type CostAnomalySettingsView struct {
 	EmailRecipients *AlertEmailRecipients `json:"emailRecipients,omitempty"`
 	// SmsConfigured: Whether an SMS raised right now could be delivered: paging
 	// enabled for the organization, Twilio credentials and a from-number stored,
-	// and at least one recipient opted into SMS. Read-only and derived — it is
+	// and at least one recipient opted into SMS. Read-only and derived; it is
 	// not accepted on PUT.
 	SmsConfigured bool `json:"smsConfigured"`
 }
@@ -3407,17 +3409,17 @@ const (
 )
 
 // CostBasis: Which number to sum. `cash` is what the provider charged on the day
-// it charged it — the default, and what every query returned before this
-// existed. `amortized` spreads a commitment's up-front fee across the term it
-// buys, so a year of capacity bought on one day is counted on the days it
-// covers. Providers that report no amortized amount fall back to their cash
-// amount, so an amortized query over a mixed estate never drops their spend.
-// `blended` is amortized with each commitment's discount (reservations, savings
-// plans, committed-use discounts) spread evenly over all the usage it was
-// eligible to cover, so every eligible hour in the commitment's scope carries
-// the same effective rate whichever account or resource the provider applied it
-// to: the fair basis for chargeback. Day totals equal the amortized totals
-// exactly; rows a provider did not blend fall back to their amortized amount.
+// it charged it; the default, and what every query returned before this existed.
+// `amortized` spreads a commitment's up-front fee across the term it buys, so a
+// year of capacity bought on one day is counted on the days it covers. Providers
+// that report no amortized amount fall back to their cash amount, so an
+// amortized query over a mixed estate never drops their spend. `blended` is
+// amortized with each commitment's discount (reservations, savings plans,
+// committed-use discounts) spread evenly over all the usage it was eligible to
+// cover, so every eligible hour in the commitment's scope carries the same
+// effective rate whichever account or resource the provider applied it to: the
+// fair basis for chargeback. Day totals equal the amortized totals exactly; rows
+// a provider did not blend fall back to their amortized amount.
 type CostBasis = string
 
 // The values CostBasis takes.
@@ -3571,8 +3573,8 @@ type CostCentre struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
 	// ParentID: The centre this one sits under; null is a top-level centre.
-	// Nesting is a reporting structure only — allocation still resolves each
-	// cost row to exactly one centre.
+	// Nesting is a reporting structure only: allocation still resolves each cost
+	// row to exactly one centre.
 	ParentID  *string `json:"parentId"`
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt string  `json:"updatedAt"`
@@ -3583,7 +3585,7 @@ type CostCentreInput struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description,omitempty"`
 	// ParentID: Cost centre to nest this one under; null is the top level. On an
-	// update, moving a centre is this field changing — omitting it leaves the
+	// update, moving a centre is this field changing; omitting it leaves the
 	// centre where it is. Rejected with 400 when the parent is unknown, is the
 	// centre itself or one of its own descendants, or when the resulting tree
 	// would be more than 4 levels deep (measured over the whole subtree being
@@ -3595,7 +3597,7 @@ type CostCentreInput struct {
 // (the accruing current day never counts). daily: one complete day vs the same
 // weekday one week earlier. weekly: the last 7 complete days vs the 7 before
 // them. monthly: month-to-date vs the same number of days at the start of the
-// prior month — never MTD vs the full prior month.
+// prior month; never MTD vs the full prior month.
 type CostChangeCadence = string
 
 // The values CostChangeCadence takes.
@@ -3670,7 +3672,7 @@ type CostEfficiencySettings struct {
 	CommitmentExpiryHorizonDays []int64 `json:"commitmentExpiryHorizonDays"`
 	// CommitmentExpiryAlertOnExpired: Whether a commitment that lapsed without
 	// any horizon warning having fired raises one alert anyway. Defaults to
-	// true, and bounded to terms that ended within the last 90 days — connecting
+	// true, and bounded to terms that ended within the last 90 days: connecting
 	// an account with years of dead reservations produces one pass of recent
 	// news, not an archive.
 	CommitmentExpiryAlertOnExpired bool `json:"commitmentExpiryAlertOnExpired"`
@@ -3678,7 +3680,7 @@ type CostEfficiencySettings struct {
 	// Defaults to true.
 	CommitmentIdleEnabled bool `json:"commitmentIdleEnabled"`
 	// CommitmentIdleThresholdPercent: Utilization percent the whole window must
-	// stay under. Defaults to 70 — roughly where a 1-year no-upfront commitment
+	// stay under. Defaults to 70; roughly where a 1-year no-upfront commitment
 	// stops beating on-demand for the usage it covers.
 	CommitmentIdleThresholdPercent int64 `json:"commitmentIdleThresholdPercent"`
 	// CommitmentIdleWindowDays: Trailing days utilization is aggregated over.
@@ -3687,9 +3689,9 @@ type CostEfficiencySettings struct {
 	CommitmentIdleWindowDays int64 `json:"commitmentIdleWindowDays"`
 	// CommitmentIdleMinMeasuredDays: Window days that must carry cost data
 	// before anything is judged. Defaults to 14. A commitment whose utilization
-	// cannot be measured at all — a unit-denominated GCP CUD, or an account
-	// whose plugin reports no commitment attribution — never alerts, regardless
-	// of this value.
+	// cannot be measured at all (a unit-denominated GCP CUD, or an account whose
+	// plugin reports no commitment attribution) never alerts, regardless of this
+	// value.
 	CommitmentIdleMinMeasuredDays int64 `json:"commitmentIdleMinMeasuredDays"`
 	// CommitmentIdleMinWasteCents: Least wasted money (obligation − delivered)
 	// before alerting, in USD cents, restated per currency. Defaults to 5000
@@ -3702,7 +3704,7 @@ type CostEfficiencySettings struct {
 	// window. Defaults to 20.
 	UnitCostThresholdPercent int64 `json:"unitCostThresholdPercent"`
 	// UnitCostWindowDays: Length of each of the two compared windows. Defaults
-	// to 14 — two whole weekly cycles a side, so a weekday-shaped unit cost
+	// to 14; two whole weekly cycles a side, so a weekday-shaped unit cost
 	// compares like with like.
 	UnitCostWindowDays int64 `json:"unitCostWindowDays"`
 	// UnitCostMinReportedDays: Days inside **each** window that must carry a
@@ -3801,9 +3803,9 @@ type CostExportInput struct {
 	Format string            `json:"format"`
 	Schema *CostExportSchema `json:"schema,omitempty"`
 	Query  CostExportQuery   `json:"query"`
-	// Cadence: How often a run happens and — because a run writes one object per
-	// period — what a period is: a calendar day, an ISO week (Monday-start), or
-	// a calendar month.
+	// Cadence: How often a run happens and (because a run writes one object per
+	// period) what a period is: a calendar day, an ISO week (Monday-start), or a
+	// calendar month.
 	//
 	// One of "daily", "weekly", "monthly".
 	Cadence string `json:"cadence"`
@@ -3825,7 +3827,7 @@ type CostExportInput struct {
 	AccessKeyID *string `json:"accessKeyId,omitempty"`
 	// SecretAccessKey: S3 only. Write-only, never returned.
 	SecretAccessKey *string `json:"secretAccessKey,omitempty"`
-	// URL: HTTPS destinations only. Write-only, never returned — a signed URL
+	// URL: HTTPS destinations only. Write-only, never returned; a signed URL
 	// carries its own signature, so it is treated as a bearer credential.
 	URL *string `json:"url,omitempty"`
 }
@@ -3851,7 +3853,7 @@ type CostExportObject struct {
 type CostExportQuery struct {
 	Version float64 `json:"version"`
 	// Dimensions: Row-identity columns kept in the output. Dropping one
-	// aggregates over it — an export grouped to provider + service is orders of
+	// aggregates over it; an export grouped to provider + service is orders of
 	// magnitude smaller than a per-resource one.
 	Dimensions []string `json:"dimensions"`
 	// TagKeys: Tag keys emitted as their own `tag_<key>` columns.
@@ -3944,7 +3946,7 @@ type CostFilter struct {
 }
 
 // CostGraphConfig: The saved graph. Identical to the config an ad-hoc
-// `cost_graph` dashboard widget stores inline — a report is that config given a
+// `cost_graph` dashboard widget stores inline: a report is that config given a
 // name and an id.
 type CostGraphConfig struct {
 	Version float64 `json:"version"`
@@ -3972,9 +3974,9 @@ type CostGraphConfig struct {
 	ComparePreviousPeriod *bool   `json:"comparePreviousPeriod,omitempty"`
 	ShowForecast          *bool   `json:"showForecast,omitempty"`
 	// ScenarioModelID: A scenario model (see /cost-scenarios) overlaid on the
-	// forecast — known future cost the trend cannot see, drawn as a second
-	// dashed line beside the trend rather than instead of it. Only meaningful
-	// alongside `showForecast`.
+	// forecast; known future cost the trend cannot see, drawn as a second dashed
+	// line beside the trend rather than instead of it. Only meaningful alongside
+	// `showForecast`.
 	ScenarioModelID *string `json:"scenarioModelId,omitempty"`
 	// CostBasis: One of "cash", "amortized", "blended".
 	CostBasis *string      `json:"costBasis,omitempty"`
@@ -4051,7 +4053,7 @@ type CostQueryRequest struct {
 	GroupBy       string       `json:"groupBy"`
 	GroupByTagKey *string      `json:"groupByTagKey,omitempty"`
 	Filters       []CostFilter `json:"filters,omitempty"`
-	// Query: The same filter written as text, in the cost query language — an
+	// Query: The same filter written as text, in the cost query language; an
 	// alternative to `filters`, compiled server-side into exactly that
 	// structure.
 	//
@@ -4074,7 +4076,7 @@ type CostQueryRequest struct {
 	Query *string `json:"query,omitempty"`
 	// SavedFilterID: A saved cost filter (see /saved-cost-filters) applied by
 	// reference. Resolved server-side at query time and AND-composed with
-	// whichever of `filters`/`query` is present — unlike those two it is a
+	// whichever of `filters`/`query` is present: unlike those two it is a
 	// composition, not an alternative. An id that does not resolve to a live
 	// filter is a 400; the query is never silently run unfiltered.
 	SavedFilterID         *string `json:"savedFilterId,omitempty"`
@@ -4083,7 +4085,7 @@ type CostQueryRequest struct {
 	Forecast              *bool   `json:"forecast,omitempty"`
 	// ScenarioModelID: Apply a scenario model (see /cost-scenarios) to the
 	// projection: known future cost the trend cannot see. Requires `forecast:
-	// true` — sending it without one is a 400, not a no-op, because a caller who
+	// true`: sending it without one is a 400, not a no-op, because a caller who
 	// asked for assumptions and silently got none back is the failure this
 	// feature exists to prevent. The adjusted projection comes back as
 	// `scenario`, **alongside** the untouched `forecast`, never instead of it.
@@ -4091,12 +4093,12 @@ type CostQueryRequest struct {
 	ScenarioModelID *string    `json:"scenarioModelId,omitempty"`
 	CostBasis       *CostBasis `json:"costBasis,omitempty"`
 	// ChargeTypes: Restrict to these kinds of charge. Omitted is all of them,
-	// which is what makes an unfiltered total net rather than gross — credits,
+	// which is what makes an unfiltered total net rather than gross; credits,
 	// refunds and commitment discounts are included. Rows collected before
 	// charge types existed, and rows from providers that cannot distinguish
 	// them, are `usage`.
 	ChargeTypes []CostChargeType `json:"chargeTypes,omitempty"`
-	// Adjusted: Apply the organization's billing rules (see /billing-rules) —
+	// Adjusted: Apply the organization's billing rules (see /billing-rules);
 	// markups, discounts, reallocations. Omitted (the default, and what every
 	// unattended reader sends) is raw collected spend. Present, the response
 	// carries `adjustment` with the collected totals beside the adjusted ones
@@ -4126,8 +4128,8 @@ type CostQueryResponse struct {
 	Scenario   *CostScenarioResult `json:"scenario,omitempty"`
 	Currencies []string            `json:"currencies"`
 	// Totals: Period total per currency, and always exactly the sum of `series`.
-	// Fixed-amount billing-rule charges are deliberately **not** folded in here
-	// — they have no series behind them and are reported in
+	// Fixed-amount billing-rule charges are deliberately **not** folded in here;
+	// they have no series behind them and are reported in
 	// `adjustment.fixedTotals` instead.
 	Totals         map[string]float64     `json:"totals"`
 	PreviousTotals map[string]float64     `json:"previousTotals,omitempty"`
@@ -4159,13 +4161,13 @@ type CostReport struct {
 	// FolderID: Folder the report is filed under (see /cost-report-folders);
 	// null is the top level of the Reports list. Moving a report is this same
 	// PUT with a different folderId; an id from another org is a 400. Deleting a
-	// folder never deletes its reports — they fall back to the top level.
+	// folder never deletes its reports; they fall back to the top level.
 	FolderID        *string `json:"folderId"`
 	CreatedByUserID *string `json:"createdByUserId"`
 	CreatedAt       string  `json:"createdAt"`
 	UpdatedAt       string  `json:"updatedAt"`
 	// Placements: The dashboards carrying a `cost_report` card for this report.
-	// Empty is normal — a report exists, and can be run, whether or not any
+	// Empty is normal: a report exists, and can be run, whether or not any
 	// dashboard shows it. Deleting the report removes these cards; removing a
 	// card leaves the report alone.
 	Placements []CostReportPlacement `json:"placements"`
@@ -4223,7 +4225,7 @@ type CostReportFolder struct {
 	Name string `json:"name"`
 	// ParentFolderID: Parent folder for nesting; null is a top-level folder.
 	// Nesting is capped at 3 levels, and moving a folder inside itself or one of
-	// its own subfolders is rejected — both are 400s.
+	// its own subfolders is rejected, both are 400s.
 	ParentFolderID *string `json:"parentFolderId"`
 	CreatedAt      string  `json:"createdAt"`
 	UpdatedAt      string  `json:"updatedAt"`
@@ -4234,7 +4236,7 @@ type CostReportFolderInput struct {
 	Name string `json:"name"`
 	// ParentFolderID: Parent folder for nesting; null is a top-level folder.
 	// Nesting is capped at 3 levels, and moving a folder inside itself or one of
-	// its own subfolders is rejected — both are 400s.
+	// its own subfolders is rejected, both are 400s.
 	ParentFolderID *string `json:"parentFolderId,omitempty"`
 }
 
@@ -4246,7 +4248,7 @@ type CostReportInput struct {
 	// FolderID: Folder the report is filed under (see /cost-report-folders);
 	// null is the top level of the Reports list. Moving a report is this same
 	// PUT with a different folderId; an id from another org is a 400. Deleting a
-	// folder never deletes its reports — they fall back to the top level.
+	// folder never deletes its reports; they fall back to the top level.
 	FolderID *string `json:"folderId,omitempty"`
 }
 
@@ -4290,7 +4292,7 @@ type CostScenarioAdjustment struct {
 	// Kind: `one_off` is a single amount on a single day; `recurring` is an
 	// amount every period from a date; `rate_change` is ±X% of the trend from a
 	// date. The split between an amount and a percentage of the trend is what
-	// fixes the composition order — see the `scenario` field on the cost query
+	// fixes the composition order; see the `scenario` field on the cost query
 	// response.
 	//
 	// One of "one_off", "recurring", "rate_change".
@@ -4300,7 +4302,7 @@ type CostScenarioAdjustment struct {
 	// `one_off`, which is one day.
 	EndDate *string `json:"endDate"`
 	// AmountCents: Minor units of the model's currency, for the amount kinds;
-	// null for `rate_change`. May be negative — turning off an old cluster is as
+	// null for `rate_change`. May be negative; turning off an old cluster is as
 	// real a known future cost as buying a new one.
 	AmountCents *int64 `json:"amountCents"`
 	// Currency: Always the model's own currency; a model that held two would sum
@@ -4319,7 +4321,7 @@ type CostScenarioAdjustment struct {
 	// Scope: Which spend this adjustment describes; empty is the whole
 	// organization. For a rate change the scope is what the percentage is *of*.
 	// For an amount it decides whether the adjustment applies to a given chart
-	// at all — a GCP commitment does not belong on a chart filtered to AWS, and
+	// at all; a GCP commitment does not belong on a chart filtered to AWS, and
 	// one that is excluded is named in `scenario.outOfScope`.
 	Scope []CostScenarioScopeTerm `json:"scope"`
 }
@@ -4341,7 +4343,7 @@ type CostScenarioModel struct {
 type CostScenarioModelInput struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description,omitempty"`
-	// Currency: Three-letter code. Every amount in the model must be in it — a
+	// Currency: Three-letter code. Every amount in the model must be in it; a
 	// model that mixed two would produce a projection that is the sum of two
 	// kinds of money, so this is refused rather than converted behind the
 	// caller's back.
@@ -4366,7 +4368,7 @@ type CostScenarioResult struct {
 	ModelID   string `json:"modelId"`
 	ModelName string `json:"modelName"`
 	Currency  string `json:"currency"`
-	// Points: The adjusted projection — exactly the same days as `forecast`,
+	// Points: The adjusted projection; exactly the same days as `forecast`,
 	// never one more or fewer. A scenario modifies the projected region; it does
 	// not extend it, and it can never touch a day that already has recorded
 	// spend behind it.
@@ -4379,7 +4381,7 @@ type CostScenarioResult struct {
 	// ConvertedFrom: Set when the model's amounts were converted at the org's
 	// stated rates.
 	ConvertedFrom *string `json:"convertedFrom,omitempty"`
-	// OutOfScope: Adjustments this chart's own filters exclude, by label — a GCP
+	// OutOfScope: Adjustments this chart's own filters exclude, by label; a GCP
 	// commitment on an AWS-filtered chart is correctly left out, and saying so
 	// is what makes the number trustworthy rather than quietly assumed broken.
 	OutOfScope []string `json:"outOfScope"`
@@ -4506,7 +4508,7 @@ type CreateBastionResponse struct {
 	Name        string `json:"name"`
 	TokenPrefix string `json:"tokenPrefix"`
 	// Token: Enrollment token in the form `iwb_<random>`. Pass to the agent
-	// container as `BASTION_TOKEN`. Returned once — not recoverable later.
+	// container as `BASTION_TOKEN`. Returned once: not recoverable later.
 	Token string `json:"token"`
 }
 
@@ -4549,7 +4551,7 @@ type CreateLinearIssueInput struct {
 	// TeamID: Team to file into. Every Linear issue belongs to exactly one team.
 	TeamID string `json:"teamId"`
 	Title  string `json:"title"`
-	// Description: Markdown, passed to Linear as-is — unlike Jira, where the
+	// Description: Markdown, passed to Linear as-is; unlike Jira, where the
 	// server converts plain text to Atlassian Document Format.
 	Description *string `json:"description,omitempty"`
 	// LabelIDs: Ids of existing labels in the workspace. Linear cannot create
@@ -4599,8 +4601,8 @@ type CreateResourceResponse struct {
 // CreateSharedConsole is the `CreateSharedConsole` schema.
 type CreateSharedConsole struct {
 	// LiveConsoleID: The pty to share, as the terminal's WebSocket reported it
-	// in its `ssh:connected` frame. Everything else about the session — host,
-	// account, recording — is read from the proxy's own registration rather than
+	// in its `ssh:connected` frame. Everything else about the session (host,
+	// account, recording) is read from the proxy's own registration rather than
 	// from this body.
 	LiveConsoleID string `json:"liveConsoleId"`
 	RoutingKey    string `json:"routingKey"`
@@ -4710,7 +4712,7 @@ type CredentialOptionsResponse struct {
 type CreditBurndown struct {
 	Pots     []CreditPot         `json:"pots"`
 	Failures []CreditPollFailure `json:"failures"`
-	// PendingAccountIDs: Credit-capable accounts never yet collected — named
+	// PendingAccountIDs: Credit-capable accounts never yet collected, named
 	// rather than omitted.
 	PendingAccountIDs []string `json:"pendingAccountIds"`
 	BurnWindowDays    int64    `json:"burnWindowDays"`
@@ -4734,12 +4736,12 @@ type CreditPot struct {
 	AccountID   string   `json:"accountId"`
 	AccountName string   `json:"accountName"`
 	PluginID    PluginID `json:"pluginId"`
-	// CapabilityLabel: The provider's own word for this pot — "Credits",
+	// CapabilityLabel: The provider's own word for this pot, "Credits",
 	// "Balance".
 	CapabilityLabel string  `json:"capabilityLabel"`
 	TopUpURL        *string `json:"topUpUrl"`
-	// PotKey: Stable identity for this pot within the account — a currency code,
-	// a project id — so successive readings line up into a series.
+	// PotKey: Stable identity for this pot within the account (a currency code,
+	// a project id) so successive readings line up into a series.
 	PotKey    string  `json:"potKey"`
 	Label     string  `json:"label"`
 	Remaining float64 `json:"remaining"`
@@ -4750,13 +4752,13 @@ type CreditPot struct {
 	CreditExpiresAt *string `json:"creditExpiresAt"`
 	ObservedAt      string  `json:"observedAt"`
 	// BurnPerDay: Spend per day over the observed span. **Null means there is
-	// not enough history to say** — never 0, which would read as 'nothing is
+	// not enough history to say**: never 0, which would read as 'nothing is
 	// being spent'.
 	BurnPerDay   *float64 `json:"burnPerDay"`
 	BurnSpanDays float64  `json:"burnSpanDays"`
 	Observations int64    `json:"observations"`
 	// TopUps: Increases seen between consecutive readings. A top-up is recorded,
-	// never netted off the burn — subtracting the endpoints of a window
+	// never netted off the burn: subtracting the endpoints of a window
 	// containing one reports a negative burn and an infinite runway.
 	TopUps      int64    `json:"topUps"`
 	RunwayDays  *float64 `json:"runwayDays"`
@@ -5157,7 +5159,7 @@ type DashboardWidgetFull struct {
 	UpdatedAt      string              `json:"updatedAt"`
 }
 
-// DashboardWidgetKind: `cost_graph` stores its whole config inline — a one-off
+// DashboardWidgetKind: `cost_graph` stores its whole config inline; a one-off
 // card. `cost_report` points at a saved cost report by id, so editing the report
 // updates every dashboard showing it. `cost_canvas` points at a cost canvas by
 // id (`{version: 1, canvasId}`) the same way. `realized_savings` shows the org's
@@ -5202,8 +5204,8 @@ type DependencyGraphEdge struct {
 	// than a field.
 	ConsumerFieldKey   string     `json:"consumerFieldKey"`
 	ProviderResourceID ResourceID `json:"providerResourceId"`
-	// ProviderOutputKey: The provider output or identity the reference reads —
-	// an output key for output references, the matched identity ("externalId",
+	// ProviderOutputKey: The provider output or identity the reference reads; an
+	// output key for output references, the matched identity ("externalId",
 	// "name", "endpoint"…) for inferred edges.
 	ProviderOutputKey string `json:"providerOutputKey"`
 	// Kind: Where the edge came from: `output-ref` is wired by hand, `declared`
@@ -5363,7 +5365,7 @@ type DeploymentCostImpact struct {
 	RunID      string          `json:"runId"`
 	CostBasis  ChangeCostBasis `json:"costBasis"`
 	WindowDays int64           `json:"windowDays"`
-	// EventDay: The run's start day, UTC — what both windows hang off.
+	// EventDay: The run's start day, UTC; what both windows hang off.
 	EventDay string `json:"eventDay"`
 	// Resources: One row per resource the run provisioned through
 	// `infra.accounts.*.create(...)`. That is the only set attributable to a run
@@ -5501,7 +5503,7 @@ type DigestSettings struct {
 	LastAttemptAt *string `json:"lastAttemptAt"`
 	// LastStatus: Outcome of the most recent delivery attempt. `partial` (some
 	// destinations took it, some failed) is deliberately never retried
-	// automatically — a retry would post the digest twice where it already
+	// automatically; a retry would post the digest twice where it already
 	// landed. `failed` (nothing landed) is retried a bounded number of times
 	// with backoff, then parked until the next week.
 	//
@@ -5654,7 +5656,7 @@ type DNSInventoryResponse struct {
 	Records []DNSRecord        `json:"records"`
 	Counts  DNSInventoryCounts `json:"counts"`
 	// SkippedNamespaces: Provider namespaces that were declared but not
-	// evaluated, and why — either no account for the plugin is connected, or no
+	// evaluated, and why; either no account for the plugin is connected, or no
 	// claimant resource has synced. Both are missing data rather than a clean
 	// bill of health, so they are reported rather than hidden.
 	SkippedNamespaces []DNSSkippedNamespace `json:"skippedNamespaces"`
@@ -5699,11 +5701,11 @@ type DNSRecordTarget struct {
 	// Value: The target as stored, lowercased with any trailing dot removed.
 	Value string `json:"value"`
 	// Classification: What can be said about a record target from synced state
-	// alone. `owned` — the value is an identity of a synced resource. `dangling`
-	// — the value falls inside a provider namespace this workspace manages (an
-	// S3 endpoint, a `*.vercel.app` alias) and no synced resource claims it,
-	// which is the subdomain-takeover signature. `external` — the value points
-	// somewhere there is no declaration for; not a finding. `not-analysed` — the
+	// alone. `owned`: the value is an identity of a synced resource. `dangling`:
+	// the value falls inside a provider namespace this workspace manages (an S3
+	// endpoint, a `*.vercel.app` alias) and no synced resource claims it, which
+	// is the subdomain-takeover signature. `external`: the value points
+	// somewhere there is no declaration for; not a finding. `not-analysed`: the
 	// record type carries no host target that is reasoned about (TXT, MX, SOA,
 	// CAA, SRV).
 	//
@@ -5776,7 +5778,7 @@ type DNSZone struct {
 	// RecordCount: Records synced into this zone.
 	RecordCount int64 `json:"recordCount"`
 	// ProviderRecordCount: The provider's own record count, when reported. May
-	// exceed `recordCount` — several plugins list zones without listing their
+	// exceed `recordCount`: several plugins list zones without listing their
 	// records.
 	ProviderRecordCount *int64 `json:"providerRecordCount"`
 	DanglingCount       int64  `json:"danglingCount"`
@@ -5798,7 +5800,7 @@ type DockerCommandResponse struct {
 type DriftAlertSettings struct {
 	// NotifyCreated: Alert on resources that appeared.
 	NotifyCreated bool `json:"notifyCreated"`
-	// NotifyUpdated: Alert on field-level updates. Defaults to false — updates
+	// NotifyUpdated: Alert on field-level updates. Defaults to false; updates
 	// are the bulk of the volume and are usually a provider restating a value.
 	NotifyUpdated bool `json:"notifyUpdated"`
 	// NotifyDeleted: Alert on resources that disappeared.
@@ -5907,7 +5909,7 @@ type EfficiencyAlertEvent struct {
 	AccountName *string `json:"accountName"`
 	// Currency: ISO 4217 of `amount`, or null when it carries none.
 	Currency *string `json:"currency"`
-	// Amount: The money at stake, in **units of `currency`** rather than cents —
+	// Amount: The money at stake, in **units of `currency`** rather than cents;
 	// commitment amounts are provider-reported in currency units. Per kind: the
 	// monthly on-demand exposure for an expiry, the wasted amount for an idle
 	// commitment, the current window's spend for a regression.
@@ -5961,7 +5963,7 @@ type EnvironmentCostEstimate struct {
 	// zero.
 	MonthlyAmount *float64 `json:"monthlyAmount"`
 	Currency      *string  `json:"currency"`
-	// Partial: True when at least one member is unpriced — read as 'at least'.
+	// Partial: True when at least one member is unpriced, read as 'at least'.
 	Partial       bool  `json:"partial"`
 	UnpricedCount int64 `json:"unpricedCount"`
 	// MonthlyKgCo2e: Estimated monthly kg CO2e of the members that could be
@@ -5976,7 +5978,7 @@ type EnvironmentCostEstimate struct {
 
 // EnvironmentDiffEntry is the `EnvironmentDiffEntry` schema.
 type EnvironmentDiffEntry struct {
-	// Key: The pairing key both sides matched on — the resource type plus the
+	// Key: The pairing key both sides matched on; the resource type plus the
 	// resource name with environment words removed. Stable across runs.
 	Key              string `json:"key"`
 	ResourceTypeID   string `json:"resourceTypeId"`
@@ -6032,8 +6034,8 @@ type EnvironmentDiffResponse struct {
 	Entries []EnvironmentDiffEntry `json:"entries"`
 	Totals  EnvironmentDiffTotals  `json:"totals"`
 	// UnavailableTypes: Resource types excluded because they could not be
-	// listed. Always empty over this API — it reads already-synced rows, which
-	// cannot half-fail — and populated only by the desktop and CLI local modes,
+	// listed. Always empty over this API; it reads already-synced rows, which
+	// cannot half-fail; and populated only by the desktop and CLI local modes,
 	// which list live.
 	UnavailableTypes      []EnvironmentDiffUnavailableType `json:"unavailableTypes"`
 	IncludeIdentityFields bool                             `json:"includeIdentityFields"`
@@ -6200,7 +6202,7 @@ type EnvironmentTemplateConflict struct {
 // EnvironmentTemplateFieldValue: What a captured create-form field is filled
 // with at instantiation. `literal` is the captured value; `parameter` is a field
 // the user chose to vary; `output` is another member's resolved output (a
-// connection string, an IP — the captured half of an output reference);
+// connection string, an IP; the captured half of an output reference);
 // `member-id` is another member's provider-side id.
 type EnvironmentTemplateFieldValue = any
 
@@ -6367,7 +6369,7 @@ type ExpiryItem struct {
 	Kind string `json:"kind"`
 	// Label: Plugin-authored caption for the deadline.
 	Label string `json:"label"`
-	// Basis: `expiry` — the field held the deadline itself; `age` — the deadline
+	// Basis: `expiry`: the field held the deadline itself; `age`: the deadline
 	// was derived from a creation/rotation date plus an age budget.
 	//
 	// One of "expiry", "age".
@@ -6596,7 +6598,7 @@ type FocusExportRequest struct {
 	From    string       `json:"from"`
 	To      string       `json:"to"`
 	Filters []CostFilter `json:"filters,omitempty"`
-	// Query: The same filter written as text, in the cost query language — an
+	// Query: The same filter written as text, in the cost query language; an
 	// alternative to `filters`, compiled server-side into exactly that
 	// structure.
 	//
@@ -6619,12 +6621,12 @@ type FocusExportRequest struct {
 	Query *string `json:"query,omitempty"`
 	// SavedFilterID: A saved cost filter (see /saved-cost-filters) applied by
 	// reference. Resolved server-side at query time and AND-composed with
-	// whichever of `filters`/`query` is present — unlike those two it is a
+	// whichever of `filters`/`query` is present: unlike those two it is a
 	// composition, not an alternative. An id that does not resolve to a live
 	// filter is a 400; the query is never silently run unfiltered.
 	SavedFilterID *string `json:"savedFilterId,omitempty"`
 	// ChargeTypes: Restrict to these kinds of charge. Omitted is all of them,
-	// which is what makes an unfiltered total net rather than gross — credits,
+	// which is what makes an unfiltered total net rather than gross; credits,
 	// refunds and commitment discounts are included. Rows collected before
 	// charge types existed, and rows from providers that cannot distinguish
 	// them, are `usage`.
@@ -6993,7 +6995,7 @@ type IacReconciledResource struct {
 	ExternalID     *string  `json:"externalId"`
 	// Status: `managed`: matched a state entry and agrees with it. `drifted`:
 	// matched, but live fields differ. `unmanaged`: in inventory, absent from
-	// state — somebody made it by hand.
+	// state; somebody made it by hand.
 	//
 	// One of "managed", "drifted", "unmanaged".
 	Status           string  `json:"status"`
@@ -7018,7 +7020,7 @@ type IacReconciledResource struct {
 type IacReconciliationResponse struct {
 	State     IacState                `json:"state"`
 	Resources []IacReconciledResource `json:"resources"`
-	// StateOnly: State entries with no inventory match — their own category.
+	// StateOnly: State entries with no inventory match, their own category.
 	StateOnly []IacStateOnlyResource           `json:"stateOnly"`
 	Summary   IacReconciliationResponseSummary `json:"summary"`
 	// Underivable: Plugin resource types whose Terraform type could not be
@@ -7050,7 +7052,7 @@ type IacState struct {
 	//
 	// One of "tfstate", "show-json".
 	Format string `json:"format"`
-	// FormatVersion: The document's own version — "4" for a state file,
+	// FormatVersion: The document's own version; "4" for a state file,
 	// "1.0"-style otherwise.
 	FormatVersion    string  `json:"formatVersion"`
 	TerraformVersion *string `json:"terraformVersion"`
@@ -7064,7 +7066,7 @@ type IacState struct {
 	// inventory.
 	DataSourceCount int64 `json:"dataSourceCount"`
 	// RedactedAttributeCount: Attribute values dropped because the state marked
-	// them sensitive. Redaction happens at parse time — no sensitive value is
+	// them sensitive. Redaction happens at parse time; no sensitive value is
 	// ever stored.
 	RedactedAttributeCount int64    `json:"redactedAttributeCount"`
 	ParseWarnings          []string `json:"parseWarnings"`
@@ -7139,20 +7141,20 @@ type Incident struct {
 	// Status: `mitigated` is a real state, not a synonym for resolved: impact
 	// has stopped but the incident is still open for follow-up. Keeping it
 	// separate is what makes time-to-mitigate a measurement rather than a guess.
-	// Resolving runs the resolve path — the change freeze this incident opened
-	// is lifted, and the status-page update it posted is closed.
+	// Resolving runs the resolve path; the change freeze this incident opened is
+	// lifted, and the status-page update it posted is closed.
 	//
 	// One of "open", "mitigated", "resolved".
 	Status  string  `json:"status"`
 	Summary *string `json:"summary"`
-	// StartedAt: Backdatable — people declare after they start firefighting.
+	// StartedAt: Backdatable: people declare after they start firefighting.
 	StartedAt        string  `json:"startedAt"`
 	MitigatedAt      *string `json:"mitigatedAt"`
 	ResolvedAt       *string `json:"resolvedAt"`
 	DeclaredByUserID *string `json:"declaredByUserId"`
 	DeclaredByName   *string `json:"declaredByName"`
 	ResolvedByUserID *string `json:"resolvedByUserId"`
-	// AffectedResourceIDs: Advisory. Not foreign keys — the claim must survive
+	// AffectedResourceIDs: Advisory. Not foreign keys; the claim must survive
 	// the resource being deleted.
 	AffectedResourceIDs []string `json:"affectedResourceIds"`
 	AffectedAccountIDs  []string `json:"affectedAccountIds"`
@@ -7167,12 +7169,12 @@ type Incident struct {
 // IncidentActions is the `IncidentActions` schema.
 type IncidentActions struct {
 	// OpenFreeze: Open an org change freeze for the duration, lifted when the
-	// incident resolves. Defaults to false — freezing has blast radius beyond
-	// the incident. Needs `freezes:write`; without it the freeze is recorded as
-	// a failed artefact naming the permission, and the incident still stands.
+	// incident resolves. Defaults to false; freezing has blast radius beyond the
+	// incident. Needs `freezes:write`; without it the freeze is recorded as a
+	// failed artefact naming the permission, and the incident still stands.
 	OpenFreeze *bool `json:"openFreeze,omitempty"`
 	// PinMoment: Pin the moment (a timestamp and a window) so `GET /moment` is
-	// one click away. Defaults to true — it cannot fail, and the investigation
+	// one click away. Defaults to true; it cannot fail, and the investigation
 	// always wants it.
 	PinMoment *bool `json:"pinMoment,omitempty"`
 	// PostSlack: Announce through the org's alert routing rules under the
@@ -7209,11 +7211,11 @@ type IncidentArtifact struct {
 	//
 	// One of "created", "failed", "closed", "close_failed".
 	Status string `json:"status"`
-	// Label: Human label — the freeze name, the destination count.
+	// Label: Human label: the freeze name, the destination count.
 	Label *string `json:"label"`
 	// RefID: Freeze id, notice id, Slack channel id…
 	RefID *string `json:"refId"`
-	// RefSecondary: Second half of a compound reference — a Slack message ts, a
+	// RefSecondary: Second half of a compound reference; a Slack message ts, a
 	// window width.
 	RefSecondary *string `json:"refSecondary"`
 	// Error: Why it failed. Null unless `status` is `failed` or `close_failed`.
@@ -7268,7 +7270,7 @@ type IncidentNote struct {
 	AuthorUserID *string `json:"authorUserId"`
 	AuthorName   *string `json:"authorName"`
 	// OccurredAt: When the note is *about*, which may precede when it was
-	// written — a note typed at 04:00 can be dated to 03:14 and lands there on
+	// written; a note typed at 04:00 can be dated to 03:14 and lands there on
 	// the timeline.
 	OccurredAt string `json:"occurredAt"`
 	CreatedAt  string `json:"createdAt"`
@@ -7292,8 +7294,8 @@ type IncidentPatch struct {
 	// Status: `mitigated` is a real state, not a synonym for resolved: impact
 	// has stopped but the incident is still open for follow-up. Keeping it
 	// separate is what makes time-to-mitigate a measurement rather than a guess.
-	// Resolving runs the resolve path — the change freeze this incident opened
-	// is lifted, and the status-page update it posted is closed.
+	// Resolving runs the resolve path; the change freeze this incident opened is
+	// lifted, and the status-page update it posted is closed.
 	//
 	// One of "open", "mitigated", "resolved".
 	Status              *string  `json:"status,omitempty"`
@@ -7327,7 +7329,7 @@ type IncidentTimeline struct {
 // IncidentTimelineEntry is the `IncidentTimelineEntry` schema.
 type IncidentTimelineEntry struct {
 	ID string `json:"id"`
-	// Source: `moment` covers everything the moment union already indexes —
+	// Source: `moment` covers everything the moment union already indexes;
 	// resource changes, deployments, cost anomalies, provider status incidents,
 	// audit entries, change freezes and workflow runs. Nothing is copied into
 	// the incident's own tables; the timeline is a join, so re-reading it
@@ -7335,7 +7337,7 @@ type IncidentTimelineEntry struct {
 	//
 	// One of "incident", "note", "artifact", "moment", "probe", "metric-alert".
 	Source string `json:"source"`
-	// Kind: `<noun>.<verb>`. Open set — render unknown kinds generically.
+	// Kind: `<noun>.<verb>`. Open set: render unknown kinds generically.
 	Kind   string  `json:"kind"`
 	At     string  `json:"at"`
 	Title  string  `json:"title"`
@@ -7380,9 +7382,9 @@ type InviteRequest struct {
 	RoleID *string           `json:"roleId,omitempty"`
 	// AddSeat: When the paid plan is full (409 seat_limit_reached), retry with
 	// this set to buy one more monthly seat and send the invitation. Requires
-	// billing:write. Only works when the 409 reported `canAddSeat: true` — an
-	// org whose capacity is entirely prepaid capacity slots has no monthly seat
-	// to add.
+	// billing:write. Only works when the 409 reported `canAddSeat: true`: an org
+	// whose capacity is entirely prepaid capacity slots has no monthly seat to
+	// add.
 	AddSeat *bool `json:"addSeat,omitempty"`
 }
 
@@ -7397,7 +7399,7 @@ type Invoice struct {
 	ID                 string `json:"id"`
 	ManagedAccountID   string `json:"managedAccountId"`
 	ManagedAccountName string `json:"managedAccountName"`
-	// Number: `INV-2026-0001`. Null while draft — numbers are assigned at
+	// Number: `INV-2026-0001`. Null while draft: numbers are assigned at
 	// approval so a deleted draft cannot leave a gap in the sequence.
 	Number                *string           `json:"number"`
 	Status                InvoiceStatus     `json:"status"`
@@ -7417,7 +7419,7 @@ type Invoice struct {
 	Notes                 *string           `json:"notes"`
 	Lines                 []InvoiceLine     `json:"lines"`
 	Derivation            InvoiceDerivation `json:"derivation"`
-	// Live: True when the figures in this response were recomputed for it — true
+	// Live: True when the figures in this response were recomputed for it; true
 	// for a draft, false for everything else. Say so: “these numbers will move”
 	// and “these numbers are what we sent” are different claims about the same
 	// fields.
@@ -7429,7 +7431,7 @@ type Invoice struct {
 	CreatedByUserID  *string `json:"createdByUserId"`
 }
 
-// InvoiceDelivery: The last delivery attempt, or null when none has been made —
+// InvoiceDelivery: The last delivery attempt, or null when none has been made;
 // including on an invoice marked sent by a deployment with no mail provider. “A
 // person released this” and “we delivered it” are different claims, and this
 // field is only ever the second.
@@ -7437,7 +7439,7 @@ type Invoice struct {
 // The API may send null in its place.
 type InvoiceDelivery struct {
 	// Status: `pending` means an attempt was claimed and its outcome never
-	// recorded — the process died mid-send, so whether the customer received it
+	// recorded; the process died mid-send, so whether the customer received it
 	// is unknown. It is not a failure and is never retried automatically.
 	//
 	// One of "pending", "succeeded", "partial", "failed", "no_targets".
@@ -7449,7 +7451,7 @@ type InvoiceDelivery struct {
 	Delivered   int64  `json:"delivered"`
 	AttemptedAt string `json:"attemptedAt"`
 	// DeliveredAt: The last attempt that reached at least one address, or null
-	// when none ever has. Never cleared by a later failure — it is a fact about
+	// when none ever has. Never cleared by a later failure; it is a fact about
 	// the past, and it is what decides whether sending again is a retry or a
 	// second copy.
 	DeliveredAt *string `json:"deliveredAt"`
@@ -7464,7 +7466,7 @@ type InvoiceDerivation struct {
 	// CostBasis: One of "cash", "amortized", "blended".
 	CostBasis         string `json:"costBasis"`
 	ApplyBillingRules bool   `json:"applyBillingRules"`
-	// RateDate: The day the exchange rates were read — always the period's last
+	// RateDate: The day the exchange rates were read; always the period's last
 	// day. One rate for the period rather than a per-day blend: “January, at the
 	// 31 January rate” is a sentence a finance team can reproduce.
 	RateDate string                   `json:"rateDate"`
@@ -7476,7 +7478,7 @@ type InvoiceDerivation struct {
 	Rules       []InvoiceDerivationRules `json:"rules"`
 	Scope       InvoiceDerivationScope   `json:"scope"`
 	// MissingScope: Scope entries that no longer exist. Recorded rather than
-	// silently skipped — an invoice that is quietly short is worse than one that
+	// silently skipped; an invoice that is quietly short is worse than one that
 	// says why.
 	MissingScope []string               `json:"missingScope"`
 	Pricing      *ManagedAccountPricing `json:"pricing,omitempty"`
@@ -7497,7 +7499,7 @@ type InvoiceInput struct {
 	PeriodTo         string  `json:"periodTo"`
 	Notes            *string `json:"notes,omitempty"`
 	// SupersedesInvoiceID: The void invoice this one corrects. The original must
-	// already be void — a correction that leaves the original standing means the
+	// already be void; a correction that leaves the original standing means the
 	// customer holds two live invoices for one period.
 	SupersedesInvoiceID *string `json:"supersedesInvoiceId,omitempty"`
 }
@@ -7510,7 +7512,7 @@ type InvoiceLine struct {
 	Kind string `json:"kind"`
 	// RefID: Cost-centre id, account id, or null for an org-level fixed charge.
 	RefID *string `json:"refId"`
-	// Label: The name at issue time, frozen with the numbers — renaming a cost
+	// Label: The name at issue time, frozen with the numbers; renaming a cost
 	// centre in March must not retitle a line on January's invoice.
 	Label string `json:"label"`
 	// Currency: The currency the providers billed in.
@@ -7574,7 +7576,7 @@ type InvoiceSummary struct {
 	ID                 string `json:"id"`
 	ManagedAccountID   string `json:"managedAccountId"`
 	ManagedAccountName string `json:"managedAccountName"`
-	// Number: `INV-2026-0001`. Null while draft — numbers are assigned at
+	// Number: `INV-2026-0001`. Null while draft: numbers are assigned at
 	// approval so a deleted draft cannot leave a gap in the sequence.
 	Number                *string          `json:"number"`
 	Status                InvoiceStatus    `json:"status"`
@@ -7593,7 +7595,7 @@ type InvoiceSummary struct {
 	UpdatedAt             string           `json:"updatedAt"`
 }
 
-// InvoiceTotals: **Null for a draft** — null, not zero. A draft's figures are
+// InvoiceTotals: **Null for a draft**, null, not zero. A draft's figures are
 // recomputed on read and the list does not recompute; fetch the invoice by id
 // for a draft's current numbers.
 //
@@ -7606,7 +7608,7 @@ type InvoiceTotals struct {
 	// Adjusted: Currency code → amount in the currency's major unit.
 	Adjusted map[string]float64 `json:"adjusted"`
 	// Billed: Keyed by the invoice currency, plus any currency that could not be
-	// converted — which keeps its own key so the total is never quietly short.
+	// converted; which keeps its own key so the total is never quietly short.
 	Billed map[string]float64 `json:"billed"`
 }
 
@@ -7664,8 +7666,8 @@ type JiraIntegrationInput struct {
 	// legacy .jira.com) host; a bare hostname and a pasted board or issue URL
 	// are both accepted and normalized.
 	SiteURL string `json:"siteUrl"`
-	// AccountEmail: Atlassian account email — the username half of the
-	// basic-auth pair.
+	// AccountEmail: Atlassian account email; the username half of the basic-auth
+	// pair.
 	AccountEmail string `json:"accountEmail"`
 	// APIToken: API token from id.atlassian.com. Omit to keep the stored token;
 	// required on first connect.
@@ -7689,7 +7691,7 @@ type JiraIssueLink struct {
 type JiraIssueType struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
-	// Subtask: Always false — subtasks need a parent issue, so they are filtered
+	// Subtask: Always false: subtasks need a parent issue, so they are filtered
 	// out.
 	Subtask     bool    `json:"subtask"`
 	Description *string `json:"description"`
@@ -7863,7 +7865,7 @@ const (
 
 // LinearTeam is the `LinearTeam` schema.
 type LinearTeam struct {
-	// ID: Team id (UUID) — what issueCreate wants.
+	// ID: Team id (UUID), what issueCreate wants.
 	ID string `json:"id"`
 	// Key: Short prefix issue identifiers are built from.
 	Key  string `json:"key"`
@@ -7903,7 +7905,7 @@ type LinuxAppHostPreflight struct {
 	Requirements []LinuxAppRequirement `json:"requirements"`
 	// Staging: A writable, exec-capable directory was found to stage the app
 	// server in. False means every candidate is missing, unwritable, or mounted
-	// noexec — which no package fixes.
+	// noexec, which no package fixes.
 	Staging  bool  `json:"staging"`
 	AppCount int64 `json:"appCount"`
 	Ready    bool  `json:"ready"`
@@ -8016,7 +8018,7 @@ type LogCapableResourceList struct {
 
 // LogStreamSelector is the `LogStreamSelector` schema.
 type LogStreamSelector struct {
-	// ResourceID: Infrawrench resource id of the stream to tail — or, for a
+	// ResourceID: Infrawrench resource id of the stream to tail; or, for a
 	// sidecar stream, the peer plugin's own resource id (not a stored row).
 	ResourceID     string   `json:"resourceId"`
 	AccountID      string   `json:"accountId"`
@@ -8050,7 +8052,7 @@ type LogWorkspaceQuery struct {
 	LastEvalAt *string `json:"lastEvalAt"`
 	// LastMatchAt: Last evaluation that found at least one matching line.
 	LastMatchAt *string `json:"lastMatchAt"`
-	// LastAlertedAt: Last dispatched notification — the cooldown anchor.
+	// LastAlertedAt: Last dispatched notification; the cooldown anchor.
 	LastAlertedAt *string `json:"lastAlertedAt"`
 	// LastEvalError: Failure detail from the last evaluation.
 	LastEvalError *string `json:"lastEvalError"`
@@ -8114,7 +8116,7 @@ type LogsRequest struct {
 type LogsResponse struct {
 	// Text: Raw log text; each entry keeps its trailing newline.
 	Text string `json:"text"`
-	// Containers: Container names available for this resource — drives the
+	// Containers: Container names available for this resource, drives the
 	// container picker.
 	Containers []string `json:"containers"`
 	// ActiveContainer: Container `text` was read from.
@@ -8122,7 +8124,7 @@ type LogsResponse struct {
 }
 
 // ManagedAccount: A customer a managed service provider bills. A cost centre or
-// cloud account belongs to at most one managed account — billing the same money
+// cloud account belongs to at most one managed account; billing the same money
 // to two customers is refused at write time with a 409 naming the other
 // customer.
 type ManagedAccount struct {
@@ -8153,7 +8155,7 @@ type ManagedAccountInput struct {
 	BillingAddress *string `json:"billingAddress,omitempty"`
 	// BillingCurrency: ISO 4217 code the customer is invoiced in. Spend
 	// collected in another currency is converted through the organisation's own
-	// stated exchange rates, and the rate used is frozen onto every invoice — so
+	// stated exchange rates, and the rate used is frozen onto every invoice; so
 	// restating a rate later cannot restate history.
 	BillingCurrency string `json:"billingCurrency"`
 	// CostBasis: Defaults to `amortized`. Charging a customer the whole cash
@@ -8172,13 +8174,13 @@ type ManagedAccountInput struct {
 	Pricing           *ManagedAccountPricing `json:"pricing,omitempty"`
 	Notes             *string                `json:"notes,omitempty"`
 	// CostCentreIDs: Cost centres whose spend belongs to this customer.
-	// **Subtrees are included** — naming a parent bills every descendant, and
+	// **Subtrees are included**; naming a parent bills every descendant, and
 	// naming both a parent and its child bills the child once, not twice.
 	//
 	// This is deliberately a list of existing cost centres rather than a rule of
 	// its own. Which spend lands in which centre is already decided by the
 	// organisation's allocation rules, and a second vocabulary over the same
-	// data would eventually disagree with the first — at which point an invoice
+	// data would eventually disagree with the first: at which point an invoice
 	// would stop matching the showback report the customer was shown.
 	CostCentreIDs []string `json:"costCentreIds,omitempty"`
 	// AccountIDs: Cloud accounts whose spend belongs to this customer. Evaluated
@@ -8391,13 +8393,13 @@ type MomentEvent struct {
 	Feed MomentFeedID `json:"feed"`
 	// Kind: Fine-grained `<noun>.<verb>` kind, e.g. `change.created`,
 	// `incident.started`, `workflow-run.failed`, `deployment.finished`,
-	// `freeze.started`, `drift-alert.sent`. Open set — render unknown kinds
+	// `freeze.started`, `drift-alert.sent`. Open set: render unknown kinds
 	// generically.
 	Kind      string `json:"kind"`
 	Timestamp string `json:"timestamp"`
 	// Title: One-line headline.
 	Title string `json:"title"`
-	// Detail: Optional second line — diff summary, actor, error text.
+	// Detail: Optional second line; diff summary, actor, error text.
 	Detail         *string          `json:"detail,omitempty"`
 	Severity       MomentSeverity   `json:"severity"`
 	PluginID       *string          `json:"pluginId,omitempty"`
@@ -8422,8 +8424,7 @@ type MomentEventLink struct {
 	ID *string `json:"id,omitempty"`
 	// ParentID: Parent id where the target needs one (workflow id for a run).
 	ParentID *string `json:"parentId,omitempty"`
-	// URL: Absolute external URL — a provider's incident page. Wins when
-	// present.
+	// URL: Absolute external URL; a provider's incident page. Wins when present.
 	URL *string `json:"url,omitempty"`
 }
 
@@ -8460,7 +8461,7 @@ type MomentFeedStatus struct {
 	Truncated *bool `json:"truncated,omitempty"`
 }
 
-// MomentIncidentSpan: A provider incident whose span overlaps the window —
+// MomentIncidentSpan: A provider incident whose span overlaps the window;
 // returned alongside the events so clients can badge events that fall inside it
 // ("during DigitalOcean incident").
 type MomentIncidentSpan struct {
@@ -8485,7 +8486,7 @@ type MomentResponse struct {
 	// minutes.
 	WindowMinutes int64  `json:"windowMinutes"`
 	GeneratedAt   string `json:"generatedAt"`
-	// Feeds: One entry per feed, in canonical order — including omitted and
+	// Feeds: One entry per feed, in canonical order; including omitted and
 	// errored feeds.
 	Feeds []MomentFeedStatus `json:"feeds"`
 	// Events: Chronological, oldest first.
@@ -8540,7 +8541,7 @@ type NetworkFlowAccountStatus struct {
 	DisplayName string `json:"displayName"`
 	// SupportsFlows: False when the account's provider has no flow source we can
 	// read. Such accounts are listed and excluded from the totals rather than
-	// contributing zero bytes — zero would be a claim about their network, this
+	// contributing zero bytes; zero would be a claim about their network, this
 	// is a statement about our coverage.
 	SupportsFlows bool `json:"supportsFlows"`
 	// Recut: True when the account's flows re-cut traffic another account may
@@ -8561,7 +8562,7 @@ type NetworkFlowAccountStatus struct {
 
 // NetworkFlowEndpoint is the `NetworkFlowEndpoint` schema.
 type NetworkFlowEndpoint struct {
-	// Ref: Stable endpoint identity — a provider resource id where one could be
+	// Ref: Stable endpoint identity; a provider resource id where one could be
 	// resolved, otherwise a class token (`internet`, `aws:s3`,
 	// `infrawrench:unattributed`). Never a raw IP address: addresses churn, so
 	// the same workload would be a different row every day.
@@ -8581,8 +8582,8 @@ type NetworkFlowFeed struct {
 	InitialLookbackDays int64 `json:"initialLookbackDays"`
 	// Estimated: Always true. Flow bytes come from logs that sample or drop
 	// under load and are priced at published list rates with no free tier, no
-	// volume tier and no negotiated discount modelled — the ranking is sound,
-	// the absolute figure will not reconcile to the invoice.
+	// volume tier and no negotiated discount modelled: the ranking is sound, the
+	// absolute figure will not reconcile to the invoice.
 	Estimated bool                       `json:"estimated"`
 	Range     NetworkFlowFeedRange       `json:"range"`
 	Scopes    []NetworkFlowScopeSummary  `json:"scopes"`
@@ -8597,8 +8598,8 @@ type NetworkFlowPair struct {
 	Source      NetworkFlowEndpoint `json:"source"`
 	Destination NetworkFlowEndpoint `json:"destination"`
 	// Scope: Which billing boundary the traffic crossed. `unknown` means the
-	// provider's record did not determine one — it is priced at zero and
-	// labelled rather than folded into a neighbouring boundary.
+	// provider's record did not determine one; it is priced at zero and labelled
+	// rather than folded into a neighbouring boundary.
 	//
 	// One of "intra_zone", "cross_zone", "cross_region", "internet_egress",
 	// "internet_ingress", "provider_service", "nat_gateway",
@@ -8637,8 +8638,8 @@ type NetworkFlowRateCard struct {
 // NetworkFlowScopeSummary is the `NetworkFlowScopeSummary` schema.
 type NetworkFlowScopeSummary struct {
 	// Scope: Which billing boundary the traffic crossed. `unknown` means the
-	// provider's record did not determine one — it is priced at zero and
-	// labelled rather than folded into a neighbouring boundary.
+	// provider's record did not determine one; it is priced at zero and labelled
+	// rather than folded into a neighbouring boundary.
 	//
 	// One of "intra_zone", "cross_zone", "cross_region", "internet_egress",
 	// "internet_ingress", "provider_service", "nat_gateway",
@@ -8653,7 +8654,7 @@ type NetworkFlowScopeSummary struct {
 	CrossedRegion bool    `json:"crossedRegion"`
 	LeftCloud     bool    `json:"leftCloud"`
 	// UnattributedBytes: Bytes inside `bytes` whose endpoints could not be tied
-	// to a workload. A subset, not an addition — nothing here has been
+	// to a workload. A subset, not an addition: nothing here has been
 	// apportioned across the attributed rows.
 	UnattributedBytes float64 `json:"unattributedBytes"`
 	// TruncatedBytes: Bytes inside `bytes` that fell below the stored top-N pair
@@ -8671,7 +8672,7 @@ type NetworkFlowSettings struct {
 // NetworkFlowSource is the `NetworkFlowSource` schema.
 type NetworkFlowSource struct {
 	ID string `json:"id"`
-	// Target: What the flow log is attached to — a VPC id, a network.
+	// Target: What the flow log is attached to; a VPC id, a network.
 	Target          string  `json:"target"`
 	Region          *string `json:"region"`
 	DestinationType string  `json:"destinationType"`
@@ -8781,7 +8782,7 @@ type OnCallOverrideCreate struct {
 	Reason     *string `json:"reason,omitempty"`
 }
 
-// OnCallParticipant: The next person in the rotation — where an escalation goes.
+// OnCallParticipant: The next person in the rotation, where an escalation goes.
 // Resolved from the rotation and never from a cover: a cover is somebody
 // standing in for one shift.
 //
@@ -8970,11 +8971,11 @@ type OrgConfigDashboard struct {
 }
 
 // OrgConfigDashboardCard: One card. Position is the index in the dashboard's
-// `cards` array — the grid order all three card kinds share.
+// `cards` array; the grid order all three card kinds share.
 type OrgConfigDashboardCard = any
 
-// OrgConfigDocument: An organization's configuration. Every section is optional
-// — a document that omits one leaves it entirely alone, in both apply modes.
+// OrgConfigDocument: An organization's configuration. Every section is optional;
+// a document that omits one leaves it entirely alone, in both apply modes.
 type OrgConfigDocument struct {
 	Version       *int64                         `json:"version,omitempty"`
 	ExportedAt    *string                        `json:"exportedAt,omitempty"`
@@ -9062,7 +9063,7 @@ const (
 )
 
 // OrgConfigUnresolved: Something the document asked for that this organization
-// could not satisfy — a pin for a resource nobody has synced, an account name
+// could not satisfy; a pin for a resource nobody has synced, an account name
 // that does not exist here. Not fatal: the affected card, clause or deletion is
 // dropped and the rest of the document still applies.
 type OrgConfigUnresolved struct {
@@ -9072,7 +9073,7 @@ type OrgConfigUnresolved struct {
 }
 
 // OrgConfigWorkflow: A workflow. The git-webhook signing secret is deliberately
-// absent — it is write-only, so a document can neither leak nor set one.
+// absent; it is write-only, so a document can neither leak nor set one.
 type OrgConfigWorkflow struct {
 	// Key: Stable slug identifying this entity across organizations. Derived
 	// from the name on export; it is what an apply matches on, so renaming an
@@ -9141,8 +9142,7 @@ type OrgStatusIncident struct {
 	// SampleResources: Up to five of the overlapped resources, for display.
 	SampleResources []ProviderIncidentResourceSample `json:"sampleResources"`
 	// OverlappingChangeCount: Change-timeline events recorded on this provider
-	// during the incident window — "these N changes happened during an
-	// incident".
+	// during the incident window; "these N changes happened during an incident".
 	OverlappingChangeCount int64 `json:"overlappingChangeCount"`
 }
 
@@ -9198,7 +9198,7 @@ type OrphanListResponse struct {
 	// Accounts: Groups sorted by account name.
 	Accounts   []OrphanAccountGroup `json:"accounts"`
 	TotalCount int64                `json:"totalCount"`
-	// UnownedCount: Flagged resources with no recorded owner — the 'nobody to
+	// UnownedCount: Flagged resources with no recorded owner; the 'nobody to
 	// ask' count.
 	UnownedCount int64 `json:"unownedCount"`
 	// CostWindowDays: Days of trailing spend the annotations cover.
@@ -9328,7 +9328,7 @@ type PageClearResponse struct {
 // PageRequest is the `PageRequest` schema.
 type PageRequest struct {
 	// Source: Stable name for the system raising the page: letters, digits, `.`,
-	// `_` and `-`. It is the notification's sender, and it scopes the cooldown —
+	// `_` and `-`. It is the notification's sender, and it scopes the cooldown;
 	// two services paging under the same key never throttle each other.
 	Source string `json:"source"`
 	// Message: The alert text. Becomes the SMS and notification body.
@@ -9344,7 +9344,7 @@ type PageRequest struct {
 	// Defaults to 60; `0` sends every time.
 	CooldownMinutes *int64 `json:"cooldownMinutes,omitempty"`
 	// Voice: Also place a voice call to recipients who opted into voice. Off by
-	// default — reserve it for things worth waking someone up for.
+	// default; reserve it for things worth waking someone up for.
 	Voice *bool `json:"voice,omitempty"`
 }
 
@@ -10064,7 +10064,7 @@ type ProbeStatus struct {
 
 // ProbeSuggestion is the `ProbeSuggestion` schema.
 type ProbeSuggestion struct {
-	// URL: Normalized to an absolute URL — bare hosts get https://.
+	// URL: Normalized to an absolute URL, bare hosts get https://.
 	URL            string   `json:"url"`
 	ResourceID     string   `json:"resourceId"`
 	DisplayName    string   `json:"displayName"`
@@ -10146,7 +10146,7 @@ type PublicStatusComponent struct {
 	Name      string  `json:"name"`
 	GroupName *string `json:"groupName"`
 	// State: A component's public state. A paused probe reads `unknown`
-	// regardless of its last result — the page is a claim about what is being
+	// regardless of its last result: the page is a claim about what is being
 	// checked now.
 	//
 	// One of "operational", "degraded", "down", "unknown".
@@ -10334,7 +10334,7 @@ type QueryMonitorUpdate struct {
 }
 
 // QuietHours: A recurring local-time window during which the rule holds its
-// alerts. Held, not dropped — a held alert is queued and delivered when the
+// alerts. Held, not dropped; a held alert is queued and delivered when the
 // window closes.
 //
 // The API may send null in its place.
@@ -10429,7 +10429,7 @@ type QuotaRow struct {
 	Limit float64 `json:"limit"`
 	// Used: How much of `limit` is consumed, in the same unit.
 	Used float64 `json:"used"`
-	// Utilization: used / limit. Not clamped at 1 — an over-quota reading is a
+	// Utilization: used / limit. Not clamped at 1; an over-quota reading is a
 	// real state.
 	Utilization float64 `json:"utilization"`
 	// Unit: What is being counted, in the provider's own word.
@@ -10441,7 +10441,7 @@ type QuotaRow struct {
 	DocsURL *string `json:"docsUrl"`
 	// ObservedAt: When this reading was collected.
 	ObservedAt string `json:"observedAt"`
-	// Severity: Where the quota sits: `exhausted` (used >= limit — the provider
+	// Severity: Where the quota sits: `exhausted` (used >= limit; the provider
 	// is already refusing requests), `critical` (at or over the organization's
 	// threshold), `trending` (under the threshold, but the fitted trend reaches
 	// the limit within 30 days), or `ok`. Ordered: an exhausted quota is also
@@ -10467,10 +10467,10 @@ type QuotaTrend struct {
 	Points int64 `json:"points"`
 }
 
-// RealizedSavingsBasis: `billing` — baseline and post-action spend both read
-// from this resource's cost rows; `estimate` — no per-resource billing, so the
-// list-price estimate is accrued over elapsed days; `manual` — the logged amount
-// accrued; `unmeasured` — nothing to measure against (never summed as zero).
+// RealizedSavingsBasis: `billing`: baseline and post-action spend both read from
+// this resource's cost rows; `estimate`: no per-resource billing, so the
+// list-price estimate is accrued over elapsed days; `manual`: the logged amount
+// accrued; `unmeasured`: nothing to measure against (never summed as zero).
 type RealizedSavingsBasis = string
 
 // The values RealizedSavingsBasis takes.
@@ -10553,7 +10553,7 @@ type ReauthenticationRequired struct {
 type RegisteredAgent struct {
 	RegistrationID string `json:"registration_id"`
 	// Credential: Bearer credential for this registration. Format
-	// `iwa_<base64url>`. Returned once and never recoverable — there is no route
+	// `iwa_<base64url>`. Returned once and never recoverable: there is no route
 	// that can show it again.
 	Credential     string `json:"credential"`
 	OrganizationID string `json:"organization_id"`
@@ -10597,7 +10597,7 @@ type ReorderRequest struct {
 
 // ReportDeliveryTargetOption is the `ReportDeliveryTargetOption` schema.
 type ReportDeliveryTargetOption struct {
-	// ID: The stored row id — what the schedule input carries.
+	// ID: The stored row id; what the schedule input carries.
 	ID string `json:"id"`
 	// Label: Display label: `#channel` for Slack, the saved label for Teams.
 	Label string `json:"label"`
@@ -10636,7 +10636,7 @@ type ReportNotification struct {
 	// destination.
 	LastSentAt *string `json:"lastSentAt"`
 	// LastStatus: What the last attempt did. `partial` means some destinations
-	// took it and some failed — never retried automatically, because a retry
+	// took it and some failed; never retried automatically, because a retry
 	// would double-post where it landed.
 	//
 	// One of "pending", "succeeded", "partial", "failed", "no_targets".
@@ -10648,7 +10648,7 @@ type ReportNotification struct {
 }
 
 // ReportNotificationInput: A full replace, like a report's own PUT. At least one
-// destination is required — a schedule with nowhere to deliver would only ever
+// destination is required; a schedule with nowhere to deliver would only ever
 // record failures.
 type ReportNotificationInput struct {
 	// Cadence: How often the schedule fires. The report itself decides what
@@ -10749,7 +10749,7 @@ type ResourceChangeEntry struct {
 	AccountID      string     `json:"accountId"`
 	PluginID       string     `json:"pluginId"`
 	ResourceTypeID string     `json:"resourceTypeId"`
-	// DisplayName: Resource display name at the time of the change — survives
+	// DisplayName: Resource display name at the time of the change, survives
 	// deletion.
 	DisplayName string             `json:"displayName"`
 	ChangeKind  ResourceChangeKind `json:"changeKind"`
@@ -10775,7 +10775,7 @@ type ResourceChangeFeedEntry struct {
 	AccountID      string     `json:"accountId"`
 	PluginID       string     `json:"pluginId"`
 	ResourceTypeID string     `json:"resourceTypeId"`
-	// DisplayName: Resource display name at the time of the change — survives
+	// DisplayName: Resource display name at the time of the change, survives
 	// deletion.
 	DisplayName string             `json:"displayName"`
 	ChangeKind  ResourceChangeKind `json:"changeKind"`
@@ -10901,7 +10901,7 @@ type ResourceLease struct {
 	// Note: Why/who-for; shown on the expiry radar.
 	Note *string `json:"note"`
 	// Status: Lease lifecycle: `active` (counting down), `deleted` (auto-delete
-	// completed), `failed` (auto-delete was retried and given up on — see
+	// completed), `failed` (auto-delete was retried and given up on, see
 	// `lastError`), or `canceled` (called off; the resource stays).
 	//
 	// One of "active", "deleted", "failed", "canceled".
@@ -10963,7 +10963,7 @@ type ResourceOwnerAnnotation struct {
 	UserID *string `json:"userId"`
 	// DisplayName: The member's name, or the free-text owner.
 	DisplayName string `json:"displayName"`
-	// IsLabel: True when the owner is free text — nothing can be routed to it.
+	// IsLabel: True when the owner is free text; nothing can be routed to it.
 	IsLabel   bool    `json:"isLabel"`
 	TicketURL *string `json:"ticketUrl"`
 	Purpose   *string `json:"purpose"`
@@ -10979,8 +10979,8 @@ type ResourceOwnership struct {
 	// ResourceName: Resource display name, denormalized so a report can name a
 	// deleted resource.
 	ResourceName string `json:"resourceName"`
-	// OwnerUserID: The routable owner — an org member. Alerts about this
-	// resource reach them.
+	// OwnerUserID: The routable owner; an org member. Alerts about this resource
+	// reach them.
 	OwnerUserID *string `json:"ownerUserId"`
 	// OwnerName: Resolved server-side; null when unset or removed.
 	OwnerName  *string `json:"ownerName"`
@@ -11033,7 +11033,7 @@ const (
 	ResourceStatusInfo         ResourceStatus = "info"
 )
 
-// ResourceTypeID: Resource type id. Note: not every plugin exposes every type —
+// ResourceTypeID: Resource type id. Note: not every plugin exposes every type;
 // see the plugin's `resourceTypes` for the valid (pluginId, typeId) pairs.
 //
 // Spec schema: `ResourceTypeId`.
@@ -11704,7 +11704,7 @@ type RestoreDrill struct {
 	AccountID    *string `json:"accountId"`
 	AccountName  *string `json:"accountName"`
 	// PerformedAt: When the drill was performed, which is **not** when it was
-	// recorded — people write these up on Monday for a drill they ran on
+	// recorded; people write these up on Monday for a drill they ran on
 	// Saturday, and every staleness computation uses this.
 	PerformedAt string `json:"performedAt"`
 	// Outcome: How the drill ended. Only `verified` counts as evidence the
@@ -11719,7 +11719,7 @@ type RestoreDrill struct {
 	// that far; a blocked drill has no RTO, and an invented one would be the
 	// most dangerous number on the page.
 	RtoMinutes *int64 `json:"rtoMinutes"`
-	// RestoredFrom: Snapshot id, S3 key, a date — free text.
+	// RestoredFrom: Snapshot id, S3 key, a date, free text.
 	RestoredFrom      *string `json:"restoredFrom"`
 	Notes             *string `json:"notes"`
 	PerformedByUserID *string `json:"performedByUserId"`
@@ -11754,14 +11754,14 @@ type RevertApplyResponse struct {
 	Plan          RevertPlan `json:"plan"`
 	RevertedAt    string     `json:"revertedAt"`
 	// Reconciled: True when this request wrote nothing and instead recorded an
-	// *earlier* interrupted attempt's write — the resource was already back, and
+	// *earlier* interrupted attempt's write: the resource was already back, and
 	// the event is now marked reverted. Nothing was sent to the provider by this
 	// request.
 	Reconciled *bool `json:"reconciled,omitempty"`
 	// AuditRecorded: Present and `false` only when the audit entry could not be
 	// written. The provider change still happened; its attribution did not reach
 	// the audit table and was written to the server log instead. Attribution is
-	// best-effort — nothing transactional spans a third-party cloud API and
+	// best-effort; nothing transactional spans a third-party cloud API and
 	// Infrawrench's database.
 	AuditRecorded *bool `json:"auditRecorded,omitempty"`
 }
@@ -11780,13 +11780,13 @@ type RevertFieldPlan struct {
 	Reason string `json:"reason"`
 }
 
-// RevertFieldStatus: What a revert would do to one field. `revertible` — the
+// RevertFieldStatus: What a revert would do to one field. `revertible`: the
 // field still holds the value the change set, and the plugin's edit form can
-// write the old one back. `already-reverted` — it is already at the old value;
-// nothing to do. `conflict` — it changed again since, so reverting would discard
-// the newer value. `not-writable` — outside the plugin's editable surface, or
-// the old value is not something the edit form can submit. `provider-derived` —
-// an `outputs.*` entry, which the provider computes rather than accepts.
+// write the old one back. `already-reverted`: it is already at the old value;
+// nothing to do. `conflict`: it changed again since, so reverting would discard
+// the newer value. `not-writable`: outside the plugin's editable surface, or the
+// old value is not something the edit form can submit. `provider-derived`: an
+// `outputs.*` entry, which the provider computes rather than accepts.
 type RevertFieldStatus = string
 
 // The values RevertFieldStatus takes.
@@ -11881,7 +11881,7 @@ type Runbook struct {
 	Steps       []RunbookStep `json:"steps"`
 	// ResourceTypeIDs: Resource types this runbook is about; empty means it is
 	// not scoped to a type. Used to answer 'which runbooks apply here',
-	// **never** to restrict who may open it — a runbook nobody can find is the
+	// **never** to restrict who may open it; a runbook nobody can find is the
 	// failure this feature exists to fix.
 	ResourceTypeIDs []string `json:"resourceTypeIds"`
 	// TagKey: Optional tag narrowing. Matched case-insensitively.
@@ -11964,14 +11964,14 @@ type RunbookRunStep struct {
 	// Kind: What the step does. Three kinds and not a scripting language: a
 	// runbook is written by whoever is on call for whoever is on call next, and
 	// the moment it needs a language it stops being written. `workflow` is the
-	// escape hatch — anything genuinely automated belongs in a workflow, which
+	// escape hatch; anything genuinely automated belongs in a workflow, which
 	// already has a sandbox, approvals, secrets and a history.
 	//
 	// One of "manual", "workflow", "link".
 	Kind string `json:"kind"`
 	// Status: One of "pending", "done", "skipped", "failed".
 	Status string `json:"status"`
-	// Note: What the responder typed — output, or why it was skipped.
+	// Note: What the responder typed; output, or why it was skipped.
 	Note *string `json:"note"`
 	// WorkflowRunID: The workflow run this step kicked off. Recorded here; the
 	// run itself goes through the workflow routes with their own permission,
@@ -11991,13 +11991,13 @@ type RunbookStep struct {
 	// Kind: What the step does. Three kinds and not a scripting language: a
 	// runbook is written by whoever is on call for whoever is on call next, and
 	// the moment it needs a language it stops being written. `workflow` is the
-	// escape hatch — anything genuinely automated belongs in a workflow, which
+	// escape hatch; anything genuinely automated belongs in a workflow, which
 	// already has a sandbox, approvals, secrets and a history.
 	//
 	// One of "manual", "workflow", "link".
 	Kind  string `json:"kind"`
 	Title string `json:"title"`
-	// Body: Markdown — the detail nobody remembers at 03:00.
+	// Body: Markdown: the detail nobody remembers at 03:00.
 	Body string `json:"body"`
 	// WorkflowID: For `workflow` steps: which workflow the button runs.
 	WorkflowID *string `json:"workflowId,omitempty"`
@@ -12012,7 +12012,7 @@ type RunbookStepInput struct {
 	// Kind: What the step does. Three kinds and not a scripting language: a
 	// runbook is written by whoever is on call for whoever is on call next, and
 	// the moment it needs a language it stops being written. `workflow` is the
-	// escape hatch — anything genuinely automated belongs in a workflow, which
+	// escape hatch; anything genuinely automated belongs in a workflow, which
 	// already has a sandbox, approvals, secrets and a history.
 	//
 	// One of "manual", "workflow", "link".
@@ -12064,7 +12064,7 @@ type SavedCostFilterInput struct {
 	// Filters: The structured filter. May be omitted only when `query` is sent
 	// instead.
 	Filters []SavedCostFilterTerm `json:"filters,omitempty"`
-	// Query: The same filter written in the cost query language — an alternative
+	// Query: The same filter written in the cost query language; an alternative
 	// spelling of `filters`, compiled server-side into exactly that structure.
 	// Sending both a query and a non-empty `filters` is a 400, not a precedence
 	// rule. Whichever spelling is used, the result must be non-empty (an empty
@@ -12157,11 +12157,11 @@ type SavingsEventInput struct {
 	HorizonMonths *int64  `json:"horizonMonths,omitempty"`
 }
 
-// SavingsEventKind: `rightsizing` — a resize to a smaller size;
-// `orphan_deletion` — a resource the orphan finder flags was deleted;
-// `sleep_schedule` — a stretch of a sleep/wake schedule in force; `commitment` —
-// reservation and savings-plan discounts, derived from billing; `manual` —
-// logged by a person.
+// SavingsEventKind: `rightsizing`: a resize to a smaller size;
+// `orphan_deletion`: a resource the orphan finder flags was deleted;
+// `sleep_schedule`: a stretch of a sleep/wake schedule in force; `commitment`:
+// reservation and savings-plan discounts, derived from billing; `manual`: logged
+// by a person.
 type SavingsEventKind = string
 
 // The values SavingsEventKind takes.
@@ -12227,17 +12227,17 @@ type SavingsEventResult struct {
 	AttributedCostCentreID   *string           `json:"attributedCostCentreId"`
 	AttributedCostCentreName *string           `json:"attributedCostCentreName"`
 	Shortfall                *SavingsShortfall `json:"shortfall"`
-	// Editable: `full` — a manual entry (PUT); `annotate` — an automatic event
-	// takes a note, a cost centre, a horizon and an end date (PATCH); `none` —
+	// Editable: `full`: a manual entry (PUT); `annotate`: an automatic event
+	// takes a note, a cost centre, a horizon and an end date (PATCH); `none`:
 	// derived rows.
 	//
 	// One of "full", "annotate", "none".
 	Editable string `json:"editable"`
 }
 
-// SavingsEventSource: `in_app` — recorded when Infrawrench performed the action;
-// `detected` — inferred from an inventory diff on sync (the action was taken in
-// the provider's console); `manual`; `derived` — computed from billing with no
+// SavingsEventSource: `in_app`: recorded when Infrawrench performed the action;
+// `detected`: inferred from an inventory diff on sync (the action was taken in
+// the provider's console); `manual`; `derived`: computed from billing with no
 // stored event (commitments).
 type SavingsEventSource = string
 
@@ -12253,8 +12253,8 @@ const (
 //
 // The API may send null in its place.
 type SavingsShortfall struct {
-	// Kind: `below_projection` — the trailing realized rate is under the org's
-	// threshold share of the projected rate; `grew_back` — post-action spend is
+	// Kind: `below_projection`: the trailing realized rate is under the org's
+	// threshold share of the projected rate; `grew_back`: post-action spend is
 	// above the pre-action baseline.
 	//
 	// One of "below_projection", "grew_back".
@@ -12403,7 +12403,7 @@ type SessionRecording struct {
 	// SharedConsoleID: Set when this session was shared with colleagues while it
 	// ran.
 	SharedConsoleID *string `json:"sharedConsoleId,omitempty"`
-	// Participants: Everyone who was attached to this session and in what role —
+	// Participants: Everyone who was attached to this session and in what role;
 	// the **highest** role they held, not their role at the end. Null or empty
 	// for an ordinary solo session. Once a session can be shared, `userId` alone
 	// stops answering 'whose hands were on this box'; this does. The cast
@@ -12411,7 +12411,7 @@ type SessionRecording struct {
 	// viewer sees *when* the keyboard moved.
 	Participants []SessionRecordingParticipants `json:"participants,omitempty"`
 	// Status: `recording` (live), `complete` (closed cleanly), `truncated` (hit
-	// the per-session capture ceiling — the tape is a genuine partial and says
+	// the per-session capture ceiling: the tape is a genuine partial and says
 	// so), or `abandoned` (the server handling the session went away before it
 	// could close the row).
 	//
@@ -12429,8 +12429,8 @@ type SessionRecording struct {
 type SessionRecordingSettings struct {
 	Enabled bool `json:"enabled"`
 	// CaptureInput: Also record keystrokes. Separate from `enabled` because it
-	// captures input at prompts the remote host chose not to echo — a sudo
-	// password, a pasted token — which is a materially different promise to the
+	// captures input at prompts the remote host chose not to echo (a sudo
+	// password, a pasted token) which is a materially different promise to the
 	// people being recorded.
 	CaptureInput  bool                  `json:"captureInput"`
 	RetentionDays int64                 `json:"retentionDays"`
@@ -12534,7 +12534,7 @@ type SharedConsole struct {
 	OwnerName   *string `json:"ownerName"`
 	AccountID   *string `json:"accountId"`
 	ResourceID  *string `json:"resourceId"`
-	// Host: Final hop, as the proxy dialled it — never as a client asserted it.
+	// Host: Final hop, as the proxy dialled it; never as a client asserted it.
 	Host     string `json:"host"`
 	Port     int64  `json:"port"`
 	Username string `json:"username"`
@@ -12542,7 +12542,7 @@ type SharedConsole struct {
 	// sharer can ever type. This is the one hard safety property the feature
 	// offers, as opposed to inferring intent from command text.
 	AllowHandover bool `json:"allowHandover"`
-	// Status: `revoked` — somebody ended the share; `ended` — the underlying SSH
+	// Status: `revoked`: somebody ended the share; `ended`: the underlying SSH
 	// session closed. Either way the fan-out stops and attached guests are
 	// disconnected.
 	//
@@ -12570,7 +12570,7 @@ type SharedConsoleCreated struct {
 	Share        SharedConsole              `json:"share"`
 	Participants []SharedConsoleParticipant `json:"participants"`
 	// InviteToken: The invite, returned exactly once. Only its sha256 is stored,
-	// so it cannot be shown again — mint a replacement instead.
+	// so it cannot be shown again: mint a replacement instead.
 	InviteToken string `json:"inviteToken"`
 }
 
@@ -12600,8 +12600,8 @@ type SharedConsoleParticipant struct {
 	UserName *string `json:"userName"`
 	// Role: `driver` holds the keyboard; `observer` sees the terminal and cannot
 	// type into it. Exactly one participant per console is a driver at any
-	// moment, enforced by a partial unique index rather than by the application
-	// — two simultaneous handovers cannot both win.
+	// moment, enforced by a partial unique index rather than by the application;
+	// two simultaneous handovers cannot both win.
 	//
 	// One of "observer", "driver".
 	Role string `json:"role"`
@@ -12612,7 +12612,7 @@ type SharedConsoleParticipant struct {
 	// One of "joined", "left", "removed".
 	Status string `json:"status"`
 	// DriverRequestedAt: Set when this participant has asked for the keyboard
-	// and nobody has answered yet. Asking grants nothing — only the current
+	// and nobody has answered yet. Asking grants nothing; only the current
 	// driver or the sharer can move it.
 	DriverRequestedAt *string `json:"driverRequestedAt"`
 	JoinedAt          string  `json:"joinedAt"`
@@ -12635,7 +12635,7 @@ type SharedConsoleSummary struct {
 	OwnerName   *string `json:"ownerName"`
 	AccountID   *string `json:"accountId"`
 	ResourceID  *string `json:"resourceId"`
-	// Host: Final hop, as the proxy dialled it — never as a client asserted it.
+	// Host: Final hop, as the proxy dialled it; never as a client asserted it.
 	Host     string `json:"host"`
 	Port     int64  `json:"port"`
 	Username string `json:"username"`
@@ -12643,7 +12643,7 @@ type SharedConsoleSummary struct {
 	// sharer can ever type. This is the one hard safety property the feature
 	// offers, as opposed to inferring intent from command text.
 	AllowHandover bool `json:"allowHandover"`
-	// Status: `revoked` — somebody ended the share; `ended` — the underlying SSH
+	// Status: `revoked`: somebody ended the share; `ended`: the underlying SSH
 	// session closed. Either way the fan-out stops and attached guests are
 	// disconnected.
 	//
@@ -12694,7 +12694,7 @@ type SignSSHKeyRequest struct {
 //
 // Spec schema: `SignSshKeyResponse`.
 type SignSSHKeyResponse struct {
-	// Signature: Raw signature bytes, base64-encoded — Ed25519/RSA as-is, ECDSA
+	// Signature: Raw signature bytes, base64-encoded; Ed25519/RSA as-is, ECDSA
 	// in DER as node produces it.
 	Signature string           `json:"signature"`
 	Algorithm SSHSignAlgorithm `json:"algorithm"`
@@ -12839,7 +12839,7 @@ type SleepSchedulePreview struct {
 	// CostWindowDays: Days of billing data the estimate was computed over (0 =
 	// none found).
 	CostWindowDays int64 `json:"costWindowDays"`
-	// NextTransitions: The next few transitions, soonest first — a timezone
+	// NextTransitions: The next few transitions, soonest first; a timezone
 	// sanity check.
 	NextTransitions []ScheduleTransition `json:"nextTransitions"`
 }
@@ -13190,7 +13190,7 @@ type StatusPageComponent struct {
 	GroupName *string `json:"groupName"`
 	// Position: Ascending display order.
 	Position int64 `json:"position"`
-	// ProbeName: The probe's internal name — editor-only.
+	// ProbeName: The probe's internal name, editor-only.
 	ProbeName string `json:"probeName"`
 	// ProbeStatus: One of "up", "down", "unknown".
 	ProbeStatus string `json:"probeStatus"`
@@ -13214,7 +13214,7 @@ type StatusPageCreate struct {
 	ShowHistory *bool   `json:"showHistory,omitempty"`
 	ShowUptime  *bool   `json:"showUptime,omitempty"`
 	SupportURL  *string `json:"supportUrl,omitempty"`
-	// Components: Order is significant — it is the public render order.
+	// Components: Order is significant; it is the public render order.
 	Components []StatusPageComponentInput `json:"components,omitempty"`
 }
 
@@ -13246,7 +13246,7 @@ type StorageListRequest struct {
 type StorageObject struct {
 	// Key: Full path within the bucket.
 	Key string `json:"key"`
-	// Name: Last path segment — what the browser renders.
+	// Name: Last path segment, what the browser renders.
 	Name         string  `json:"name"`
 	Size         float64 `json:"size"`
 	LastModified string  `json:"lastModified"`
@@ -13318,7 +13318,7 @@ type SyntheticProbe struct {
 	Name string `json:"name"`
 	// URL: Absolute http(s) URL the check hits from the edge proxy.
 	URL string `json:"url"`
-	// Method: HTTP method the probe uses — GET, HEAD or OPTIONS. Unknown values
+	// Method: HTTP method the probe uses, GET, HEAD or OPTIONS. Unknown values
 	// become GET.
 	Method string `json:"method"`
 	// IntervalSeconds: Seconds between checks. Clamped server-side to 60–86400.
@@ -13363,7 +13363,7 @@ type SyntheticProbe struct {
 type SyntheticProbeCreate struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
-	// Method: HTTP method the probe uses — GET, HEAD or OPTIONS. Unknown values
+	// Method: HTTP method the probe uses, GET, HEAD or OPTIONS. Unknown values
 	// become GET.
 	Method *string `json:"method,omitempty"`
 	// IntervalSeconds: Seconds between checks. Clamped server-side to 60–86400.
@@ -13389,7 +13389,7 @@ type SyntheticProbeList struct {
 type SyntheticProbeUpdate struct {
 	Name *string `json:"name,omitempty"`
 	URL  *string `json:"url,omitempty"`
-	// Method: HTTP method the probe uses — GET, HEAD or OPTIONS. Unknown values
+	// Method: HTTP method the probe uses, GET, HEAD or OPTIONS. Unknown values
 	// become GET.
 	Method *string `json:"method,omitempty"`
 	// IntervalSeconds: Seconds between checks. Clamped server-side to 60–86400.
@@ -13587,7 +13587,7 @@ type UnitCostQueryRequest struct {
 	// UsageUnit: `usage_unit_cost` only, and required there: the provider usage
 	// unit to divide by. See `GET /business-metrics/usage-units`.
 	UsageUnit *string `json:"usageUnit,omitempty"`
-	// Filters: Narrowing on top of the metric's own `costScope` — AND-composed,
+	// Filters: Narrowing on top of the metric's own `costScope`: AND-composed,
 	// never a replacement.
 	Filters []BusinessMetricScopeTerm `json:"filters,omitempty"`
 	// Query: The same narrowing as cost-query-language text.
@@ -13618,7 +13618,7 @@ type UnitCostQueryResponse struct {
 	// whole scope's spend (a raw metric grouped by an unmapped label), so draw
 	// that spend once.
 	CostPerLabel *bool `json:"costPerLabel,omitempty"`
-	// Series: One series per currency the numerator ended up in — usually one.
+	// Series: One series per currency the numerator ended up in, usually one.
 	// More than one means the organization has spend in a currency it holds no
 	// rate for; rather than dropping that spend (understating every unit cost)
 	// or adding it to another currency (inventing a number), each currency
@@ -13644,7 +13644,7 @@ type UnitCostSeries struct {
 	Label  *UnitCostSeriesLabel `json:"label,omitempty"`
 	Points []UnitCostPoint      `json:"points"`
 	// OverallValue: The period ratio: **summed numerator ÷ summed denominator**,
-	// not the mean of the per-bucket ratios — the mean weights a quiet Sunday
+	// not the mean of the per-bucket ratios: the mean weights a quiet Sunday
 	// exactly as heavily as a peak Monday. Only buckets that produced a ratio
 	// contribute, on both sides.
 	OverallValue          *float64 `json:"overallValue"`
@@ -13886,7 +13886,7 @@ type WallboardIncidentLine struct {
 type WallboardResponse struct {
 	// Status: Three states rather than five, because at four metres a person
 	// distinguishes three colours reliably and nothing more. `down` is reserved
-	// for the two things that mean customers are affected now — a sev1 incident
+	// for the two things that mean customers are affected now: a sev1 incident
 	// or a probe that is down; everything else that is wrong is `degraded`. A
 	// source that could not be read is `degraded` and never `ok`.
 	//
@@ -13899,7 +13899,7 @@ type WallboardResponse struct {
 	// accounts that stopped syncing.
 	Failures []WallboardFailureLine `json:"failures"`
 	// FailedSources: Sources that could not be read, **named on the screen**. A
-	// wallboard showing green because a query failed is worse than a blank one —
+	// wallboard showing green because a query failed is worse than a blank one;
 	// it is actively telling the room the wrong thing.
 	FailedSources []string `json:"failedSources"`
 	GeneratedAt   string   `json:"generatedAt"`
@@ -13914,7 +13914,7 @@ type WallboardTile struct {
 	Detail *string `json:"detail"`
 	// Status: Three states rather than five, because at four metres a person
 	// distinguishes three colours reliably and nothing more. `down` is reserved
-	// for the two things that mean customers are affected now — a sev1 incident
+	// for the two things that mean customers are affected now: a sev1 incident
 	// or a probe that is down; everything else that is wrong is `degraded`. A
 	// source that could not be read is `degraded` and never `ok`.
 	//
@@ -13964,7 +13964,7 @@ type WorkflowSchedule struct {
 	// Timezone: IANA timezone the expression's wall times are evaluated in. Omit
 	// or null for UTC.
 	Timezone *string `json:"timezone"`
-	// Enabled: Mirrors the workflow's enabled flag — a disabled workflow's
+	// Enabled: Mirrors the workflow's enabled flag; a disabled workflow's
 	// schedule never fires.
 	Enabled bool `json:"enabled"`
 	// LastRunAt: When the workflow last finished a run (any trigger source).
@@ -14046,7 +14046,7 @@ type WorkflowSecretValueWrite struct {
 
 // WorkflowTypingsResponse is the `WorkflowTypingsResponse` schema.
 type WorkflowTypingsResponse struct {
-	// Dts: Ambient TypeScript declarations for this workflow's `infra` API — the
+	// Dts: Ambient TypeScript declarations for this workflow's `infra` API; the
 	// same file the Monaco editor and `check` endpoint type against.
 	Dts string `json:"dts"`
 }
@@ -14123,7 +14123,7 @@ type BlastRadiusDependantVia struct {
 	FieldKey string `json:"fieldKey"`
 	// OutputKey: The output or identity the reference reads.
 	OutputKey string `json:"outputKey"`
-	// Kind: Where the edge came from. Absent means `output-ref` — a reference
+	// Kind: Where the edge came from. Absent means `output-ref`: a reference
 	// wired by hand.
 	//
 	// One of "output-ref", "declared", "containment", "field-match".
@@ -14268,12 +14268,12 @@ type CostAnomalyAcknowledgement struct {
 	// Explanation: What somebody established this finding was. Also the
 	// annotation's text.
 	Explanation string `json:"explanation"`
-	// AcknowledgedAt: When the current explanation was recorded — restamped by a
+	// AcknowledgedAt: When the current explanation was recorded, restamped by a
 	// correction.
 	AcknowledgedAt       string  `json:"acknowledgedAt"`
 	AcknowledgedByUserID *string `json:"acknowledgedByUserId"`
 	// AnnotationID: The cost annotation this created, drawn on every chart
-	// covering the anomalous day. Null once that note has been deleted — which
+	// covering the anomalous day. Null once that note has been deleted; which
 	// removes the marker, never the acknowledgement: the finding stays
 	// explained.
 	AnnotationID *string `json:"annotationId"`
@@ -14687,7 +14687,7 @@ type InvoiceVoidResponseReplacement struct {
 	ID                 string `json:"id"`
 	ManagedAccountID   string `json:"managedAccountId"`
 	ManagedAccountName string `json:"managedAccountName"`
-	// Number: `INV-2026-0001`. Null while draft — numbers are assigned at
+	// Number: `INV-2026-0001`. Null while draft: numbers are assigned at
 	// approval so a deleted draft cannot leave a gap in the sequence.
 	Number                *string           `json:"number"`
 	Status                InvoiceStatus     `json:"status"`
@@ -14707,7 +14707,7 @@ type InvoiceVoidResponseReplacement struct {
 	Notes                 *string           `json:"notes"`
 	Lines                 []InvoiceLine     `json:"lines"`
 	Derivation            InvoiceDerivation `json:"derivation"`
-	// Live: True when the figures in this response were recomputed for it — true
+	// Live: True when the figures in this response were recomputed for it; true
 	// for a draft, false for everything else. Say so: “these numbers will move”
 	// and “these numbers are what we sent” are different claims about the same
 	// fields.
@@ -14753,8 +14753,8 @@ type KubernetesNetworkReportBilled struct {
 // KubernetesNetworkReportScopes is an object the spec declares inline.
 type KubernetesNetworkReportScopes struct {
 	// Scope: Which billing boundary the traffic crossed. `unknown` means the
-	// provider's record did not determine one — it is priced at zero and
-	// labelled rather than folded into a neighbouring boundary.
+	// provider's record did not determine one; it is priced at zero and labelled
+	// rather than folded into a neighbouring boundary.
 	//
 	// One of "intra_zone", "cross_zone", "cross_region", "internet_egress",
 	// "internet_ingress", "provider_service", "nat_gateway",
@@ -15124,7 +15124,7 @@ type ShowbackReportCentres struct {
 	Totals map[string]float64 `json:"totals"`
 	// SubtreeTotals: This centre's own spend plus every descendant's. Equal to
 	// `totals` for a leaf and for every centre in an organization that does not
-	// nest. Do not sum this across entries — parents already contain their
+	// nest. Do not sum this across entries: parents already contain their
 	// children.
 	SubtreeTotals map[string]float64 `json:"subtreeTotals"`
 	// ParentID: The centre this one sits under; null for a root and for
@@ -15456,7 +15456,7 @@ type AlertRulesDeliveriesAckResponse struct {
 	Acknowledged          bool    `json:"acknowledged"`
 	AlreadyAcknowledgedBy *string `json:"alreadyAcknowledgedBy,omitempty"`
 	// Reason: Why the acknowledgement did not take. `not_pending` means the
-	// delivery exists but was never awaiting one — still held, already sent, or
+	// delivery exists but was never awaiting one; still held, already sent, or
 	// expired.
 	//
 	// One of "not_pending", "already_escalated", "already_acknowledged".

@@ -411,7 +411,7 @@ type AccessRequestsApproveParams struct {
 // now until `grantExpiresAt`, on every surface at once (HTTP, the WebSocket
 // gateway, chat, MCP tools). Two rules are enforced here and cannot be bypassed:
 // you cannot decide your own request (403 `self_approval`), and you cannot grant
-// a permission you do not hold yourself (403 `exceeds_approver`) — denying
+// a permission you do not hold yourself (403 `exceeds_approver`): denying
 // something aimed higher than you is allowed. Deciding a request that has
 // already been decided or has timed out is a 409. Audit-logged.
 //
@@ -488,7 +488,7 @@ type AccessRequestsCreateParams struct {
 //
 // Ask for specific permissions, for a specific number of minutes, with a reason.
 // Rejected with 400 when the caller's role already grants every permission asked
-// for — that is almost always a wrong permission string rather than a real
+// for; that is almost always a wrong permission string rather than a real
 // request. Fans out to push, Slack (with Approve/Deny buttons) and Microsoft
 // Teams under the Pages opt-in. Audit-logged.
 //
@@ -526,7 +526,7 @@ type AccessRequestsDenyParams struct {
 //
 // Records the refusal. Two rules are enforced here and cannot be bypassed: you
 // cannot decide your own request (403 `self_approval`), and you cannot grant a
-// permission you do not hold yourself (403 `exceeds_approver`) — denying
+// permission you do not hold yourself (403 `exceeds_approver`): denying
 // something aimed higher than you is allowed. Deciding a request that has
 // already been decided or has timed out is a 409. Audit-logged.
 //
@@ -617,7 +617,7 @@ type AccessRequestsRevokeParams struct {
 
 // Revoke: End a live elevation early
 //
-// Allowed for anyone with `access:approve` and for the holder — giving back an
+// Allowed for anyone with `access:approve` and for the holder; giving back an
 // elevation you no longer need must never require finding an approver. Applies
 // from the next permission resolution; nothing is cached. Audit-logged.
 //
@@ -752,7 +752,7 @@ type AccessReviewGetParams struct {
 // plugin declares, carrying no recorded owner, or signing in without a second
 // factor.
 //
-// This is about principals in **your** clouds — it is neither your Infrawrench
+// This is about principals in **your** clouds; it is neither your Infrawrench
 // team's roles (`/team`) nor the credentials Infrawrench stores for you
 // (`/credential-hygiene`).
 //
@@ -805,7 +805,7 @@ type AccessReviewDismissalsCreateParams struct {
 
 // Create: Dismiss an access review finding
 //
-// Accept a finding — that break-glass role really is meant to be admin, that
+// Accept a finding; that break-glass role really is meant to be admin, that
 // shared key really is rotated out of band. The finding leaves `findings` and
 // stops feeding the security alerts, but the rule keeps being evaluated and the
 // finding is reported back under `dismissed` for as long as it still matches.
@@ -916,8 +916,7 @@ type AccountsCreateParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 func (n *AccountsNamespace) Create(ctx context.Context, params AccountsCreateParams, opts ...RequestOption) (*CreateAccountResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/accounts")
 	r.setPath("orgId", params.OrgID)
@@ -1182,7 +1181,7 @@ type AccountsCredentialsGetParams struct {
 
 // Get: Fetch the decrypted credentials for an account
 //
-// Returns the credentials map as it was originally submitted. Sensitive — gate
+// Returns the credentials map as it was originally submitted. Sensitive: gate
 // access carefully.
 //
 // _Requires permission: `secrets:read`._
@@ -1340,7 +1339,7 @@ type AccountsPreflightCreateParams struct {
 // Create: Probe credentials before creating an account
 //
 // Runs the plugin's per-capability permission checks against the submitted
-// credentials. Nothing is stored — use it from the add-account flow before
+// credentials. Nothing is stored; use it from the add-account flow before
 // committing.
 //
 // _Requires permission: `accounts:write`._
@@ -1577,9 +1576,9 @@ type AgentIdentityCreateParams struct {
 
 // Create: Open an anonymous registration and a 24-hour trial workspace
 //
-// Requires no authentication — this is how a client with no credentials gets
-// one. Rate limited per source address. The workspace it opens is deleted 24
-// hours later unless a person completes the claim ceremony.
+// Requires no authentication; this is how a client with no credentials gets one.
+// Rate limited per source address. The workspace it opens is deleted 24 hours
+// later unless a person completes the claim ceremony.
 //
 // POST /api/agent/identity
 //
@@ -1645,8 +1644,7 @@ type AgentRegistrationsDeleteParams struct {
 //
 // Raises on 401: Unauthenticated
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 403: Forbidden
 //
@@ -1690,8 +1688,7 @@ type AgentRegistrationsListParams struct {
 //
 // Raises on 401: Unauthenticated
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 403: Forbidden
 //
@@ -2718,8 +2715,8 @@ type AlertRulesUpdateParams struct {
 
 // Update: Replace the organization's alert routing rules
 //
-// Whole-list replacement in one transaction. Order is part of the meaning — a
-// rule is only correct relative to the ones above it — so a reorder applied as
+// Whole-list replacement in one transaction. Order is part of the meaning (a
+// rule is only correct relative to the ones above it) so a reorder applied as
 // several requests would leave a window in which alerts route somewhere nobody
 // asked for. Positions are re-derived from array order.
 //
@@ -2983,7 +2980,7 @@ type AppsCheckParams struct {
 //
 // Runs a read-only shell probe over SSH and reports what the host is missing,
 // plus the packages and commands that would fix it. A POST because it opens a
-// connection to the named host and must never be cached — its whole value is
+// connection to the named host and must never be cached; its whole value is
 // saying what the host is now.
 //
 // POST /api/org/{orgId}/apps/check
@@ -3020,7 +3017,7 @@ type AppsSetupParams struct {
 //
 // Installs the named requirements using the host's own package manager, then
 // re-probes and reports what the host now is. Takes requirement ids, never
-// commands — the commands are derived server-side from a fresh probe. Needs root
+// commands; the commands are derived server-side from a fresh probe. Needs root
 // or passwordless sudo on the host, respects change freezes, and is audited as
 // `linux_app.host_setup`.
 //
@@ -3280,7 +3277,7 @@ type BackupsGetParams struct {
 // What protects the organization's stateful resources, what does not, and which
 // backups protect nothing. Derived from already-synced inventory using the
 // `backupRole` and `backupPolicy` declarations plugins carry on their resource
-// types — no provider API calls are made and results reflect the last sync.
+// types; no provider API calls are made and results reflect the last sync.
 // Findings are recomputed on every read rather than stored. Orphaned backups
 // carry a trailing-30-day spend quote when billing data is available.
 //
@@ -3323,7 +3320,7 @@ type BackupsDrillsCreateParams struct {
 // Create: Record a restore drill
 //
 // A `verified` drill **must** carry the measured time: an RPO comes from the
-// backup, and an RTO can only come from somebody with a stopwatch — that number
+// backup, and an RTO can only come from somebody with a stopwatch; that number
 // is the entire point of the exercise. A `blocked` drill must not carry one,
 // because it never started.
 //
@@ -3359,7 +3356,7 @@ type BackupsDrillsDeleteParams struct {
 
 // Delete: Delete a recorded drill
 //
-// For one recorded against the wrong resource or the wrong date. Audited —
+// For one recorded against the wrong resource or the wrong date. Audited:
 // deleting evidence that a restore failed is exactly the edit a reviewer would
 // want to know about.
 //
@@ -3388,7 +3385,7 @@ type BackupsDrillsGetParams struct {
 // Get: Where every protected resource stands on restore
 //
 // Backup coverage answers 'is there a backup'. This answers 'does it restore,
-// and how long does it take' — a different question, and the one routinely
+// and how long does it take'; a different question, and the one routinely
 // answered wrongly on the day.
 //
 // A drill is a **record that somebody tried**, not an automated restore:
@@ -3464,8 +3461,8 @@ type BackupsPoliciesCreateParams struct {
 
 // Create: Create a backup policy
 //
-// A policy must demand at least one of `maxRpoHours` and `minRetentionDays` —
-// one that demands nothing could never produce a finding and would read as
+// A policy must demand at least one of `maxRpoHours` and `minRetentionDays`: one
+// that demands nothing could never produce a finding and would read as
 // protection while providing none. An empty `resourceTypeIds` selects every
 // stateful resource type.
 //
@@ -3623,7 +3620,7 @@ type BastionsDeleteParams struct {
 	ID    string
 }
 
-// Delete: Revoke a bastion — accounts referencing it have their bastion binding
+// Delete: Revoke a bastion; accounts referencing it have their bastion binding
 // cleared
 //
 // _Requires permission: `bastions:write`._
@@ -3695,7 +3692,7 @@ type BillingCheckoutParams struct {
 
 // Checkout: Start a Stripe Checkout session
 //
-// Rejected with 400 for complimentary organizations — they are never billed.
+// Rejected with 400 for complimentary organizations; they are never billed.
 //
 // _Requires permission: `billing:write`._
 //
@@ -3801,7 +3798,7 @@ type BillingCapacityCheckoutParams struct {
 // A capacity slot is one seat bought outright for a fixed term instead of rented
 // monthly, and it grants paid-plan access on its own. This is a one-time
 // payment, so the seats are granted by the `checkout.session.completed` webhook
-// once Stripe confirms the payment — a 200 here only means the buyer was sent to
+// once Stripe confirms the payment; a 200 here only means the buyer was sent to
 // a payment page. Rejected with 400 for complimentary organizations, and 503
 // when the deployment has no one-time capacity price configured.
 //
@@ -3941,7 +3938,7 @@ type BillingRulesListParams struct {
 
 // List: List billing rules in evaluation order
 //
-// Billing rules are the organisation's own adjustments to collected spend — a
+// Billing rules are the organisation's own adjustments to collected spend; a
 // markup that recovers shared overhead, a discount negotiated outside the
 // provider's pricing, a shared cluster reallocated onto the teams that use it.
 //
@@ -4047,7 +4044,7 @@ type BillingRulesUpdateParams struct {
 
 // Update: Update a billing rule
 //
-// A full replace, `enabled` included — switching a markup off is an edit of the
+// A full replace, `enabled` included; switching a markup off is an edit of the
 // rule, so there is one audited action for “this rule changed” rather than two.
 //
 // _Requires permission: `org:settings:write`._
@@ -4373,7 +4370,7 @@ type BusinessMetricsCreateParams struct {
 
 // Create: Create a business metric
 //
-// Keys must be unique per organization among live metrics — they are how
+// Keys must be unique per organization among live metrics; they are how
 // workflows and the CLI address the metric. A key collision is a 409.
 //
 // _Requires permission: `costs:write`._
@@ -4580,7 +4577,7 @@ type BusinessMetricsUnitCostsParams struct {
 // are worth knowing before reading it:
 //
 // - **The ratio is computed at the requested bucket**, from a summed numerator
-// and a summed denominator — never a mean of daily ratios, which weights a quiet
+// and a summed denominator: never a mean of daily ratios, which weights a quiet
 // day as heavily as a peak one. The same holds for `overallValue`. - **A missing or non-positive denominator is a gap** (`value: null` with a
 // `gap` reason), never 0 and never infinite. - **Currencies are never merged.** Spend in a currency with no stated rate
 // keeps its own series rather than being dropped or added to another.
@@ -4624,8 +4621,8 @@ type BusinessMetricsUpdateParams struct {
 
 // Update: Update a business metric
 //
-// Replaces the whole definition. Changing `key` never orphans history — values
-// are keyed on the metric's id — but it does break a workflow still writing to
+// Replaces the whole definition. Changing `key` never orphans history (values
+// are keyed on the metric's id) but it does break a workflow still writing to
 // the old key, which is why the key is separate from the display name in the
 // first place.
 //
@@ -5000,7 +4997,7 @@ type BusinessMetricsValuesCreateParams struct {
 // accumulating**, which is what makes a nightly job safe to retry. Nothing lands
 // unless the whole batch validates, so a bad row is a 400 rather than half a
 // month restated. The same guarantees back `infra.businessMetrics.write(...)` in
-// a workflow — both go through one validator.
+// a workflow; both go through one validator.
 //
 // _Requires permission: `costs:write`._
 //
@@ -5093,7 +5090,7 @@ type CalendarGetParams struct {
 // One time axis over six things the organization already stores: change freezes,
 // sleep/wake schedules, declared deadlines (certificates, domains, keys and
 // resource leases), commitment term ends, cron-triggered workflow runs, and
-// declared incidents. Nothing here is a new record — the calendar is recomputed
+// declared incidents. Nothing here is a new record; the calendar is recomputed
 // on every read, exactly as posture findings and backup coverage are.
 //
 // The window defaults to the last 7 and next 35 days and may span at most 400.
@@ -5145,7 +5142,7 @@ type CalendarSubscriptionsCreateParams struct {
 //
 // Returns the only copy of the feed URL. The token in it is 32 random bytes,
 // stored as a SHA-256 hash, and is the sole credential on a route that runs
-// outside every auth layer — treat the URL as a secret. The URL deliberately
+// outside every auth layer; treat the URL as a secret. The URL deliberately
 // contains no organization id.
 //
 // An organization may hold 25 live subscriptions; revoking makes room.
@@ -5208,8 +5205,8 @@ type CalendarSubscriptionsGetParams struct {
 
 // Get: List the organization's iCalendar subscriptions
 //
-// Feed URLs that have been minted, including revoked ones — a revoked row is
-// kept so the audit trail still resolves. The token itself is never returned.
+// Feed URLs that have been minted, including revoked ones; a revoked row is kept
+// so the audit trail still resolves. The token itself is never returned.
 //
 // GET /api/org/{orgId}/calendar/subscriptions
 func (n *CalendarSubscriptionsNamespace) Get(ctx context.Context, params *CalendarSubscriptionsGetParams, opts ...RequestOption) (*CalendarSubscriptionList, error) {
@@ -5520,7 +5517,7 @@ type ChangesCostImpactsParams struct {
 // it against the window after, and reports the difference as a run-rate delta.
 //
 // A POST because it takes a list of ids, not because it writes: nothing is
-// stored. The answer is recomputed on every call, deliberately — provider cost
+// stored. The answer is recomputed on every call, deliberately; provider cost
 // arrives late and is then restated, so a stored number would be a wrong number
 // that never corrects itself.
 //
@@ -5568,7 +5565,7 @@ type ChangesGetParams struct {
 // Change events recorded by the resource poller: each poll cycle diffs the
 // freshly fetched state against the stored snapshot and records resources that
 // appeared, changed a stored field, or disappeared upstream. Cross-provider by
-// construction — the diff runs on the generic stored record, so every plugin's
+// construction; the diff runs on the generic stored record, so every plugin's
 // resources show up here.
 //
 // _Requires permission: `resources:read`._
@@ -5654,7 +5651,7 @@ type ChangesAlertSettingsGetParams struct {
 // `cooldownMinutes`, covering every change since the previous one. These
 // settings decide which changes count and how often a message may go out. Who
 // receives it is the `resourceDrift` opt-in on push preferences, Slack channels
-// and Teams webhooks — off by default on all three.
+// and Teams webhooks; off by default on all three.
 //
 // GET /api/org/{orgId}/changes/alert-settings
 func (n *ChangesAlertSettingsNamespace) Get(ctx context.Context, params *ChangesAlertSettingsGetParams, opts ...RequestOption) (*DriftAlertSettings, error) {
@@ -5728,8 +5725,8 @@ type ChangesRevertCreateParams struct {
 // Create: Revert one change event
 //
 // Applies the inverse patch through the plugin's ordinary `updateResource` path
-// — the same call the Edit form makes — and only for the fields the dry run
-// marked `revertible`.
+// (the same call the Edit form makes) and only for the fields the dry run marked
+// `revertible`.
 //
 // The plan is rebuilt against a fresh live read immediately before the write, so
 // a field that moved between the preview and the apply becomes a conflict and
@@ -5753,14 +5750,14 @@ type ChangesRevertCreateParams struct {
 //
 // The claim carries an owner token, and every write that ends a revert is fenced
 // on it. An attempt whose provider call outlives the lease can therefore neither
-// release nor complete the claim that replaced it — it gets `409` with
+// release nor complete the claim that replaced it; it gets `409` with
 // `appliedFields` naming what it did write, so the caller can reconcile rather
 // than assume. Two attempts can overlap in that case, but they cannot disagree:
 // both invert the same recorded event to the same values, so the second one's
 // patch is a subset of the first's.
 //
 // If a write reaches the provider but recording it fails, the response is `500`
-// with `appliedFields` — the resource moved and the timeline has not caught up.
+// with `appliedFields`: the resource moved and the timeline has not caught up.
 // The claim is deliberately held in that case, and the next attempt after the
 // lease expires finds every field already back and records the revert without
 // touching the provider again, answering `200` with `reconciled: true` and an
@@ -5770,7 +5767,7 @@ type ChangesRevertCreateParams struct {
 //
 // Blocked with `423` while an org change freeze is in effect. Every attempt
 // whose write reached the provider is audit-logged as `resource.change_revert`,
-// including one that lost its claim or could not record — the entry's `outcome`
+// including one that lost its claim or could not record; the entry's `outcome`
 // is `recorded`, `superseded`, `unrecorded` or `reconciled`, so a contested
 // outcome reads as one mutation rather than as several reverts. An attempt that
 // neither wrote nor recorded anything logs nothing. Attribution is best-effort:
@@ -5826,8 +5823,8 @@ type ChangesRevertGetParams struct {
 //
 // Inverts the recorded diff and reconciles it against the resource's *current*
 // live fields, which is the whole point: the poller may have recorded this hours
-// ago and the world may have moved on. Read-only — it reads from the provider
-// and writes nothing.
+// ago and the world may have moved on. Read-only: it reads from the provider and
+// writes nothing.
 //
 // Only `updated` events with a field diff can be reverted. `outputs.*` entries
 // are provider-derived and are never written back, and whether a field is
@@ -6017,21 +6014,21 @@ type CommitmentsGetParams struct {
 
 // Get: Reservations, savings plans and committed-use discounts
 //
-// The organization's purchased commitments — reserved instances, savings plans,
-// committed-use discounts — with three derived readings.
+// The organization's purchased commitments (reserved instances, savings plans,
+// committed-use discounts) with three derived readings.
 //
 // **Coverage** is a range, not a number: the broad ratio counts every uncovered
-// usage dollar in the denominator (a lower bound — egress and per-request
-// charges can never be committed against), the narrow ratio only uncovered usage
-// in cells where a commitment demonstrably landed (an upper bound). Accounts
-// whose plugin cannot distinguish charge types are excluded and listed; a scope
-// where every account is excluded reports unavailable, not 0%.
+// usage dollar in the denominator (a lower bound; egress and per-request charges
+// can never be committed against), the narrow ratio only uncovered usage in
+// cells where a commitment demonstrably landed (an upper bound). Accounts whose
+// plugin cannot distinguish charge types are excluded and listed; a scope where
+// every account is excluded reports unavailable, not 0%.
 //
-// **Utilization** is measured only over days cost data was actually collected —
-// a collection gap is reported as missing days, never counted as idle
-// commitment. Unit-denominated commitments (GCP) report null with a reason,
-// never 0%. Azure's own reported utilization rides on each holding separately
-// and is never blended with the derived figure.
+// **Utilization** is measured only over days cost data was actually collected; a
+// collection gap is reported as missing days, never counted as idle commitment.
+// Unit-denominated commitments (GCP) report null with a reason, never 0%.
+// Azure's own reported utilization rides on each holding separately and is never
+// blended with the derived figure.
 //
 // **The planner** recommends committing at the p10 floor of daily uncovered
 // spend, gated on presence, trend, floor and materiality. Savings are quoted
@@ -6076,7 +6073,7 @@ type ConfigApplyParams struct {
 // Apply: Apply a configuration document
 //
 // Applies the document in a single transaction and returns the plan that was
-// executed — all or nothing, so a failure never leaves the organization halfway
+// executed; all or nothing, so a failure never leaves the organization halfway
 // between two configurations.
 //
 // Requires the write permission of every section the document carries, so this
@@ -6088,8 +6085,7 @@ type ConfigApplyParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 403: Forbidden
 func (n *ConfigNamespace) Apply(ctx context.Context, params ConfigApplyParams, opts ...RequestOption) (*OrgConfigApplyResult, error) {
@@ -6126,7 +6122,7 @@ type ConfigExportParams struct {
 //
 // Credentials, accounts, resources and workflow signing secrets are never
 // included. Ordering is stable, so re-exporting an unchanged organization
-// produces the same bytes — commit it to git and the diff is the change.
+// produces the same bytes; commit it to git and the diff is the change.
 //
 // Requires the read permission of every section exported; it refuses rather than
 // silently omitting one, because a partial document applied in `replace` mode
@@ -6519,7 +6515,7 @@ type CostAnnotationsChangeImpactParams struct {
 //
 // Writes the finding as a cost annotation, so the step in the run rate is
 // explained on the graph where it shows. Re-posting the same subject **rewords
-// the existing note** rather than adding a second — which is what makes it safe
+// the existing note** rather than adding a second; which is what makes it safe
 // to pin a finding again once the provider has finished restating. The note's
 // date and report scope are never rewritten: they may have been edited
 // deliberately.
@@ -6623,7 +6619,7 @@ type CostAnnotationsGetParams struct {
 //
 // Dated notes drawn over cost charts. With `reportId`, the set a chart for that
 // report draws: the org-wide notes plus that report's own. Without it, every
-// annotation in the org. Annotations are an overlay — they never appear in a
+// annotation in the org. Annotations are an overlay; they never appear in a
 // series, a total, or an axis.
 //
 // _Requires permission: `costs:read`._
@@ -7630,7 +7626,7 @@ type CostExportsRunParams struct {
 // Runs the export immediately against the same code path the poller uses,
 // writing every period in the restatement window. Answers 200 with `status:
 // "failed"` and a message rather than an error status when the destination
-// rejects the write — the caller wants the reason, and the same failure is
+// rejects the write; the caller wants the reason, and the same failure is
 // recorded on the export.
 //
 // _Requires permission: `org:settings:write`._
@@ -7869,9 +7865,9 @@ type CostReportFoldersListParams struct {
 
 // List: List cost-report folders
 //
-// The org's report folders as a flat list — build the tree from
-// `parentFolderId`. Folders organize the Reports list and nothing else; a
-// report's id, URL and dashboard cards are unchanged by where it is filed.
+// The org's report folders as a flat list; build the tree from `parentFolderId`.
+// Folders organize the Reports list and nothing else; a report's id, URL and
+// dashboard cards are unchanged by where it is filed.
 //
 // _Requires permission: `costs:read`._
 //
@@ -7902,7 +7898,7 @@ type CostReportFoldersUpdateParams struct {
 
 // Update: Update a cost-report folder
 //
-// Rename and/or reparent. Filing a *report* is not here — that is `PUT
+// Rename and/or reparent. Filing a *report* is not here; that is `PUT
 // /cost-reports/{id}` with a different `folderId`. Reparenting past the 3-level
 // depth limit, or under the folder's own subtree, is a 400.
 //
@@ -7950,7 +7946,7 @@ type CostReportNotificationsListParams struct {
 
 // List: List every delivery schedule in the organization
 //
-// All reports' schedules in one call — what the CLI's schedules column reads.
+// All reports' schedules in one call; what the CLI's schedules column reads.
 // Schedules of deleted reports are excluded.
 //
 // _Requires permission: `costs:read`._
@@ -8060,8 +8056,8 @@ type CostReportsDeleteParams struct {
 
 // Delete: Delete a cost report
 //
-// Soft delete. Every dashboard card pointing at the report is removed with it —
-// a card whose report is gone could only ever render as an unavailable tile.
+// Soft delete. Every dashboard card pointing at the report is removed with it; a
+// card whose report is gone could only ever render as an unavailable tile.
 //
 // _Requires permission: `costs:write`._
 //
@@ -8217,7 +8213,7 @@ type CostReportsUpdateParams struct {
 // Update: Update a cost report
 //
 // Replaces the report's name, description, config and folder. Every dashboard
-// showing the report picks up the new config — that is what referencing a report
+// showing the report picks up the new config; that is what referencing a report
 // by id buys.
 //
 // _Requires permission: `costs:write`._
@@ -8265,7 +8261,7 @@ type CostReportsNotificationsCreateParams struct {
 
 // Create: Create a delivery schedule
 //
-// On its cadence the server runs the report and sends a composed text summary —
+// On its cadence the server runs the report and sends a composed text summary;
 // period total (converted to the org's display currency where configured, with
 // the conversion caveat), change vs the previous period, top groups, and a deep
 // link. No chart images. An empty result still sends, saying so.
@@ -8363,7 +8359,7 @@ type CostReportsNotificationsSendParams struct {
 // Runs the report and delivers it to this schedule's destinations immediately,
 // ignoring the schedule and its enabled flag. Fails with a 400 naming the reason
 // when nothing could be delivered. A successful manual send clears a parked
-// failure — it is the documented recovery for a partial delivery.
+// failure; it is the documented recovery for a partial delivery.
 //
 // _Requires permission: `org:settings:write`._
 //
@@ -8397,8 +8393,8 @@ type CostReportsNotificationsTargetsParams struct {
 // Targets: List the destinations a schedule can deliver to
 //
 // The org's live Slack channels and Teams webhooks, and whether this deployment
-// can send mail. Destinations are picked from here — a schedule can only point
-// at surfaces the org already connected.
+// can send mail. Destinations are picked from here; a schedule can only point at
+// surfaces the org already connected.
 //
 // _Requires permission: `org:settings:write`._
 //
@@ -8476,8 +8472,8 @@ type CostScenariosCreateParams struct {
 
 // Create: Create a scenario model
 //
-// Names must be unique per organization (case-insensitively) — the name is what
-// a chart prints under its scenario line and what the CLI's `--scenario <name>`
+// Names must be unique per organization (case-insensitively); the name is what a
+// chart prints under its scenario line and what the CLI's `--scenario <name>`
 // addresses, so two models sharing one would make both meaningless. A model
 // needs at least one adjustment: an empty model changes nothing, which is the
 // same as applying no scenario.
@@ -8512,7 +8508,7 @@ type CostScenariosDeleteParams struct {
 
 // Delete: Delete a scenario model
 //
-// Soft delete — **refused with a 409 while anything references the model**, with
+// Soft delete: **refused with a 409 while anything references the model**, with
 // the referents in the body. For a chart, deleting would silently drop the
 // assumptions from a projection somebody is reading; for a budget it would move
 // the forecast thresholds back to the bare trend, changing when people get
@@ -8525,7 +8521,7 @@ type CostScenariosDeleteParams struct {
 //
 // Raises on 404: Not found
 //
-// Raises on 409: Still referenced — the body lists every referent.
+// Raises on 409: Still referenced: the body lists every referent.
 func (n *CostScenariosNamespace) Delete(ctx context.Context, params CostScenariosDeleteParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/cost-scenarios/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -8549,7 +8545,7 @@ type CostScenariosReferentsParams struct {
 
 // Referents: List a scenario model's referents
 //
-// Every budget, cost report and dashboard cost graph referencing this model —
+// Every budget, cost report and dashboard cost graph referencing this model;
 // what an edit will change, and what a delete would be refused over. Budgets
 // come first: they are the referents that page people.
 //
@@ -8585,7 +8581,7 @@ type CostScenariosUpdateParams struct {
 //
 // Replaces the whole model. This is the high-leverage write: every chart drawing
 // it, and **every budget whose forecast thresholds are measured against it**,
-// uses the new numbers on its next evaluation — which for a budget can change
+// uses the new numbers on its next evaluation; which for a budget can change
 // which alerts fire. `GET /{id}/referents` names what a change will touch.
 //
 // _Requires permission: `costs:write`._
@@ -8633,7 +8629,7 @@ type CostScenariosGetGetParams struct {
 // Get: List scenario models
 //
 // Named, reusable sets of adjustments an organization overlays on a cost
-// forecast — the **known future cost a trend fit cannot see**. Pass an id as
+// forecast; the **known future cost a trend fit cannot see**. Pass an id as
 // `POST /costs/query`'s `scenarioModelId` (alongside `forecast: true`) to get
 // the adjusted projection back *beside* the unadjusted one, never instead of it.
 //
@@ -8958,8 +8954,8 @@ type CostsEfficiencyAlertsParams struct {
 //
 // The three slow-lane cost alerts in one feed, newest first: commitments about
 // to lapse, commitments that are not being used, and business metrics whose cost
-// per unit rose. Unlike budgets, anomalies and change alerts — all of which
-// compare a spend total against another spend total — these read the commitment
+// per unit rose. Unlike budgets, anomalies and change alerts (all of which
+// compare a spend total against another spend total) these read the commitment
 // calendar and the volume the spend bought, so they see the two surprises the
 // other three structurally cannot.
 //
@@ -9078,8 +9074,8 @@ type CostsRowsParams struct {
 
 // Rows: Push cost rows from your own systems
 //
-// Reports spend Infrawrench has no provider plugin for — a parsed SaaS invoice,
-// an internal chargeback, a colo bill — into the same store the provider
+// Reports spend Infrawrench has no provider plugin for (a parsed SaaS invoice,
+// an internal chargeback, a colo bill) into the same store the provider
 // collectors write to, so it appears in cost graphs, dimension filters, and
 // budgets alongside everything else.
 //
@@ -9130,11 +9126,11 @@ type CostsShowbackParams struct {
 	Basis *string
 	// Adjusted: Apply the organization's billing rules (see /billing-rules):
 	// markups multiply, and a reallocation moves a centre's spend onto another
-	// centre. Off by default — a chargeback report that silently showed
-	// marked-up numbers is one the receiving team could not reconcile. On, the
-	// response carries `adjustment` with the collected totals beside the
-	// adjusted ones. Fixed-amount rules are booked onto the cost centre they
-	// name (or "Unallocated" when they name none), pro-rated across the period.
+	// centre. Off by default; a chargeback report that silently showed marked-up
+	// numbers is one the receiving team could not reconcile. On, the response
+	// carries `adjustment` with the collected totals beside the adjusted ones.
+	// Fixed-amount rules are booked onto the cost centre they name (or
+	// "Unallocated" when they name none), pro-rated across the period.
 	//
 	// One of "true", "false".
 	Adjusted *string
@@ -9148,7 +9144,7 @@ type CostsShowbackParams struct {
 //
 // Cost centres nest, so the list is a depth-first tree. Each entry carries
 // `totals` (spend allocated directly to it) and `subtreeTotals` (its own plus
-// every descendant's) — "Engineering, of which Platform" needs both. Rules still
+// every descendant's). "Engineering, of which Platform" needs both. Rules still
 // evaluate first-match-wins by ascending priority against a flat list, so a row
 // is allocated exactly once even when a rule targets a parent and another
 // targets its child; at equal priority the more deeply nested centre wins.
@@ -9230,7 +9226,7 @@ type CostsUntaggedParams struct {
 //
 // Spend on cost rows missing at least one of the org's required tag keys,
 // overall and per key, plus the largest untagged (account, service) buckets.
-// Empty when no tag policy is configured — untagged is only meaningful against a
+// Empty when no tag policy is configured: untagged is only meaningful against a
 // policy.
 //
 // _Requires permission: `costs:read`._
@@ -9282,10 +9278,10 @@ type CostsAnomaliesAcknowledgeParams struct {
 // Acknowledge: Explain a detected cost anomaly
 //
 // Record what a finding actually was, and publish that sentence as a cost
-// annotation on **every** chart covering the anomalous day — the point being
-// that 'we migrated the fleet' is not a fact about whichever report somebody
-// happened to open. The note's date (the anomalous day) and its org-wide scope
-// are derived from the anomaly and are not the caller's to choose.
+// annotation on **every** chart covering the anomalous day; the point being that
+// 'we migrated the fleet' is not a fact about whichever report somebody happened
+// to open. The note's date (the anomalous day) and its org-wide scope are
+// derived from the anomaly and are not the caller's to choose.
 //
 // The reply is the updated anomaly, carrying `acknowledgement` with the id of
 // the note it created. Sending it again replaces the sentence and rewords that
@@ -9335,7 +9331,7 @@ type CostsAnomaliesGetParams struct {
 // 28-day baseline by a statistical threshold (mean + N·stddev, with an absolute
 // floor to ignore penny-scale noise), and a `new_source`, where a provider or
 // service with no spend at all across that window suddenly billed a material
-// amount. Thresholds are per organization — see GET /costs/anomaly-settings.
+// amount. Thresholds are per organization: see GET /costs/anomaly-settings.
 // Newest day first, capped at 200 rows.
 //
 // _Requires permission: `costs:read`._
@@ -9468,9 +9464,9 @@ type CostsAnomalySettingsGetParams struct {
 
 // Get: Get the organization's anomaly detection thresholds
 //
-// The tunable part of cost anomaly detection. Everything else about the model —
-// the 28-day baseline, the 7-day notification cooldown, the minimum history a
-// baseline needs — is fixed. An organization that has never changed a threshold
+// The tunable part of cost anomaly detection. Everything else about the model
+// (the 28-day baseline, the 7-day notification cooldown, the minimum history a
+// baseline needs ) is fixed. An organization that has never changed a threshold
 // reads back the defaults. The response also carries the derived, read-only
 // `smsConfigured`.
 //
@@ -9504,8 +9500,8 @@ type CostsAnomalySettingsUpdateParams struct {
 //
 // Takes effect on the next detection pass (which runs after each cost
 // collection). Anomalies already stored are not re-judged. The four threshold
-// fields are required — this is a PUT of the whole settings object, not a patch
-// — and `smsAlerts` deliberately has no server-side default, so a client that
+// fields are required (this is a PUT of the whole settings object, not a patch)
+// and `smsAlerts` deliberately has no server-side default, so a client that
 // omits it is rejected rather than silently switching an organization's SMS
 // paging back off. `smsConfigured` is derived and is not accepted here.
 //
@@ -9751,7 +9747,7 @@ type CostsEfficiencyAlertSettingsUpdateParams struct {
 //
 // Takes effect on the next evaluation pass (which runs after each cost
 // collection). Already-fired alerts are not re-judged, and horizons that have
-// already fired for a commitment's current term do not fire again — widening the
+// already fired for a commitment's current term do not fire again; widening the
 // horizon list warns about future crossings, not past ones. A PUT of the whole
 // object, not a patch.
 //
@@ -9797,7 +9793,7 @@ type CredentialHygieneGetParams struct {
 // Get: Credential hygiene report
 //
 // API keys nobody uses, SSH keys nothing references, and members holding write
-// permissions they have never exercised — derived entirely from data the server
+// permissions they have never exercised; derived entirely from data the server
 // already holds. No provider call and nothing to enable.
 //
 // **The audit log only witnesses writes.** Reading a resource list or a cost
@@ -9805,7 +9801,7 @@ type CredentialHygieneGetParams struct {
 // read permissions: an absence of evidence about them proves nothing.
 // `permissionFindingsWithheld` is set when the organization does not yet have
 // enough audit history for the unused-permission finding to be meaningful. Both
-// are load-bearing — a governance report that overclaims is worse than none.
+// are load-bearing; a governance report that overclaims is worse than none.
 //
 // Gated on `audit:read` rather than a permission of its own: every fact here is
 // already reachable by anyone who can read the audit log, so this is a lens
@@ -9853,8 +9849,8 @@ type CreditsGetParams struct {
 //
 // Every prepaid pot the organization holds, most urgent first. A provider that
 // bills in arrears sends an invoice you can argue with; a prepaid pot that
-// empties simply stops answering — so this is an availability number as much as
-// a finance one.
+// empties simply stops answering: so this is an availability number as much as a
+// finance one.
 //
 // The burn rate is measured from the server's own series of readings rather than
 // reported by the provider, and it is the sum of the **decreases** between
@@ -10516,8 +10512,7 @@ type CustomGraphsCreateParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 func (n *CustomGraphsNamespace) Create(ctx context.Context, params CustomGraphsCreateParams, opts ...RequestOption) (*CustomGraphFull, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/custom-graphs")
 	r.setPath("orgId", params.OrgID)
@@ -10631,8 +10626,7 @@ type CustomGraphsRenderParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 404: Not found
 func (n *CustomGraphsNamespace) Render(ctx context.Context, params CustomGraphsRenderParams, opts ...RequestOption) (*CustomGraphRenderResult, error) {
@@ -10691,8 +10685,7 @@ type CustomGraphsUpdateParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 404: Not found
 func (n *CustomGraphsNamespace) Update(ctx context.Context, params CustomGraphsUpdateParams, opts ...RequestOption) (*CustomGraphFull, error) {
@@ -11748,8 +11741,8 @@ type DeploymentsRunsCostImpactParams struct {
 	// `amortized` spreads a commitment's up-front fee across the term it buys;
 	// `blended` also spreads each commitment's discount evenly over the usage it
 	// could cover. It is echoed on every response because a delta whose basis is
-	// unstated is unreadable — an amortized 'after' against a cash 'before'
-	// looks exactly like a saving.
+	// unstated is unreadable: an amortized 'after' against a cash 'before' looks
+	// exactly like a saving.
 	CostBasis *ChangeCostBasis
 }
 
@@ -11901,11 +11894,11 @@ type DeploymentsRunsRollbackParams struct {
 // Rollback: Roll back to a previous deployment
 //
 // Re-runs that run's `deploy()` with the image and plan it recorded, building
-// nothing — the exact artifact that was known good ships again. The Infrafile is
+// nothing; the exact artifact that was known good ships again. The Infrafile is
 // read at the commit that run deployed, not at the branch head. Only a
 // successful run that produced an image can be rolled back to. With
 // `deleteCreated`, resources that runs after the target created through
-// `infra.accounts` are deleted once the rollback has succeeded — undoing the
+// `infra.accounts` are deleted once the rollback has succeeded; undoing the
 // provisioning, not just the shipping. Deletions are best-effort and reported in
 // the result's notes.
 //
@@ -11917,8 +11910,7 @@ type DeploymentsRunsRollbackParams struct {
 //
 // Raises on 401: Unauthenticated
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 403: Forbidden
 //
@@ -11966,10 +11958,10 @@ type DeploymentsTriggersCreateParams struct {
 
 // Create: Deploy an environment whenever a branch moves
 //
-// Arming a trigger records the branch's current commit WITHOUT deploying it —
-// the trigger fires on the next push, not on the state at the moment it was
-// created. The environment is validated against the Infrafile at that branch
-// head, so a typo fails here rather than silently never firing.
+// Arming a trigger records the branch's current commit WITHOUT deploying it; the
+// trigger fires on the next push, not on the state at the moment it was created.
+// The environment is validated against the Infrafile at that branch head, so a
+// typo fails here rather than silently never firing.
 //
 // _Requires permission: `deployments:write`._
 //
@@ -12150,7 +12142,7 @@ type DigestSendParams struct {
 
 // Send: Compose and send last week's digest now
 //
-// Ignores the schedule and the enabled flag — composes the digest for the last
+// Ignores the schedule and the enabled flag; composes the digest for the last
 // complete week and sends it to every opted-in channel and email recipient. This
 // is also the manual recovery for a partial delivery, which is never retried
 // automatically. Fails when nothing is routed to receive the digest, or when
@@ -12186,7 +12178,7 @@ type DigestUpdateParams struct {
 // Update: Update the weekly digest settings
 //
 // Every field is optional. Enabling schedules the first digest for the next
-// configured send time rather than sending immediately — use POST /digest/send
+// configured send time rather than sending immediately; use POST /digest/send
 // for an immediate one. The week boundary follows `timezone`, so the reported
 // window is always the organization's own local Monday-to-Sunday week. Changing
 // the schedule clears any parked failure state but never replays a week that
@@ -12294,7 +12286,7 @@ type DigestRecipientsGetParams struct {
 //
 // Email is a digest-only transport, so its destinations are an
 // organization-level address list rather than a per-channel trigger. Addresses
-// need not belong to Infrawrench users — a finance alias is a valid recipient.
+// need not belong to Infrawrench users; a finance alias is a valid recipient.
 //
 // GET /api/org/{orgId}/digest/recipients
 func (n *DigestRecipientsNamespace) Get(ctx context.Context, params *DigestRecipientsGetParams, opts ...RequestOption) (*DigestEmailRecipientList, error) {
@@ -12334,7 +12326,7 @@ type DNSGetParams struct {
 // One view over every zone and record across the connected DNS providers
 // (Cloudflare, Route 53, Cloud DNS, DigitalOcean, Netlify, Azure DNS, Vercel),
 // with each record target classified against the rest of the workspace. No
-// provider API calls are made and no DNS is resolved — results reflect the last
+// provider API calls are made and no DNS is resolved: results reflect the last
 // sync.
 //
 // A `dangling` target is a subdomain-takeover candidate: the record points into
@@ -12414,7 +12406,7 @@ type EnvironmentDiffGetParams struct {
 	//
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
-	// A: Baseline account id — by convention the environment that works.
+	// A: Baseline account id; by convention the environment that works.
 	A string
 	// B: Compared account id. Must differ from `a` and use the same provider.
 	B string
@@ -12429,8 +12421,8 @@ type EnvironmentDiffGetParams struct {
 
 // Get: Compare two accounts' resource inventories
 //
-// Compares two accounts of the same provider — typically staging against
-// production — over already-synced state: which resource types exist in one and
+// Compares two accounts of the same provider (typically staging against
+// production) over already-synced state: which resource types exist in one and
 // not the other, the per-type count deltas, and the fields on which two
 // corresponding resources disagree (instance class, engine version, feature
 // flags).
@@ -12438,8 +12430,8 @@ type EnvironmentDiffGetParams struct {
 // Resources are paired by resource type plus name with environment words
 // removed, so `api-staging` lines up with `api-prod` without any naming
 // convention to configure. By default the comparison hides divergences that are
-// artefacts of being two different resources — ids, links, network addresses and
-// timestamps — because every resource has different ones; pass
+// artefacts of being two different resources (ids, links, network addresses and
+// timestamps) because every resource has different ones; pass
 // `includeIdentityFields=true` to see them.
 //
 // Read-only and cheap: no provider API calls are made, so results reflect the
@@ -12501,9 +12493,9 @@ type EnvironmentsCaptureParams struct {
 
 // Capture: Preview a template capture
 //
-// Turn a selection of live resources into a draft template. **Persists nothing**
-// — the editor shows the draft so the user can choose which fields to vary
-// before saving. The shape of every member comes from the plugin's own
+// Turn a selection of live resources into a draft template. **Persists
+// nothing**: the editor shows the draft so the user can choose which fields to
+// vary before saving. The shape of every member comes from the plugin's own
 // `getCreateConfig`: a captured value with no matching create field is dropped,
 // and a resource type the plugin cannot create is reported in `skipped` with a
 // reason rather than silently omitted. Recorded output references whose target
@@ -12552,7 +12544,7 @@ type EnvironmentsInstancesDeleteParams struct {
 
 // Delete: Forget a torn-down environment
 //
-// Removes the record. Refuses while the instance still owns resources — the row
+// Removes the record. Refuses while the instance still owns resources; the row
 // is the only thing that knows they exist. Audit-logged.
 //
 // _Requires permission: `resources:write`._
@@ -12561,7 +12553,7 @@ type EnvironmentsInstancesDeleteParams struct {
 //
 // Raises on 404: Not found
 //
-// Raises on 409: The environment is still live — tear it down first
+// Raises on 409: The environment is still live; tear it down first
 func (n *EnvironmentsInstancesNamespace) Delete(ctx context.Context, params EnvironmentsInstancesDeleteParams, opts ...RequestOption) error {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/environments/instances/{instanceId}")
 	r.setPath("orgId", params.OrgID)
@@ -12724,7 +12716,7 @@ type EnvironmentsSettingsUpdateParams struct {
 
 // Update: Set the organization's environment TTL rails
 //
-// `org:settings:write`, not `resources:write` — this is a governance decision
+// `org:settings:write`, not `resources:write`: this is a governance decision
 // about how long the organization is willing to pay for a throwaway environment.
 // Clamped to a 720-hour ceiling; the default is clamped to the maximum.
 // Audit-logged.
@@ -12771,9 +12763,9 @@ type EnvironmentsTemplatesCreateParams struct {
 // Create: Create an environment template
 //
 // Save a capture draft as a template. Member keys must be unique, every
-// parameter and member reference must resolve, and the members must be orderable
-// — a dependency cycle is rejected here rather than half-way through an apply.
-// Audit-logged.
+// parameter and member reference must resolve, and the members must be
+// orderable; a dependency cycle is rejected here rather than half-way through an
+// apply. Audit-logged.
 //
 // _Requires permission: `resources:write`._
 //
@@ -12807,7 +12799,7 @@ type EnvironmentsTemplatesDeleteParams struct {
 
 // Delete: Delete an environment template
 //
-// Live instances keep running and keep their TTL — they own real resources, and
+// Live instances keep running and keep their TTL; they own real resources, and
 // the template is only where they came from. Their `templateId` becomes null;
 // the denormalized `templateName` is what the surface reads. Audit-logged.
 //
@@ -12839,7 +12831,7 @@ type EnvironmentsTemplatesEstimateParams struct {
 //
 // Runs each member's create fields through the plugin's own `estimateCost`. A
 // member the plugin cannot price is counted in `unpricedCount` and makes the
-// total `partial` — `null` is never rounded to zero.
+// total `partial`: `null` is never rounded to zero.
 //
 // _Requires permission: `resources:read`._
 //
@@ -13726,8 +13718,8 @@ type IacResourceParams struct {
 //
 // The managed/unmanaged badge for a resource detail page, computed against the
 // newest state document. `status` is null when the organization has uploaded
-// none — absence of a state is not evidence of ClickOps. A query parameter
-// rather than a path segment because composite resource ids contain slashes.
+// none; absence of a state is not evidence of ClickOps. A query parameter rather
+// than a path segment because composite resource ids contain slashes.
 //
 // GET /api/org/{orgId}/iac/resource
 //
@@ -13825,7 +13817,7 @@ type IacStatesGetParams struct {
 // Get: List uploaded Terraform state documents
 //
 // Every state document the organization has uploaded, newest first. The
-// documents themselves are never stored — only the parsed, redacted projection.
+// documents themselves are never stored; only the parsed, redacted projection.
 //
 // GET /api/org/{orgId}/iac/states
 func (n *IacStatesNamespace) Get(ctx context.Context, params *IacStatesGetParams, opts ...RequestOption) (*IacStateListResponse, error) {
@@ -13908,7 +13900,7 @@ type IncidentsDeleteParams struct {
 // Delete: Delete an incident
 //
 // Removes the incident, its notes and its artefact records. It does not lift a
-// freeze or close a status-page update — resolve for that; deleting is for a
+// freeze or close a status-page update, resolve for that; deleting is for a
 // mis-declaration. Audit-logged.
 //
 // _Requires permission: `incidents:write`._
@@ -13936,8 +13928,8 @@ type IncidentsPostmortemParams struct {
 // Postmortem: Export a pre-filled postmortem
 //
 // Markdown with the timeline, the affected resources, the duration, the time to
-// mitigate and the notes already filled in. The analysis headings — impact, root
-// cause, action items — are deliberately left blank: a generated document that
+// mitigate and the notes already filled in. The analysis headings (impact, root
+// cause, action items) are deliberately left blank: a generated document that
 // guesses at a root cause is worse than one that leaves a heading.
 //
 // _Requires permission: `incidents:read`._
@@ -13970,12 +13962,12 @@ type IncidentsRetryArtifactsParams struct {
 //
 // Re-runs only the side effects whose artefact is in a failure state, replacing
 // each failure rather than queueing a second attempt beside it. A `failed`
-// artefact is **re-created**; a `close_failed` one is **re-closed** —
-// re-creating the latter would open a second change freeze or post a duplicate
-// public notice. A status-page retry reuses the components recorded on the
-// artefact's `request`, so the announcement keeps its original scope. Its own
-// endpoint rather than a flag on PATCH, because it writes into three external
-// systems. Audit-logged.
+// artefact is **re-created**; a `close_failed` one is **re-closed**; re-creating
+// the latter would open a second change freeze or post a duplicate public
+// notice. A status-page retry reuses the components recorded on the artefact's
+// `request`, so the announcement keeps its original scope. Its own endpoint
+// rather than a flag on PATCH, because it writes into three external systems.
+// Audit-logged.
 //
 // _Requires permission: `incidents:write`._
 //
@@ -14009,7 +14001,7 @@ type IncidentsTimelineParams struct {
 // incidents, audit entries, change freezes and workflow runs (all via the same
 // union the Moment screen uses), plus probe state transitions, metric-alert
 // firings, the incident's own life events, its artefacts and its operator notes.
-// Nothing is copied — a correction upstream shows up here on the next read.
+// Nothing is copied; a correction upstream shows up here on the next read.
 //
 // Probe transitions are an approximation: `synthetic_probes` keeps only a single
 // `lastStateChangeAt`, so a probe that flapped twice inside the window
@@ -14045,10 +14037,10 @@ type IncidentsUpdateParams struct {
 // Update: Edit or transition an incident
 //
 // Omitted fields keep their value. Setting `status` stamps the matching
-// timestamp, and resolving undoes exactly what this incident created — the
-// freeze whose id is on its own artefact, not whatever freeze happens to be in
-// effect. Resolving an incident that was never marked mitigated back-fills
-// `mitigatedAt` from `resolvedAt`. Audit-logged.
+// timestamp, and resolving undoes exactly what this incident created; the freeze
+// whose id is on its own artefact, not whatever freeze happens to be in effect.
+// Resolving an incident that was never marked mitigated back-fills `mitigatedAt`
+// from `resolvedAt`. Audit-logged.
 //
 // _Requires permission: `incidents:write`._
 //
@@ -14094,7 +14086,7 @@ type IncidentsGetGetParams struct {
 // Get: List declared incidents
 //
 // Every incident the organization has declared, newest first, each with the
-// artefacts its declaration created — including the ones that failed.
+// artefacts its declaration created: including the ones that failed.
 //
 // _Requires permission: `incidents:read`._
 //
@@ -14301,7 +14293,7 @@ type InvoicesApproveParams struct {
 	ID    string
 }
 
-// Approve: Approve an invoice — freeze its figures
+// Approve: Approve an invoice; freeze its figures
 //
 // Computes the figures one last time and writes them onto the invoice together
 // with the exchange rates, the day they were read, the billing rules in force
@@ -14316,7 +14308,7 @@ type InvoicesApproveParams struct {
 // currency.
 //
 // Refused with 409, too, when the draft or its customer changed while the
-// figures were being computed — a different period, scope, currency, cost basis
+// figures were being computed: a different period, scope, currency, cost basis
 // or billing-rules setting. Nothing is approved in that case: freezing figures
 // that describe a different question would be worse than making the caller look
 // again.
@@ -14419,9 +14411,9 @@ type InvoicesExportParams struct {
 // Export: Download an invoice as CSV
 //
 // The derivation, not a rendered document: what was collected, what the rules
-// added, the rate and the day it was read, and the final figure — every column
-// an accounts-payable clerk needs to check the arithmetic. Same RFC 4180 quoting
-// as the scheduled cost exports.
+// added, the rate and the day it was read, and the final figure; every column an
+// accounts-payable clerk needs to check the arithmetic. Same RFC 4180 quoting as
+// the scheduled cost exports.
 //
 // _Requires permission: `invoices:read`._
 //
@@ -14481,7 +14473,7 @@ type InvoicesListParams struct {
 // List: List invoices
 //
 // Summaries, newest period first. A draft's `totals` is null here rather than
-// recomputed — recomputing every draft would make opening the list one cost-data
+// recomputed; recomputing every draft would make opening the list one cost-data
 // scan per draft, and zero would be a lie the reader cannot detect.
 //
 // _Requires permission: `invoices:read`._
@@ -14516,7 +14508,7 @@ type InvoicesSendParams struct {
 
 // Send: Send an invoice to its customer
 //
-// Changes no figure — the document was frozen at approval. It records the
+// Changes no figure; the document was frozen at approval. It records the
 // **release** (this may go to the customer, and this person said so), then
 // emails the invoice to the customer's contact addresses with the CSV attached.
 //
@@ -14525,8 +14517,9 @@ type InvoicesSendParams struct {
 // the caller unable to tell which of the two failed. A failed delivery is
 // visible, and re-sending retries it.
 //
-// Sending again needs `resend: true` only when the last attempt reached somebody
-// — see `InvoiceSendRequest`. The body may be omitted entirely for a first send.
+// Sending again needs `resend: true` only when the last attempt reached
+// somebody, see `InvoiceSendRequest`. The body may be omitted entirely for a
+// first send.
 //
 // _Requires permission: `invoices:issue`._
 //
@@ -14563,7 +14556,7 @@ type InvoicesUpdateParams struct {
 // Update: Edit a draft invoice
 //
 // Draft only. An approved, sent or void invoice is refused with 409 by the
-// service, not merely hidden by the UI — an issued invoice that silently changed
+// service, not merely hidden by the UI; an issued invoice that silently changed
 // after the customer received it is the worst outcome this feature could
 // produce.
 //
@@ -14601,9 +14594,9 @@ type InvoicesVoidParams struct {
 
 // Void: Void an issued invoice
 //
-// The only correction there is. The original keeps every figure it was sent with
-// — “we billed you this, it was wrong, here is the corrected one” is a story a
-// customer can follow, and “we changed the invoice” is not.
+// The only correction there is. The original keeps every figure it was sent
+// with: “we billed you this, it was wrong, here is the corrected one” is a story
+// a customer can follow, and “we changed the invoice” is not.
 //
 // With `supersede`, the void, the corrective draft and both directions of the
 // link between them are one transaction. Void is irreversible, so a half-applied
@@ -14749,7 +14742,7 @@ type JiraLinksParams struct {
 	OrgID      *string
 	SourceKind *JiraSourceKind
 	// SourceID: Repeat to narrow to specific findings. Omit to return every link
-	// of the kind — this is the batch lookup a list view makes once instead of
+	// of the kind; this is the batch lookup a list view makes once instead of
 	// one request per row.
 	SourceID []string
 }
@@ -14975,7 +14968,7 @@ type LeasesCancelParams struct {
 
 // Cancel: Cancel a lease
 //
-// Stop the countdown — the resource stays, the lease goes `canceled` and leaves
+// Stop the countdown; the resource stays, the lease goes `canceled` and leaves
 // the expiry radar. Audit-logged.
 //
 // _Requires permission: `resources:write`._
@@ -15010,10 +15003,10 @@ type LeasesCreateParams struct {
 
 // Create: Create a resource lease
 //
-// Attach an expiry to a resource — 'give me a test cluster for 3 days'. One
-// lease per resource (an active lease conflicts; a terminal one is replaced).
-// `autoDelete: true` opts into deletion at expiry — the poller announces it
-// twice first, defers during change freezes, and requires the caller to hold
+// Attach an expiry to a resource; 'give me a test cluster for 3 days'. One lease
+// per resource (an active lease conflicts; a terminal one is replaced).
+// `autoDelete: true` opts into deletion at expiry; the poller announces it twice
+// first, defers during change freezes, and requires the caller to hold
 // `resources:delete`. Audit-logged.
 //
 // _Requires permission: `resources:write`._
@@ -15274,7 +15267,7 @@ type LinearLinksParams struct {
 	OrgID      *string
 	SourceKind *LinearSourceKind
 	// SourceID: Repeat to narrow to specific findings. Omit to return every link
-	// of the kind — this is the batch lookup a list view makes once instead of
+	// of the kind; this is the batch lookup a list view makes once instead of
 	// one request per row.
 	SourceID []string
 }
@@ -15312,7 +15305,7 @@ type LinearTeamsParams struct {
 
 // Teams: List Linear teams
 //
-// Backs the team picker, so nobody has to know a team id by hand — issueCreate
+// Backs the team picker, so nobody has to know a team id by hand; issueCreate
 // requires one, and every issue belongs to exactly one team.
 //
 // _Requires permission: `linear:read`._
@@ -15519,8 +15512,8 @@ type LogWorkspacesResourcesParams struct {
 
 // Resources: List log-capable resources
 //
-// Synced resources whose rendered detail declares the logs capability — the
-// candidates a log workspace can tail — plus sidecar streams reached through a
+// Synced resources whose rendered detail declares the logs capability (the
+// candidates a log workspace can tail) plus sidecar streams reached through a
 // peer integration (pods and workloads inside a managed cluster, listed live
 // from the provider and marked with `parentResourceId`). Discovered from the
 // plugin contract (never a hardcoded provider list), capped at 500 results.
@@ -15639,7 +15632,7 @@ type ManagedAccountsDeleteParams struct {
 //
 // A soft delete: an issued invoice names its customer, and an invoice whose
 // customer stopped resolving is exactly the unreconcilable document this feature
-// exists to prevent. Draft invoices are removed with it — a draft was never
+// exists to prevent. Draft invoices are removed with it; a draft was never
 // issued.
 //
 // _Requires permission: `invoices:write`._
@@ -15926,7 +15919,7 @@ type MetricAlertsMetricKeysParams struct {
 // MetricKeys: List metric series that actually exist
 //
 // The series labels resources reported in the last 7 days, optionally narrowed
-// to one plugin and resource type — what the rule builder's metric picker is fed
+// to one plugin and resource type; what the rule builder's metric picker is fed
 // from.
 //
 // GET /api/org/{orgId}/metric-alerts/metric-keys
@@ -16064,7 +16057,7 @@ type MomentGetParams struct {
 
 // Get: Everything that happened around a timestamp
 //
-// "What changed around 03:14?" — one merged, chronological narrative of
+// "What changed around 03:14?"; one merged, chronological narrative of
 // everything the platform knows happened in a window: resource changes
 // (including sleep/wake schedule attribution), provider status incidents that
 // started/resolved in or overlap the window, cost anomalies, workflow runs,
@@ -16147,7 +16140,7 @@ type MsteamsTestParams struct {
 
 // Test: Post a test card to every configured Teams channel
 //
-// Ignores routing rules — every channel gets the test. Fails with the error
+// Ignores routing rules; every channel gets the test. Fails with the error
 // Microsoft returned when nothing could be delivered (HTTP 404 usually means the
 // Workflow was deleted or turned off).
 //
@@ -16192,7 +16185,7 @@ type MsteamsWebhooksCreateParams struct {
 // Create: Connect a Teams channel as an alert destination
 //
 // Adds a channel by webhook URL, or updates the one already holding that URL.
-// Which alerts reach it is decided by /alert-rules — connecting a channel routes
+// Which alerts reach it is decided by /alert-rules; connecting a channel routes
 // nothing to it on its own. Responds 400 when the URL is not https or its host
 // is not Microsoft-operated.
 //
@@ -16252,7 +16245,7 @@ type MsteamsWebhooksUpdateParams struct {
 
 // Update: Rename a Teams channel
 //
-// The webhook URL is immutable — remove the channel and re-add it to change it.
+// The webhook URL is immutable; remove the channel and re-add it to change it.
 //
 // PATCH /api/org/{orgId}/msteams/webhooks/{id}
 //
@@ -16326,8 +16319,7 @@ type NetworkFlowsGetParams struct {
 // ranking; do not reconcile the total against an invoice line.
 //
 // Accounts whose provider has no readable flow source appear in `accounts` with
-// `supportsFlows: false` and contribute nothing to the totals — never zero
-// bytes.
+// `supportsFlows: false` and contribute nothing to the totals; never zero bytes.
 //
 // _Requires permission: `costs:read`._
 //
@@ -16538,7 +16530,7 @@ type NetworkFlowsSettingsUpdateParams struct {
 // Update: Turn network flow collection on or off
 //
 // Collection is **off by default**. Enabling it authorizes Infrawrench to run
-// daily queries against the provider's log store — and on AWS those queries are
+// daily queries against the provider's log store; and on AWS those queries are
 // billed to your own cloud account per GB of log data scanned, every day, until
 // you turn them off. That is why the write is governed by `org:settings:write`
 // rather than `costs:write`, and why it is audit-logged.
@@ -16591,7 +16583,7 @@ type OnCallNowParams struct {
 // Now: Who is on call right now
 //
 // One entry per rotation: the shift in effect, and the next person in the
-// rotation. Takes `team:read` — knowing who is on call is something every member
+// rotation. Takes `team:read`: knowing who is on call is something every member
 // needs and nobody should have to ask an admin for.
 //
 // GET /api/org/{orgId}/on-call/now
@@ -16735,7 +16727,7 @@ type OnCallSchedulesCreateParams struct {
 //
 // Shift boundaries are calendar-day arithmetic in the rotation's own zone, not
 // 24-hour arithmetic: a rotation stepped in fixed milliseconds drifts an hour at
-// each daylight-saving change until the 09:00 Monday handover happens at 08:00 —
+// each daylight-saving change until the 09:00 Monday handover happens at 08:00;
 // or until two people each think the other is on call.
 //
 // Writing takes `org:settings:write`: a rotation decides who gets woken up.
@@ -16857,8 +16849,8 @@ type OnCallSchedulesUpdateParams struct {
 // Update: Edit an on-call rotation
 //
 // Omitted fields are left alone, and the result is validated after merging.
-// Sending `participantUserIds` replaces the list wholesale — position is
-// rotation order, so reordering re-plans the future.
+// Sending `participantUserIds` replaces the list wholesale; position is rotation
+// order, so reordering re-plans the future.
 //
 // PATCH /api/org/{orgId}/on-call/schedules/{scheduleId}
 //
@@ -16937,12 +16929,12 @@ type OrphansGetParams struct {
 // Get: List likely-orphaned and idle resources
 //
 // Scans the organization's already-synced resources against each plugin's
-// declarative orphan heuristics — unattached volumes, unassigned
-// floating/elastic IPs, reserved-but-unused static IPs — and returns the matches
-// grouped by account, each with the plugin's reason. Purely a read over stored
-// state: no provider API calls are made, so results reflect the last sync. Where
-// the org's collected cost data has per-resource rows, matches are annotated
-// with trailing spend.
+// declarative orphan heuristics (unattached volumes, unassigned floating/elastic
+// IPs, reserved-but-unused static IPs) and returns the matches grouped by
+// account, each with the plugin's reason. Purely a read over stored state: no
+// provider API calls are made, so results reflect the last sync. Where the org's
+// collected cost data has per-resource rows, matches are annotated with trailing
+// spend.
 //
 // _Requires permission: `resources:read`._
 //
@@ -17008,7 +17000,7 @@ type OwnershipGetParams struct {
 
 // Get: List resource ownership records
 //
-// Every ownership record in the organization — owner, purpose and authorizing
+// Every ownership record in the organization; owner, purpose and authorizing
 // ticket, per resource. Only resources somebody has recorded something about
 // appear; an absent record means the resource is unowned.
 //
@@ -17102,7 +17094,7 @@ type OwnershipUpdateParams struct {
 
 // Update: Set a resource's ownership
 //
-// Upsert keyed by `resourceId` — ownership is a property of the resource, so
+// Upsert keyed by `resourceId`: ownership is a property of the resource, so
 // there is no separate create and update. Omitted fields keep their value and
 // `null` clears one. Clearing every field removes the record entirely and the
 // response is `null`, which is the new truth rather than an empty record. An
@@ -17151,8 +17143,8 @@ type PagesCreateParams struct {
 
 // Create: Raise an alert to the organization's on-call transports
 //
-// Fans an alert out over whatever the org has configured — Twilio SMS (and voice
-// on request), mobile push, Slack channels, and Microsoft Teams webhooks —
+// Fans an alert out over whatever the org has configured (Twilio SMS (and voice
+// on request), mobile push, Slack channels, and Microsoft Teams webhooks)
 // honouring each recipient's opt-ins. This is the same alert a workflow raises
 // with `infra.page(...)`, for code that runs somewhere Infrawrench does not: a
 // health check, a deploy script, a cron on a box.
@@ -17188,7 +17180,7 @@ type PagesDeleteParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Source: Stable name for the system raising the page: letters, digits, `.`,
-	// `_` and `-`. It is the notification's sender, and it scopes the cooldown —
+	// `_` and `-`. It is the notification's sender, and it scopes the cooldown;
 	// two services paging under the same key never throttle each other.
 	Source string
 	// Key: Defaults to `default`.
@@ -17198,7 +17190,7 @@ type PagesDeleteParams struct {
 // Delete: Clear a page key's cooldown
 //
 // Drops the cooldown for one `(source, key)` so the next page under it delivers
-// immediately. Call it when the condition you alerted on recovers — the workflow
+// immediately. Call it when the condition you alerted on recovers; the workflow
 // equivalent is `infra.page.clear(key)`. Clearing a key that was never paged is
 // not an error.
 //
@@ -17296,7 +17288,7 @@ type PostureDismissalsCreateParams struct {
 
 // Create: Dismiss a posture finding
 //
-// Accept a finding — the bucket really is meant to be public, the key really is
+// Accept a finding; the bucket really is meant to be public, the key really is
 // rotated out of band. The finding leaves `findings` and stops feeding the daily
 // posture alerts, but the rule keeps being evaluated and the finding is reported
 // back under `dismissed` for as long as it still matches. Idempotent: dismissing
@@ -17480,8 +17472,7 @@ type PriceCatalogCompareParams struct {
 //
 // Raises on 401: Unauthenticated
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 403: Forbidden
 //
@@ -17542,8 +17533,7 @@ type PriceCatalogProvidersParams struct {
 //
 // Raises on 401: Unauthenticated
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 403: Forbidden
 //
@@ -17633,8 +17623,7 @@ type PriceCatalogSearchParams struct {
 //
 // Raises on 401: Unauthenticated
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 403: Forbidden
 //
@@ -17840,7 +17829,7 @@ type ProbesSuggestionsParams struct {
 //
 // Endpoint candidates mined from the organization's synced resource outputs and
 // fields (keys like url, endpoint, host, domain, publicIp). A cheap read over
-// stored state — no provider API calls. Deduplicated by URL.
+// stored state; no provider API calls. Deduplicated by URL.
 //
 // _Requires permission: `resources:read`._
 //
@@ -17871,7 +17860,7 @@ type ProbesUpdateParams struct {
 // Update: Update or disable a probe
 //
 // Edit settings and/or toggle `enabled`. Changing the URL or method resets the
-// probe's state to `unknown` — the history belongs to the old endpoint.
+// probe's state to `unknown`: the history belongs to the old endpoint.
 // Audit-logged.
 //
 // _Requires permission: `resources:write`._
@@ -17976,7 +17965,7 @@ func (n *ProfileNamespace) Get(ctx context.Context, opts ...RequestOption) (*Pro
 
 // PasswordReset: Mint a password reset link for the signed-in user
 //
-// Returns a one-time AuthKit-hosted reset URL rather than emailing it — the
+// Returns a one-time AuthKit-hosted reset URL rather than emailing it; the
 // caller already holds a valid session for the account. Also the way to set a
 // first password on an SSO or OAuth-only account.
 //
@@ -18196,8 +18185,8 @@ func (n *ProfileMFANamespace) Delete(ctx context.Context, params ProfileMFADelet
 
 // List: List enrolled authentication factors
 //
-// Includes factors whose enrolment was never confirmed — WorkOS does not expose
-// a verified flag.
+// Includes factors whose enrolment was never confirmed; WorkOS does not expose a
+// verified flag.
 //
 // GET /api/profile/mfa
 //
@@ -18256,7 +18245,7 @@ type ProfileSessionsDeleteParams struct {
 
 // Delete: Revoke one session
 //
-// Refuses the session making the request — use sign-out for that.
+// Refuses the session making the request, use sign-out for that.
 //
 // DELETE /api/profile/sessions/{sessionId}
 //
@@ -18403,13 +18392,13 @@ type QueryMonitorsTargetsParams struct {
 // Targets: List what a monitor can run against
 //
 // The editor's target picker: each account with a SQL driver of its own, plus
-// the SQL-capable resources inside it — a database that is a *resource* (a
+// the SQL-capable resources inside it; a database that is a *resource* (a
 // ClickHouse service, a D1 or Turso database, a Databricks SQL warehouse, a
 // BigQuery dataset) rather than the account's own connection. Accounts with
 // neither are omitted; a monitor pointed at one could only ever fail. Pass a
-// resource's `id` (and optionally its `resourceTypeId` — the server fills it
-// from the synced resource either way) when creating a monitor to scope the
-// query to that resource.
+// resource's `id` (and optionally its `resourceTypeId`: the server fills it from
+// the synced resource either way) when creating a monitor to scope the query to
+// that resource.
 //
 // GET /api/org/{orgId}/query-monitors/targets
 func (n *QueryMonitorsNamespace) Targets(ctx context.Context, params *QueryMonitorsTargetsParams, opts ...RequestOption) (*QueryMonitorTargets, error) {
@@ -18439,8 +18428,8 @@ type QueryMonitorsTestParams struct {
 // Test: Run a query once without saving it
 //
 // The editor's 'try it' button. Goes through the same read-only guard as a
-// scheduled run — a query that could not be saved as a monitor must not be
-// runnable through the monitor's own preview — and applies the threshold, so the
+// scheduled run; a query that could not be saved as a monitor must not be
+// runnable through the monitor's own preview: and applies the threshold, so the
 // answer says whether it *would* be breaching rather than leaving the reader to
 // compare two numbers.
 //
@@ -18588,13 +18577,13 @@ type QuotasGetParams struct {
 // Get: List provider quota utilisation across the organization
 //
 // How close each account is to the limits its provider enforces, with the trend
-// fitted over the last 14 days of collected readings. Both halves of every row —
-// the used figure and the limit — come from the provider; nothing is filled in
+// fitted over the last 14 days of collected readings. Both halves of every row
+// (the used figure and the limit) come from the provider; nothing is filled in
 // from published defaults, so an account with an approved increase reads as
 // having the headroom it has. This is a read over already-collected snapshots:
 // no provider API calls are made here, and the readings are as fresh as the last
 // collection pass (roughly six hours). A plugin that declares no quota
-// capability contributes nothing rather than zero — see `unsupportedPluginIds`.
+// capability contributes nothing rather than zero, see `unsupportedPluginIds`.
 //
 // _Requires permission: `resources:read`._
 //
@@ -18755,7 +18744,7 @@ type ResourcesCostEstimateParams struct {
 // Calls the plugin's `estimateCost` and returns a monthly total with the line
 // items behind it. Price a proposed resource by passing `fields`, an existing
 // one by passing `resourceId`, or a proposed change to an existing one by
-// passing both — `fields` is merged over the resource's stored fields, so the
+// passing both; `fields` is merged over the resource's stored fields, so the
 // caller only sends what changed. `estimate` is null when the plugin cannot
 // price the configuration; that is not the same as an estimate of zero, and it
 // should not be rendered as one.
@@ -18825,7 +18814,7 @@ type ResourcesCreateConfigParams struct {
 // CreateConfig: Get the dynamic create form for a resource type
 //
 // Calls the plugin's `getCreateConfig`. The returned `CreateResourceConfig` is
-// plugin-shaped — see `JsonObject`.
+// plugin-shaped, see `JsonObject`.
 //
 // _Requires permission: `resources:write`._
 //
@@ -19723,7 +19712,7 @@ type RightsizingGetParams struct {
 // size options, live-priced). Each recommendation names the cheapest smaller
 // size that still clears a headroom margin and quotes the monthly saving. Apply
 // one by submitting `sizeFieldKey` with the recommended size id through the
-// resource-update endpoint — which enforces change freezes and writes the audit
+// resource-update endpoint; which enforces change freezes and writes the audit
 // trail. Results are cached for a few minutes; pass `refresh=true` to recompute.
 //
 // _Requires permission: `resources:read`._
@@ -19773,10 +19762,10 @@ type RunbooksCreateParams struct {
 
 // Create: Write a runbook
 //
-// Editing takes `org:settings:write` — a procedure is an org-wide statement
-// about how something is done, and it is read by strangers under pressure. Names
-// are unique within an organization: two runbooks called "Failover" is how the
-// wrong one gets run.
+// Editing takes `org:settings:write`: a procedure is an org-wide statement about
+// how something is done, and it is read by strangers under pressure. Names are
+// unique within an organization: two runbooks called "Failover" is how the wrong
+// one gets run.
 //
 // POST /api/org/{orgId}/runbooks
 //
@@ -19950,8 +19939,8 @@ type RunbooksRunsCloseParams struct {
 // Close: Close a run out
 //
 // Closing does **not** settle outstanding steps. A run completed with three
-// steps still pending is a true and useful record — it says the incident ended
-// before the checklist did — and quietly marking them done would erase the one
+// steps still pending is a true and useful record (it says the incident ended
+// before the checklist did) and quietly marking them done would erase the one
 // thing a postmortem wants to know.
 //
 // POST /api/org/{orgId}/runbooks/runs/{runId}/close
@@ -19992,7 +19981,7 @@ type RunbooksRunsCreateParams struct {
 //
 // Takes `resources:read`, like ticking a step: performing a checklist is not an
 // act of configuration, and requiring an admin mid-incident is how a team stops
-// using it. Deliberately not deduplicated against a run already in progress —
+// using it. Deliberately not deduplicated against a run already in progress;
 // performing the failover twice in one incident is a real thing, and refusing
 // the second would mean it goes unrecorded rather than not happening.
 //
@@ -20147,7 +20136,7 @@ type SavedCostFiltersCreateParams struct {
 
 // Create: Create a saved cost filter
 //
-// Names must be unique per organization (case-insensitively) — they are how the
+// Names must be unique per organization (case-insensitively); they are how the
 // CLI's `--filter <name>` and humans address the filter. A name collision is a 409.
 //
 // _Requires permission: `costs:write`._
@@ -20180,11 +20169,11 @@ type SavedCostFiltersDeleteParams struct {
 
 // Delete: Delete a saved cost filter
 //
-// Soft delete — **refused with a 409 while anything references the filter**,
-// with the referents in the body. Deleting a referenced filter would silently
-// widen every referent's scope to all spend; for a budget that can fire or
-// suppress alerts, so detaching the referents is a deliberate step, never a side
-// effect of deletion.
+// Soft delete: **refused with a 409 while anything references the filter**, with
+// the referents in the body. Deleting a referenced filter would silently widen
+// every referent's scope to all spend; for a budget that can fire or suppress
+// alerts, so detaching the referents is a deliberate step, never a side effect
+// of deletion.
 //
 // _Requires permission: `costs:write`._
 //
@@ -20192,7 +20181,7 @@ type SavedCostFiltersDeleteParams struct {
 //
 // Raises on 404: Not found
 //
-// Raises on 409: Still referenced — the body lists every referent.
+// Raises on 409: Still referenced: the body lists every referent.
 func (n *SavedCostFiltersNamespace) Delete(ctx context.Context, params SavedCostFiltersDeleteParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/saved-cost-filters/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -20247,7 +20236,7 @@ type SavedCostFiltersListParams struct {
 //
 // Named, reusable cost filter sets. Graphs, reports and budgets reference one
 // **by id** (`savedFilterId` in their configs and in `POST /costs/query`), and
-// the server resolves the reference at query time — so editing a saved filter
+// the server resolves the reference at query time; so editing a saved filter
 // changes every referent at once, and nothing ever holds a copy.
 //
 // _Requires permission: `costs:read`._
@@ -20277,7 +20266,7 @@ type SavedCostFiltersReferentsParams struct {
 
 // Referents: List a saved filter's referents
 //
-// Every budget, cost report and dashboard cost graph referencing this filter —
+// Every budget, cost report and dashboard cost graph referencing this filter;
 // what an edit will re-scope, and what a delete would be refused over.
 //
 // _Requires permission: `costs:read`._
@@ -20312,7 +20301,7 @@ type SavedCostFiltersUpdateParams struct {
 //
 // Replaces the filter's name, description and terms. This is the high-leverage
 // write: every graph, report and budget referencing the filter runs the new
-// terms on its next query — re-scoping a referenced budget can change which
+// terms on its next query: re-scoping a referenced budget can change which
 // alerts fire. `GET /{id}/referents` names what a change will touch.
 //
 // _Requires permission: `costs:write`._
@@ -20867,7 +20856,7 @@ type SessionRecordingsCastParams struct {
 // The session as an [asciicast
 // v2](https://docs.asciinema.org/manual/asciicast/v2/) document: a JSON header
 // line followed by one `[time, code, data]` event per line. Deliberately
-// somebody else's format — the same bytes play in `asciinema play` and in the
+// somebody else's format; the same bytes play in `asciinema play` and in the
 // reference web player, so a recording is useful to an auditor who has never
 // seen this product. `?download=1` returns it as an attachment. **Every fetch is
 // audit-logged**, including this one: an investigator has to be able to answer
@@ -20954,7 +20943,7 @@ type SessionRecordingsListParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Status: `recording` (live), `complete` (closed cleanly), `truncated` (hit
-	// the per-session capture ceiling — the tape is a genuine partial and says
+	// the per-session capture ceiling: the tape is a genuine partial and says
 	// so), or `abandoned` (the server handling the session went away before it
 	// could close the row).
 	//
@@ -20972,10 +20961,11 @@ type SessionRecordingsListParams struct {
 
 // List: List recorded SSH sessions
 //
-// Recorded sessions, newest first. Only SSH opened through the cloud is recorded
-// — those sessions are already proxied by the server, so recording tees a stream
-// it holds rather than requiring an agent on the host. A desktop session that
-// dials a host directly never reaches the server and cannot appear here.
+// Recorded sessions, newest first. Only SSH opened through the cloud is
+// recorded; those sessions are already proxied by the server, so recording tees
+// a stream it holds rather than requiring an agent on the host. A desktop
+// session that dials a host directly never reaches the server and cannot appear
+// here.
 //
 // _Requires permission: `session-recordings:read`._
 //
@@ -21058,7 +21048,7 @@ type SessionRecordingsSettingsUpdateParams struct {
 
 // Update: Update the recording policy
 //
-// Partial update — omitted fields keep their current value. Recording is opt-in
+// Partial update: omitted fields keep their current value. Recording is opt-in
 // and off by default. Audit-logged with the before/after policy.
 //
 // _Requires permission: `session-recordings:write`._
@@ -21283,11 +21273,11 @@ type SharedConsolesCreateParams struct {
 // invite. You become the driver.
 //
 // Returns 409 `console_not_here` when the pty is held by a different server
-// replica than the one answering this call — reopen the terminal and share
-// again. Writing the share anyway would produce a link that authorises correctly
-// and then finds nothing to attach to.
+// replica than the one answering this call; reopen the terminal and share again.
+// Writing the share anyway would produce a link that authorises correctly and
+// then finds nothing to attach to.
 //
-// Requires `resources:execute` — the same permission as opening the terminal.
+// Requires `resources:execute`: the same permission as opening the terminal.
 // Closed to API keys: sharing a shell is an act a person performs.
 //
 // _Requires permission: `resources:execute`._
@@ -21325,7 +21315,7 @@ type SharedConsolesDeleteParams struct {
 // Delete: Revoke a share
 //
 // Disconnects every guest and stops the fan-out. The sharer's own SSH session
-// carries on — revoking a share is not killing a terminal.
+// carries on : revoking a share is not killing a terminal.
 //
 // The sharer or a holder of `org:settings:write`. Deliberately does **not**
 // require `resources:execute`: ending access must never be gated on still
@@ -21360,7 +21350,7 @@ type SharedConsolesGetParams struct {
 // Get: Get one shared console
 //
 // Visible to participants and to anyone who could revoke it (the sharer, or a
-// holder of `org:settings:write`). Others get 404 — that a named colleague has a
+// holder of `org:settings:write`). Others get 404: that a named colleague has a
 // root shell open on a named production host right now is operational
 // information.
 //
@@ -21396,7 +21386,7 @@ type SharedConsolesHandoverParams struct {
 //
 // Authorised by the **current driver** (the keyboard is theirs to give) or by
 // the **sharer** (it is their box, and asking permission from somebody who has
-// stopped responding is not a control). An observer cannot promote themselves —
+// stopped responding is not a control). An observer cannot promote themselves;
 // that is `/request-driver`.
 //
 // Two simultaneous grants cannot both win: the database's partial unique index
@@ -21441,8 +21431,8 @@ type SharedConsolesJoinParams struct {
 
 // Join: Redeem an invite and join
 //
-// Admission needs live org membership **and** `resources:execute` — the invite
-// is a locator, never a capability, so a leaked link admits nobody who could not
+// Admission needs live org membership **and** `resources:execute`: the invite is
+// a locator, never a capability, so a leaked link admits nobody who could not
 // have opened the shell themselves.
 //
 // The invite is consumed by the first person it admits. Somebody already on the
@@ -21552,7 +21542,7 @@ type SharedConsolesRequestDriverParams struct {
 
 // RequestDriver: Ask for the keyboard
 //
-// Raises a flag the driver and the sharer can see. Grants nothing on its own —
+// Raises a flag the driver and the sharer can see. Grants nothing on its own;
 // that is the point.
 //
 // _Requires permission: `resources:execute`._
@@ -21666,7 +21656,7 @@ type SharedConsolesInvitesGetParams struct {
 //
 // What the join screen shows before anyone commits: which host, whose session,
 // and whether you may join it. Reachable with a valid token by a signed-in
-// member who already holds `resources:execute` — the token says *which* session,
+// member who already holds `resources:execute`: the token says *which* session,
 // never *whether*. Returns nothing from the session itself.
 //
 // _Requires permission: `resources:execute`._
@@ -21711,7 +21701,7 @@ type SharedConsolesParticipantsDeleteParams struct {
 // Their socket is closed immediately on the replica holding the pty, and within
 // one two-second sweep on any other. They are marked `removed` rather than
 // `left`, so they cannot resume without a fresh invite. The sharer cannot be
-// removed — revoke the share.
+// removed, revoke the share.
 //
 // DELETE
 // /api/org/{orgId}/shared-consoles/{consoleId}/participants/{participantId}
@@ -21934,9 +21924,9 @@ type SlackTestParams struct {
 
 // Test: Post a test message to every configured channel
 //
-// Ignores routing rules — every channel gets the test. Fails with the Slack
-// error when nothing could be delivered (`not_in_channel` means the bot needs
-// inviting to a private channel).
+// Ignores routing rules; every channel gets the test. Fails with the Slack error
+// when nothing could be delivered (`not_in_channel` means the bot needs inviting
+// to a private channel).
 //
 // POST /api/org/{orgId}/slack/test
 //
@@ -22578,7 +22568,7 @@ type SSHKeysSignParams struct {
 //
 // Signs one publickey-authentication challenge with a server-generated org key
 // whose private half never leaves Infrawrench Cloud. Requires the
-// `resources:execute` permission — producing an auth signature is the same
+// `resources:execute` permission: producing an auth signature is the same
 // authority as opening a shell. Imported keys cannot sign (only their public
 // half is stored). Every call is audited.
 //
@@ -22770,7 +22760,7 @@ type StatusGetParams struct {
 
 // Get: Read a public status page
 //
-// **Unauthenticated.** The only endpoint in this API that takes no credentials —
+// **Unauthenticated.** The only endpoint in this API that takes no credentials;
 // a status page exists for people with no account. The payload carries labels,
 // states and uptime history only: probe URLs, resource and account ids, the
 // organization id and error detail are never included. An unpublished page and
@@ -22814,7 +22804,7 @@ type StatusIncidentsGetParams struct {
 // Get: Provider incidents overlapping your resources
 //
 // The "is it me or is it them?" feed. The poller watches each provider plugin's
-// public status feed (declared on its manifest — zero credentials, zero
+// public status feed (declared on its manifest; zero credentials, zero
 // rate-limit risk), caches active incidents, and this endpoint correlates them
 // against the resources the organization holds: an incident matches a resource
 // when it is provider-wide, names the resource's region, or names its resource
@@ -22863,7 +22853,7 @@ type StatusPagesCreateParams struct {
 // Create: Create a status page
 //
 // Creates a page with a freshly generated slug. `published` defaults to false,
-// so creating a page never exposes anything — publish it as a separate,
+// so creating a page never exposes anything; publish it as a separate,
 // deliberate step.
 //
 // _Requires permission: `resources:write`._
@@ -22953,8 +22943,8 @@ type StatusPagesRotateSlugParams struct {
 
 // RotateSlug: Issue a new public link
 //
-// Replaces the slug, revoking the current public URL immediately — the reroll
-// for a link that ended up somewhere unintended. The page stays published.
+// Replaces the slug, revoking the current public URL immediately; the reroll for
+// a link that ended up somewhere unintended. The page stays published.
 //
 // _Requires permission: `resources:write`._
 //
@@ -22986,7 +22976,7 @@ type StatusPagesUpdateParams struct {
 // Update: Update a status page
 //
 // Omitted fields keep their value. `components`, when present, replaces the
-// whole ordered set — which is also how a reorder is expressed.
+// whole ordered set: which is also how a reorder is expressed.
 //
 // _Requires permission: `resources:write`._
 //
@@ -23489,8 +23479,7 @@ type TeamInvitationsCreateParams struct {
 //
 // POST /api/org/{orgId}/team/invitations
 //
-// Raises on 402: Payment required — the organization's plan does not include
-// this
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 403: The role would grant permissions the caller does not hold, or
 // the caller is not an owner and tried to invite an owner
@@ -24040,12 +24029,11 @@ type WallboardGetParams struct {
 // A different reading of data the product already holds, built on one rule: a
 // wallboard may only show things that are true **right now** and that somebody
 // would cross a room to look at. There is deliberately no history, no trend and
-// no breakdown — those belong on the page you open when you do walk over.
+// no breakdown; those belong on the page you open when you do walk over.
 //
-// Four sources — declared incidents, synthetic probes, query monitors and
-// account sync health — each guarded independently, because a television that
-// goes blank because one query threw is showing nothing to a room that was
-// relying on it.
+// Four sources (declared incidents, synthetic probes, query monitors and account
+// sync health) each guarded independently, because a television that goes blank
+// because one query threw is showing nothing to a room that was relying on it.
 //
 // Session-authenticated on purpose: unlike the calendar feed or a public status
 // page, this carries incident titles, probe names and account names, and a
@@ -24395,8 +24383,8 @@ type WorkflowsTypingsParams struct {
 // key names, and the workflow's trigger + metrics. Default is the fast static
 // surface (`create` fields are `Record<string, string>`). Pass `enrich=1` for a
 // second pass that hits provider APIs for precise create() field unions and live
-// sidecar capability flags — the editor loads static first and upgrades when
-// that finishes.
+// sidecar capability flags; the editor loads static first and upgrades when that
+// finishes.
 //
 // _Requires permission: `workflows:read`._
 //
@@ -24507,7 +24495,7 @@ type WorkflowsScheduleUpdateParams struct {
 //
 // Sets the workflow's trigger to cron with the given expression and timezone,
 // validating both, and computes the next fire time. The workflow fires at the
-// schedule's next occurrence — never immediately on save.
+// schedule's next occurrence; never immediately on save.
 //
 // Changing the schedule makes scheduled runs act with the permissions of the
 // caller from then on, the same as editing the workflow's code. When the
