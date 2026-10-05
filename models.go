@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.46.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.47.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.46.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.47.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7537,6 +7537,7 @@ const (
 	PluginIDCrusoe         PluginID = "crusoe"
 	PluginIDCursor         PluginID = "cursor"
 	PluginIDDatabricks     PluginID = "databricks"
+	PluginIDDatadog        PluginID = "datadog"
 	PluginIDDeepgram       PluginID = "deepgram"
 	PluginIDDeepseek       PluginID = "deepseek"
 	PluginIDDepot          PluginID = "depot"
@@ -8705,6 +8706,7 @@ const (
 	ResourceTypeIDApp                            ResourceTypeID = "app"
 	ResourceTypeIDAppEngineService               ResourceTypeID = "app-engine-service"
 	ResourceTypeIDAppSecret                      ResourceTypeID = "app-secret"
+	ResourceTypeIDApplicationKey                 ResourceTypeID = "application-key"
 	ResourceTypeIDApprunnerService               ResourceTypeID = "apprunner-service"
 	ResourceTypeIDArtifactRegistryRepo           ResourceTypeID = "artifact-registry-repo"
 	ResourceTypeIDAuditEvent                     ResourceTypeID = "audit-event"
@@ -8891,6 +8893,7 @@ const (
 	ResourceTypeIDDoksCluster                    ResourceTypeID = "doks-cluster"
 	ResourceTypeIDDomain                         ResourceTypeID = "domain"
 	ResourceTypeIDDomainRecord                   ResourceTypeID = "domain-record"
+	ResourceTypeIDDowntime                       ResourceTypeID = "downtime"
 	ResourceTypeIDDpoJob                         ResourceTypeID = "dpo-job"
 	ResourceTypeIDDroplet                        ResourceTypeID = "droplet"
 	ResourceTypeIDDurableObjectNamespace         ResourceTypeID = "durable-object-namespace"
@@ -9189,6 +9192,7 @@ const (
 	ResourceTypeIDSession                        ResourceTypeID = "session"
 	ResourceTypeIDSharedVolume                   ResourceTypeID = "shared-volume"
 	ResourceTypeIDSkill                          ResourceTypeID = "skill"
+	ResourceTypeIDSlo                            ResourceTypeID = "slo"
 	ResourceTypeIDSnapshot                       ResourceTypeID = "snapshot"
 	ResourceTypeIDSnowflakeAccount               ResourceTypeID = "snowflake-account"
 	ResourceTypeIDSnowflakeDatabase              ResourceTypeID = "snowflake-database"
@@ -9225,6 +9229,7 @@ const (
 	ResourceTypeIDSupervisedFineTuningJob        ResourceTypeID = "supervised-fine-tuning-job"
 	ResourceTypeIDSyntheticCheck                 ResourceTypeID = "synthetic-check"
 	ResourceTypeIDSyntheticMonitor               ResourceTypeID = "synthetic-monitor"
+	ResourceTypeIDSyntheticsTest                 ResourceTypeID = "synthetics-test"
 	ResourceTypeIDTailnet                        ResourceTypeID = "tailnet"
 	ResourceTypeIDTargetGroup                    ResourceTypeID = "target-group"
 	ResourceTypeIDTcoPolicy                      ResourceTypeID = "tco-policy"
