@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.74.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.74.1 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.74.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.74.1).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7811,6 +7811,8 @@ type CostReportFoldersCreateParams struct {
 // POST /api/org/{orgId}/cost-report-folders
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *CostReportFoldersNamespace) Create(ctx context.Context, params CostReportFoldersCreateParams, opts ...RequestOption) (*CostReportFolder, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-report-folders")
 	r.setPath("orgId", params.OrgID)
@@ -7909,6 +7911,8 @@ type CostReportFoldersUpdateParams struct {
 // PUT /api/org/{orgId}/cost-report-folders/{id}
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 //
 // Raises on 404: Not found
 func (n *CostReportFoldersNamespace) Update(ctx context.Context, params CostReportFoldersUpdateParams, opts ...RequestOption) (*CostReportFolder, error) {
@@ -8032,6 +8036,8 @@ type CostReportsCreateParams struct {
 // POST /api/org/{orgId}/cost-reports
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *CostReportsNamespace) Create(ctx context.Context, params CostReportsCreateParams, opts ...RequestOption) (*CostReport, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-reports")
 	r.setPath("orgId", params.OrgID)
@@ -8219,6 +8225,8 @@ type CostReportsUpdateParams struct {
 // PUT /api/org/{orgId}/cost-reports/{id}
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 //
 // Raises on 404: Not found
 func (n *CostReportsNamespace) Update(ctx context.Context, params CostReportsUpdateParams, opts ...RequestOption) (*CostReport, error) {
