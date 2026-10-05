@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.68.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.69.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.68.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.69.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -4366,6 +4366,37 @@ func (n *BusinessMetricsNamespace) ImporterSources(ctx context.Context, params *
 	return out, nil
 }
 
+// BusinessMetricsLabelsParams holds the parameters for
+// `client.businessMetrics.labels`.
+type BusinessMetricsLabelsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Metric id or key
+	ID string
+}
+
+// Labels: List a metric's labels
+//
+// The label keys the metric's values carry, each with its distinct values (at
+// most 500) and its cost mapping. A mapped label nobody has reported yet is
+// listed with no values.
+//
+// GET /api/org/{orgId}/business-metrics/{id}/labels
+//
+// Raises on 404: Not found
+func (n *BusinessMetricsNamespace) Labels(ctx context.Context, params BusinessMetricsLabelsParams, opts ...RequestOption) (*BusinessMetricsLabelsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/business-metrics/{id}/labels")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *BusinessMetricsLabelsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // BusinessMetricsUnitCostsParams holds the parameters for
 // `client.businessMetrics.unitCosts`.
 type BusinessMetricsUnitCostsParams struct {
@@ -4390,9 +4421,10 @@ type BusinessMetricsUnitCostsParams struct {
 // `gap` reason), never 0 and never infinite. - **Currencies are never merged.** Spend in a currency with no stated rate
 // keeps its own series rather than being dropped or added to another.
 //
-// There is no `groupBy`: a per-group ratio would need a per-group denominator,
-// and dividing each service's spend by the whole customer count produces numbers
-// that do not sum to the real one.
+// There is no spend `groupBy`: a per-group ratio needs a per-group denominator.
+// Split by a metric label with `groupByLabel` instead; in a ratio mode the label
+// must be mapped to the cost dimension its values name (`labelMappings` on the
+// metric), so each label value's spend is divided by its own volume.
 //
 // _Requires permission: `costs:read`._
 //
@@ -4448,6 +4480,69 @@ func (n *BusinessMetricsNamespace) Update(ctx context.Context, params BusinessMe
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *BusinessMetric
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BusinessMetricsUsageUnitCostsParams holds the parameters for
+// `client.businessMetrics.usageUnitCosts`.
+type BusinessMetricsUsageUnitCostsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body UnitCostQueryRequest
+}
+
+// UsageUnitCosts: Query cost per usage unit
+//
+// Spend divided by the usage quantity providers report in one `usageUnit`, with
+// no business metric involved. Both halves come from the same cost rows (those
+// reported in that unit), so the numerator is exactly the spend that bought the
+// denominator. A bucket with no usage is a gap (`no_usage`), never 0. Labels do
+// not apply.
+//
+// POST /api/org/{orgId}/business-metrics/usage-unit-costs
+//
+// Raises on 400: Bad request
+func (n *BusinessMetricsNamespace) UsageUnitCosts(ctx context.Context, params BusinessMetricsUsageUnitCostsParams, opts ...RequestOption) (*UnitCostQueryResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/business-metrics/usage-unit-costs")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *UnitCostQueryResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BusinessMetricsUsageUnitsParams holds the parameters for
+// `client.businessMetrics.usageUnits`.
+//
+// Every field is optional; pass nil to take the defaults.
+type BusinessMetricsUsageUnitsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// UsageUnits: List usage units
+//
+// The provider usage units the organization's cost rows carry over the last 90
+// days, most spend first, with a few of the services reporting each. Backs the
+// per-usage-unit picker.
+//
+// GET /api/org/{orgId}/business-metrics/usage-units
+func (n *BusinessMetricsNamespace) UsageUnits(ctx context.Context, params *BusinessMetricsUsageUnitsParams, opts ...RequestOption) (*BusinessMetricsUsageUnitsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/business-metrics/usage-units")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *BusinessMetricsUsageUnitsResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -8680,7 +8775,8 @@ type CostsEfficiencyAlertsParams struct {
 	// Kind: Restrict to one detector. Omitted returns all three, interleaved by
 	// time.
 	//
-	// One of "commitment_expiry", "commitment_idle", "unit_cost_regression".
+	// One of "commitment_expiry", "commitment_idle", "unit_cost_regression",
+	// "unit_cost_threshold".
 	Kind *string
 	// Limit: Rows to return, newest first. Defaults to 50.
 	Limit *int64

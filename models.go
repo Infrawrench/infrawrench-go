@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.68.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.69.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.68.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.69.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1767,6 +1767,8 @@ type BusinessMetric struct {
 	Currency        *string                        `json:"currency"`
 	CostScope       []BusinessMetricScopeTerm      `json:"costScope"`
 	SavedFilterID   *string                        `json:"savedFilterId"`
+	LabelMappings   []BusinessMetricLabelMapping   `json:"labelMappings"`
+	Thresholds      []UnitCostThreshold            `json:"thresholds"`
 	CreatedByUserID *string                        `json:"createdByUserId"`
 	CreatedAt       string                         `json:"createdAt"`
 	UpdatedAt       string                         `json:"updatedAt"`
@@ -1960,6 +1962,12 @@ type BusinessMetricInput struct {
 	// server-side at query time. A reference that fails to resolve errors the
 	// unit-cost query rather than silently widening the numerator to all spend.
 	SavedFilterID *string `json:"savedFilterId,omitempty"`
+	// LabelMappings: Which value labels name a cost dimension. One mapping per
+	// label.
+	LabelMappings []BusinessMetricLabelMapping `json:"labelMappings,omitempty"`
+	// Thresholds: Standing unit-cost or margin limits. Margin thresholds need a
+	// `currency` metric.
+	Thresholds []UnitCostThreshold `json:"thresholds,omitempty"`
 }
 
 // BusinessMetricKind: What the metric's numbers are. `count` is a unit-less
@@ -1974,6 +1982,38 @@ const (
 	BusinessMetricKindCount    BusinessMetricKind = "count"
 	BusinessMetricKindCurrency BusinessMetricKind = "currency"
 )
+
+// BusinessMetricLabelMapping: Joins a label to a cost dimension so unit cost and
+// margin can be computed per label value (cost per customer). Ratio modes refuse
+// an unmapped label: without a per-value numerator the only spend available is
+// the whole scope's.
+type BusinessMetricLabelMapping struct {
+	// Label: A label key: a lowercase slug, normalised (trimmed, lowercased) on
+	// write.
+	Label  string                    `json:"label"`
+	Target BusinessMetricLabelTarget `json:"target"`
+}
+
+// BusinessMetricLabelSummary is the `BusinessMetricLabelSummary` schema.
+type BusinessMetricLabelSummary struct {
+	Key string `json:"key"`
+	// Values: Distinct values, alphabetical, at most 500.
+	Values    []string `json:"values"`
+	Truncated bool     `json:"truncated"`
+	Mapping   any      `json:"mapping"`
+}
+
+// BusinessMetricLabelTarget: Where a label's values live on the cost side. A
+// `dimension` target matches label values to dimension values exactly;
+// `cost_centre` matches a centre by id or, case-insensitively, by name.
+type BusinessMetricLabelTarget = any
+
+// BusinessMetricLabels: A value's labels, e.g. `{ "customer": "acme", "plan":
+// "pro" }`. At most 8, keys are slugs, values up to 200 characters. Rows
+// partition the metric: a day's total is the sum of every row for it, so report
+// a breakdown or a total, never both. The same day with the same labels
+// restates; different labels are a different row.
+type BusinessMetricLabels = map[string]string
 
 // BusinessMetricScopeTerm is the `BusinessMetricScopeTerm` schema.
 type BusinessMetricScopeTerm struct {
@@ -2015,9 +2055,10 @@ type BusinessMetricValue struct {
 	// Day: UTC day, YYYY-MM-DD.
 	Day   string  `json:"day"`
 	Value float64 `json:"value"`
-	// Label: Optional breakdown label; a day's total is the sum across its
-	// labels.
-	Label *string `json:"label"`
+	// Label: The single breakdown label: the `label` key of `labels`, or null.
+	// Kept for clients that predate multi-dimensional labels.
+	Label  *string              `json:"label"`
+	Labels BusinessMetricLabels `json:"labels"`
 	// Source: One of "api", "workflow", "import".
 	Source    string `json:"source"`
 	UpdatedAt string `json:"updatedAt"`
@@ -2025,11 +2066,12 @@ type BusinessMetricValue struct {
 
 // BusinessMetricValuesInput is the `BusinessMetricValuesInput` schema.
 type BusinessMetricValuesInput struct {
-	// Values: Days to report. **Re-reporting a day restates it rather than
-	// adding to it**, so an unattended nightly job is safe to retry — an
-	// accumulating write would double every number the first time the job
-	// re-ran. A batch naming the same day twice keeps the last value, applying
-	// the same rule within a batch that restatement applies between them.
+	// Values: Days to report. **Re-reporting a day (with the same labels)
+	// restates it rather than adding to it**, so an unattended nightly job is
+	// safe to retry — an accumulating write would double every number the first
+	// time the job re-ran. A batch naming the same day and labels twice keeps
+	// the last value, applying the same rule within a batch that restatement
+	// applies between them.
 	Values []BusinessMetricValuesInputValues `json:"values"`
 }
 
@@ -3849,6 +3891,26 @@ type CostGraphConfig struct {
 	// Cumulative: Running totals from the start of the range, at any bin size.
 	// Omitted is off. Totals then report the last point rather than the sum.
 	Cumulative *bool `json:"cumulative,omitempty"`
+	// UnitCostMetricID: Divide spend by this business metric (an id, so a key
+	// rename never re-points the graph).
+	UnitCostMetricID *string `json:"unitCostMetricId,omitempty"`
+	// UnitCostMode: The calculation. `usage_unit_cost` needs `unitCostUsageUnit`
+	// instead of a metric; the others need `unitCostMetricId`.
+	//
+	// One of "unit_cost", "margin", "usage_unit_cost", "raw_metric".
+	UnitCostMode *string `json:"unitCostMode,omitempty"`
+	// UnitCostScale: "Per N units" for a ratio, or the unit a raw metric is
+	// shown in. Absent is 1.
+	UnitCostScale *float64 `json:"unitCostScale,omitempty"`
+	// UnitCostUsageUnit: `usage_unit_cost` only: the provider usage unit to
+	// divide by.
+	UnitCostUsageUnit *string `json:"unitCostUsageUnit,omitempty"`
+	// UnitCostLabelFilters: Keep only metric values carrying these labels.
+	UnitCostLabelFilters []CostGraphConfigUnitCostLabelFilters `json:"unitCostLabelFilters,omitempty"`
+	// UnitCostGroupByLabel: One line per value of this metric label.
+	UnitCostGroupByLabel *string `json:"unitCostGroupByLabel,omitempty"`
+	// Adjusted: Draw the org's billing rules applied.
+	Adjusted *bool `json:"adjusted,omitempty"`
 }
 
 // CostMeasure: What the Y axis sums. `cost` (the default) is money per currency.
@@ -5736,7 +5798,8 @@ type EfficiencyAlertEvent struct {
 	ID string `json:"id"`
 	// Kind: Which detector produced it.
 	//
-	// One of "commitment_expiry", "commitment_idle", "unit_cost_regression".
+	// One of "commitment_expiry", "commitment_idle", "unit_cost_regression",
+	// "unit_cost_threshold".
 	Kind string `json:"kind"`
 	// Subject: The commitment's description, or the business metric's name.
 	Subject string `json:"subject"`
@@ -12931,6 +12994,32 @@ type TOTPEnrollment struct {
 	URI *string `json:"uri"`
 }
 
+// UnitCostLabelFilter is the `UnitCostLabelFilter` schema.
+type UnitCostLabelFilter struct {
+	// Key: A label key: a lowercase slug, normalised (trimmed, lowercased) on
+	// write.
+	Key string `json:"key"`
+	// Op: One of "in", "not_in".
+	Op     string   `json:"op"`
+	Values []string `json:"values"`
+}
+
+// UnitCostMode: `unit_cost` is spend ÷ metric value. `margin` is `(revenue −
+// spend) ÷ revenue` as a fraction, with the absolute margin beside it, and needs
+// a `currency` metric. `usage_unit_cost` is spend ÷ the usage quantity providers
+// report in one `usageUnit`, and needs no metric (use `POST
+// /business-metrics/usage-unit-costs`). `raw_metric` plots the metric itself
+// beside spend, where zero and negative values are real points.
+type UnitCostMode = string
+
+// The values UnitCostMode takes.
+const (
+	UnitCostModeUnitCost      UnitCostMode = "unit_cost"
+	UnitCostModeMargin        UnitCostMode = "margin"
+	UnitCostModeUsageUnitCost UnitCostMode = "usage_unit_cost"
+	UnitCostModeRawMetric     UnitCostMode = "raw_metric"
+)
+
 // UnitCostPoint is the `UnitCostPoint` schema.
 type UnitCostPoint struct {
 	// Bucket: Bucket start date, YYYY-MM-DD.
@@ -12942,13 +13031,16 @@ type UnitCostPoint struct {
 	Value *float64 `json:"value"`
 	// Cost: Spend summed over the bucket, in the series' currency.
 	Cost float64 `json:"cost"`
-	// MetricValue: Metric value summed over the bucket, or null when nothing was
-	// reported.
+	// MetricValue: The denominator summed over the bucket (the metric, or usage
+	// for `usage_unit_cost`), unscaled, or null when nothing was reported.
 	MetricValue *float64 `json:"metricValue"`
+	// AbsoluteMargin: `margin` only: revenue − spend in the series currency;
+	// null on a gap.
+	AbsoluteMargin *float64 `json:"absoluteMargin,omitempty"`
 	// Gap: Set exactly when `value` is null.
 	//
 	// One of "no_metric_value", "non_positive_metric_value",
-	// "unconvertible_currency".
+	// "unconvertible_currency", "no_usage".
 	Gap *string `json:"gap,omitempty"`
 	// ReportedDays: Days in the bucket carrying a reported value, out of
 	// `bucketDays`. When it is smaller, the denominator covers only part of the
@@ -12964,13 +13056,20 @@ type UnitCostQueryRequest struct {
 	To   string `json:"to"`
 	// Binning: One of "hourly", "daily", "weekly", "monthly", "quarterly",
 	// "cumulative".
-	Binning string `json:"binning"`
-	// Mode: Absent is `unit_cost` (spend ÷ metric value). `margin` is `(revenue
-	// − spend) ÷ revenue` as a fraction, and is a 400 for a metric whose `kind`
-	// is not `currency`.
-	//
-	// One of "unit_cost", "margin".
-	Mode *string `json:"mode,omitempty"`
+	Binning string         `json:"binning"`
+	Mode    *UnitCostMode  `json:"mode,omitempty"`
+	Scale   *UnitCostScale `json:"scale,omitempty"`
+	// LabelFilters: Keep only values carrying these labels. In a ratio mode each
+	// label must be mapped, and the spend is narrowed to the same values on the
+	// mapped dimension.
+	LabelFilters []UnitCostLabelFilter `json:"labelFilters,omitempty"`
+	// GroupByLabel: One series per value of this label (the 25 largest by metric
+	// total; the rest fold into `Other`). In a ratio mode the label must be
+	// mapped.
+	GroupByLabel *string `json:"groupByLabel,omitempty"`
+	// UsageUnit: `usage_unit_cost` only, and required there: the provider usage
+	// unit to divide by. See `GET /business-metrics/usage-units`.
+	UsageUnit *string `json:"usageUnit,omitempty"`
 	// Filters: Narrowing on top of the metric's own `costScope` — AND-composed,
 	// never a replacement.
 	Filters []BusinessMetricScopeTerm `json:"filters,omitempty"`
@@ -12988,12 +13087,20 @@ type UnitCostQueryRequest struct {
 
 // UnitCostQueryResponse is the `UnitCostQueryResponse` schema.
 type UnitCostQueryResponse struct {
-	Metric UnitCostQueryResponseMetric `json:"metric"`
-	// Mode: One of "unit_cost", "margin".
-	Mode string `json:"mode"`
+	// Metric: Null for `usage_unit_cost`, which divides by provider usage
+	// instead.
+	Metric *UnitCostQueryResponseMetric `json:"metric"`
+	Mode   UnitCostMode                 `json:"mode"`
 	// Binning: One of "hourly", "daily", "weekly", "monthly", "quarterly",
 	// "cumulative".
-	Binning string `json:"binning"`
+	Binning      string        `json:"binning"`
+	Scale        UnitCostScale `json:"scale"`
+	UsageUnit    *string       `json:"usageUnit,omitempty"`
+	GroupByLabel *string       `json:"groupByLabel,omitempty"`
+	// CostPerLabel: Set when grouped. False means every label series carries the
+	// whole scope's spend (a raw metric grouped by an unmapped label), so draw
+	// that spend once.
+	CostPerLabel *bool `json:"costPerLabel,omitempty"`
 	// Series: One series per currency the numerator ended up in — usually one.
 	// More than one means the organization has spend in a currency it holds no
 	// rate for; rather than dropping that spend (understating every unit cost)
@@ -13009,17 +13116,42 @@ type UnitCostQueryResponse struct {
 	PartialBuckets int64 `json:"partialBuckets"`
 }
 
+// UnitCostScale: "Per N units": multiplies a ratio (cost per 1,000 requests) and
+// divides a raw metric. Margin ignores it. Absent is 1.
+type UnitCostScale = float64
+
 // UnitCostSeries is the `UnitCostSeries` schema.
 type UnitCostSeries struct {
-	Currency string          `json:"currency"`
-	Points   []UnitCostPoint `json:"points"`
+	Currency string `json:"currency"`
+	// Label: Set when the query grouped by a label.
+	Label  *UnitCostSeriesLabel `json:"label,omitempty"`
+	Points []UnitCostPoint      `json:"points"`
 	// OverallValue: The period ratio: **summed numerator ÷ summed denominator**,
 	// not the mean of the per-bucket ratios — the mean weights a quiet Sunday
 	// exactly as heavily as a peak Monday. Only buckets that produced a ratio
 	// contribute, on both sides.
-	OverallValue       *float64 `json:"overallValue"`
-	OverallCost        float64  `json:"overallCost"`
-	OverallMetricValue *float64 `json:"overallMetricValue"`
+	OverallValue          *float64 `json:"overallValue"`
+	OverallCost           float64  `json:"overallCost"`
+	OverallMetricValue    *float64 `json:"overallMetricValue"`
+	OverallAbsoluteMargin *float64 `json:"overallAbsoluteMargin,omitempty"`
+}
+
+// UnitCostThreshold: A standing limit, evaluated daily on the summed ratio over
+// the trailing window and routed under the unit-cost alert trigger. A window
+// with fewer than half its days reported is not judged.
+type UnitCostThreshold struct {
+	// Mode: One of "unit_cost", "margin".
+	Mode string `json:"mode"`
+	// Direction: One of "above", "below".
+	Direction string `json:"direction"`
+	// Value: Currency units per `scale` metric units for `unit_cost`; a
+	// percentage (30 for 30%) for `margin`.
+	Value float64        `json:"value"`
+	Scale *UnitCostScale `json:"scale,omitempty"`
+	// GroupByLabel: Evaluate per value of this label. The label must be mapped.
+	GroupByLabel *string `json:"groupByLabel,omitempty"`
+	// WindowDays: Trailing complete days the ratio is summed over. Default 7.
+	WindowDays *int64 `json:"windowDays,omitempty"`
 }
 
 // UnpinRequest is the `UnpinRequest` schema.
@@ -13551,7 +13683,10 @@ type BusinessMetricSourceFieldOptions struct {
 type BusinessMetricValuesInputValues struct {
 	Date  string  `json:"date"`
 	Value float64 `json:"value"`
-	Label *string `json:"label,omitempty"`
+	// Label: A single breakdown label, stored as `{ label: <value> }`; `labels`
+	// wins.
+	Label  *string              `json:"label,omitempty"`
+	Labels BusinessMetricLabels `json:"labels,omitempty"`
 }
 
 // CarbonAssumptionsVcpuWattsValue is an object the spec declares inline.
@@ -13671,6 +13806,14 @@ type CostAnomalySensitivityAdjustments struct {
 type CostExportWarehouseSinkAccounts struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+// CostGraphConfigUnitCostLabelFilters is an object the spec declares inline.
+type CostGraphConfigUnitCostLabelFilters struct {
+	Key string `json:"key"`
+	// Op: One of "in", "not_in".
+	Op     string   `json:"op"`
+	Values []string `json:"values"`
 }
 
 // CostScenarioResultContributions is an object the spec declares inline.
@@ -14496,6 +14639,15 @@ type UnitCostQueryResponseConversion struct {
 	Unconverted     []string                                   `json:"unconverted"`
 }
 
+// UnitCostSeriesLabel is an object the spec declares inline.
+type UnitCostSeriesLabel struct {
+	Key string `json:"key"`
+	// Value: Null for values carrying no such label, or for `Other`.
+	Value *string `json:"value"`
+	// Other: True for the fold of values past the group cap.
+	Other *bool `json:"other,omitempty"`
+}
+
 // UntaggedSpendReportByKey is an object the spec declares inline.
 type UntaggedSpendReportByKey struct {
 	Key string `json:"key"`
@@ -14761,6 +14913,16 @@ type BusinessMetricsImporterOptionsResponse struct {
 // BusinessMetricsImporterSourcesResponse is an object the spec declares inline.
 type BusinessMetricsImporterSourcesResponse struct {
 	Sources []BusinessMetricSourceAccount `json:"sources"`
+}
+
+// BusinessMetricsLabelsResponse is an object the spec declares inline.
+type BusinessMetricsLabelsResponse struct {
+	Labels []BusinessMetricLabelSummary `json:"labels"`
+}
+
+// BusinessMetricsUsageUnitsResponse is an object the spec declares inline.
+type BusinessMetricsUsageUnitsResponse struct {
+	Units []BusinessMetricsUsageUnitsResponseUnits `json:"units"`
 }
 
 // BusinessMetricsGetGetResponse is an object the spec declares inline.
@@ -15115,4 +15277,11 @@ type BusinessMetricsImporterOptionsResponseOptions struct {
 	ID          string  `json:"id"`
 	Label       string  `json:"label"`
 	Description *string `json:"description,omitempty"`
+}
+
+// BusinessMetricsUsageUnitsResponseUnits is an object the spec declares inline.
+type BusinessMetricsUsageUnitsResponseUnits struct {
+	Unit     string   `json:"unit"`
+	Usage    float64  `json:"usage"`
+	Services []string `json:"services"`
 }
