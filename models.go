@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.71.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.73.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.71.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.73.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -712,7 +712,82 @@ type AlertDelivery struct {
 // commenting on the open issue instead when one already exists for that finding.
 // Only alerts that carry a finding (savings findings, cost anomalies, idle
 // commitments) can be filed; for other triggers this destination is skipped.
+//
+// `email-member` and `email-address` send an HTML and plain-text email with a
+// link back into the app and a one-click unsubscribe link. Email carries no
+// acknowledge button, so a rule routed only to email always escalates.
 type AlertDestination = any
+
+// AlertEmailMember is the `AlertEmailMember` schema.
+type AlertEmailMember struct {
+	UserID string  `json:"userId"`
+	Name   *string `json:"name"`
+	Email  string  `json:"email"`
+}
+
+// AlertEmailOptions is the `AlertEmailOptions` schema.
+type AlertEmailOptions struct {
+	// EmailAvailable: Whether this deployment has a mail provider configured.
+	// False means alert email is never sent.
+	EmailAvailable bool               `json:"emailAvailable"`
+	Members        []AlertEmailMember `json:"members"`
+	Settings       AlertEmailSettings `json:"settings"`
+	// MemberDomains: Domains the organization's members sign in with: the
+	// implicit allowlist.
+	MemberDomains []string `json:"memberDomains"`
+}
+
+// AlertEmailRecipients: Who is emailed when this object fires, **in addition
+// to** whatever the organization's alert routing rules decide. Delivered whether
+// or not a rule matched and not held by quiet hours. On a write, omitting the
+// field leaves the stored list unchanged; send empty arrays to clear it.
+type AlertEmailRecipients struct {
+	// UserIDs: Organization members, by user id (from GET /alert-email). The
+	// member's current login address is read when the alert is sent, so an email
+	// change follows them and a member who leaves stops receiving.
+	UserIDs []string `json:"userIds"`
+	// Addresses: Extra addresses (a `finance@` alias, someone without a login).
+	// Each must pass the organization's external-address policy (GET
+	// /alert-email/settings), checked when saved and again when sent.
+	Addresses []string `json:"addresses"`
+}
+
+// AlertEmailSettings is the `AlertEmailSettings` schema.
+type AlertEmailSettings struct {
+	// ExternalPolicy: `member-domains` (the default): an extra address must be
+	// on a domain one of the organization's members signs in with, or one listed
+	// in `allowedDomains`. `any`: no restriction.
+	//
+	// One of "member-domains", "any".
+	ExternalPolicy string `json:"externalPolicy"`
+	// AllowedDomains: Extra domains accepted under `member-domains`, without the
+	// `@`.
+	AllowedDomains []string `json:"allowedDomains"`
+}
+
+// AlertEmailSettingsView is the `AlertEmailSettingsView` schema.
+type AlertEmailSettingsView struct {
+	// ExternalPolicy: `member-domains` (the default): an extra address must be
+	// on a domain one of the organization's members signs in with, or one listed
+	// in `allowedDomains`. `any`: no restriction.
+	//
+	// One of "member-domains", "any".
+	ExternalPolicy string   `json:"externalPolicy"`
+	AllowedDomains []string `json:"allowedDomains"`
+	EmailAvailable bool     `json:"emailAvailable"`
+	MemberDomains  []string `json:"memberDomains"`
+	// Suppressions: Addresses that used the unsubscribe link in an alert email.
+	// They receive no alert email from this organization until an admin removes
+	// the entry.
+	Suppressions []AlertEmailSuppression `json:"suppressions"`
+}
+
+// AlertEmailSuppression is the `AlertEmailSuppression` schema.
+type AlertEmailSuppression struct {
+	ID        string `json:"id"`
+	Email     string `json:"email"`
+	CreatedAt string `json:"createdAt"`
+}
 
 // AlertRule is the `AlertRule` schema.
 type AlertRule struct {
@@ -762,6 +837,16 @@ type AlertRulesResponse struct {
 	// reason a disconnected Slack install is: offering one would let the editor
 	// build a rule that routes nowhere.
 	OnCallSchedules []AlertRulesResponseOnCallSchedules `json:"onCallSchedules"`
+	// Members: Current members, for the email destination picker.
+	Members []AlertRulesResponseMembers `json:"members"`
+	// EmailAvailable: Whether this deployment has a mail provider configured.
+	EmailAvailable bool `json:"emailAvailable"`
+	// EmailSettings: The external-address policy an `email-address` destination
+	// must pass.
+	EmailSettings AlertRulesResponseEmailSettings `json:"emailSettings"`
+	// MemberDomains: Domains the organization's members sign in with: the
+	// implicit allowlist.
+	MemberDomains []string `json:"memberDomains"`
 }
 
 // AlertSeverity: Alert severity, ordered info < warning < critical.
@@ -796,6 +881,7 @@ const (
 	AlertTriggerPostureAlerts            AlertTrigger = "postureAlerts"
 	AlertTriggerProbeAlerts              AlertTrigger = "probeAlerts"
 	AlertTriggerQuotaAlerts              AlertTrigger = "quotaAlerts"
+	AlertTriggerExtendedSupportAlerts    AlertTrigger = "extendedSupportAlerts"
 	AlertTriggerIncidentAlerts           AlertTrigger = "incidentAlerts"
 	AlertTriggerWeeklyDigest             AlertTrigger = "weeklyDigest"
 )
@@ -1537,12 +1623,13 @@ type BudgetFull struct {
 	// month-to-date internal spend is as marked up as the forecast is. The alert
 	// body says the figure is adjusted and names the collected one. Updates are
 	// full replaces, so omitting it on PUT clears the opt-in.
-	UseAdjustedSpend bool          `json:"useAdjustedSpend"`
-	CreatedByUserID  *string       `json:"createdByUserId"`
-	DeletedAt        *string       `json:"deletedAt"`
-	CreatedAt        string        `json:"createdAt"`
-	UpdatedAt        string        `json:"updatedAt"`
-	Measure          BudgetMeasure `json:"measure"`
+	UseAdjustedSpend bool                 `json:"useAdjustedSpend"`
+	EmailRecipients  AlertEmailRecipients `json:"emailRecipients"`
+	CreatedByUserID  *string              `json:"createdByUserId"`
+	DeletedAt        *string              `json:"deletedAt"`
+	CreatedAt        string               `json:"createdAt"`
+	UpdatedAt        string               `json:"updatedAt"`
+	Measure          BudgetMeasure        `json:"measure"`
 	// UsageUnit: The usage unit a usage budget counts, exactly as the providers
 	// report it.
 	UsageUnit *string `json:"usageUnit"`
@@ -1622,7 +1709,8 @@ type BudgetInput struct {
 	// one usage unit). Hierarchies are at most 4 levels deep. Deleting a budget
 	// moves its children up to its own parent. Updates are full replaces, so
 	// omitting it on PUT makes the budget a root.
-	ParentBudgetID *string `json:"parentBudgetId,omitempty"`
+	ParentBudgetID  *string               `json:"parentBudgetId,omitempty"`
+	EmailRecipients *AlertEmailRecipients `json:"emailRecipients,omitempty"`
 }
 
 // BudgetMeasure: What the budget counts. `cost` (the default) is money in
@@ -1702,7 +1790,8 @@ type BudgetWithStatus struct {
 	// month-to-date internal spend is as marked up as the forecast is. The alert
 	// body says the figure is adjusted and names the collected one. Updates are
 	// full replaces, so omitting it on PUT clears the opt-in.
-	UseAdjustedSpend bool `json:"useAdjustedSpend"`
+	UseAdjustedSpend bool                 `json:"useAdjustedSpend"`
+	EmailRecipients  AlertEmailRecipients `json:"emailRecipients"`
 	// RawActualCents: Month-to-date **collected** spend, non-null only for a
 	// budget measuring adjusted spend. Null on an unadjusted budget rather than
 	// a copy of `actualCents`: "there is no separate collected figure because
@@ -2898,17 +2987,18 @@ type CostAlert struct {
 	//
 	// One of "provider", "account", "service", "region", "resource", "tag",
 	// "charge_type", "commitment", "virtual_tag".
-	GroupBy              *string             `json:"groupBy"`
-	GroupByTagKey        *string             `json:"groupByTagKey"`
-	Cadence              CostChangeCadence   `json:"cadence"`
-	ThresholdPercent     *int64              `json:"thresholdPercent"`
-	ThresholdAmountCents *int64              `json:"thresholdAmountCents"`
-	Direction            CostChangeDirection `json:"direction"`
-	Enabled              bool                `json:"enabled"`
-	LastEvaluatedAt      *string             `json:"lastEvaluatedAt"`
-	LastFiredAt          *string             `json:"lastFiredAt"`
-	CreatedAt            string              `json:"createdAt"`
-	UpdatedAt            string              `json:"updatedAt"`
+	GroupBy              *string              `json:"groupBy"`
+	GroupByTagKey        *string              `json:"groupByTagKey"`
+	Cadence              CostChangeCadence    `json:"cadence"`
+	ThresholdPercent     *int64               `json:"thresholdPercent"`
+	ThresholdAmountCents *int64               `json:"thresholdAmountCents"`
+	Direction            CostChangeDirection  `json:"direction"`
+	Enabled              bool                 `json:"enabled"`
+	LastEvaluatedAt      *string              `json:"lastEvaluatedAt"`
+	LastFiredAt          *string              `json:"lastFiredAt"`
+	EmailRecipients      AlertEmailRecipients `json:"emailRecipients"`
+	CreatedAt            string               `json:"createdAt"`
+	UpdatedAt            string               `json:"updatedAt"`
 }
 
 // CostAlertEvent is the `CostAlertEvent` schema.
@@ -2969,9 +3059,10 @@ type CostAlertInput struct {
 	// must hold before the alert fires.
 	ThresholdPercent *int64 `json:"thresholdPercent,omitempty"`
 	// ThresholdAmountCents: Cents the change must reach.
-	ThresholdAmountCents *int64              `json:"thresholdAmountCents,omitempty"`
-	Direction            CostChangeDirection `json:"direction"`
-	Enabled              *bool               `json:"enabled,omitempty"`
+	ThresholdAmountCents *int64                `json:"thresholdAmountCents,omitempty"`
+	Direction            CostChangeDirection   `json:"direction"`
+	Enabled              *bool                 `json:"enabled,omitempty"`
+	EmailRecipients      *AlertEmailRecipients `json:"emailRecipients,omitempty"`
 }
 
 // CostAnnotation is the `CostAnnotation` schema.
@@ -3202,7 +3293,8 @@ type CostAnomalySettings struct {
 	// cancelled by any `unexpected` verdict on the same key. Defaults to true.
 	// Optional on PUT: omitting it keeps the stored value. Always present on a
 	// read.
-	FeedbackTuning *bool `json:"feedbackTuning,omitempty"`
+	FeedbackTuning  *bool                 `json:"feedbackTuning,omitempty"`
+	EmailRecipients *AlertEmailRecipients `json:"emailRecipients,omitempty"`
 }
 
 // CostAnomalySettingsView is the `CostAnomalySettingsView` schema.
@@ -3238,7 +3330,8 @@ type CostAnomalySettingsView struct {
 	// cancelled by any `unexpected` verdict on the same key. Defaults to true.
 	// Optional on PUT: omitting it keeps the stored value. Always present on a
 	// read.
-	FeedbackTuning *bool `json:"feedbackTuning,omitempty"`
+	FeedbackTuning  *bool                 `json:"feedbackTuning,omitempty"`
+	EmailRecipients *AlertEmailRecipients `json:"emailRecipients,omitempty"`
 	// SmsConfigured: Whether an SMS raised right now could be delivered: paging
 	// enabled for the organization, Twilio credentials and a from-number stored,
 	// and at least one recipient opted into SMS. Read-only and derived — it is
@@ -3620,7 +3713,8 @@ type CostEfficiencySettings struct {
 	UnitCostMinReportedDays int64 `json:"unitCostMinReportedDays"`
 	// UnitCostMinSpendCents: Least spend in the current window before alerting,
 	// in USD cents, restated per currency. Defaults to 10000 ($100).
-	UnitCostMinSpendCents int64 `json:"unitCostMinSpendCents"`
+	UnitCostMinSpendCents int64                 `json:"unitCostMinSpendCents"`
+	EmailRecipients       *AlertEmailRecipients `json:"emailRecipients,omitempty"`
 }
 
 // CostEstimate is the `CostEstimate` schema.
@@ -6267,7 +6361,7 @@ type ExpiryItem struct {
 	// Kind: Grouping bucket for the kind of deadline.
 	//
 	// One of "tls-cert", "domain", "api-token", "access-key", "k8s-cert",
-	// "ssh-key", "secret-version", "other".
+	// "ssh-key", "secret-version", "lease", "extended-support", "other".
 	Kind string `json:"kind"`
 	// Label: Plugin-authored caption for the deadline.
 	Label string `json:"label"`
@@ -6322,6 +6416,116 @@ type ExportCredentialRequest struct {
 type ExportTerraformRequest struct {
 	ResourceID ResourceID `json:"resourceId"`
 	AccountID  string     `json:"accountId"`
+}
+
+// ExtendedSupportFinding is the `ExtendedSupportFinding` schema.
+type ExtendedSupportFinding struct {
+	// ResourceID: Infrawrench resource id.
+	ResourceID       string   `json:"resourceId"`
+	PluginID         PluginID `json:"pluginId"`
+	PluginName       string   `json:"pluginName"`
+	ResourceTypeID   string   `json:"resourceTypeId"`
+	ResourceTypeName string   `json:"resourceTypeName"`
+	AccountID        string   `json:"accountId"`
+	AccountName      string   `json:"accountName"`
+	DisplayName      string   `json:"displayName"`
+	ExternalID       *string  `json:"externalId"`
+	Region           *string  `json:"region"`
+	// ReleaseID: The matched support-calendar entry, unique within the resource
+	// type.
+	ReleaseID      string  `json:"releaseId"`
+	Product        string  `json:"product"`
+	Engine         *string `json:"engine"`
+	CurrentVersion string  `json:"currentVersion"`
+	TargetVersion  string  `json:"targetVersion"`
+	// Status: `surcharged`: past standard support and paying for extended
+	// support. `unsupported`: past standard support with no surcharge (no paid
+	// extension, or not enrolled), so a forced upgrade is pending.
+	// `end-of-life`: past the end of extended support too. `upcoming`: standard
+	// support ends within the organization's lead time.
+	//
+	// One of "end-of-life", "surcharged", "unsupported", "upcoming".
+	Status string `json:"status"`
+	// StandardSupportEnds: Last day of standard support, YYYY-MM-DD.
+	StandardSupportEnds string `json:"standardSupportEnds"`
+	// SurchargeStartsOn: First day the surcharge applies, YYYY-MM-DD.
+	SurchargeStartsOn string `json:"surchargeStartsOn"`
+	// DaysUntilSurcharge: Zero or negative once it has started.
+	DaysUntilSurcharge int64 `json:"daysUntilSurcharge"`
+	// ExtendedSupportEnds: Last day of extended support, after which the
+	// provider upgrades it.
+	ExtendedSupportEnds    *string `json:"extendedSupportEnds"`
+	DaysUntilForcedUpgrade *int64  `json:"daysUntilForcedUpgrade"`
+	// Charged: False when there is no paid extension or the resource is not
+	// enrolled.
+	Charged bool `json:"charged"`
+	// Quantity: Billable units (vCPUs, nodes); null when unknown.
+	Quantity *float64 `json:"quantity"`
+	// Unit: One of "cluster-hour", "vcpu-hour", "vcore-hour", "node-hour",
+	// "instance-hour", "acu-hour".
+	Unit     *string `json:"unit"`
+	Currency *string `json:"currency"`
+	// TierLabel: The rate tier in force (or first, if upcoming).
+	TierLabel *string `json:"tierLabel"`
+	// MonthlySurcharge: Monthly surcharge an upgrade removes (projected for
+	// `upcoming`). Null means no figure.
+	MonthlySurcharge *float64 `json:"monthlySurcharge"`
+	// ListMonthlySurcharge: The list-price figure.
+	ListMonthlySurcharge *float64 `json:"listMonthlySurcharge"`
+	// CostBasis: Where `monthlySurcharge` came from: `billed` (the provider's
+	// billing, attributable to this resource alone), `billed-share` (a billed
+	// line shared by several matching resources, split by list-price weight),
+	// `list-price` (computed from published rates), or `unpriced` (no figure).
+	//
+	// One of "billed", "billed-share", "list-price", "unpriced".
+	CostBasis string `json:"costBasis"`
+	// BilledLineItems: Provider line items behind a billed figure.
+	BilledLineItems []string `json:"billedLineItems"`
+	// NextTier: The next, higher rate tier, when the rate is scheduled to rise.
+	NextTier   *ExtendedSupportFindingNextTier `json:"nextTier"`
+	PriceNote  *string                         `json:"priceNote"`
+	PricingURL *string                         `json:"pricingUrl"`
+	UpgradeURL string                          `json:"upgradeUrl"`
+	Note       *string                         `json:"note"`
+}
+
+// ExtendedSupportListResponse is the `ExtendedSupportListResponse` schema.
+type ExtendedSupportListResponse struct {
+	// Findings: Most urgent first, then largest surcharge.
+	Findings   []ExtendedSupportFinding          `json:"findings"`
+	TotalCount int64                             `json:"totalCount"`
+	Counts     ExtendedSupportListResponseCounts `json:"counts"`
+	// CurrentMonthly: What surcharged and end-of-life findings cost now.
+	CurrentMonthly []ExtendedSupportTotal `json:"currentMonthly"`
+	// UpcomingMonthly: What upcoming findings will add once they start.
+	UpcomingMonthly []ExtendedSupportTotal `json:"upcomingMonthly"`
+	LeadDays        int64                  `json:"leadDays"`
+	// Billing: Present when billed charges were read for at least one account.
+	Billing     *ExtendedSupportListResponseBilling `json:"billing,omitempty"`
+	GeneratedAt string                              `json:"generatedAt"`
+}
+
+// ExtendedSupportSettings is the `ExtendedSupportSettings` schema.
+type ExtendedSupportSettings struct {
+	// Enabled: Whether the weekly extended-support alert is sent.
+	Enabled bool `json:"enabled"`
+	// LeadDays: Days ahead an upcoming surcharge is listed for. Default 90.
+	LeadDays int64 `json:"leadDays"`
+	// LastNotifiedAt: When the last weekly alert scan completed. Owned by the
+	// poller; read-only.
+	LastNotifiedAt *string `json:"lastNotifiedAt"`
+}
+
+// ExtendedSupportSettingsUpdate is the `ExtendedSupportSettingsUpdate` schema.
+type ExtendedSupportSettingsUpdate struct {
+	Enabled  *bool  `json:"enabled,omitempty"`
+	LeadDays *int64 `json:"leadDays,omitempty"`
+}
+
+// ExtendedSupportTotal is the `ExtendedSupportTotal` schema.
+type ExtendedSupportTotal struct {
+	Currency string  `json:"currency"`
+	Monthly  float64 `json:"monthly"`
 }
 
 // FieldActionRequest is the `FieldActionRequest` schema.
@@ -6638,13 +6842,14 @@ type GithubIssueSourceKind = string
 
 // The values GithubIssueSourceKind takes.
 const (
-	GithubIssueSourceKindCostAnomaly    GithubIssueSourceKind = "cost_anomaly"
-	GithubIssueSourceKindOrphan         GithubIssueSourceKind = "orphan"
-	GithubIssueSourceKindOversized      GithubIssueSourceKind = "oversized"
-	GithubIssueSourceKindPostureFinding GithubIssueSourceKind = "posture_finding"
-	GithubIssueSourceKindExpiring       GithubIssueSourceKind = "expiring"
-	GithubIssueSourceKindProbe          GithubIssueSourceKind = "probe"
-	GithubIssueSourceKindCommitmentIdle GithubIssueSourceKind = "commitment_idle"
+	GithubIssueSourceKindCostAnomaly     GithubIssueSourceKind = "cost_anomaly"
+	GithubIssueSourceKindOrphan          GithubIssueSourceKind = "orphan"
+	GithubIssueSourceKindOversized       GithubIssueSourceKind = "oversized"
+	GithubIssueSourceKindPostureFinding  GithubIssueSourceKind = "posture_finding"
+	GithubIssueSourceKindExpiring        GithubIssueSourceKind = "expiring"
+	GithubIssueSourceKindProbe           GithubIssueSourceKind = "probe"
+	GithubIssueSourceKindExtendedSupport GithubIssueSourceKind = "extended_support"
+	GithubIssueSourceKindCommitmentIdle  GithubIssueSourceKind = "commitment_idle"
 )
 
 // GithubIssuesStatus is the `GithubIssuesStatus` schema.
@@ -7496,12 +7701,13 @@ type JiraSourceKind = string
 
 // The values JiraSourceKind takes.
 const (
-	JiraSourceKindCostAnomaly    JiraSourceKind = "cost_anomaly"
-	JiraSourceKindOrphan         JiraSourceKind = "orphan"
-	JiraSourceKindOversized      JiraSourceKind = "oversized"
-	JiraSourceKindPostureFinding JiraSourceKind = "posture_finding"
-	JiraSourceKindExpiring       JiraSourceKind = "expiring"
-	JiraSourceKindProbe          JiraSourceKind = "probe"
+	JiraSourceKindCostAnomaly     JiraSourceKind = "cost_anomaly"
+	JiraSourceKindOrphan          JiraSourceKind = "orphan"
+	JiraSourceKindOversized       JiraSourceKind = "oversized"
+	JiraSourceKindPostureFinding  JiraSourceKind = "posture_finding"
+	JiraSourceKindExpiring        JiraSourceKind = "expiring"
+	JiraSourceKindProbe           JiraSourceKind = "probe"
+	JiraSourceKindExtendedSupport JiraSourceKind = "extended_support"
 )
 
 // JiraVerifyInput: Supply all three to test credentials that have not been saved
@@ -7640,12 +7846,13 @@ type LinearSourceKind = string
 
 // The values LinearSourceKind takes.
 const (
-	LinearSourceKindCostAnomaly    LinearSourceKind = "cost_anomaly"
-	LinearSourceKindOrphan         LinearSourceKind = "orphan"
-	LinearSourceKindOversized      LinearSourceKind = "oversized"
-	LinearSourceKindPostureFinding LinearSourceKind = "posture_finding"
-	LinearSourceKindExpiring       LinearSourceKind = "expiring"
-	LinearSourceKindProbe          LinearSourceKind = "probe"
+	LinearSourceKindCostAnomaly     LinearSourceKind = "cost_anomaly"
+	LinearSourceKindOrphan          LinearSourceKind = "orphan"
+	LinearSourceKindOversized       LinearSourceKind = "oversized"
+	LinearSourceKindPostureFinding  LinearSourceKind = "posture_finding"
+	LinearSourceKindExpiring        LinearSourceKind = "expiring"
+	LinearSourceKindProbe           LinearSourceKind = "probe"
+	LinearSourceKindExtendedSupport LinearSourceKind = "extended_support"
 )
 
 // LinearTeam is the `LinearTeam` schema.
@@ -13281,6 +13488,23 @@ type TOTPEnrollment struct {
 	URI *string `json:"uri"`
 }
 
+// UnattributedExtendedSupportCharge is the `UnattributedExtendedSupportCharge`
+// schema.
+type UnattributedExtendedSupportCharge struct {
+	ResourceTypeID *string `json:"resourceTypeId,omitempty"`
+	ReleaseID      *string `json:"releaseId,omitempty"`
+	Region         *string `json:"region,omitempty"`
+	Engine         *string `json:"engine,omitempty"`
+	// LineItem: Provider line item, e.g. an AWS usage type.
+	LineItem string `json:"lineItem"`
+	// Amount: Billed over the window.
+	Amount        float64 `json:"amount"`
+	Currency      string  `json:"currency"`
+	AccountID     string  `json:"accountId"`
+	AccountName   string  `json:"accountName"`
+	MonthlyAmount float64 `json:"monthlyAmount"`
+}
+
 // UnitCostLabelFilter is the `UnitCostLabelFilter` schema.
 type UnitCostLabelFilter struct {
 	// Key: A label key: a lowercase slug, normalised (trimmed, lowercased) on
@@ -13873,6 +14097,20 @@ type AlertRulesResponseOnCallSchedules struct {
 	Name string `json:"name"`
 }
 
+// AlertRulesResponseMembers is an object the spec declares inline.
+type AlertRulesResponseMembers struct {
+	UserID string  `json:"userId"`
+	Name   *string `json:"name"`
+	Email  string  `json:"email"`
+}
+
+// AlertRulesResponseEmailSettings is an object the spec declares inline.
+type AlertRulesResponseEmailSettings struct {
+	// ExternalPolicy: One of "member-domains", "any".
+	ExternalPolicy string   `json:"externalPolicy"`
+	AllowedDomains []string `json:"allowedDomains"`
+}
+
 // BlastRadiusDependantVia is an object the spec declares inline.
 type BlastRadiusDependantVia struct {
 	// FieldKey: The dependant's field holding the reference.
@@ -14279,6 +14517,28 @@ type EnvironmentCostEstimateMembers struct {
 type EnvironmentParameterOptions struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
+}
+
+// ExtendedSupportFindingNextTier is an object the spec declares inline.
+type ExtendedSupportFindingNextTier struct {
+	From             string   `json:"from"`
+	Label            string   `json:"label"`
+	MonthlySurcharge *float64 `json:"monthlySurcharge"`
+}
+
+// ExtendedSupportListResponseCounts is an object the spec declares inline.
+type ExtendedSupportListResponseCounts struct {
+	EndOfLife   int64 `json:"end-of-life"`
+	Surcharged  int64 `json:"surcharged"`
+	Unsupported int64 `json:"unsupported"`
+	Upcoming    int64 `json:"upcoming"`
+}
+
+// ExtendedSupportListResponseBilling is an object the spec declares inline.
+type ExtendedSupportListResponseBilling struct {
+	WindowDays   int64                                        `json:"windowDays"`
+	Accounts     []ExtendedSupportListResponseBillingAccounts `json:"accounts"`
+	Unattributed []UnattributedExtendedSupportCharge          `json:"unattributed"`
 }
 
 // FieldActionResponseOption is an object the spec declares inline.
@@ -14999,6 +15259,16 @@ type EnvironmentCaptureDraftMemberFieldMetaValueOptions struct {
 	Label string `json:"label"`
 }
 
+// ExtendedSupportListResponseBillingAccounts is an object the spec declares
+// inline.
+type ExtendedSupportListResponseBillingAccounts struct {
+	AccountID   string `json:"accountId"`
+	AccountName string `json:"accountName"`
+	// Status: One of "read", "failed".
+	Status string  `json:"status"`
+	Error  *string `json:"error,omitempty"`
+}
+
 // FindingRemediationIacAttributeChanges is an object the spec declares inline.
 type FindingRemediationIacAttributeChanges struct {
 	Attribute string `json:"attribute"`
@@ -15152,6 +15422,11 @@ type AiAttributionSourcesGetResponse struct {
 // AiAttributionSourcesRecollectRequest is an object the spec declares inline.
 type AiAttributionSourcesRecollectRequest struct {
 	From string `json:"from"`
+}
+
+// AlertEmailSuppressionsDeleteResponse is an object the spec declares inline.
+type AlertEmailSuppressionsDeleteResponse struct {
+	OK bool `json:"ok"`
 }
 
 // AlertRulesAdoptDefaultsResponse is an object the spec declares inline.

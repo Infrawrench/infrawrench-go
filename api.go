@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.71.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.73.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.71.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.73.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -47,6 +47,8 @@ type APIV1Client struct {
 	Agents *AgentsNamespace
 	// AiAttribution: `client.aiAttribution`.
 	AiAttribution *AiAttributionNamespace
+	// AlertEmail: `client.alertEmail`.
+	AlertEmail *AlertEmailNamespace
 	// AlertRules: `client.alertRules`.
 	AlertRules *AlertRulesNamespace
 	// APIKeys: `client.apiKeys`.
@@ -143,6 +145,8 @@ type APIV1Client struct {
 	Environments *EnvironmentsNamespace
 	// Expiring: `client.expiring`.
 	Expiring *ExpiringNamespace
+	// ExtendedSupport: `client.extendedSupport`.
+	ExtendedSupport *ExtendedSupportNamespace
 	// GithubIssues: `client.githubIssues`.
 	GithubIssues *GithubIssuesNamespace
 	// Iac: `client.iac`.
@@ -267,6 +271,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.AgentRegistrations = newAgentRegistrationsNamespace(t)
 	c.Agents = newAgentsNamespace(t)
 	c.AiAttribution = newAiAttributionNamespace(t)
+	c.AlertEmail = newAlertEmailNamespace(t)
 	c.AlertRules = newAlertRulesNamespace(t)
 	c.APIKeys = newAPIKeysNamespace(t)
 	c.Apps = newAppsNamespace(t)
@@ -315,6 +320,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.EnvironmentDiff = newEnvironmentDiffNamespace(t)
 	c.Environments = newEnvironmentsNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
+	c.ExtendedSupport = newExtendedSupportNamespace(t)
 	c.GithubIssues = newGithubIssuesNamespace(t)
 	c.Iac = newIacNamespace(t)
 	c.Incidents = newIncidentsNamespace(t)
@@ -2462,6 +2468,161 @@ func (n *AiAttributionSourcesNamespace) Update(ctx context.Context, params AiAtt
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *AiRequestSource
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AlertEmailNamespace is `client.alertEmail`.
+type AlertEmailNamespace struct {
+	t *transport
+
+	// Settings: `client.alertEmail.settings`.
+	Settings *AlertEmailSettingsNamespace
+	// Suppressions: `client.alertEmail.suppressions`.
+	Suppressions *AlertEmailSuppressionsNamespace
+}
+
+func newAlertEmailNamespace(t *transport) *AlertEmailNamespace {
+	n := &AlertEmailNamespace{t: t}
+	n.Settings = newAlertEmailSettingsNamespace(t)
+	n.Suppressions = newAlertEmailSuppressionsNamespace(t)
+	return n
+}
+
+// AlertEmailGetParams holds the parameters for `client.alertEmail.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AlertEmailGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Recipient picker options for alert email
+//
+// Current members (with their login address), the external-address policy and
+// whether email is available on this deployment: everything a client needs to
+// edit the `emailRecipients` on a budget, cost change alert, anomaly settings or
+// efficiency alert settings, or an email destination on an alert routing rule.
+// Requires `costs:read`.
+//
+// GET /api/org/{orgId}/alert-email
+func (n *AlertEmailNamespace) Get(ctx context.Context, params *AlertEmailGetParams, opts ...RequestOption) (*AlertEmailOptions, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/alert-email")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *AlertEmailOptions
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AlertEmailSettingsNamespace is `client.alertEmail.settings`.
+type AlertEmailSettingsNamespace struct {
+	t *transport
+}
+
+func newAlertEmailSettingsNamespace(t *transport) *AlertEmailSettingsNamespace {
+	n := &AlertEmailSettingsNamespace{t: t}
+	return n
+}
+
+// AlertEmailSettingsGetParams holds the parameters for
+// `client.alertEmail.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AlertEmailSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the alert email policy and suppression list
+//
+// GET /api/org/{orgId}/alert-email/settings
+func (n *AlertEmailSettingsNamespace) Get(ctx context.Context, params *AlertEmailSettingsGetParams, opts ...RequestOption) (*AlertEmailSettingsView, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/alert-email/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *AlertEmailSettingsView
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AlertEmailSettingsUpdateParams holds the parameters for
+// `client.alertEmail.settings.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AlertEmailSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *AlertEmailSettings
+}
+
+// Update: Set the alert email external-address policy
+//
+// Whole object. Tightening the policy does not edit any stored recipient list:
+// an address that no longer passes is skipped at send time, and loosening the
+// policy again brings it back.
+//
+// PUT /api/org/{orgId}/alert-email/settings
+//
+// Raises on 400: Bad request
+func (n *AlertEmailSettingsNamespace) Update(ctx context.Context, params *AlertEmailSettingsUpdateParams, opts ...RequestOption) (*AlertEmailSettingsView, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/alert-email/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *AlertEmailSettingsView
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AlertEmailSuppressionsNamespace is `client.alertEmail.suppressions`.
+type AlertEmailSuppressionsNamespace struct {
+	t *transport
+}
+
+func newAlertEmailSuppressionsNamespace(t *transport) *AlertEmailSuppressionsNamespace {
+	n := &AlertEmailSuppressionsNamespace{t: t}
+	return n
+}
+
+// AlertEmailSuppressionsDeleteParams holds the parameters for
+// `client.alertEmail.suppressions.delete`.
+type AlertEmailSuppressionsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Resume alert email to an unsubscribed address
+//
+// DELETE /api/org/{orgId}/alert-email/suppressions/{id}
+//
+// Raises on 404: Not found
+func (n *AlertEmailSuppressionsNamespace) Delete(ctx context.Context, params AlertEmailSuppressionsDeleteParams, opts ...RequestOption) (*AlertEmailSuppressionsDeleteResponse, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/alert-email/suppressions/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *AlertEmailSuppressionsDeleteResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -12949,6 +13110,138 @@ func (n *ExpiringSettingsNamespace) Update(ctx context.Context, params *Expiring
 		r.setJSONBody(params.Body)
 	}
 	var out *ExpiryAlertSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ExtendedSupportNamespace is `client.extendedSupport`.
+type ExtendedSupportNamespace struct {
+	t *transport
+
+	// Settings: `client.extendedSupport.settings`.
+	Settings *ExtendedSupportSettingsNamespace
+}
+
+func newExtendedSupportNamespace(t *transport) *ExtendedSupportNamespace {
+	n := &ExtendedSupportNamespace{t: t}
+	n.Settings = newExtendedSupportSettingsNamespace(t)
+	return n
+}
+
+// ExtendedSupportGetParams holds the parameters for
+// `client.extendedSupport.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ExtendedSupportGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Refresh: Bypass the short server-side cache and recompute now.
+	//
+	// One of "true", "false".
+	Refresh *string
+}
+
+// Get: List resources billed at extended-support or end-of-life rates
+//
+// Matches every synced resource's version against its provider's support
+// calendar (declared by the plugin): resources paying an extended-support
+// surcharge, past the end of support, or whose standard support ends within the
+// lead time. Each finding carries the monthly surcharge an upgrade removes: the
+// provider's billed amount where it can be attributed (AWS Cost Explorer
+// extended-support usage types), otherwise list price. Results are cached for a
+// few minutes; pass `refresh=true` to recompute.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/extended-support
+func (n *ExtendedSupportNamespace) Get(ctx context.Context, params *ExtendedSupportGetParams, opts ...RequestOption) (*ExtendedSupportListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/extended-support")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("refresh", params.Refresh)
+	}
+	var out *ExtendedSupportListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ExtendedSupportSettingsNamespace is `client.extendedSupport.settings`.
+type ExtendedSupportSettingsNamespace struct {
+	t *transport
+}
+
+func newExtendedSupportSettingsNamespace(t *transport) *ExtendedSupportSettingsNamespace {
+	n := &ExtendedSupportSettingsNamespace{t: t}
+	return n
+}
+
+// ExtendedSupportSettingsGetParams holds the parameters for
+// `client.extendedSupport.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ExtendedSupportSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the organization's extended-support settings
+//
+// An organization that never saved reads the shipped defaults (enabled, 90
+// days).
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/extended-support/settings
+func (n *ExtendedSupportSettingsNamespace) Get(ctx context.Context, params *ExtendedSupportSettingsGetParams, opts ...RequestOption) (*ExtendedSupportSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/extended-support/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ExtendedSupportSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ExtendedSupportSettingsUpdateParams holds the parameters for
+// `client.extendedSupport.settings.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ExtendedSupportSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *ExtendedSupportSettingsUpdate
+}
+
+// Update: Update the extended-support settings
+//
+// Every field is optional. `leadDays` must be a whole number from 1 to 365.
+// Saving never resets the alert cooldown.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/extended-support/settings
+//
+// Raises on 400: Bad request
+func (n *ExtendedSupportSettingsNamespace) Update(ctx context.Context, params *ExtendedSupportSettingsUpdateParams, opts ...RequestOption) (*ExtendedSupportSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/extended-support/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *ExtendedSupportSettings
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
