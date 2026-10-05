@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.62.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.66.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.62.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.66.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3956,10 +3956,14 @@ func (n *BlastRadiusNamespace) Get(ctx context.Context, params BlastRadiusGetPar
 // BudgetsNamespace is `client.budgets`.
 type BudgetsNamespace struct {
 	t *transport
+
+	// Events: `client.budgets.events`.
+	Events *BudgetsEventsNamespace
 }
 
 func newBudgetsNamespace(t *transport) *BudgetsNamespace {
 	n := &BudgetsNamespace{t: t}
+	n.Events = newBudgetsEventsNamespace(t)
 	return n
 }
 
@@ -4008,31 +4012,6 @@ func (n *BudgetsNamespace) Delete(ctx context.Context, params BudgetsDeleteParam
 	r.setPath("orgId", params.OrgID)
 	r.setPath("id", params.ID)
 	var out *OK
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// BudgetsEventsParams holds the parameters for `client.budgets.events`.
-type BudgetsEventsParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	ID    string
-}
-
-// Events: Alert event history for a budget
-//
-// GET /api/org/{orgId}/budgets/{id}/events
-//
-// Raises on 404: Not found
-func (n *BudgetsNamespace) Events(ctx context.Context, params BudgetsEventsParams, opts ...RequestOption) ([]BudgetAlertEvent, error) {
-	r := newRequest(http.MethodGet, "/api/org/{orgId}/budgets/{id}/events")
-	r.setPath("orgId", params.OrgID)
-	r.setPath("id", params.ID)
-	var out []BudgetAlertEvent
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -4113,6 +4092,84 @@ func (n *BudgetsNamespace) Update(ctx context.Context, params BudgetsUpdateParam
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *BudgetFull
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BudgetsEventsNamespace is `client.budgets.events`.
+type BudgetsEventsNamespace struct {
+	t *transport
+}
+
+func newBudgetsEventsNamespace(t *transport) *BudgetsEventsNamespace {
+	n := &BudgetsEventsNamespace{t: t}
+	return n
+}
+
+// BudgetsEventsListParams holds the parameters for `client.budgets.events.list`.
+type BudgetsEventsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// List: Alert event history for a budget
+//
+// GET /api/org/{orgId}/budgets/{id}/events
+//
+// Raises on 404: Not found
+func (n *BudgetsEventsNamespace) List(ctx context.Context, params BudgetsEventsListParams, opts ...RequestOption) ([]BudgetAlertEvent, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/budgets/{id}/events")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out []BudgetAlertEvent
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BudgetsEventsNoteParams holds the parameters for `client.budgets.events.note`.
+type BudgetsEventsNoteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	ID      string
+	EventID string
+	// Body: the JSON request body.
+	Body BudgetAlertNoteInput
+}
+
+// Note: Explain a fired budget alert
+//
+// Saves a note on one firing (who and when are recorded), draws it on every cost
+// chart as an org-wide annotation at the day the alert fired, and posts it after
+// the alert: a reply in each Slack message's thread and a follow-up to the Teams
+// webhooks it reached. Sending again rewrites the note and rewords the same
+// chart marker rather than adding another; a marker somebody deleted is not
+// recreated. Alerts that fired before notes existed, or that quiet hours held,
+// have no recorded chat messages to follow. Needs `budgets:read` and
+// `costs:write`.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/budgets/{id}/events/{eventId}/note
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *BudgetsEventsNamespace) Note(ctx context.Context, params BudgetsEventsNoteParams, opts ...RequestOption) (*BudgetAlertNoteResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/budgets/{id}/events/{eventId}/note")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("eventId", params.EventID)
+	r.setJSONBody(params.Body)
+	var out *BudgetAlertNoteResult
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -7662,6 +7719,43 @@ func newCostReportsNamespace(t *transport) *CostReportsNamespace {
 	return n
 }
 
+// CostReportsBulkParams holds the parameters for `client.costReports.bulk`.
+type CostReportsBulkParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostReportBulkRequest
+}
+
+// Bulk: Move or delete many reports and folders at once
+//
+// All or nothing. Every item is checked first: it exists, the caller's
+// per-object sharing allows the action (editor to move, owner to delete, or
+// editor when nobody owns it), and for a move, the folder tree that would result
+// keeps every folder within the three-level nesting limit and free of cycles.
+// Any problem is a 400 listing each blocking item, and nothing is written.
+// Deleting a report removes its dashboard cards and pauses its delivery
+// schedules; deleting a folder drops whatever remains inside it to the top
+// level. One audit entry is written per item.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/cost-reports/bulk
+//
+// Raises on 400: Refused; nothing was changed
+func (n *CostReportsNamespace) Bulk(ctx context.Context, params CostReportsBulkParams, opts ...RequestOption) (*CostReportBulkResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-reports/bulk")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostReportBulkResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // CostReportsCreateParams holds the parameters for `client.costReports.create`.
 type CostReportsCreateParams struct {
 	// OrgID: Organization id
@@ -8442,6 +8536,8 @@ type CostsNamespace struct {
 	Anomalies *CostsAnomaliesNamespace
 	// AnomalySettings: `client.costs.anomalySettings`.
 	AnomalySettings *CostsAnomalySettingsNamespace
+	// AnomalySuppressions: `client.costs.anomalySuppressions`.
+	AnomalySuppressions *CostsAnomalySuppressionsNamespace
 	// EfficiencyAlertSettings: `client.costs.efficiencyAlertSettings`.
 	EfficiencyAlertSettings *CostsEfficiencyAlertSettingsNamespace
 }
@@ -8450,8 +8546,77 @@ func newCostsNamespace(t *transport) *CostsNamespace {
 	n := &CostsNamespace{t: t}
 	n.Anomalies = newCostsAnomaliesNamespace(t)
 	n.AnomalySettings = newCostsAnomalySettingsNamespace(t)
+	n.AnomalySuppressions = newCostsAnomalySuppressionsNamespace(t)
 	n.EfficiencyAlertSettings = newCostsEfficiencyAlertSettingsNamespace(t)
 	return n
+}
+
+// CostsAnomalyPrecisionParams holds the parameters for
+// `client.costs.anomalyPrecision`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostsAnomalyPrecisionParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Months: Months to cover, 1-24. Defaults to 6.
+	Months *string
+}
+
+// AnomalyPrecision: Anomaly detection precision over time
+//
+// Per month of the anomalous day: findings detected, suppressed, and marked
+// expected or unexpected, and precision (the share of reviewed findings that
+// were real problems).
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/costs/anomaly-precision
+//
+// Raises on 400: Bad request
+func (n *CostsNamespace) AnomalyPrecision(ctx context.Context, params *CostsAnomalyPrecisionParams, opts ...RequestOption) (*CostAnomalyPrecisionReport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/costs/anomaly-precision")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("months", params.Months)
+	}
+	var out *CostAnomalyPrecisionReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsAnomalySensitivityParams holds the parameters for
+// `client.costs.anomalySensitivity`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostsAnomalySensitivityParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// AnomalySensitivity: Per-key sensitivity learned from feedback
+//
+// Every provider or service with a verdict in the last 90 days, the σ its spikes
+// are judged against, and one sentence saying why.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/costs/anomaly-sensitivity
+func (n *CostsNamespace) AnomalySensitivity(ctx context.Context, params *CostsAnomalySensitivityParams, opts ...RequestOption) (*CostAnomalySensitivity, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/costs/anomaly-sensitivity")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CostAnomalySensitivity
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // CostsDimensionsParams holds the parameters for `client.costs.dimensions`.
@@ -8818,10 +8983,14 @@ func (n *CostsNamespace) Untagged(ctx context.Context, params *CostsUntaggedPara
 // CostsAnomaliesNamespace is `client.costs.anomalies`.
 type CostsAnomaliesNamespace struct {
 	t *transport
+
+	// Feedback: `client.costs.anomalies.feedback`.
+	Feedback *CostsAnomaliesFeedbackNamespace
 }
 
 func newCostsAnomaliesNamespace(t *transport) *CostsAnomaliesNamespace {
 	n := &CostsAnomaliesNamespace{t: t}
+	n.Feedback = newCostsAnomaliesFeedbackNamespace(t)
 	return n
 }
 
@@ -8914,6 +9083,95 @@ func (n *CostsAnomaliesNamespace) Get(ctx context.Context, params *CostsAnomalie
 	return out, nil
 }
 
+// CostsAnomaliesFeedbackNamespace is `client.costs.anomalies.feedback`.
+type CostsAnomaliesFeedbackNamespace struct {
+	t *transport
+}
+
+func newCostsAnomaliesFeedbackNamespace(t *transport) *CostsAnomaliesFeedbackNamespace {
+	n := &CostsAnomaliesFeedbackNamespace{t: t}
+	return n
+}
+
+// CostsAnomaliesFeedbackCreateParams holds the parameters for
+// `client.costs.anomalies.feedback.create`.
+type CostsAnomaliesFeedbackCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	AnomalyID string
+	// Body: the JSON request body.
+	Body CostAnomalyFeedbackInput
+}
+
+// Create: Mark a cost anomaly expected or unexpected
+//
+// Record whether a finding was expected (planned or known) or unexpected (a real
+// problem), with an optional reason category and note. The verdict tunes
+// detection: repeated `expected` verdicts on a provider or service raise its
+// spike threshold within bounds (see GET /costs/anomaly-sensitivity), and an
+// `expected` verdict with `suppress` creates a suppression so the same pattern
+// does not alert again. `unexpected` keeps sensitivity where it is and removes
+// any suppression an earlier `expected` verdict on the same anomaly created.
+// Sending again replaces the verdict.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/costs/anomalies/{anomalyId}/feedback
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CostsAnomaliesFeedbackNamespace) Create(ctx context.Context, params CostsAnomaliesFeedbackCreateParams, opts ...RequestOption) (*CostAnomalyFeedbackResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/costs/anomalies/{anomalyId}/feedback")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("anomalyId", params.AnomalyID)
+	r.setJSONBody(params.Body)
+	var out *CostAnomalyFeedbackResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsAnomaliesFeedbackDeleteParams holds the parameters for
+// `client.costs.anomalies.feedback.delete`.
+type CostsAnomaliesFeedbackDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	AnomalyID string
+}
+
+// Delete: Withdraw a cost anomaly verdict
+//
+// Clears the verdict and deletes the suppression it created, if any.
+// Suppressions made by hand are never touched.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/costs/anomalies/{anomalyId}/feedback
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *CostsAnomaliesFeedbackNamespace) Delete(ctx context.Context, params CostsAnomaliesFeedbackDeleteParams, opts ...RequestOption) (*CostAnomaly, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/costs/anomalies/{anomalyId}/feedback")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("anomalyId", params.AnomalyID)
+	var out *CostAnomaly
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // CostsAnomalySettingsNamespace is `client.costs.anomalySettings`.
 type CostsAnomalySettingsNamespace struct {
 	t *transport
@@ -8972,11 +9230,11 @@ type CostsAnomalySettingsUpdateParams struct {
 // Update: Update the organization's anomaly detection thresholds
 //
 // Takes effect on the next detection pass (which runs after each cost
-// collection). Anomalies already stored are not re-judged. All four fields are
-// required — this is a PUT of the whole settings object, not a patch — and
-// `smsAlerts` deliberately has no server-side default, so a client that omits it
-// is rejected rather than silently switching an organization's SMS paging back
-// off. `smsConfigured` is derived and is not accepted here.
+// collection). Anomalies already stored are not re-judged. The four threshold
+// fields are required — this is a PUT of the whole settings object, not a patch
+// — and `smsAlerts` deliberately has no server-side default, so a client that
+// omits it is rejected rather than silently switching an organization's SMS
+// paging back off. `smsConfigured` is derived and is not accepted here.
 //
 // _Requires permission: `costs:write`._
 //
@@ -8988,6 +9246,174 @@ func (n *CostsAnomalySettingsNamespace) Update(ctx context.Context, params Costs
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *CostAnomalySettingsView
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsAnomalySuppressionsNamespace is `client.costs.anomalySuppressions`.
+type CostsAnomalySuppressionsNamespace struct {
+	t *transport
+}
+
+func newCostsAnomalySuppressionsNamespace(t *transport) *CostsAnomalySuppressionsNamespace {
+	n := &CostsAnomalySuppressionsNamespace{t: t}
+	return n
+}
+
+// CostsAnomalySuppressionsCreateParams holds the parameters for
+// `client.costs.anomalySuppressions.create`.
+type CostsAnomalySuppressionsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostAnomalySuppressionInput
+}
+
+// Create: Create an anomaly suppression
+//
+// Declare that spend in a scope is expected on a pattern of days until an
+// expiry. An organization can hold at most 100 active suppressions (409 past
+// that).
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/costs/anomaly-suppressions
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: Conflict
+func (n *CostsAnomalySuppressionsNamespace) Create(ctx context.Context, params CostsAnomalySuppressionsCreateParams, opts ...RequestOption) (*CostAnomalySuppression, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/costs/anomaly-suppressions")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostAnomalySuppression
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsAnomalySuppressionsDeleteParams holds the parameters for
+// `client.costs.anomalySuppressions.delete`.
+type CostsAnomalySuppressionsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID         *string
+	SuppressionID string
+}
+
+// Delete: Delete an anomaly suppression
+//
+// The findings it suppressed keep their rows. Any whose day detection still
+// re-judges (the last three days) becomes eligible to alert on the next pass.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/costs/anomaly-suppressions/{suppressionId}
+//
+// Raises on 404: Not found
+func (n *CostsAnomalySuppressionsNamespace) Delete(ctx context.Context, params CostsAnomalySuppressionsDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/costs/anomaly-suppressions/{suppressionId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("suppressionId", params.SuppressionID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// CostsAnomalySuppressionsGetParams holds the parameters for
+// `client.costs.anomalySuppressions.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostsAnomalySuppressionsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List anomaly suppressions
+//
+// Every suppression of the organization, active ones first (soonest expiry
+// first), then expired ones, most recent first. Expired suppressions are kept so
+// the list can show what they suppressed.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/costs/anomaly-suppressions
+func (n *CostsAnomalySuppressionsNamespace) Get(ctx context.Context, params *CostsAnomalySuppressionsGetParams, opts ...RequestOption) (*CostsAnomalySuppressionsGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/costs/anomaly-suppressions")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CostsAnomalySuppressionsGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsAnomalySuppressionsGetOrgOrgIDCostsAnomalySuppressionsSuppressionIDParams
+// holds the parameters for
+// `client.costs.anomalySuppressions.getOrgOrgIdCostsAnomalySuppressionsSuppressionId`.
+type CostsAnomalySuppressionsGetOrgOrgIDCostsAnomalySuppressionsSuppressionIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID         *string
+	SuppressionID string
+}
+
+// GetOrgOrgIDCostsAnomalySuppressionsSuppressionID: Get an anomaly suppression
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/costs/anomaly-suppressions/{suppressionId}
+//
+// Raises on 404: Not found
+func (n *CostsAnomalySuppressionsNamespace) GetOrgOrgIDCostsAnomalySuppressionsSuppressionID(ctx context.Context, params CostsAnomalySuppressionsGetOrgOrgIDCostsAnomalySuppressionsSuppressionIDParams, opts ...RequestOption) (*CostAnomalySuppression, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/costs/anomaly-suppressions/{suppressionId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("suppressionId", params.SuppressionID)
+	var out *CostAnomalySuppression
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostsAnomalySuppressionsUpdateParams holds the parameters for
+// `client.costs.anomalySuppressions.update`.
+type CostsAnomalySuppressionsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID         *string
+	SuppressionID string
+	// Body: the JSON request body.
+	Body CostAnomalySuppressionInput
+}
+
+// Update: Update an anomaly suppression
+//
+// Replaces the whole object. Takes effect on the next detection pass.
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/costs/anomaly-suppressions/{suppressionId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostsAnomalySuppressionsNamespace) Update(ctx context.Context, params CostsAnomalySuppressionsUpdateParams, opts ...RequestOption) (*CostAnomalySuppression, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/costs/anomaly-suppressions/{suppressionId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("suppressionId", params.SuppressionID)
+	r.setJSONBody(params.Body)
+	var out *CostAnomalySuppression
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -9195,6 +9621,43 @@ func newCurrencyNamespace(t *transport) *CurrencyNamespace {
 	return n
 }
 
+// CurrencyFeedParams holds the parameters for `client.currency.feed`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CurrencyFeedParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	Date  *string
+	// Base: ISO 4217 code, upper-case.
+	Base *string
+}
+
+// Feed: Automatic reference rates for one day
+//
+// Every rate the ECB feed holds for `date` (default today; weekends and holidays
+// carry the last publication), expressed in `base` (default the display
+// currency, else EUR), plus the feed's state. Readable whether or not the
+// organization has automatic rates on.
+//
+// GET /api/org/{orgId}/currency/feed
+//
+// Raises on 400: Bad request
+func (n *CurrencyNamespace) Feed(ctx context.Context, params *CurrencyFeedParams, opts ...RequestOption) (*FxFeedRates, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/currency/feed")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("date", params.Date)
+		r.addQuery("base", params.Base)
+	}
+	var out *FxFeedRates
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // CurrencyGetParams holds the parameters for `client.currency.get`.
 //
 // Every field is optional; pass nil to take the defaults.
@@ -9205,11 +9668,13 @@ type CurrencyGetParams struct {
 	OrgID *string
 }
 
-// Get: The org's display currency and exchange rate table
+// Get: The org's currency settings, exchange rate table and feed state
 //
 // Readable with `costs:read` rather than a settings permission: anyone who can
 // see a converted total has to be able to see what it was converted at, or the
-// number is unauditable.
+// number is unauditable. `feed` reports the automatic ECB reference-rate feed
+// (global, the same for every organization): its newest publication, its
+// coverage and its last error.
 //
 // _Requires permission: `costs:read`._
 //
@@ -9226,6 +9691,42 @@ func (n *CurrencyNamespace) Get(ctx context.Context, params *CurrencyGetParams, 
 	return out, nil
 }
 
+// CurrencyLookupParams holds the parameters for `client.currency.lookup`.
+type CurrencyLookupParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// From: ISO 4217 code, upper-case.
+	From string
+	// To: ISO 4217 code, upper-case.
+	To   *string
+	Date *string
+}
+
+// Lookup: Which rate a day of spend converts at
+//
+// Applies the organization's precedence (a stated rate covering the day, else
+// the automatic feed when on, at the day or month-end rate per `rateBasis`) and
+// explains the outcome. `to` defaults to the display currency; `date` defaults
+// to today.
+//
+// GET /api/org/{orgId}/currency/lookup
+//
+// Raises on 400: Bad request
+func (n *CurrencyNamespace) Lookup(ctx context.Context, params CurrencyLookupParams, opts ...RequestOption) (*ExchangeRateLookup, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/currency/lookup")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("from", params.From)
+	r.addQuery("to", params.To)
+	r.addQuery("date", params.Date)
+	var out *ExchangeRateLookup
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // CurrencyUpdateParams holds the parameters for `client.currency.update`.
 type CurrencyUpdateParams struct {
 	// OrgID: Organization id
@@ -9233,16 +9734,17 @@ type CurrencyUpdateParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body CurrencySettings
+	Body CurrencySettingsInput
 }
 
-// Update: Set or clear the org's display currency
+// Update: Save the org's currency settings
 //
-// Setting a currency opts the organization into converted totals; `null` turns
-// conversion off everywhere and restores the per-currency view. Clearing does
-// not delete the rate table, so conversion can be turned back on without
-// re-stating anything. Only currencies with a configured rate are converted —
-// Infrawrench never fetches live exchange rates.
+// Setting a display currency opts the organization into converted totals; `null`
+// turns conversion off everywhere and restores the per-currency view. Clearing
+// does not delete the rate table, so conversion can be turned back on without
+// re-stating anything. With `autoRates` off, only currencies with a stated rate
+// are converted; with it on, the daily ECB reference rates fill the days no
+// stated rate covers.
 //
 // _Requires permission: `org:settings:write`._
 //
@@ -9282,9 +9784,9 @@ type CurrencyRatesDeleteParams struct {
 
 // Delete: Delete one exchange rate
 //
-// Removing a rate makes the days it covered fall back to the next-older rate, or
-// to unconverted if none remains. Spend never disappears — it reverts to its own
-// currency.
+// Removing a rate makes the days it covered fall back to the next-older rate,
+// then the automatic feed when on, or to unconverted if none applies. Spend
+// never disappears: it reverts to its own currency.
 //
 // _Requires permission: `org:settings:write`._
 //
@@ -9315,11 +9817,12 @@ type CurrencyRatesUpdateParams struct {
 
 // Update: Create or replace one exchange rate
 //
-// Upserts on (`fromCurrency`, `toCurrency`, `effectiveFrom`) — one rate per pair
+// Upserts on (`fromCurrency`, `toCurrency`, `effectiveFrom`): one rate per pair
 // per day, so correcting a rate replaces it rather than adding a second one
-// whose precedence a reader would have to guess. Rates are stated to the display
-// currency in one hop: nothing inverts a rate or chains two, because both
-// produce a number you never stated.
+// whose precedence a reader would have to guess. Stated rates are one hop to the
+// display currency and are never inverted or chained. A stated rate always wins
+// over the automatic feed for the days it covers; give it an `effectiveTo` to
+// hand the days after back to the feed.
 //
 // _Requires permission: `org:settings:write`._
 //

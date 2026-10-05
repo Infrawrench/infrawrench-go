@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.62.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.66.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.62.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.66.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1421,8 +1421,57 @@ type BudgetAlertEvent struct {
 	PeriodEnd   *string `json:"periodEnd"`
 	// ActualUsage: A usage budget's period-to-date usage at the crossing (the
 	// cents fields are 0).
-	ActualUsage   *float64 `json:"actualUsage"`
-	ForecastUsage *float64 `json:"forecastUsage"`
+	ActualUsage   *float64         `json:"actualUsage"`
+	ForecastUsage *float64         `json:"forecastUsage"`
+	Note          *BudgetAlertNote `json:"note"`
+}
+
+// BudgetAlertNote: Somebody's explanation of this firing. Null while there is
+// none.
+//
+// The API may send null in its place.
+type BudgetAlertNote struct {
+	Text string `json:"text"`
+	// NotedAt: When the note as it now reads was written; a rewrite restamps it.
+	NotedAt       string  `json:"notedAt"`
+	NotedByUserID *string `json:"notedByUserId"`
+	// NotedByName: The author's display name, or email when they have none.
+	NotedByName *string `json:"notedByName"`
+	// AnnotationID: The org-wide cost annotation the note drew on the charts at
+	// the day the alert fired (see /cost-annotations). Null once that marker is
+	// deleted; the note itself stays.
+	AnnotationID *string `json:"annotationId"`
+}
+
+// BudgetAlertNoteInput is the `BudgetAlertNoteInput` schema.
+type BudgetAlertNoteInput struct {
+	// Note: What this firing was, in a sentence. The date and scope of the chart
+	// marker it creates are derived from the event (the day it fired, org-wide),
+	// never chosen by the caller.
+	Note string `json:"note"`
+}
+
+// BudgetAlertNoteResult is the `BudgetAlertNoteResult` schema.
+type BudgetAlertNoteResult struct {
+	ID    string `json:"id"`
+	Month string `json:"month"`
+	// ThresholdType: One of "actual", "forecast".
+	ThresholdType       string `json:"thresholdType"`
+	ThresholdPercent    int64  `json:"thresholdPercent"`
+	ActualAmountCents   int64  `json:"actualAmountCents"`
+	ForecastAmountCents *int64 `json:"forecastAmountCents"`
+	TriggeredAt         string `json:"triggeredAt"`
+	// PeriodStart: First day of the period the crossing was observed in; null on
+	// events from before budget periods were configurable (those are calendar
+	// months: see `month`).
+	PeriodStart *string `json:"periodStart"`
+	PeriodEnd   *string `json:"periodEnd"`
+	// ActualUsage: A usage budget's period-to-date usage at the crossing (the
+	// cents fields are 0).
+	ActualUsage   *float64                      `json:"actualUsage"`
+	ForecastUsage *float64                      `json:"forecastUsage"`
+	Note          *BudgetAlertNote              `json:"note"`
+	FollowUp      BudgetAlertNoteResultFollowUp `json:"followUp"`
 }
 
 // BudgetCostBasis: The basis `actualCents` and `forecastCents` were measured on.
@@ -2904,6 +2953,10 @@ type CostAnnotation struct {
 	// `acknowledgement.annotationId`, resolved from that same single link rather
 	// than stored twice.
 	CostAnomalyID *string `json:"costAnomalyId"`
+	// BudgetAlert: The fired budget alert this note explains (see POST
+	// /budgets/{id}/events/{eventId}/note), or null. Resolved from the event's
+	// own `note.annotationId`, the same single link, never stored twice.
+	BudgetAlert *CostAnnotationBudgetAlert `json:"budgetAlert"`
 }
 
 // CostAnnotationInput is the `CostAnnotationInput` schema.
@@ -2968,6 +3021,103 @@ type CostAnomaly struct {
 	// detection — the same key spiking again on a later day is a new anomaly and
 	// fires as normal.
 	Acknowledgement *CostAnomalyAcknowledgement `json:"acknowledgement"`
+	Feedback        *CostAnomalyFeedback        `json:"feedback"`
+	// SuppressionID: The suppression that explained this finding when detection
+	// judged it. A suppressed finding is stored but never alerted on, so its
+	// `notifiedAt` stays null. Null once the suppression is deleted.
+	SuppressionID *string `json:"suppressionId"`
+}
+
+// CostAnomalyFeedback: Whether somebody marked this finding expected (planned or
+// known) or unexpected (a real problem), with who and when; null while nobody
+// has. See POST /costs/anomalies/{anomalyId}/feedback.
+//
+// The API may send null in its place.
+type CostAnomalyFeedback struct {
+	// Verdict: One of "expected", "unexpected".
+	Verdict string                     `json:"verdict"`
+	Reason  *CostAnomalyFeedbackReason `json:"reason"`
+	Note    *string                    `json:"note"`
+	// At: When the current verdict was recorded; restamped on every save.
+	At       string  `json:"at"`
+	ByUserID *string `json:"byUserId"`
+	// ByName: Display name (or email) of whoever gave the verdict, while they
+	// are still known.
+	ByName *string `json:"byName"`
+	// SuppressionID: The suppression this verdict created, or null (none was
+	// asked for, or it was deleted).
+	SuppressionID *string `json:"suppressionId"`
+}
+
+// CostAnomalyFeedbackInput is the `CostAnomalyFeedbackInput` schema.
+type CostAnomalyFeedbackInput struct {
+	// Verdict: `expected`: planned or known. `unexpected`: a real problem.
+	//
+	// One of "expected", "unexpected".
+	Verdict string                     `json:"verdict"`
+	Reason  *CostAnomalyFeedbackReason `json:"reason,omitempty"`
+	Note    *string                    `json:"note,omitempty"`
+	// Explain: Also record the note as the anomaly's explanation, which
+	// publishes it as an annotation on every chart covering the day (the same as
+	// POST …/acknowledge). Ignored without a note.
+	Explain *bool `json:"explain,omitempty"`
+	// Suppress: Only with `verdict: expected`. Creates a suppression anchored to
+	// the anomaly's day so the same pattern does not alert again; re-sending
+	// updates it rather than adding another.
+	Suppress *CostAnomalyFeedbackInputSuppress `json:"suppress,omitempty"`
+}
+
+// CostAnomalyFeedbackReason is the `CostAnomalyFeedbackReason` schema.
+//
+// The API may send null in its place.
+type CostAnomalyFeedbackReason = string
+
+// The values CostAnomalyFeedbackReason takes.
+const (
+	CostAnomalyFeedbackReasonPlannedLaunch CostAnomalyFeedbackReason = "planned_launch"
+	CostAnomalyFeedbackReasonMigration     CostAnomalyFeedbackReason = "migration"
+	CostAnomalyFeedbackReasonSeasonal      CostAnomalyFeedbackReason = "seasonal"
+	CostAnomalyFeedbackReasonPricingChange CostAnomalyFeedbackReason = "pricing_change"
+	CostAnomalyFeedbackReasonDataIssue     CostAnomalyFeedbackReason = "data_issue"
+	CostAnomalyFeedbackReasonOther         CostAnomalyFeedbackReason = "other"
+)
+
+// CostAnomalyFeedbackResult is the `CostAnomalyFeedbackResult` schema.
+type CostAnomalyFeedbackResult struct {
+	Anomaly     CostAnomaly             `json:"anomaly"`
+	Suppression *CostAnomalySuppression `json:"suppression"`
+}
+
+// CostAnomalyPrecisionReport is the `CostAnomalyPrecisionReport` schema.
+type CostAnomalyPrecisionReport struct {
+	Months  int64                               `json:"months"`
+	Periods []CostAnomalyPrecisionReportPeriods `json:"periods"`
+	Totals  CostAnomalyPrecisionReportTotals    `json:"totals"`
+	Reasons []CostAnomalyPrecisionReportReasons `json:"reasons"`
+}
+
+// CostAnomalyRecurrence: How the suppression repeats. `one_off` covers every day
+// from `startsOn` to `expiresOn`; `weekly` the anchor day's weekday; `monthly`
+// the anchor day's day of the month, give or take a day (an anchor past the end
+// of a shorter month falls on its last day); `seasonal` the anchor day's
+// calendar date, give or take three days, every year.
+type CostAnomalyRecurrence = string
+
+// The values CostAnomalyRecurrence takes.
+const (
+	CostAnomalyRecurrenceOneOff   CostAnomalyRecurrence = "one_off"
+	CostAnomalyRecurrenceWeekly   CostAnomalyRecurrence = "weekly"
+	CostAnomalyRecurrenceMonthly  CostAnomalyRecurrence = "monthly"
+	CostAnomalyRecurrenceSeasonal CostAnomalyRecurrence = "seasonal"
+)
+
+// CostAnomalySensitivity is the `CostAnomalySensitivity` schema.
+type CostAnomalySensitivity struct {
+	// Enabled: The `feedbackTuning` setting; false means no key moves.
+	Enabled     bool                                `json:"enabled"`
+	WindowDays  int64                               `json:"windowDays"`
+	BaseSigmas  float64                             `json:"baseSigmas"`
+	Adjustments []CostAnomalySensitivityAdjustments `json:"adjustments"`
 }
 
 // CostAnomalySettings is the `CostAnomalySettings` schema.
@@ -2997,6 +3147,13 @@ type CostAnomalySettings struct {
 	//
 	// One of "off", "new_source", "all".
 	SmsAlerts string `json:"smsAlerts"`
+	// FeedbackTuning: Whether repeated `expected` feedback on a provider or
+	// service raises its spike threshold: half a standard deviation per expected
+	// verdict after the first within 90 days, at most +2σ and never past 10σ,
+	// cancelled by any `unexpected` verdict on the same key. Defaults to true.
+	// Optional on PUT: omitting it keeps the stored value. Always present on a
+	// read.
+	FeedbackTuning *bool `json:"feedbackTuning,omitempty"`
 }
 
 // CostAnomalySettingsView is the `CostAnomalySettingsView` schema.
@@ -3026,12 +3183,86 @@ type CostAnomalySettingsView struct {
 	//
 	// One of "off", "new_source", "all".
 	SmsAlerts string `json:"smsAlerts"`
+	// FeedbackTuning: Whether repeated `expected` feedback on a provider or
+	// service raises its spike threshold: half a standard deviation per expected
+	// verdict after the first within 90 days, at most +2σ and never past 10σ,
+	// cancelled by any `unexpected` verdict on the same key. Defaults to true.
+	// Optional on PUT: omitting it keeps the stored value. Always present on a
+	// read.
+	FeedbackTuning *bool `json:"feedbackTuning,omitempty"`
 	// SmsConfigured: Whether an SMS raised right now could be delivered: paging
 	// enabled for the organization, Twilio credentials and a from-number stored,
 	// and at least one recipient opted into SMS. Read-only and derived — it is
 	// not accepted on PUT.
 	SmsConfigured bool `json:"smsConfigured"`
 }
+
+// CostAnomalySuppression is the `CostAnomalySuppression` schema.
+//
+// The API may send null in its place.
+type CostAnomalySuppression struct {
+	ID       string                      `json:"id"`
+	Scope    CostAnomalySuppressionScope `json:"scope"`
+	ScopeKey string                      `json:"scopeKey"`
+	TagKey   *string                     `json:"tagKey"`
+	// ScopeLabel: The account or cost centre name for id-valued scopes; null
+	// otherwise.
+	ScopeLabel *string                    `json:"scopeLabel"`
+	Recurrence CostAnomalyRecurrence      `json:"recurrence"`
+	AnchorDay  string                     `json:"anchorDay"`
+	StartsOn   string                     `json:"startsOn"`
+	ExpiresOn  string                     `json:"expiresOn"`
+	Reason     *CostAnomalyFeedbackReason `json:"reason"`
+	Note       *string                    `json:"note"`
+	// SourceAnomalyID: The anomaly whose `expected` verdict created this; null
+	// for one made by hand.
+	SourceAnomalyID *string `json:"sourceAnomalyId"`
+	CreatedByUserID *string `json:"createdByUserId"`
+	CreatedByName   *string `json:"createdByName"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+	// Active: Whether it still covers today or a later day. Read-only.
+	Active bool `json:"active"`
+	// SuppressedCount: How many detected findings it has suppressed so far.
+	// Read-only.
+	SuppressedCount int64 `json:"suppressedCount"`
+}
+
+// CostAnomalySuppressionInput is the `CostAnomalySuppressionInput` schema.
+type CostAnomalySuppressionInput struct {
+	Scope CostAnomalySuppressionScope `json:"scope"`
+	// ScopeKey: The scope's value: a plugin id (`provider`), a service name, an
+	// account id, a tag value, or a cost centre id. Accounts and cost centres
+	// must belong to the organization.
+	ScopeKey string `json:"scopeKey"`
+	// TagKey: Required when `scope` is `tag`.
+	TagKey     *string               `json:"tagKey,omitempty"`
+	Recurrence CostAnomalyRecurrence `json:"recurrence"`
+	// AnchorDay: The day the pattern is anchored to.
+	AnchorDay string `json:"anchorDay"`
+	// StartsOn: First day covered. Defaults to `anchorDay`.
+	StartsOn *string `json:"startsOn,omitempty"`
+	// ExpiresOn: Last day covered, inclusive. At most three years after
+	// `startsOn`, and not before it.
+	ExpiresOn string                     `json:"expiresOn"`
+	Reason    *CostAnomalyFeedbackReason `json:"reason,omitempty"`
+	Note      *string                    `json:"note,omitempty"`
+}
+
+// CostAnomalySuppressionScope: What the suppression covers. On a covered day the
+// scope's spend is set aside before the day is judged; a finding that only
+// existed because of it is stored as suppressed and never alerted on, and one
+// that survives (spend beyond the expected slice) alerts as normal.
+type CostAnomalySuppressionScope = string
+
+// The values CostAnomalySuppressionScope takes.
+const (
+	CostAnomalySuppressionScopeProvider   CostAnomalySuppressionScope = "provider"
+	CostAnomalySuppressionScopeService    CostAnomalySuppressionScope = "service"
+	CostAnomalySuppressionScopeAccount    CostAnomalySuppressionScope = "account"
+	CostAnomalySuppressionScopeTag        CostAnomalySuppressionScope = "tag"
+	CostAnomalySuppressionScopeCostCentre CostAnomalySuppressionScope = "cost_centre"
+)
 
 // CostBasis: Which number to sum. `cash` is what the provider charged on the day
 // it charged it — the default, and what every query returned before this
@@ -3768,6 +3999,41 @@ type CostReport struct {
 	Placements []CostReportPlacement `json:"placements"`
 }
 
+// CostReportBulkError is the `CostReportBulkError` schema.
+type CostReportBulkError struct {
+	Error string `json:"error"`
+	// Problems: Every item that blocked the request. Present when the body was
+	// well-formed.
+	Problems []CostReportBulkProblem `json:"problems,omitempty"`
+	Issues   []any                   `json:"issues,omitempty"`
+}
+
+// CostReportBulkProblem is the `CostReportBulkProblem` schema.
+type CostReportBulkProblem struct {
+	// Kind: One of "report", "folder", "target".
+	Kind string `json:"kind"`
+	ID   string `json:"id"`
+	// Name: The item's name, or null when it does not exist or is not visible to
+	// the caller.
+	Name    *string `json:"name"`
+	Message string  `json:"message"`
+}
+
+// CostReportBulkRequest: At least one id and at most 500 in total. Reports and
+// folders are validated together against the tree as it will be after every
+// move, then applied in one transaction.
+type CostReportBulkRequest = any
+
+// CostReportBulkResult is the `CostReportBulkResult` schema.
+type CostReportBulkResult struct {
+	// Action: One of "move", "delete".
+	Action string `json:"action"`
+	// Reports: Reports moved or deleted.
+	Reports int64 `json:"reports"`
+	// Folders: Folders moved or deleted.
+	Folders int64 `json:"folders"`
+}
+
 // CostReportFilter is the `CostReportFilter` schema.
 type CostReportFilter struct {
 	// Dimension: One of "provider", "account", "service", "region", "resource",
@@ -4335,8 +4601,18 @@ type CreditPot struct {
 // CurrencyConfig is the `CurrencyConfig` schema.
 type CurrencyConfig struct {
 	// DisplayCurrency: ISO 4217 code, upper-case.
-	DisplayCurrency *string        `json:"displayCurrency"`
-	Rates           []ExchangeRate `json:"rates"`
+	DisplayCurrency *string `json:"displayCurrency"`
+	AutoRates       bool    `json:"autoRates"`
+	// RateBasis: Which automatic (feed) rate converts a day's spend. `daily`:
+	// the rate published for that day, carried forward over weekends and
+	// holidays. `month_end`: the rate in force on the last day of that day's
+	// month, so a whole month converts at one rate. Stated rates always apply to
+	// the days their own dates cover, whatever the basis.
+	//
+	// One of "daily", "month_end".
+	RateBasis string         `json:"rateBasis"`
+	Rates     []ExchangeRate `json:"rates"`
+	Feed      FxFeedStatus   `json:"feed"`
 }
 
 // CurrencySettings is the `CurrencySettings` schema.
@@ -4346,6 +4622,34 @@ type CurrencySettings struct {
 	// every organization that has not opted in: cost data is stored per currency
 	// and never merged unless you ask.
 	DisplayCurrency *string `json:"displayCurrency"`
+	// AutoRates: Fill days no stated rate covers from the automatic daily ECB
+	// reference-rate feed. Off by default. A stated rate always wins over the
+	// feed for the days it covers. Currencies the ECB does not publish are
+	// manual-only.
+	AutoRates bool `json:"autoRates"`
+	// RateBasis: Which automatic (feed) rate converts a day's spend. `daily`:
+	// the rate published for that day, carried forward over weekends and
+	// holidays. `month_end`: the rate in force on the last day of that day's
+	// month, so a whole month converts at one rate. Stated rates always apply to
+	// the days their own dates cover, whatever the basis.
+	//
+	// One of "daily", "month_end".
+	RateBasis string `json:"rateBasis"`
+}
+
+// CurrencySettingsInput is the `CurrencySettingsInput` schema.
+type CurrencySettingsInput struct {
+	// DisplayCurrency: The currency converted amounts are expressed in, or
+	// `null` for no conversion at all. `null` is the default and the state of
+	// every organization that has not opted in: cost data is stored per currency
+	// and never merged unless you ask.
+	DisplayCurrency *string `json:"displayCurrency"`
+	// AutoRates: Omitted keeps the stored value.
+	AutoRates *bool `json:"autoRates,omitempty"`
+	// RateBasis: Omitted keeps the stored value.
+	//
+	// One of "daily", "month_end".
+	RateBasis *string `json:"rateBasis,omitempty"`
 }
 
 // CustomCostDeleted is the `CustomCostDeleted` schema.
@@ -5785,10 +6089,15 @@ type ExchangeRate struct {
 	// converts at the rate with the greatest `effectiveFrom` on or before it, so
 	// historical periods keep the rate that applied then. A day earlier than
 	// every stated rate has no rate.
-	EffectiveFrom string  `json:"effectiveFrom"`
-	CreatedBy     *string `json:"createdBy"`
-	CreatedAt     string  `json:"createdAt"`
-	UpdatedAt     string  `json:"updatedAt"`
+	EffectiveFrom string `json:"effectiveFrom"`
+	// EffectiveTo: Inclusive last day this rate applies, or `null` for
+	// open-ended (until a later stated rate). Past it, the automatic feed takes
+	// over when on; otherwise those days are unconverted. An older stated rate
+	// never resurfaces past an end date.
+	EffectiveTo *string `json:"effectiveTo"`
+	CreatedBy   *string `json:"createdBy"`
+	CreatedAt   string  `json:"createdAt"`
+	UpdatedAt   string  `json:"updatedAt"`
 }
 
 // ExchangeRateInput is the `ExchangeRateInput` schema.
@@ -5803,6 +6112,40 @@ type ExchangeRateInput struct {
 	// exactly, and a JSON number could not promise that.
 	Rate          string `json:"rate"`
 	EffectiveFrom string `json:"effectiveFrom"`
+	// EffectiveTo: Omitted or `null` for open-ended. Must not be before
+	// `effectiveFrom`.
+	EffectiveTo *string `json:"effectiveTo,omitempty"`
+}
+
+// ExchangeRateLookup is the `ExchangeRateLookup` schema.
+type ExchangeRateLookup struct {
+	// FromCurrency: ISO 4217 code, upper-case.
+	FromCurrency string `json:"fromCurrency"`
+	// ToCurrency: ISO 4217 code, upper-case.
+	ToCurrency string `json:"toCurrency"`
+	Date       string `json:"date"`
+	// RateBasis: Which automatic (feed) rate converts a day's spend. `daily`:
+	// the rate published for that day, carried forward over weekends and
+	// holidays. `month_end`: the rate in force on the last day of that day's
+	// month, so a whole month converts at one rate. Stated rates always apply to
+	// the days their own dates cover, whatever the basis.
+	//
+	// One of "daily", "month_end".
+	RateBasis string `json:"rateBasis"`
+	// Rate: Multiply an amount in `fromCurrency` by this. `null`: no rate
+	// applies.
+	Rate *float64 `json:"rate"`
+	// Source: `manual`: a rate your organization stated. `ecb`: the automatic
+	// European Central Bank euro reference rate (crossed through EUR when
+	// neither side is EUR).
+	//
+	// One of "manual", "ecb".
+	Source *string `json:"source"`
+	// RateDate: The stated rate's effective date, or the ECB publication date
+	// used.
+	RateDate     *string `json:"rateDate"`
+	ManualRateID *string `json:"manualRateId"`
+	Explanation  string  `json:"explanation"`
 }
 
 // ExpiryAlertSettings is the `ExpiryAlertSettings` schema.
@@ -5983,6 +6326,50 @@ type FocusExportRequest struct {
 	// charge types existed, and rows from providers that cannot distinguish
 	// them, are `usage`.
 	ChargeTypes []CostChargeType `json:"chargeTypes,omitempty"`
+}
+
+// FxFeedRates is the `FxFeedRates` schema.
+type FxFeedRates struct {
+	// Source: One of "ecb".
+	Source     string `json:"source"`
+	SourceName string `json:"sourceName"`
+	SourceURL  string `json:"sourceUrl"`
+	// LatestRateDate: Newest publication stored, or null before the first
+	// successful fetch.
+	LatestRateDate   *string `json:"latestRateDate"`
+	EarliestRateDate *string `json:"earliestRateDate"`
+	// Currencies: Currencies in the newest publication, plus EUR. Any other
+	// currency is manual-only: it converts only at a rate you state.
+	Currencies    []string `json:"currencies"`
+	LastSuccessAt *string  `json:"lastSuccessAt"`
+	// LastError: Error from the most recent failed fetch; cleared on success.
+	LastError *string `json:"lastError"`
+	Date      string  `json:"date"`
+	// Base: ISO 4217 code, upper-case.
+	Base string `json:"base"`
+	// RateDate: Publication used for `date`: the same day, or the last one
+	// before it over a weekend or holiday. Null when the feed holds nothing that
+	// early.
+	RateDate *string            `json:"rateDate"`
+	Rates    []FxFeedRatesRates `json:"rates"`
+}
+
+// FxFeedStatus is the `FxFeedStatus` schema.
+type FxFeedStatus struct {
+	// Source: One of "ecb".
+	Source     string `json:"source"`
+	SourceName string `json:"sourceName"`
+	SourceURL  string `json:"sourceUrl"`
+	// LatestRateDate: Newest publication stored, or null before the first
+	// successful fetch.
+	LatestRateDate   *string `json:"latestRateDate"`
+	EarliestRateDate *string `json:"earliestRateDate"`
+	// Currencies: Currencies in the newest publication, plus EUR. Any other
+	// currency is manual-only: it converts only at a rate you state.
+	Currencies    []string `json:"currencies"`
+	LastSuccessAt *string  `json:"lastSuccessAt"`
+	// LastError: Error from the most recent failed fetch; cleared on success.
+	LastError *string `json:"lastError"`
 }
 
 // GenerateSSHKeyRequest is the `GenerateSshKeyRequest` schema.
@@ -13014,6 +13401,15 @@ type BlastRadiusReportFlowTotals struct {
 	Currency      string  `json:"currency"`
 }
 
+// BudgetAlertNoteResultFollowUp is an object the spec declares inline.
+type BudgetAlertNoteResultFollowUp struct {
+	// Slack: Slack threads the note was posted in as a reply.
+	Slack int64 `json:"slack"`
+	// MsTeams: Teams webhooks the note was sent to (incoming webhooks cannot
+	// thread).
+	MsTeams int64 `json:"msTeams"`
+}
+
 // BudgetExplicitPeriodsPeriods is an object the spec declares inline.
 type BudgetExplicitPeriodsPeriods struct {
 	Start string `json:"start"`
@@ -13028,9 +13424,10 @@ type BudgetExplicitPeriodsPeriods struct {
 type BudgetWithStatusCurrentMonthEvents struct {
 	ID string `json:"id"`
 	// ThresholdType: One of "actual", "forecast".
-	ThresholdType    string `json:"thresholdType"`
-	ThresholdPercent int64  `json:"thresholdPercent"`
-	TriggeredAt      string `json:"triggeredAt"`
+	ThresholdType    string           `json:"thresholdType"`
+	ThresholdPercent int64            `json:"thresholdPercent"`
+	TriggeredAt      string           `json:"triggeredAt"`
+	Note             *BudgetAlertNote `json:"note,omitempty"`
 }
 
 // BudgetWithStatusPlacements is an object the spec declares inline.
@@ -13118,6 +13515,12 @@ type CostAdjustmentSummaryRules struct {
 	Summary string `json:"summary"`
 }
 
+// CostAnnotationBudgetAlert is an object the spec declares inline.
+type CostAnnotationBudgetAlert struct {
+	BudgetID string `json:"budgetId"`
+	EventID  string `json:"eventId"`
+}
+
 // CostAnomalyAcknowledgement is an object the spec declares inline.
 type CostAnomalyAcknowledgement struct {
 	// Explanation: What somebody established this finding was. Also the
@@ -13132,6 +13535,60 @@ type CostAnomalyAcknowledgement struct {
 	// removes the marker, never the acknowledgement: the finding stays
 	// explained.
 	AnnotationID *string `json:"annotationId"`
+}
+
+// CostAnomalyFeedbackInputSuppress is an object the spec declares inline.
+type CostAnomalyFeedbackInputSuppress struct {
+	Recurrence CostAnomalyRecurrence        `json:"recurrence"`
+	Scope      *CostAnomalySuppressionScope `json:"scope,omitempty"`
+	ScopeKey   *string                      `json:"scopeKey,omitempty"`
+	TagKey     *string                      `json:"tagKey,omitempty"`
+	// ExpiresOn: Defaults by recurrence: 7 days (one-off), 90 (weekly), 180
+	// (monthly), 730 (seasonal), counted from the later of the anomaly's day and
+	// today.
+	ExpiresOn *string `json:"expiresOn,omitempty"`
+}
+
+// CostAnomalyPrecisionReportPeriods is an object the spec declares inline.
+type CostAnomalyPrecisionReportPeriods struct {
+	Month      string `json:"month"`
+	Detected   int64  `json:"detected"`
+	Suppressed int64  `json:"suppressed"`
+	Expected   int64  `json:"expected"`
+	Unexpected int64  `json:"unexpected"`
+	// Precision: unexpected / (expected + unexpected); null when nothing has a
+	// verdict.
+	Precision *float64 `json:"precision"`
+}
+
+// CostAnomalyPrecisionReportTotals is an object the spec declares inline.
+type CostAnomalyPrecisionReportTotals struct {
+	Detected   int64 `json:"detected"`
+	Suppressed int64 `json:"suppressed"`
+	Expected   int64 `json:"expected"`
+	Unexpected int64 `json:"unexpected"`
+	// Precision: unexpected / (expected + unexpected); null when nothing has a
+	// verdict.
+	Precision *float64 `json:"precision"`
+}
+
+// CostAnomalyPrecisionReportReasons is an object the spec declares inline.
+type CostAnomalyPrecisionReportReasons struct {
+	Reason *CostAnomalyFeedbackReason `json:"reason"`
+	Count  int64                      `json:"count"`
+}
+
+// CostAnomalySensitivityAdjustments is an object the spec declares inline.
+type CostAnomalySensitivityAdjustments struct {
+	// Dimension: One of "provider", "service".
+	Dimension    string  `json:"dimension"`
+	DimensionKey string  `json:"dimensionKey"`
+	BaseSigmas   float64 `json:"baseSigmas"`
+	// Sigmas: The σ this key's spikes are judged against.
+	Sigmas          float64 `json:"sigmas"`
+	ExpectedCount   int64   `json:"expectedCount"`
+	UnexpectedCount int64   `json:"unexpectedCount"`
+	Explanation     string  `json:"explanation"`
 }
 
 // CostExportWarehouseSinkAccounts is an object the spec declares inline.
@@ -13187,6 +13644,9 @@ type CredentialExportFields struct {
 type CredentialFieldProviderOptions struct {
 	DependsOn  []string `json:"dependsOn"`
 	EmptyLabel *string  `json:"emptyLabel,omitempty"`
+	// Multiple: Several options may be picked; the stored value is their ids
+	// joined with `, `.
+	Multiple *bool `json:"multiple,omitempty"`
 }
 
 // CredentialFieldHelpLink is an object the spec declares inline.
@@ -13331,6 +13791,14 @@ type FileGithubIssueInputDetails struct {
 type FileGithubIssueInputMonthlyCost struct {
 	Amount   float64 `json:"amount"`
 	Currency string  `json:"currency"`
+}
+
+// FxFeedRatesRates is an object the spec declares inline.
+type FxFeedRatesRates struct {
+	// Currency: ISO 4217 code, upper-case.
+	Currency string `json:"currency"`
+	// Rate: Units of `base` per 1 unit of `currency`.
+	Rate float64 `json:"rate"`
 }
 
 // GithubPullRequestResultPullRequest is an object the spec declares inline.
@@ -14289,6 +14757,11 @@ type CostsAnomaliesAcknowledgeRequest struct {
 // CostsAnomaliesGetResponse is an object the spec declares inline.
 type CostsAnomaliesGetResponse struct {
 	Anomalies []CostAnomaly `json:"anomalies"`
+}
+
+// CostsAnomalySuppressionsGetResponse is an object the spec declares inline.
+type CostsAnomalySuppressionsGetResponse struct {
+	Suppressions []*CostAnomalySuppression `json:"suppressions"`
 }
 
 // CurrencyRatesDeleteResponse is an object the spec declares inline.
