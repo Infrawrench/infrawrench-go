@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.69.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.70.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.69.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.70.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -5819,7 +5819,8 @@ type EfficiencyAlertEvent struct {
 	// NotifiedAt: When the alert reached its routed destinations, or null when
 	// nothing was routed (or the routing rule held it for quiet hours and the
 	// follow-up pass has not run yet).
-	NotifiedAt *string `json:"notifiedAt"`
+	NotifiedAt  *string             `json:"notifiedAt"`
+	Remediation *FindingRemediation `json:"remediation,omitempty"`
 }
 
 // EnvironmentCaptureDraft is the `EnvironmentCaptureDraft` schema.
@@ -6363,6 +6364,22 @@ type FileGithubIssueResult struct {
 	// One of "created", "commented".
 	Action string          `json:"action"`
 	Link   GithubIssueLink `json:"link"`
+}
+
+// FindingRemediation: Idle commitments only: the provider's commands for
+// inspecting and acting on the commitment. Null for the other kinds.
+//
+// The API may send null in its place.
+type FindingRemediation struct {
+	// Commands: In run order; empty when the plugin has nothing to offer for
+	// this finding.
+	Commands []RemediationCommand `json:"commands"`
+	// Placeholders: Every shell variable the commands reference, deduplicated.
+	Placeholders []RemediationPlaceholder `json:"placeholders"`
+	// Iac: Set when IaC reconciliation says Terraform manages the resource: edit
+	// the named block instead of running the CLI commands, which the next apply
+	// would revert.
+	Iac *FindingRemediationIac `json:"iac"`
 }
 
 // FocusExportRequest is the `FocusExportRequest` schema.
@@ -8988,6 +9005,7 @@ type OrphanedResource struct {
 	Cost         *OrphanCostAnnotation    `json:"cost"`
 	Owner        *ResourceOwnerAnnotation `json:"owner"`
 	LastSyncedAt *string                  `json:"lastSyncedAt"`
+	Remediation  *FindingRemediation      `json:"remediation,omitempty"`
 }
 
 // OversizedAccountGroup is the `OversizedAccountGroup` schema.
@@ -9041,8 +9059,9 @@ type OversizedResource struct {
 	MonthlyKgCo2eSaving *float64 `json:"monthlyKgCo2eSaving"`
 	// ResizeNote: Plugin-authored caveat (e.g. the provider requires the machine
 	// stopped).
-	ResizeNote   *string `json:"resizeNote"`
-	LastSyncedAt *string `json:"lastSyncedAt"`
+	ResizeNote   *string             `json:"resizeNote"`
+	LastSyncedAt *string             `json:"lastSyncedAt"`
+	Remediation  *FindingRemediation `json:"remediation,omitempty"`
 }
 
 // OversizedSizeSummary is the `OversizedSizeSummary` schema.
@@ -10255,6 +10274,29 @@ type RegisteredAgent struct {
 	// Notice: Human-readable summary of the trial terms, meant to be relayed to
 	// the user.
 	Notice string `json:"notice"`
+}
+
+// RemediationCommand is the `RemediationCommand` schema.
+type RemediationCommand struct {
+	// Tool: CLI the command is written for: aws-cli, gcloud, az, doctl, hcloud,
+	// scw, linode-cli, oci, kubectl, terraform, confluent, atlas, gh, twilio,
+	// snowflake-sql, curl, or a plugin's own.
+	Tool string `json:"tool"`
+	// Command: The command line, values already shell-quoted.
+	Command string `json:"command"`
+	// Description: What the command does.
+	Description string `json:"description"`
+	// Destructive: True when it deletes data or releases something that cannot
+	// be got back.
+	Destructive  bool                     `json:"destructive"`
+	Placeholders []RemediationPlaceholder `json:"placeholders,omitempty"`
+}
+
+// RemediationPlaceholder is the `RemediationPlaceholder` schema.
+type RemediationPlaceholder struct {
+	// Name: Shell variable, without the $.
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 // ReorderRequest is the `ReorderRequest` schema.
@@ -12299,9 +12341,10 @@ type SleepSchedule struct {
 	// holds no rows for the resource.
 	ProjectedMonthlySaving *float64 `json:"projectedMonthlySaving"`
 	// Currency: Currency of the projection, when present.
-	Currency  *string `json:"currency"`
-	CreatedAt string  `json:"createdAt"`
-	UpdatedAt string  `json:"updatedAt"`
+	Currency    *string             `json:"currency"`
+	CreatedAt   string              `json:"createdAt"`
+	UpdatedAt   string              `json:"updatedAt"`
+	Remediation *FindingRemediation `json:"remediation,omitempty"`
 }
 
 // SleepScheduleCreate is the `SleepScheduleCreate` schema.
@@ -14012,6 +14055,14 @@ type FileGithubIssueInputMonthlyCost struct {
 	Currency string  `json:"currency"`
 }
 
+// FindingRemediationIac is an object the spec declares inline.
+type FindingRemediationIac struct {
+	Address          string                                  `json:"address"`
+	StateLabel       *string                                 `json:"stateLabel"`
+	AttributeChanges []FindingRemediationIacAttributeChanges `json:"attributeChanges"`
+	Commands         []RemediationCommand                    `json:"commands"`
+}
+
 // FxFeedRatesRates is an object the spec declares inline.
 type FxFeedRatesRates struct {
 	// Currency: ISO 4217 code, upper-case.
@@ -14702,6 +14753,15 @@ type DeployPlanResultResultError struct {
 type EnvironmentCaptureDraftMemberFieldMetaValueOptions struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
+}
+
+// FindingRemediationIacAttributeChanges is an object the spec declares inline.
+type FindingRemediationIacAttributeChanges struct {
+	Attribute string `json:"attribute"`
+	// From: HCL rendering of the current value.
+	From *string `json:"from"`
+	// To: HCL rendering of the target value.
+	To *string `json:"to"`
 }
 
 // InvoiceDerivationScopeCostCentres is an object the spec declares inline.
