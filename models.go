@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.67.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.68.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.67.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.68.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1481,6 +1481,7 @@ type BudgetCostBasis = string
 const (
 	BudgetCostBasisCash      BudgetCostBasis = "cash"
 	BudgetCostBasisAmortized BudgetCostBasis = "amortized"
+	BudgetCostBasisBlended   BudgetCostBasis = "blended"
 )
 
 // BudgetCostFilter is the `BudgetCostFilter` schema.
@@ -2286,15 +2287,17 @@ type CarbonUnestimatedRow struct {
 
 // ChangeCostBasis: Which charge-type basis both windows are read on. `cash` (the
 // default) is what the provider charged on the day it charged it; `amortized`
-// spreads a commitment's up-front fee across the term it buys. It is echoed on
-// every response because a delta whose basis is unstated is unreadable — an
-// amortized 'after' against a cash 'before' looks exactly like a saving.
+// spreads a commitment's up-front fee across the term it buys; `blended` also
+// spreads each commitment's discount evenly over the usage it could cover. It is
+// echoed on every response because a delta whose basis is unstated is unreadable
+// — an amortized 'after' against a cash 'before' looks exactly like a saving.
 type ChangeCostBasis = string
 
 // The values ChangeCostBasis takes.
 const (
 	ChangeCostBasisCash      ChangeCostBasis = "cash"
 	ChangeCostBasisAmortized ChangeCostBasis = "amortized"
+	ChangeCostBasisBlended   ChangeCostBasis = "blended"
 )
 
 // ChangeCostImpact is the `ChangeCostImpact` schema.
@@ -2790,6 +2793,10 @@ type CostAccountStatus struct {
 	// when at least one account says yes; elsewhere the amortized view is the
 	// cash numbers under another name.
 	Amortization bool `json:"amortization"`
+	// Blending: Whether this account's plugin reports blended commitment
+	// discounts. Clients offer the blended cost basis only when at least one
+	// account says yes; elsewhere it reads as the amortized numbers.
+	Blending *bool `json:"blending,omitempty"`
 	// Estimated: Whether this account's amounts are derived by Infrawrench —
 	// inventory priced against a rate card, or metered usage priced at published
 	// list rates — rather than reported as billed spend. True means the series
@@ -3270,12 +3277,19 @@ const (
 // buys, so a year of capacity bought on one day is counted on the days it
 // covers. Providers that report no amortized amount fall back to their cash
 // amount, so an amortized query over a mixed estate never drops their spend.
+// `blended` is amortized with each commitment's discount (reservations, savings
+// plans, committed-use discounts) spread evenly over all the usage it was
+// eligible to cover, so every eligible hour in the commitment's scope carries
+// the same effective rate whichever account or resource the provider applied it
+// to: the fair basis for chargeback. Day totals equal the amortized totals
+// exactly; rows a provider did not blend fall back to their amortized amount.
 type CostBasis = string
 
 // The values CostBasis takes.
 const (
 	CostBasisCash      CostBasis = "cash"
 	CostBasisAmortized CostBasis = "amortized"
+	CostBasisBlended   CostBasis = "blended"
 )
 
 // CostBinning: Time bucket of the x axis. Weeks start on Monday and quarters on
@@ -3410,7 +3424,7 @@ type CostCanvasTableQuery struct {
 	GroupByTagKey *string            `json:"groupByTagKey,omitempty"`
 	Filters       []CostReportFilter `json:"filters,omitempty"`
 	SavedFilterID *string            `json:"savedFilterId,omitempty"`
-	// CostBasis: One of "cash", "amortized".
+	// CostBasis: One of "cash", "amortized", "blended".
 	CostBasis *string `json:"costBasis,omitempty"`
 	Adjusted  *bool   `json:"adjusted,omitempty"`
 	TopN      *int64  `json:"topN,omitempty"`
@@ -3712,7 +3726,7 @@ type CostExportQuery struct {
 	VirtualTagKeys []string           `json:"virtualTagKeys,omitempty"`
 	Filters        []CostExportFilter `json:"filters"`
 	ChargeTypes    []string           `json:"chargeTypes,omitempty"`
-	// CostBasis: One of "cash", "amortized".
+	// CostBasis: One of "cash", "amortized", "blended".
 	CostBasis *string `json:"costBasis,omitempty"`
 }
 
@@ -3824,7 +3838,7 @@ type CostGraphConfig struct {
 	// dashed line beside the trend rather than instead of it. Only meaningful
 	// alongside `showForecast`.
 	ScenarioModelID *string `json:"scenarioModelId,omitempty"`
-	// CostBasis: One of "cash", "amortized".
+	// CostBasis: One of "cash", "amortized", "blended".
 	CostBasis *string      `json:"costBasis,omitempty"`
 	Measure   *CostMeasure `json:"measure,omitempty"`
 	// UsageUnit: The usage unit a `usage` measure sums, exactly as the provider
@@ -7153,7 +7167,7 @@ type InvoiceDelivery struct {
 // decoration: an invoice a customer cannot reconcile is an invoice a customer
 // does not pay.
 type InvoiceDerivation struct {
-	// CostBasis: One of "cash", "amortized".
+	// CostBasis: One of "cash", "amortized", "blended".
 	CostBasis         string `json:"costBasis"`
 	ApplyBillingRules bool   `json:"applyBillingRules"`
 	// RateDate: The day the exchange rates were read — always the period's last
@@ -7822,7 +7836,7 @@ type ManagedAccount struct {
 	ContactEmail    *string `json:"contactEmail"`
 	BillingAddress  *string `json:"billingAddress"`
 	BillingCurrency string  `json:"billingCurrency"`
-	// CostBasis: One of "cash", "amortized".
+	// CostBasis: One of "cash", "amortized", "blended".
 	CostBasis         string                 `json:"costBasis"`
 	ApplyBillingRules bool                   `json:"applyBillingRules"`
 	Pricing           *ManagedAccountPricing `json:"pricing"`
@@ -7848,9 +7862,12 @@ type ManagedAccountInput struct {
 	BillingCurrency string `json:"billingCurrency"`
 	// CostBasis: Defaults to `amortized`. Charging a customer the whole cash
 	// value of a three-year commitment in the month it was signed is not a bill
-	// anyone can budget against.
+	// anyone can budget against. `blended` spreads each commitment's discount
+	// evenly over all the usage it could cover, so a customer is not billed more
+	// or less depending on which account the provider happened to apply a shared
+	// commitment to.
 	//
-	// One of "cash", "amortized".
+	// One of "cash", "amortized", "blended".
 	CostBasis *string `json:"costBasis,omitempty"`
 	// ApplyBillingRules: Defaults to true. False is a pass-through contract: the
 	// customer is billed exactly what the providers charged, with no markup,
@@ -12960,7 +12977,7 @@ type UnitCostQueryRequest struct {
 	// Query: The same narrowing as cost-query-language text.
 	Query         *string `json:"query,omitempty"`
 	SavedFilterID *string `json:"savedFilterId,omitempty"`
-	// CostBasis: One of "cash", "amortized".
+	// CostBasis: One of "cash", "amortized", "blended".
 	CostBasis   *string  `json:"costBasis,omitempty"`
 	ChargeTypes []string `json:"chargeTypes,omitempty"`
 	// DisplayCurrency: Fold spend currencies the organization holds a rate for
