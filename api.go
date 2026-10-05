@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.66.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.67.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.66.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.67.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -15869,12 +15869,15 @@ func (n *MsteamsWebhooksNamespace) Update(ctx context.Context, params MsteamsWeb
 type NetworkFlowsNamespace struct {
 	t *transport
 
+	// Kubernetes: `client.networkFlows.kubernetes`.
+	Kubernetes *NetworkFlowsKubernetesNamespace
 	// Settings: `client.networkFlows.settings`.
 	Settings *NetworkFlowsSettingsNamespace
 }
 
 func newNetworkFlowsNamespace(t *transport) *NetworkFlowsNamespace {
 	n := &NetworkFlowsNamespace{t: t}
+	n.Kubernetes = newNetworkFlowsKubernetesNamespace(t)
 	n.Settings = newNetworkFlowsSettingsNamespace(t)
 	return n
 }
@@ -15936,6 +15939,141 @@ func (n *NetworkFlowsNamespace) Get(ctx context.Context, params *NetworkFlowsGet
 		r.addQuery("limit", params.Limit)
 	}
 	var out *NetworkFlowFeed
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// NetworkFlowsKubernetesNamespace is `client.networkFlows.kubernetes`.
+type NetworkFlowsKubernetesNamespace struct {
+	t *transport
+
+	// Settings: `client.networkFlows.kubernetes.settings`.
+	Settings *NetworkFlowsKubernetesSettingsNamespace
+}
+
+func newNetworkFlowsKubernetesNamespace(t *transport) *NetworkFlowsKubernetesNamespace {
+	n := &NetworkFlowsKubernetesNamespace{t: t}
+	n.Settings = newNetworkFlowsKubernetesSettingsNamespace(t)
+	return n
+}
+
+// NetworkFlowsKubernetesGetParams holds the parameters for
+// `client.networkFlows.kubernetes.get`.
+type NetworkFlowsKubernetesGetParams struct {
+	// OrgID: Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	AccountID string
+	// From: Inclusive start day. Defaults to 13 days ago.
+	From *string
+	// To: Inclusive end day. Defaults to today.
+	To *string
+	// Limit: Pairs to return in `topTalkers`. Defaults to 25.
+	Limit *int64
+}
+
+// Get: Kubernetes network costs for one cluster
+//
+// Pod-level network attribution for a Kubernetes account: bytes by namespace,
+// workload and boundary (same zone, cross-zone, cross-region, internet), the
+// largest workload → peer pairs, and which sources the figures came from.
+//
+// `estimatedCost` is bytes at the published rate of the cloud the nodes run on,
+// with any per-cluster overrides from the account's rates field. When a billed
+// source is configured (`PUT .../settings`), `allocatedCost` apportions that
+// real billed spend across the rows day by day, never handing out more than was
+// billed; the rest is `unallocatedCost`.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/network-flows/kubernetes/{accountId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *NetworkFlowsKubernetesNamespace) Get(ctx context.Context, params NetworkFlowsKubernetesGetParams, opts ...RequestOption) (*KubernetesNetworkReport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/network-flows/kubernetes/{accountId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("accountId", params.AccountID)
+	r.addQuery("from", params.From)
+	r.addQuery("to", params.To)
+	r.addQuery("limit", params.Limit)
+	var out *KubernetesNetworkReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// NetworkFlowsKubernetesSettingsNamespace is
+// `client.networkFlows.kubernetes.settings`.
+type NetworkFlowsKubernetesSettingsNamespace struct {
+	t *transport
+}
+
+func newNetworkFlowsKubernetesSettingsNamespace(t *transport) *NetworkFlowsKubernetesSettingsNamespace {
+	n := &NetworkFlowsKubernetesSettingsNamespace{t: t}
+	return n
+}
+
+// NetworkFlowsKubernetesSettingsGetParams holds the parameters for
+// `client.networkFlows.kubernetes.settings.get`.
+type NetworkFlowsKubernetesSettingsGetParams struct {
+	// OrgID: Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	AccountID string
+}
+
+// Get: Read a cluster's network cost settings
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/network-flows/kubernetes/{accountId}/settings
+//
+// Raises on 404: Not found
+func (n *NetworkFlowsKubernetesSettingsNamespace) Get(ctx context.Context, params NetworkFlowsKubernetesSettingsGetParams, opts ...RequestOption) (*KubernetesNetworkSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/network-flows/kubernetes/{accountId}/settings")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("accountId", params.AccountID)
+	var out *KubernetesNetworkSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// NetworkFlowsKubernetesSettingsUpdateParams holds the parameters for
+// `client.networkFlows.kubernetes.settings.update`.
+type NetworkFlowsKubernetesSettingsUpdateParams struct {
+	// OrgID: Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	AccountID string
+	// Body: the JSON request body.
+	Body NetworkFlowsKubernetesSettingsUpdateRequest
+}
+
+// Update: Set the billed data-transfer source for a cluster
+//
+// Say which billed cost rows are this cluster's data transfer, in the cost query
+// language. An empty or null query clears it. A query that narrows nothing is
+// refused: it would apportion the whole bill across one cluster.
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/network-flows/kubernetes/{accountId}/settings
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *NetworkFlowsKubernetesSettingsNamespace) Update(ctx context.Context, params NetworkFlowsKubernetesSettingsUpdateParams, opts ...RequestOption) (*KubernetesNetworkSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/network-flows/kubernetes/{accountId}/settings")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("accountId", params.AccountID)
+	r.setJSONBody(params.Body)
+	var out *KubernetesNetworkSettings
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

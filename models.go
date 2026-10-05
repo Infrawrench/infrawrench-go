@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.66.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.67.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.66.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.67.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7428,6 +7428,60 @@ type JiraVerifyResult struct {
 // Spec schema: `JsonObject`.
 type JSONObject = map[string]any
 
+// KubernetesNetworkReport is the `KubernetesNetworkReport` schema.
+type KubernetesNetworkReport struct {
+	AccountID   string                           `json:"accountId"`
+	DisplayName string                           `json:"displayName"`
+	Range       KubernetesNetworkReportRange     `json:"range"`
+	Estimated   bool                             `json:"estimated"`
+	Currency    string                           `json:"currency"`
+	Totals      KubernetesNetworkReportTotals    `json:"totals"`
+	Billed      KubernetesNetworkReportBilled    `json:"billed"`
+	Scopes      []KubernetesNetworkReportScopes  `json:"scopes"`
+	Methods     []KubernetesNetworkReportMethods `json:"methods"`
+	Namespaces  []KubernetesNetworkRow           `json:"namespaces"`
+	Workloads   []KubernetesNetworkRow           `json:"workloads"`
+	TopTalkers  []NetworkFlowPair                `json:"topTalkers"`
+	Collection  any                              `json:"collection"`
+}
+
+// KubernetesNetworkRow is the `KubernetesNetworkRow` schema.
+type KubernetesNetworkRow struct {
+	Key       string `json:"key"`
+	Label     string `json:"label"`
+	Namespace string `json:"namespace"`
+	// Kind: One of "workload", "namespace", "node", "truncated".
+	Kind  string  `json:"kind"`
+	Bytes float64 `json:"bytes"`
+	// EstimatedCost: Bytes × the published rate for each boundary crossed.
+	EstimatedCost float64 `json:"estimatedCost"`
+	// AllocatedCost: This row's share of the cluster's billed data transfer.
+	// Null when no billed source is configured. The rows never add up to more
+	// than was billed.
+	AllocatedCost *float64 `json:"allocatedCost"`
+	// ByScope: Bytes by boundary.
+	ByScope map[string]float64 `json:"byScope"`
+	// Method: How the bytes and boundary were established, strongest first:
+	// `flow_log` (the cloud's VPC flow log for the node, split across its pods
+	// by their counters), `in_cluster_flows` (Cilium Hubble named the peers; the
+	// boundary follows from where they run), `counter_estimate` (the kubelet's
+	// per-pod byte counter alone, no destination, boundary unknown). Empty for
+	// residual rows.
+	//
+	// One of "flow_log", "in_cluster_flows", "counter_estimate", "".
+	Method string `json:"method"`
+}
+
+// KubernetesNetworkSettings is the `KubernetesNetworkSettings` schema.
+type KubernetesNetworkSettings struct {
+	AccountID string `json:"accountId"`
+	// BilledQuery: Cost query language text selecting this cluster's billed
+	// data-transfer rows, for example `account = 'prod-aws' AND service = 'AWS
+	// Data Transfer'`. Null: none.
+	BilledQuery *string `json:"billedQuery"`
+	UpdatedAt   *string `json:"updatedAt"`
+}
+
 // KVCommandRequest is the `KvCommandRequest` schema.
 //
 // Spec schema: `KvCommandRequest`.
@@ -8175,7 +8229,12 @@ type NetworkFlowAccountStatus struct {
 	// read. Such accounts are listed and excluded from the totals rather than
 	// contributing zero bytes — zero would be a claim about their network, this
 	// is a statement about our coverage.
-	SupportsFlows    bool                `json:"supportsFlows"`
+	SupportsFlows bool `json:"supportsFlows"`
+	// Recut: True when the account's flows re-cut traffic another account may
+	// already report (a Kubernetes cluster's pods). Left out of this feed's
+	// totals unless asked for by `accountId`; see `GET
+	// /network-flows/kubernetes/{accountId}`.
+	Recut            bool                `json:"recut"`
 	CollectedThrough *string             `json:"collectedThrough"`
 	LastPolledAt     *string             `json:"lastPolledAt"`
 	FailureCount     int64               `json:"failureCount"`
@@ -13939,6 +13998,66 @@ type InvoiceVoidResponseReplacement struct {
 	CreatedByUserID  *string `json:"createdByUserId"`
 }
 
+// KubernetesNetworkReportRange is an object the spec declares inline.
+type KubernetesNetworkReportRange struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+}
+
+// KubernetesNetworkReportTotals is an object the spec declares inline.
+type KubernetesNetworkReportTotals struct {
+	Bytes         float64  `json:"bytes"`
+	EstimatedCost float64  `json:"estimatedCost"`
+	AllocatedCost *float64 `json:"allocatedCost"`
+	// UnallocatedCost: Billed money no observed traffic accounted for. Never
+	// spread across rows.
+	UnallocatedCost *float64 `json:"unallocatedCost"`
+}
+
+// KubernetesNetworkReportBilled is an object the spec declares inline.
+type KubernetesNetworkReportBilled struct {
+	Query      *string  `json:"query"`
+	Error      *string  `json:"error"`
+	BilledCost *float64 `json:"billedCost"`
+	// Basis: `cost`: apportioned by list-priced traffic. `bytes`: nothing in the
+	// range could be priced, so apportioned by bytes alone (weakest). `none`:
+	// nothing apportioned.
+	//
+	// One of "cost", "bytes", "none".
+	Basis             string `json:"basis"`
+	ScaledDays        int64  `json:"scaledDays"`
+	DaysWithoutBilled int64  `json:"daysWithoutBilled"`
+}
+
+// KubernetesNetworkReportScopes is an object the spec declares inline.
+type KubernetesNetworkReportScopes struct {
+	// Scope: Which billing boundary the traffic crossed. `unknown` means the
+	// provider's record did not determine one — it is priced at zero and
+	// labelled rather than folded into a neighbouring boundary.
+	//
+	// One of "intra_zone", "cross_zone", "cross_region", "internet_egress",
+	// "internet_ingress", "provider_service", "nat_gateway",
+	// "private_interconnect", "unknown".
+	Scope         string   `json:"scope"`
+	Bytes         float64  `json:"bytes"`
+	EstimatedCost float64  `json:"estimatedCost"`
+	AllocatedCost *float64 `json:"allocatedCost"`
+}
+
+// KubernetesNetworkReportMethods is an object the spec declares inline.
+type KubernetesNetworkReportMethods struct {
+	// Method: How the bytes and boundary were established, strongest first:
+	// `flow_log` (the cloud's VPC flow log for the node, split across its pods
+	// by their counters), `in_cluster_flows` (Cilium Hubble named the peers; the
+	// boundary follows from where they run), `counter_estimate` (the kubelet's
+	// per-pod byte counter alone, no destination, boundary unknown). Empty for
+	// residual rows.
+	//
+	// One of "flow_log", "in_cluster_flows", "counter_estimate", "".
+	Method string  `json:"method"`
+	Bytes  float64 `json:"bytes"`
+}
+
 // ManagedAccountPricingRerate is an object the spec declares inline.
 type ManagedAccountPricingRerate struct {
 	Enabled bool `json:"enabled"`
@@ -14825,6 +14944,12 @@ type MsteamsTestResponse struct {
 	WebhookCount int64 `json:"webhookCount"`
 	Attempted    int64 `json:"attempted"`
 	Succeeded    int64 `json:"succeeded"`
+}
+
+// NetworkFlowsKubernetesSettingsUpdateRequest is an object the spec declares
+// inline.
+type NetworkFlowsKubernetesSettingsUpdateRequest struct {
+	BilledQuery *string `json:"billedQuery"`
 }
 
 // OnCallOverridesGetResponse is an object the spec declares inline.
