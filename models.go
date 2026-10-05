@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.58.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.59.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.58.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.59.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -4162,6 +4162,125 @@ type CurrencySettings struct {
 	// every organization that has not opted in: cost data is stored per currency
 	// and never merged unless you ask.
 	DisplayCurrency *string `json:"displayCurrency"`
+}
+
+// CustomCostDeleted is the `CustomCostDeleted` schema.
+type CustomCostDeleted struct {
+	OK         bool  `json:"ok"`
+	ZeroedRows int64 `json:"zeroedRows"`
+}
+
+// CustomCostOverlap is the `CustomCostOverlap` schema.
+type CustomCostOverlap struct {
+	Error string `json:"error"`
+	// Code: One of "overlap".
+	Code        string             `json:"code"`
+	Overlapping []CustomCostUpload `json:"overlapping"`
+}
+
+// CustomCostRow: One day of spend for one dimension combination. Clients
+// aggregate file lines to this grain before sending: two rows with the same
+// date, dimensions, tags and currency in one upload replace each other rather
+// than adding.
+type CustomCostRow struct {
+	Date     string `json:"date"`
+	Currency string `json:"currency"`
+	// Amount: Cash amount. Negative for credits.
+	Amount     float64 `json:"amount"`
+	Service    *string `json:"service,omitempty"`
+	Region     *string `json:"region,omitempty"`
+	ResourceID *string `json:"resourceId,omitempty"`
+	// SubAccount: The file's own account label; splits the account dimension
+	// within the source.
+	SubAccount *string `json:"subAccount,omitempty"`
+	// Tags: At most 32. Keys starting with `infrawrench:` are reserved and
+	// rejected.
+	Tags        map[string]string `json:"tags,omitempty"`
+	UsageAmount *float64          `json:"usageAmount,omitempty"`
+	UsageUnit   *string           `json:"usageUnit,omitempty"`
+	// ChargeType: One of "usage", "commitment_covered_usage", "commitment_fee",
+	// "commitment_discount", "credit", "tax", "refund", "adjustment", "support",
+	// "other".
+	ChargeType *string `json:"chargeType,omitempty"`
+	// AmortizedAmount: Amortized (effective) cost, e.g. FOCUS EffectiveCost.
+	// Omit when unknown.
+	AmortizedAmount *float64 `json:"amortizedAmount,omitempty"`
+	CommitmentID    *string  `json:"commitmentId,omitempty"`
+}
+
+// CustomCostSource is the `CustomCostSource` schema.
+type CustomCostSource struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	Description     *string `json:"description"`
+	DefaultCurrency *string `json:"defaultCurrency"`
+	// PluginID: The value this source's rows carry in the cost `provider`
+	// dimension. Use it in cost filters, budgets, and allocation rules.
+	PluginID     string  `json:"pluginId"`
+	UploadCount  int64   `json:"uploadCount"`
+	LastUploadAt *string `json:"lastUploadAt"`
+	CreatedAt    string  `json:"createdAt"`
+	UpdatedAt    string  `json:"updatedAt"`
+}
+
+// CustomCostSourceInput is the `CustomCostSourceInput` schema.
+type CustomCostSourceInput struct {
+	// Name: Unique within the organization (case-insensitively). Shown as the
+	// provider name in every cost report; renaming relabels the source's whole
+	// history.
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	// DefaultCurrency: ISO 4217 code applied to rows whose file has no currency
+	// column. Null means every file must carry one.
+	DefaultCurrency *string `json:"defaultCurrency,omitempty"`
+}
+
+// CustomCostUpload is the `CustomCostUpload` schema.
+type CustomCostUpload struct {
+	ID       string  `json:"id"`
+	SourceID string  `json:"sourceId"`
+	FileName *string `json:"fileName"`
+	// Format: One of "csv", "focus", "rows".
+	Format string `json:"format"`
+	// Mode: One of "append", "replace".
+	Mode string `json:"mode"`
+	// Status: `uploading` until complete is called (an interrupted upload stays
+	// here and can be deleted); `replaced` once a later replace upload
+	// superseded every row it held.
+	//
+	// One of "uploading", "complete", "replaced".
+	Status   string `json:"status"`
+	FromDate string `json:"fromDate"`
+	ToDate   string `json:"toDate"`
+	// RowCount: Daily rows this upload still holds.
+	RowCount int64 `json:"rowCount"`
+	// Totals: Currency code → cash amount this upload still holds.
+	Totals     map[string]float64          `json:"totals"`
+	UploadedBy *CustomCostUploadUploadedBy `json:"uploadedBy"`
+	// Via: One of "web", "desktop", "cli", "api".
+	Via         string  `json:"via"`
+	CreatedAt   string  `json:"createdAt"`
+	CompletedAt *string `json:"completedAt"`
+}
+
+// CustomCostUploadCreate is the `CustomCostUploadCreate` schema.
+type CustomCostUploadCreate struct {
+	FileName *string `json:"fileName,omitempty"`
+	// Format: One of "csv", "focus", "rows".
+	Format string `json:"format"`
+	// Mode: What to do with spend this source already holds in the range.
+	// `append` adds to it; `replace` zeroes it (from every earlier upload) when
+	// this upload completes. Required when the range overlaps an earlier upload
+	// that still holds rows: omitted, that case is a 409 listing the overlapping
+	// uploads.
+	//
+	// One of "append", "replace".
+	Mode *string `json:"mode,omitempty"`
+	// Via: One of "web", "desktop", "cli", "api".
+	Via *string `json:"via,omitempty"`
+	// FromDate: Inclusive. Rows outside the range are rejected.
+	FromDate string `json:"fromDate"`
+	ToDate   string `json:"toDate"`
 }
 
 // CustomGraphCheckRequest is the `CustomGraphCheckRequest` schema.
@@ -12699,6 +12818,13 @@ type CredentialFieldHelpLink struct {
 	URL   string `json:"url"`
 }
 
+// CustomCostUploadUploadedBy is an object the spec declares inline.
+type CustomCostUploadUploadedBy struct {
+	ID    string  `json:"id"`
+	Name  *string `json:"name"`
+	Email *string `json:"email"`
+}
+
 // CustomGraphCheckResultDiagnostics is an object the spec declares inline.
 type CustomGraphCheckResultDiagnostics struct {
 	Line     int64  `json:"line"`
@@ -13739,6 +13865,16 @@ type CostsAnomaliesGetResponse struct {
 // CurrencyRatesDeleteResponse is an object the spec declares inline.
 type CurrencyRatesDeleteResponse struct {
 	OK bool `json:"ok"`
+}
+
+// CustomCostSourcesUploadsRowsRequest is an object the spec declares inline.
+type CustomCostSourcesUploadsRowsRequest struct {
+	Rows []CustomCostRow `json:"rows"`
+}
+
+// CustomCostSourcesUploadsRowsResponse is an object the spec declares inline.
+type CustomCostSourcesUploadsRowsResponse struct {
+	Written int64 `json:"written"`
 }
 
 // DashboardsCreateRequest is an object the spec declares inline.

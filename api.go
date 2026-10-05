@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.58.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.59.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.58.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.59.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -119,6 +119,8 @@ type APIV1Client struct {
 	Credits *CreditsNamespace
 	// Currency: `client.currency`.
 	Currency *CurrencyNamespace
+	// CustomCostSources: `client.customCostSources`.
+	CustomCostSources *CustomCostSourcesNamespace
 	// CustomGraphs: `client.customGraphs`.
 	CustomGraphs *CustomGraphsNamespace
 	// DashboardNotifications: `client.dashboardNotifications`.
@@ -295,6 +297,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.CredentialHygiene = newCredentialHygieneNamespace(t)
 	c.Credits = newCreditsNamespace(t)
 	c.Currency = newCurrencyNamespace(t)
+	c.CustomCostSources = newCustomCostSourcesNamespace(t)
 	c.CustomGraphs = newCustomGraphsNamespace(t)
 	c.DashboardNotifications = newDashboardNotificationsNamespace(t)
 	c.Dashboards = newDashboardsNamespace(t)
@@ -9021,6 +9024,352 @@ func (n *CurrencyRatesNamespace) Update(ctx context.Context, params CurrencyRate
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *ExchangeRate
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomCostSourcesNamespace is `client.customCostSources`.
+type CustomCostSourcesNamespace struct {
+	t *transport
+
+	// Uploads: `client.customCostSources.uploads`.
+	Uploads *CustomCostSourcesUploadsNamespace
+}
+
+func newCustomCostSourcesNamespace(t *transport) *CustomCostSourcesNamespace {
+	n := &CustomCostSourcesNamespace{t: t}
+	n.Uploads = newCustomCostSourcesUploadsNamespace(t)
+	return n
+}
+
+// CustomCostSourcesCreateParams holds the parameters for
+// `client.customCostSources.create`.
+type CustomCostSourcesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CustomCostSourceInput
+}
+
+// Create: Create a custom cost source
+//
+// A named provider for spend Infrawrench has no plugin for. Fill it by uploading
+// files (CSV or FOCUS) from Settings, `infrawrench costs push --format
+// csv|focus`, or the upload endpoints below.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/custom-cost-sources
+//
+// Raises on 400: Bad request
+func (n *CustomCostSourcesNamespace) Create(ctx context.Context, params CustomCostSourcesCreateParams, opts ...RequestOption) (*CustomCostSource, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/custom-cost-sources")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CustomCostSource
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomCostSourcesDeleteParams holds the parameters for
+// `client.customCostSources.delete`.
+type CustomCostSourcesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a custom cost source and all of its spend
+//
+// Zeroes every cost row the source holds, then deletes it with its upload
+// history. The spend disappears from every report, budget and export.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/custom-cost-sources/{id}
+//
+// Raises on 404: Not found
+func (n *CustomCostSourcesNamespace) Delete(ctx context.Context, params CustomCostSourcesDeleteParams, opts ...RequestOption) (*CustomCostDeleted, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/custom-cost-sources/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CustomCostDeleted
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomCostSourcesGetParams holds the parameters for
+// `client.customCostSources.get`.
+type CustomCostSourcesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get a custom cost source
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/custom-cost-sources/{id}
+//
+// Raises on 404: Not found
+func (n *CustomCostSourcesNamespace) Get(ctx context.Context, params CustomCostSourcesGetParams, opts ...RequestOption) (*CustomCostSource, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/custom-cost-sources/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CustomCostSource
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomCostSourcesListParams holds the parameters for
+// `client.customCostSources.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CustomCostSourcesListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List custom cost sources
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/custom-cost-sources
+func (n *CustomCostSourcesNamespace) List(ctx context.Context, params *CustomCostSourcesListParams, opts ...RequestOption) ([]CustomCostSource, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/custom-cost-sources")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []CustomCostSource
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomCostSourcesUpdateParams holds the parameters for
+// `client.customCostSources.update`.
+type CustomCostSourcesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body CustomCostSourceInput
+}
+
+// Update: Update a custom cost source
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/custom-cost-sources/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CustomCostSourcesNamespace) Update(ctx context.Context, params CustomCostSourcesUpdateParams, opts ...RequestOption) (*CustomCostSource, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/custom-cost-sources/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CustomCostSource
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomCostSourcesUploadsNamespace is `client.customCostSources.uploads`.
+type CustomCostSourcesUploadsNamespace struct {
+	t *transport
+}
+
+func newCustomCostSourcesUploadsNamespace(t *transport) *CustomCostSourcesUploadsNamespace {
+	n := &CustomCostSourcesUploadsNamespace{t: t}
+	return n
+}
+
+// CustomCostSourcesUploadsCompleteParams holds the parameters for
+// `client.customCostSources.uploads.complete`.
+type CustomCostSourcesUploadsCompleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	ID       string
+	UploadID string
+}
+
+// Complete: Finish an upload
+//
+// Applies `replace` (zeroing this source's rows from other uploads in the range)
+// and records what the upload holds.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/custom-cost-sources/{id}/uploads/{uploadId}/complete
+//
+// Raises on 400: Already complete
+//
+// Raises on 404: Not found
+func (n *CustomCostSourcesUploadsNamespace) Complete(ctx context.Context, params CustomCostSourcesUploadsCompleteParams, opts ...RequestOption) (*CustomCostUpload, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/custom-cost-sources/{id}/uploads/{uploadId}/complete")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("uploadId", params.UploadID)
+	var out *CustomCostUpload
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomCostSourcesUploadsCreateParams holds the parameters for
+// `client.customCostSources.uploads.create`.
+type CustomCostSourcesUploadsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body CustomCostUploadCreate
+}
+
+// Create: Start an upload
+//
+// Declares the upload's date range and what happens to spend already held in it.
+// Then send rows with `…/rows` (up to 5,000 per call) and finish with
+// `…/complete`.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/custom-cost-sources/{id}/uploads
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: The range overlaps earlier uploads and no `mode` was given
+func (n *CustomCostSourcesUploadsNamespace) Create(ctx context.Context, params CustomCostSourcesUploadsCreateParams, opts ...RequestOption) (*CustomCostUpload, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/custom-cost-sources/{id}/uploads")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CustomCostUpload
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomCostSourcesUploadsDeleteParams holds the parameters for
+// `client.customCostSources.uploads.delete`.
+type CustomCostSourcesUploadsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	ID       string
+	UploadID string
+}
+
+// Delete: Delete an upload and the rows it wrote
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/custom-cost-sources/{id}/uploads/{uploadId}
+//
+// Raises on 404: Not found
+func (n *CustomCostSourcesUploadsNamespace) Delete(ctx context.Context, params CustomCostSourcesUploadsDeleteParams, opts ...RequestOption) (*CustomCostDeleted, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/custom-cost-sources/{id}/uploads/{uploadId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("uploadId", params.UploadID)
+	var out *CustomCostDeleted
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomCostSourcesUploadsListParams holds the parameters for
+// `client.customCostSources.uploads.list`.
+type CustomCostSourcesUploadsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// List: List a source's uploads
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/custom-cost-sources/{id}/uploads
+//
+// Raises on 404: Not found
+func (n *CustomCostSourcesUploadsNamespace) List(ctx context.Context, params CustomCostSourcesUploadsListParams, opts ...RequestOption) ([]CustomCostUpload, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/custom-cost-sources/{id}/uploads")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out []CustomCostUpload
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CustomCostSourcesUploadsRowsParams holds the parameters for
+// `client.customCostSources.uploads.rows`.
+type CustomCostSourcesUploadsRowsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	ID       string
+	UploadID string
+	// Body: the JSON request body.
+	Body CustomCostSourcesUploadsRowsRequest
+}
+
+// Rows: Send a chunk of rows to an open upload
+//
+// The chunk is validated whole: a 400 means none of it was written.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/custom-cost-sources/{id}/uploads/{uploadId}/rows
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CustomCostSourcesUploadsNamespace) Rows(ctx context.Context, params CustomCostSourcesUploadsRowsParams, opts ...RequestOption) (*CustomCostSourcesUploadsRowsResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/custom-cost-sources/{id}/uploads/{uploadId}/rows")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("uploadId", params.UploadID)
+	r.setJSONBody(params.Body)
+	var out *CustomCostSourcesUploadsRowsResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
