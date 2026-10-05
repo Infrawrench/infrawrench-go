@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.47.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.48.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.47.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.48.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7522,6 +7522,7 @@ type PluginID = string
 // The values PluginID takes.
 const (
 	PluginIDAnthropic      PluginID = "anthropic"
+	PluginIDAnyscale       PluginID = "anyscale"
 	PluginIDAssemblyai     PluginID = "assemblyai"
 	PluginIDAWS            PluginID = "aws"
 	PluginIDAzure          PluginID = "azure"
@@ -8791,6 +8792,7 @@ const (
 	ResourceTypeIDChService                      ResourceTypeID = "ch-service"
 	ResourceTypeIDCksCluster                     ResourceTypeID = "cks-cluster"
 	ResourceTypeIDClientKey                      ResourceTypeID = "client-key"
+	ResourceTypeIDCloud                          ResourceTypeID = "cloud"
 	ResourceTypeIDCloudArmorPolicy               ResourceTypeID = "cloud-armor-policy"
 	ResourceTypeIDCloudBuildTrigger              ResourceTypeID = "cloud-build-trigger"
 	ResourceTypeIDCloudDeployPipeline            ResourceTypeID = "cloud-deploy-pipeline"
@@ -8818,6 +8820,7 @@ const (
 	ResourceTypeIDCollectionDocument             ResourceTypeID = "collection-document"
 	ResourceTypeIDCompartment                    ResourceTypeID = "compartment"
 	ResourceTypeIDComposerEnvironment            ResourceTypeID = "composer-environment"
+	ResourceTypeIDComputeConfig                  ResourceTypeID = "compute-config"
 	ResourceTypeIDConfigStore                    ResourceTypeID = "config-store"
 	ResourceTypeIDConnection                     ResourceTypeID = "connection"
 	ResourceTypeIDConnectivityRule               ResourceTypeID = "connectivity-rule"
