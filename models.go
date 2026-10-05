@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.73.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.74.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.73.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.74.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3881,16 +3881,18 @@ type CostExportRunResult struct {
 }
 
 // CostExportSchema: Which columns an object carries. `native` is Infrawrench's
-// own layout, shaped by `query.dimensions` and `query.tagKeys`. `focus-1.3`
-// writes the FinOps Open Cost and Usage Specification v1.3 columns at the full
-// row grain, with `BilledCost` (cash) and `EffectiveCost` (amortized) side by
-// side; `query.dimensions`, `query.tagKeys` and `query.costBasis` do not apply
-// to it, `query.filters` and `query.chargeTypes` still do.
+// own layout, shaped by `query.dimensions` and `query.tagKeys`. `focus-1.4` and
+// `focus-1.3` write the FinOps Open Cost and Usage Specification columns of that
+// version at the full row grain (1.4 drops the deprecated `ProviderName` and
+// `PublisherName`), with `BilledCost` (cash) and `EffectiveCost` (amortized)
+// side by side; `query.dimensions`, `query.tagKeys` and `query.costBasis` do not
+// apply to it, `query.filters` and `query.chargeTypes` still do.
 type CostExportSchema = string
 
 // The values CostExportSchema takes.
 const (
 	CostExportSchemaNative  CostExportSchema = "native"
+	CostExportSchemaFocus14 CostExportSchema = "focus-1.4"
 	CostExportSchemaFocus13 CostExportSchema = "focus-1.3"
 )
 
@@ -6627,6 +6629,10 @@ type FocusExportRequest struct {
 	// charge types existed, and rows from providers that cannot distinguish
 	// them, are `usage`.
 	ChargeTypes []CostChargeType `json:"chargeTypes,omitempty"`
+	// Version: The FOCUS version to write. Omitted means `1.3`.
+	//
+	// One of "1.4", "1.3".
+	Version *string `json:"version,omitempty"`
 }
 
 // FxFeedRates is the `FxFeedRates` schema.
