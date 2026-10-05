@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.54.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.55.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.54.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.55.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2593,6 +2593,126 @@ const (
 	CostBasisAmortized CostBasis = "amortized"
 )
 
+// CostCanvas is the `CostCanvas` schema.
+type CostCanvas struct {
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Description *string        `json:"description"`
+	Spec        CostCanvasSpec `json:"spec"`
+	Prompt      *string        `json:"prompt"`
+	// ConversationID: The caller's latest unarchived chat conversation for this
+	// canvas; per user.
+	ConversationID  *string               `json:"conversationId"`
+	CreatedByUserID *string               `json:"createdByUserId"`
+	CreatedAt       string                `json:"createdAt"`
+	UpdatedAt       string                `json:"updatedAt"`
+	Placements      []CostCanvasPlacement `json:"placements"`
+}
+
+// CostCanvasBlock is the `CostCanvasBlock` schema.
+type CostCanvasBlock = any
+
+// CostCanvasDraftInput is the `CostCanvasDraftInput` schema.
+type CostCanvasDraftInput struct {
+	// Prompt: What the report should show, in plain words.
+	Prompt string  `json:"prompt"`
+	Name   *string `json:"name,omitempty"`
+	// Model: A chat model id; the chat default when absent.
+	Model *string `json:"model,omitempty"`
+}
+
+// CostCanvasInput is the `CostCanvasInput` schema.
+type CostCanvasInput struct {
+	Name        string         `json:"name"`
+	Description *string        `json:"description,omitempty"`
+	Spec        CostCanvasSpec `json:"spec"`
+}
+
+// CostCanvasKpiMetric is the `CostCanvasKpiMetric` schema.
+type CostCanvasKpiMetric = any
+
+// CostCanvasNotification is the `CostCanvasNotification` schema.
+type CostCanvasNotification struct {
+	ID           string `json:"id"`
+	CostCanvasID string `json:"costCanvasId"`
+	// Cadence: How often the schedule fires. The report itself decides what
+	// window it charts.
+	//
+	// One of "daily", "weekly", "monthly".
+	Cadence         string   `json:"cadence"`
+	SendDay         int64    `json:"sendDay"`
+	SendDayOfMonth  int64    `json:"sendDayOfMonth"`
+	Hour            int64    `json:"hour"`
+	Timezone        string   `json:"timezone"`
+	SlackChannelIDs []string `json:"slackChannelIds"`
+	TeamsWebhookIDs []string `json:"teamsWebhookIds"`
+	EmailRecipients []string `json:"emailRecipients"`
+	Enabled         bool     `json:"enabled"`
+	// AttachPdf: Attach the rendered PDF: as a file on every email, and uploaded
+	// into the Slack message's thread (needs the Slack app's `files:write`
+	// scope; without it the message still posts). Teams incoming webhooks cannot
+	// carry files, so Teams always gets the summary and a link.
+	AttachPdf  bool    `json:"attachPdf"`
+	NextSendAt *string `json:"nextSendAt"`
+	LastSentAt *string `json:"lastSentAt"`
+	// LastStatus: One of "pending", "succeeded", "partial", "failed",
+	// "no_targets".
+	LastStatus      *string `json:"lastStatus"`
+	LastError       *string `json:"lastError"`
+	CreatedByUserID *string `json:"createdByUserId"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// CostCanvasPlacement is the `CostCanvasPlacement` schema.
+type CostCanvasPlacement struct {
+	WidgetID      string `json:"widgetId"`
+	DashboardID   string `json:"dashboardId"`
+	DashboardName string `json:"dashboardName"`
+}
+
+// CostCanvasRunResult is the `CostCanvasRunResult` schema.
+type CostCanvasRunResult struct {
+	CanvasID        *string `json:"canvasId"`
+	Name            string  `json:"name"`
+	RanAt           string  `json:"ranAt"`
+	DisplayCurrency *string `json:"displayCurrency"`
+	// Blocks: One result per block, in spec order, each `{id, kind, ...}` with
+	// an `error` string when that block failed: `kpi` carries `kpi {value, unit,
+	// currency, previous, changePercent, from, to, note}`, `table` carries
+	// `table {columns, rows, currency}`, `chart`/`cost_report` carry the cost or
+	// unit-cost query response when chart data was requested, `budgets`,
+	// `anomalies` and `custom_graph` carry their rows or render spec, and `text`
+	// carries the narrative with KPI tokens filled in.
+	Blocks []JSONObject `json:"blocks"`
+}
+
+// CostCanvasSpec: The structured query spec. It holds queries, never numbers:
+// running the canvas re-executes every block, so a refresh needs no model call.
+// Validated strictly on write; there is no field that takes a query string or
+// SQL.
+type CostCanvasSpec struct {
+	Version float64           `json:"version"`
+	Blocks  []CostCanvasBlock `json:"blocks"`
+}
+
+// CostCanvasTableQuery is the `CostCanvasTableQuery` schema.
+type CostCanvasTableQuery struct {
+	DateRange CostDateRange `json:"dateRange"`
+	// Binning: One of "none", "daily", "weekly", "monthly".
+	Binning string `json:"binning"`
+	// GroupBy: One of "provider", "account", "service", "region", "resource",
+	// "tag", "charge_type", "commitment".
+	GroupBy       string             `json:"groupBy"`
+	GroupByTagKey *string            `json:"groupByTagKey,omitempty"`
+	Filters       []CostReportFilter `json:"filters,omitempty"`
+	SavedFilterID *string            `json:"savedFilterId,omitempty"`
+	// CostBasis: One of "cash", "amortized".
+	CostBasis *string `json:"costBasis,omitempty"`
+	Adjusted  *bool   `json:"adjusted,omitempty"`
+	TopN      *int64  `json:"topN,omitempty"`
+}
+
 // CostCentre is the `CostCentre` schema.
 type CostCentre struct {
 	ID          string  `json:"id"`
@@ -3907,7 +4027,8 @@ type DashboardWidgetFull struct {
 
 // DashboardWidgetKind: `cost_graph` stores its whole config inline — a one-off
 // card. `cost_report` points at a saved cost report by id, so editing the report
-// updates every dashboard showing it.
+// updates every dashboard showing it. `cost_canvas` points at a cost canvas by
+// id (`{version: 1, canvasId}`) the same way.
 type DashboardWidgetKind = string
 
 // The values DashboardWidgetKind takes.
@@ -3916,6 +4037,7 @@ const (
 	DashboardWidgetKindCostReport  DashboardWidgetKind = "cost_report"
 	DashboardWidgetKindBudget      DashboardWidgetKind = "budget"
 	DashboardWidgetKindCustomGraph DashboardWidgetKind = "custom_graph"
+	DashboardWidgetKindCostCanvas  DashboardWidgetKind = "cost_canvas"
 )
 
 // DashboardWithPins is the `DashboardWithPins` schema.
@@ -10680,6 +10802,7 @@ const (
 	ShareableObjectTypeCostReport       ShareableObjectType = "cost_report"
 	ShareableObjectTypeCostReportFolder ShareableObjectType = "cost_report_folder"
 	ShareableObjectTypeDashboard        ShareableObjectType = "dashboard"
+	ShareableObjectTypeCostCanvas       ShareableObjectType = "cost_canvas"
 )
 
 // SharedConsole is the `SharedConsole` schema.
@@ -11564,8 +11687,8 @@ type SyntheticProbeUpdate struct {
 // TabTarget is the `TabTarget` schema.
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
-	// "savings", "cost-reports", "invoices", "graph", "logs", "changes",
-	// "expiring", "posture", "access-review", "backups", "wallboard",
+	// "savings", "cost-reports", "cost-canvases", "invoices", "graph", "logs",
+	// "changes", "expiring", "posture", "access-review", "backups", "wallboard",
 	// "calendar", "runbooks", "query-monitors", "dns", "iac",
 	// "environment-diff", "environments", "ssh-fanout", "metric-alerts",
 	// "probes", "status-pages", "quotas", "price-catalog", "incidents",
@@ -11577,6 +11700,7 @@ type TabTarget struct {
 	ConversationID *string     `json:"conversationId,omitempty"`
 	ReportID       *string     `json:"reportId,omitempty"`
 	InvoiceID      *string     `json:"invoiceId,omitempty"`
+	CanvasID       *string     `json:"canvasId,omitempty"`
 	SessionID      *string     `json:"sessionId,omitempty"`
 	WindowID       *int64      `json:"windowId,omitempty"`
 	AppID          *string     `json:"appId,omitempty"`
@@ -13100,6 +13224,31 @@ type CostAlertsGetGetResponse struct {
 // CostAnnotationsGetResponse is an object the spec declares inline.
 type CostAnnotationsGetResponse struct {
 	Annotations []CostAnnotation `json:"annotations"`
+}
+
+// CostCanvasesConversationRequest is an object the spec declares inline.
+type CostCanvasesConversationRequest struct {
+	Model *string `json:"model,omitempty"`
+	Fresh *bool   `json:"fresh,omitempty"`
+}
+
+// CostCanvasesConversationResponse is an object the spec declares inline.
+type CostCanvasesConversationResponse struct {
+	ConversationID string `json:"conversationId"`
+}
+
+// CostCanvasesPreviewRequest is an object the spec declares inline.
+type CostCanvasesPreviewRequest struct {
+	Spec             CostCanvasSpec `json:"spec"`
+	Name             *string        `json:"name,omitempty"`
+	IncludeChartData *bool          `json:"includeChartData,omitempty"`
+}
+
+// CostCanvasesRunRequest is an object the spec declares inline.
+type CostCanvasesRunRequest struct {
+	// IncludeChartData: Include full chart series. Default true; the live UI
+	// passes false.
+	IncludeChartData *bool `json:"includeChartData,omitempty"`
 }
 
 // CostExportsWarehouseOptionsRequest is an object the spec declares inline.

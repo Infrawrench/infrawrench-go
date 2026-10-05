@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.54.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.55.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.54.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.55.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -93,6 +93,8 @@ type APIV1Client struct {
 	CostAlerts *CostAlertsNamespace
 	// CostAnnotations: `client.costAnnotations`.
 	CostAnnotations *CostAnnotationsNamespace
+	// CostCanvases: `client.costCanvases`.
+	CostCanvases *CostCanvasesNamespace
 	// CostCentres: `client.costCentres`.
 	CostCentres *CostCentresNamespace
 	// CostExports: `client.costExports`.
@@ -278,6 +280,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Connect = newConnectNamespace(t)
 	c.CostAlerts = newCostAlertsNamespace(t)
 	c.CostAnnotations = newCostAnnotationsNamespace(t)
+	c.CostCanvases = newCostCanvasesNamespace(t)
 	c.CostCentres = newCostCentresNamespace(t)
 	c.CostExports = newCostExportsNamespace(t)
 	c.CostReportFolders = newCostReportFoldersNamespace(t)
@@ -5554,6 +5557,513 @@ func (n *CostAnnotationsNamespace) Update(ctx context.Context, params CostAnnota
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *CostAnnotation
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesNamespace is `client.costCanvases`.
+type CostCanvasesNamespace struct {
+	t *transport
+
+	// Notifications: `client.costCanvases.notifications`.
+	Notifications *CostCanvasesNotificationsNamespace
+}
+
+func newCostCanvasesNamespace(t *transport) *CostCanvasesNamespace {
+	n := &CostCanvasesNamespace{t: t}
+	n.Notifications = newCostCanvasesNotificationsNamespace(t)
+	return n
+}
+
+// CostCanvasesConversationParams holds the parameters for
+// `client.costCanvases.conversation`.
+type CostCanvasesConversationParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *CostCanvasesConversationRequest
+}
+
+// Conversation: Open the caller's editing conversation for a canvas
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/cost-canvases/{id}/conversation
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNamespace) Conversation(ctx context.Context, params CostCanvasesConversationParams, opts ...RequestOption) (*CostCanvasesConversationResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-canvases/{id}/conversation")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CostCanvasesConversationResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesCreateParams holds the parameters for
+// `client.costCanvases.create`.
+type CostCanvasesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostCanvasInput
+}
+
+// Create: Create a cost canvas from a spec
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/cost-canvases
+//
+// Raises on 400: Bad request
+func (n *CostCanvasesNamespace) Create(ctx context.Context, params CostCanvasesCreateParams, opts ...RequestOption) (*CostCanvas, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-canvases")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostCanvas
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesDeleteParams holds the parameters for
+// `client.costCanvases.delete`.
+type CostCanvasesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a cost canvas
+//
+// Soft delete. Its dashboard cards and delivery schedules go with it.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/cost-canvases/{id}
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNamespace) Delete(ctx context.Context, params CostCanvasesDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/cost-canvases/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesDraftParams holds the parameters for `client.costCanvases.draft`.
+type CostCanvasesDraftParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostCanvasDraftInput
+}
+
+// Draft: Start a canvas from a description
+//
+// Creates an empty canvas and a chat conversation linked to it. Send `prompt` as
+// the conversation's first message (`POST /chat/conversations/{id}/messages`);
+// the agent writes the spec. Needs `chat:write` as well as `costs:write`.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/cost-canvases/draft
+//
+// Raises on 400: Bad request
+func (n *CostCanvasesNamespace) Draft(ctx context.Context, params CostCanvasesDraftParams, opts ...RequestOption) (*CostCanvas, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-canvases/draft")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostCanvas
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesGetParams holds the parameters for `client.costCanvases.get`.
+type CostCanvasesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get a cost canvas
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-canvases/{id}
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNamespace) Get(ctx context.Context, params CostCanvasesGetParams, opts ...RequestOption) (*CostCanvas, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-canvases/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CostCanvas
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesListParams holds the parameters for `client.costCanvases.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CostCanvasesListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List cost canvases
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-canvases
+func (n *CostCanvasesNamespace) List(ctx context.Context, params *CostCanvasesListParams, opts ...RequestOption) ([]CostCanvas, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-canvases")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []CostCanvas
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesPdfParams holds the parameters for `client.costCanvases.pdf`.
+type CostCanvasesPdfParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Tz: IANA zone the document's generated-at line is written in, e.g.
+	// `Europe/Berlin`. UTC when absent or unknown.
+	Tz *string
+}
+
+// Pdf: Export a cost canvas as a PDF
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-canvases/{id}/pdf
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNamespace) Pdf(ctx context.Context, params CostCanvasesPdfParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-canvases/{id}/pdf")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.addQuery("tz", params.Tz)
+	return n.t.stream(ctx, r, opts)
+}
+
+// CostCanvasesPreviewParams holds the parameters for
+// `client.costCanvases.preview`.
+type CostCanvasesPreviewParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CostCanvasesPreviewRequest
+}
+
+// Preview: Run an unsaved canvas spec
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/cost-canvases/preview
+//
+// Raises on 400: Bad request
+func (n *CostCanvasesNamespace) Preview(ctx context.Context, params CostCanvasesPreviewParams, opts ...RequestOption) (*CostCanvasRunResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-canvases/preview")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CostCanvasRunResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesRunParams holds the parameters for `client.costCanvases.run`.
+type CostCanvasesRunParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *CostCanvasesRunRequest
+}
+
+// Run: Run (refresh) a cost canvas
+//
+// Re-executes every block's query. Deterministic; no model call.
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/cost-canvases/{id}/run
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNamespace) Run(ctx context.Context, params CostCanvasesRunParams, opts ...RequestOption) (*CostCanvasRunResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-canvases/{id}/run")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CostCanvasRunResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesUpdateParams holds the parameters for
+// `client.costCanvases.update`.
+type CostCanvasesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body CostCanvasInput
+}
+
+// Update: Replace a cost canvas
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/cost-canvases/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNamespace) Update(ctx context.Context, params CostCanvasesUpdateParams, opts ...RequestOption) (*CostCanvas, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/cost-canvases/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CostCanvas
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesNotificationsNamespace is `client.costCanvases.notifications`.
+type CostCanvasesNotificationsNamespace struct {
+	t *transport
+}
+
+func newCostCanvasesNotificationsNamespace(t *transport) *CostCanvasesNotificationsNamespace {
+	n := &CostCanvasesNotificationsNamespace{t: t}
+	return n
+}
+
+// CostCanvasesNotificationsCreateParams holds the parameters for
+// `client.costCanvases.notifications.create`.
+type CostCanvasesNotificationsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body DashboardNotificationInput
+}
+
+// Create: Create a canvas delivery schedule
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/cost-canvases/{id}/notifications
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNotificationsNamespace) Create(ctx context.Context, params CostCanvasesNotificationsCreateParams, opts ...RequestOption) (*CostCanvasNotification, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-canvases/{id}/notifications")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CostCanvasNotification
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesNotificationsDeleteParams holds the parameters for
+// `client.costCanvases.notifications.delete`.
+type CostCanvasesNotificationsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	ID             string
+	NotificationID string
+}
+
+// Delete: Delete a canvas delivery schedule
+//
+// _Requires permission: `org:settings:write`._
+//
+// DELETE /api/org/{orgId}/cost-canvases/{id}/notifications/{notificationId}
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNotificationsNamespace) Delete(ctx context.Context, params CostCanvasesNotificationsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/cost-canvases/{id}/notifications/{notificationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("notificationId", params.NotificationID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesNotificationsListParams holds the parameters for
+// `client.costCanvases.notifications.list`.
+type CostCanvasesNotificationsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// List: List a canvas's delivery schedules
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/cost-canvases/{id}/notifications
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNotificationsNamespace) List(ctx context.Context, params CostCanvasesNotificationsListParams, opts ...RequestOption) ([]CostCanvasNotification, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-canvases/{id}/notifications")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out []CostCanvasNotification
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesNotificationsSendParams holds the parameters for
+// `client.costCanvases.notifications.send`.
+type CostCanvasesNotificationsSendParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	ID             string
+	NotificationID string
+}
+
+// Send: Send a canvas delivery now
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/cost-canvases/{id}/notifications/{notificationId}/send
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNotificationsNamespace) Send(ctx context.Context, params CostCanvasesNotificationsSendParams, opts ...RequestOption) (*DashboardNotificationSendResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-canvases/{id}/notifications/{notificationId}/send")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("notificationId", params.NotificationID)
+	var out *DashboardNotificationSendResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesNotificationsTargetsParams holds the parameters for
+// `client.costCanvases.notifications.targets`.
+type CostCanvasesNotificationsTargetsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Targets: List the destinations a canvas schedule can deliver to
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/cost-canvases/{id}/notifications/targets
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNotificationsNamespace) Targets(ctx context.Context, params CostCanvasesNotificationsTargetsParams, opts ...RequestOption) (*ReportDeliveryTargets, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/cost-canvases/{id}/notifications/targets")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *ReportDeliveryTargets
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CostCanvasesNotificationsUpdateParams holds the parameters for
+// `client.costCanvases.notifications.update`.
+type CostCanvasesNotificationsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	ID             string
+	NotificationID string
+	// Body: the JSON request body.
+	Body DashboardNotificationInput
+}
+
+// Update: Replace a canvas delivery schedule
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/cost-canvases/{id}/notifications/{notificationId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CostCanvasesNotificationsNamespace) Update(ctx context.Context, params CostCanvasesNotificationsUpdateParams, opts ...RequestOption) (*CostCanvasNotification, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/cost-canvases/{id}/notifications/{notificationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("notificationId", params.NotificationID)
+	r.setJSONBody(params.Body)
+	var out *CostCanvasNotification
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
