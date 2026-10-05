@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.70.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.71.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.70.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.71.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -5064,16 +5064,19 @@ type DashboardWidgetFull struct {
 // DashboardWidgetKind: `cost_graph` stores its whole config inline — a one-off
 // card. `cost_report` points at a saved cost report by id, so editing the report
 // updates every dashboard showing it. `cost_canvas` points at a cost canvas by
-// id (`{version: 1, canvasId}`) the same way.
+// id (`{version: 1, canvasId}`) the same way. `realized_savings` shows the org's
+// realized savings report; its config is only a view choice (`grouping`: month |
+// kind | costCentre | account, and `months` back, 1–36).
 type DashboardWidgetKind = string
 
 // The values DashboardWidgetKind takes.
 const (
-	DashboardWidgetKindCostGraph   DashboardWidgetKind = "cost_graph"
-	DashboardWidgetKindCostReport  DashboardWidgetKind = "cost_report"
-	DashboardWidgetKindBudget      DashboardWidgetKind = "budget"
-	DashboardWidgetKindCustomGraph DashboardWidgetKind = "custom_graph"
-	DashboardWidgetKindCostCanvas  DashboardWidgetKind = "cost_canvas"
+	DashboardWidgetKindCostGraph       DashboardWidgetKind = "cost_graph"
+	DashboardWidgetKindCostReport      DashboardWidgetKind = "cost_report"
+	DashboardWidgetKindBudget          DashboardWidgetKind = "budget"
+	DashboardWidgetKindCustomGraph     DashboardWidgetKind = "custom_graph"
+	DashboardWidgetKindCostCanvas      DashboardWidgetKind = "cost_canvas"
+	DashboardWidgetKindRealizedSavings DashboardWidgetKind = "realized_savings"
 )
 
 // DashboardWithPins is the `DashboardWithPins` schema.
@@ -10251,6 +10254,80 @@ type QuotaTrend struct {
 	Points int64 `json:"points"`
 }
 
+// RealizedSavingsBasis: `billing` — baseline and post-action spend both read
+// from this resource's cost rows; `estimate` — no per-resource billing, so the
+// list-price estimate is accrued over elapsed days; `manual` — the logged amount
+// accrued; `unmeasured` — nothing to measure against (never summed as zero).
+type RealizedSavingsBasis = string
+
+// The values RealizedSavingsBasis takes.
+const (
+	RealizedSavingsBasisBilling    RealizedSavingsBasis = "billing"
+	RealizedSavingsBasisEstimate   RealizedSavingsBasis = "estimate"
+	RealizedSavingsBasisManual     RealizedSavingsBasis = "manual"
+	RealizedSavingsBasisUnmeasured RealizedSavingsBasis = "unmeasured"
+)
+
+// RealizedSavingsBucket is the `RealizedSavingsBucket` schema.
+type RealizedSavingsBucket struct {
+	Key      string `json:"key"`
+	Label    string `json:"label"`
+	Currency string `json:"currency"`
+	// Realized: Currency units (not cents), in the row's currency.
+	Realized float64 `json:"realized"`
+	// Projected: Currency units (not cents), in the row's currency.
+	Projected float64 `json:"projected"`
+	Events    int64   `json:"events"`
+}
+
+// RealizedSavingsMonth is the `RealizedSavingsMonth` schema.
+type RealizedSavingsMonth struct {
+	// Month: YYYY-MM
+	Month    string `json:"month"`
+	Currency string `json:"currency"`
+	// Realized: Currency units (not cents), in the row's currency.
+	Realized float64 `json:"realized"`
+	// Projected: Currency units (not cents), in the row's currency.
+	Projected float64 `json:"projected"`
+}
+
+// RealizedSavingsReport is the `RealizedSavingsReport` schema.
+type RealizedSavingsReport struct {
+	From            string                  `json:"from"`
+	To              string                  `json:"to"`
+	Settings        RealizedSavingsSettings `json:"settings"`
+	Totals          []RealizedSavingsTotal  `json:"totals"`
+	ByMonth         []RealizedSavingsMonth  `json:"byMonth"`
+	ByKind          []RealizedSavingsBucket `json:"byKind"`
+	ByCostCentre    []RealizedSavingsBucket `json:"byCostCentre"`
+	ByAccount       []RealizedSavingsBucket `json:"byAccount"`
+	Events          []SavingsEventResult    `json:"events"`
+	ShortfallCount  int64                   `json:"shortfallCount"`
+	UnmeasuredCount int64                   `json:"unmeasuredCount"`
+}
+
+// RealizedSavingsSettings is the `RealizedSavingsSettings` schema.
+type RealizedSavingsSettings struct {
+	// HorizonMonths: How long a one-off action keeps accruing, in months.
+	// Default 12.
+	HorizonMonths int64 `json:"horizonMonths"`
+	// ShortfallThresholdPercent: Below this share of the projected rate an
+	// action is flagged short. Default 70.
+	ShortfallThresholdPercent int64 `json:"shortfallThresholdPercent"`
+	// BaselineWindowDays: Days before the action whose spend makes up the
+	// baseline. Default 14.
+	BaselineWindowDays int64 `json:"baselineWindowDays"`
+}
+
+// RealizedSavingsTotal is the `RealizedSavingsTotal` schema.
+type RealizedSavingsTotal struct {
+	Currency string `json:"currency"`
+	// Realized: Currency units (not cents), in the row's currency.
+	Realized float64 `json:"realized"`
+	// Projected: Currency units (not cents), in the row's currency.
+	Projected float64 `json:"projected"`
+}
+
 // ReauthenticationRequired is the `ReauthenticationRequired` schema.
 type ReauthenticationRequired struct {
 	// Error: Human-readable error message
@@ -11806,6 +11883,173 @@ type SavedCostFilterTerm struct {
 	Op     string   `json:"op"`
 	Values []string `json:"values"`
 	TagKey *string  `json:"tagKey,omitempty"`
+}
+
+// SavingsEvent is the `SavingsEvent` schema.
+type SavingsEvent struct {
+	// ID: A UUID for stored events; `commitment:<accountId>:<currency>` for
+	// derived rows.
+	ID     string             `json:"id"`
+	Kind   SavingsEventKind   `json:"kind"`
+	Source SavingsEventSource `json:"source"`
+	Title  string             `json:"title"`
+	Note   *string            `json:"note"`
+	// OccurredOn: The day the action took effect (UTC).
+	OccurredOn string `json:"occurredOn"`
+	// EndedOn: Last day in force, inclusive; null while it still is.
+	EndedOn        *string `json:"endedOn"`
+	AccountID      *string `json:"accountId"`
+	AccountName    *string `json:"accountName"`
+	PluginID       *string `json:"pluginId"`
+	ResourceTypeID *string `json:"resourceTypeId"`
+	// ResourceID: Kept after the resource is deleted.
+	ResourceID   *string `json:"resourceId"`
+	ResourceName *string `json:"resourceName"`
+	// CostCentreID: Explicit attribution; null means attributed by the
+	// allocation rules.
+	CostCentreID *string `json:"costCentreId"`
+	// ProjectedMonthlyAmount: What the action was projected to save per month.
+	ProjectedMonthlyAmount *float64 `json:"projectedMonthlyAmount"`
+	Currency               *string  `json:"currency"`
+	// HorizonMonths: Per-entry horizon override; null uses the org setting.
+	HorizonMonths *int64 `json:"horizonMonths"`
+	// CostAnnotationID: The cost annotation marking the action on charts.
+	CostAnnotationID *string `json:"costAnnotationId"`
+	CreatedByUserID  *string `json:"createdByUserId"`
+	CreatedAt        string  `json:"createdAt"`
+	UpdatedAt        string  `json:"updatedAt"`
+}
+
+// SavingsEventAnnotation is the `SavingsEventAnnotation` schema.
+type SavingsEventAnnotation struct {
+	Note          *string `json:"note,omitempty"`
+	CostCentreID  *string `json:"costCentreId,omitempty"`
+	HorizonMonths *int64  `json:"horizonMonths,omitempty"`
+	EndedOn       *string `json:"endedOn,omitempty"`
+}
+
+// SavingsEventInput is the `SavingsEventInput` schema.
+type SavingsEventInput struct {
+	Title                  string  `json:"title"`
+	Note                   *string `json:"note,omitempty"`
+	OccurredOn             string  `json:"occurredOn"`
+	EndedOn                *string `json:"endedOn,omitempty"`
+	ProjectedMonthlyAmount float64 `json:"projectedMonthlyAmount"`
+	Currency               string  `json:"currency"`
+	// ResourceID: Link a resource: the realized figure is then measured from its
+	// billing.
+	ResourceID    *string `json:"resourceId,omitempty"`
+	AccountID     *string `json:"accountId,omitempty"`
+	CostCentreID  *string `json:"costCentreId,omitempty"`
+	HorizonMonths *int64  `json:"horizonMonths,omitempty"`
+}
+
+// SavingsEventKind: `rightsizing` — a resize to a smaller size;
+// `orphan_deletion` — a resource the orphan finder flags was deleted;
+// `sleep_schedule` — a stretch of a sleep/wake schedule in force; `commitment` —
+// reservation and savings-plan discounts, derived from billing; `manual` —
+// logged by a person.
+type SavingsEventKind = string
+
+// The values SavingsEventKind takes.
+const (
+	SavingsEventKindRightsizing    SavingsEventKind = "rightsizing"
+	SavingsEventKindOrphanDeletion SavingsEventKind = "orphan_deletion"
+	SavingsEventKindSleepSchedule  SavingsEventKind = "sleep_schedule"
+	SavingsEventKindCommitment     SavingsEventKind = "commitment"
+	SavingsEventKindManual         SavingsEventKind = "manual"
+)
+
+// SavingsEventResult is the `SavingsEventResult` schema.
+type SavingsEventResult struct {
+	// ID: A UUID for stored events; `commitment:<accountId>:<currency>` for
+	// derived rows.
+	ID     string             `json:"id"`
+	Kind   SavingsEventKind   `json:"kind"`
+	Source SavingsEventSource `json:"source"`
+	Title  string             `json:"title"`
+	Note   *string            `json:"note"`
+	// OccurredOn: The day the action took effect (UTC).
+	OccurredOn string `json:"occurredOn"`
+	// EndedOn: Last day in force, inclusive; null while it still is.
+	EndedOn        *string `json:"endedOn"`
+	AccountID      *string `json:"accountId"`
+	AccountName    *string `json:"accountName"`
+	PluginID       *string `json:"pluginId"`
+	ResourceTypeID *string `json:"resourceTypeId"`
+	// ResourceID: Kept after the resource is deleted.
+	ResourceID   *string `json:"resourceId"`
+	ResourceName *string `json:"resourceName"`
+	// CostCentreID: Explicit attribution; null means attributed by the
+	// allocation rules.
+	CostCentreID *string `json:"costCentreId"`
+	// ProjectedMonthlyAmount: What the action was projected to save per month.
+	ProjectedMonthlyAmount *float64 `json:"projectedMonthlyAmount"`
+	Currency               *string  `json:"currency"`
+	// HorizonMonths: Per-entry horizon override; null uses the org setting.
+	HorizonMonths *int64 `json:"horizonMonths"`
+	// CostAnnotationID: The cost annotation marking the action on charts.
+	CostAnnotationID *string              `json:"costAnnotationId"`
+	CreatedByUserID  *string              `json:"createdByUserId"`
+	CreatedAt        string               `json:"createdAt"`
+	UpdatedAt        string               `json:"updatedAt"`
+	Basis            RealizedSavingsBasis `json:"basis"`
+	// Status: One of "pending", "accruing", "complete", "ended".
+	Status           string  `json:"status"`
+	RealizedCurrency *string `json:"realizedCurrency"`
+	// BaselinePerDay: Spend per day before the action.
+	BaselinePerDay *float64 `json:"baselinePerDay"`
+	// CurrentPerDay: Spend per day over the trailing measured days since.
+	CurrentPerDay *float64 `json:"currentPerDay"`
+	// RealizedToDate: Currency units (not cents), in the row's currency.
+	RealizedToDate *float64 `json:"realizedToDate"`
+	// RealizedInRange: Currency units (not cents), in the row's currency.
+	RealizedInRange *float64 `json:"realizedInRange"`
+	// ProjectedInRange: Projected over the same accrued days in the range.
+	ProjectedInRange *float64 `json:"projectedInRange"`
+	AccruedDays      int64    `json:"accruedDays"`
+	// HorizonEndsOn: Last day a one-off action accrues on; null for recurring
+	// ones.
+	HorizonEndsOn            *string           `json:"horizonEndsOn"`
+	AttributedCostCentreID   *string           `json:"attributedCostCentreId"`
+	AttributedCostCentreName *string           `json:"attributedCostCentreName"`
+	Shortfall                *SavingsShortfall `json:"shortfall"`
+	// Editable: `full` — a manual entry (PUT); `annotate` — an automatic event
+	// takes a note, a cost centre, a horizon and an end date (PATCH); `none` —
+	// derived rows.
+	//
+	// One of "full", "annotate", "none".
+	Editable string `json:"editable"`
+}
+
+// SavingsEventSource: `in_app` — recorded when Infrawrench performed the action;
+// `detected` — inferred from an inventory diff on sync (the action was taken in
+// the provider's console); `manual`; `derived` — computed from billing with no
+// stored event (commitments).
+type SavingsEventSource = string
+
+// The values SavingsEventSource takes.
+const (
+	SavingsEventSourceInApp    SavingsEventSource = "in_app"
+	SavingsEventSourceDetected SavingsEventSource = "detected"
+	SavingsEventSourceManual   SavingsEventSource = "manual"
+	SavingsEventSourceDerived  SavingsEventSource = "derived"
+)
+
+// SavingsShortfall is the `SavingsShortfall` schema.
+//
+// The API may send null in its place.
+type SavingsShortfall struct {
+	// Kind: `below_projection` — the trailing realized rate is under the org's
+	// threshold share of the projected rate; `grew_back` — post-action spend is
+	// above the pre-action baseline.
+	//
+	// One of "below_projection", "grew_back".
+	Kind string `json:"kind"`
+	// RealizedPerDay: Currency units (not cents), in the row's currency.
+	RealizedPerDay float64 `json:"realizedPerDay"`
+	// ProjectedPerDay: Currency units (not cents), in the row's currency.
+	ProjectedPerDay *float64 `json:"projectedPerDay"`
 }
 
 // ScheduleConflict is the `ScheduleConflict` schema.

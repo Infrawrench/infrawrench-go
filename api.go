@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.70.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.71.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.70.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.71.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -203,6 +203,8 @@ type APIV1Client struct {
 	Runbooks *RunbooksNamespace
 	// SavedCostFilters: `client.savedCostFilters`.
 	SavedCostFilters *SavedCostFiltersNamespace
+	// Savings: `client.savings`.
+	Savings *SavingsNamespace
 	// Schedules: `client.schedules`.
 	Schedules *SchedulesNamespace
 	// Search: `client.search`.
@@ -343,6 +345,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Rightsizing = newRightsizingNamespace(t)
 	c.Runbooks = newRunbooksNamespace(t)
 	c.SavedCostFilters = newSavedCostFiltersNamespace(t)
+	c.Savings = newSavingsNamespace(t)
 	c.Schedules = newSchedulesNamespace(t)
 	c.Search = newSearchNamespace(t)
 	c.SessionRecordings = newSessionRecordingsNamespace(t)
@@ -20023,6 +20026,281 @@ func (n *SavedCostFiltersNamespace) Update(ctx context.Context, params SavedCost
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *SavedCostFilter
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavingsNamespace is `client.savings`.
+type SavingsNamespace struct {
+	t *transport
+
+	// Events: `client.savings.events`.
+	Events *SavingsEventsNamespace
+	// Settings: `client.savings.settings`.
+	Settings *SavingsSettingsNamespace
+}
+
+func newSavingsNamespace(t *transport) *SavingsNamespace {
+	n := &SavingsNamespace{t: t}
+	n.Events = newSavingsEventsNamespace(t)
+	n.Settings = newSavingsSettingsNamespace(t)
+	return n
+}
+
+// SavingsRealizedParams holds the parameters for `client.savings.realized`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SavingsRealizedParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// From: Inclusive first day. Defaults to the first of the month 11 months
+	// back.
+	From *string
+	// To: Inclusive last day. Defaults to yesterday.
+	To *string
+}
+
+// Realized: Realized savings report
+//
+// What the actions taken actually saved, against each resource's own trailing
+// daily spend before the action, accrued day by day (one-off actions up to the
+// horizon). Recomputed on every read, so figures improve as restated billing
+// lands. Days collection has not covered are not accrued. Per-currency
+// throughout; never converted or merged.
+//
+// GET /api/org/{orgId}/savings/realized
+//
+// Raises on 400: Bad request
+func (n *SavingsNamespace) Realized(ctx context.Context, params *SavingsRealizedParams, opts ...RequestOption) (*RealizedSavingsReport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/savings/realized")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("from", params.From)
+		r.addQuery("to", params.To)
+	}
+	var out *RealizedSavingsReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavingsEventsNamespace is `client.savings.events`.
+type SavingsEventsNamespace struct {
+	t *transport
+
+	// Update: `client.savings.events.update`.
+	Update *SavingsEventsUpdateNamespace
+}
+
+func newSavingsEventsNamespace(t *transport) *SavingsEventsNamespace {
+	n := &SavingsEventsNamespace{t: t}
+	n.Update = newSavingsEventsUpdateNamespace(t)
+	return n
+}
+
+// SavingsEventsCreateParams holds the parameters for
+// `client.savings.events.create`.
+type SavingsEventsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body SavingsEventInput
+}
+
+// Create: Log a saving
+//
+// Record a saving by hand, with the monthly amount and the day it began. Leaves
+// an org-wide cost annotation on that day. Requires `costs:write`.
+//
+// POST /api/org/{orgId}/savings/events
+//
+// Raises on 400: Bad request
+func (n *SavingsEventsNamespace) Create(ctx context.Context, params SavingsEventsCreateParams, opts ...RequestOption) (*SavingsEvent, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/savings/events")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *SavingsEvent
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavingsEventsDeleteParams holds the parameters for
+// `client.savings.events.delete`.
+type SavingsEventsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Remove a saving
+//
+// Hard delete, together with the cost annotation the event left on the charts.
+//
+// DELETE /api/org/{orgId}/savings/events/{id}
+//
+// Raises on 404: Not found
+func (n *SavingsEventsNamespace) Delete(ctx context.Context, params SavingsEventsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/savings/events/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavingsEventsUpdateNamespace is `client.savings.events.update`.
+type SavingsEventsUpdateNamespace struct {
+	t *transport
+}
+
+func newSavingsEventsUpdateNamespace(t *transport) *SavingsEventsUpdateNamespace {
+	n := &SavingsEventsUpdateNamespace{t: t}
+	return n
+}
+
+// SavingsEventsUpdatePatchOrgOrgIDSavingsEventsIDParams holds the parameters for
+// `client.savings.events.update.patchOrgOrgIdSavingsEventsId`.
+type SavingsEventsUpdatePatchOrgOrgIDSavingsEventsIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body SavingsEventAnnotation
+}
+
+// PatchOrgOrgIDSavingsEventsID: Annotate a saving
+//
+// Add context to any event: a note, an explicit cost centre, a horizon override,
+// or an end date. The facts of an automatic event (what was done, when, the
+// projection) stay as observed.
+//
+// PATCH /api/org/{orgId}/savings/events/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *SavingsEventsUpdateNamespace) PatchOrgOrgIDSavingsEventsID(ctx context.Context, params SavingsEventsUpdatePatchOrgOrgIDSavingsEventsIDParams, opts ...RequestOption) (*SavingsEvent, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/savings/events/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *SavingsEvent
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavingsEventsUpdateUpdateParams holds the parameters for
+// `client.savings.events.update.update`.
+type SavingsEventsUpdateUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body SavingsEventInput
+}
+
+// Update: Rewrite a manual saving
+//
+// Full replace of a manual entry. Automatic events are a 400; use PATCH.
+//
+// PUT /api/org/{orgId}/savings/events/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *SavingsEventsUpdateNamespace) Update(ctx context.Context, params SavingsEventsUpdateUpdateParams, opts ...RequestOption) (*SavingsEvent, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/savings/events/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *SavingsEvent
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavingsSettingsNamespace is `client.savings.settings`.
+type SavingsSettingsNamespace struct {
+	t *transport
+}
+
+func newSavingsSettingsNamespace(t *transport) *SavingsSettingsNamespace {
+	n := &SavingsSettingsNamespace{t: t}
+	return n
+}
+
+// SavingsSettingsGetParams holds the parameters for
+// `client.savings.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SavingsSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get realized savings settings
+//
+// The org's horizon, shortfall threshold and baseline window; defaults when
+// never saved.
+//
+// GET /api/org/{orgId}/savings/settings
+func (n *SavingsSettingsNamespace) Get(ctx context.Context, params *SavingsSettingsGetParams, opts ...RequestOption) (*RealizedSavingsSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/savings/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *RealizedSavingsSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SavingsSettingsUpdateParams holds the parameters for
+// `client.savings.settings.update`.
+type SavingsSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body RealizedSavingsSettings
+}
+
+// Update: Update realized savings settings
+//
+// Requires `costs:write`. Changes every figure in the report, retroactively.
+//
+// PUT /api/org/{orgId}/savings/settings
+//
+// Raises on 400: Bad request
+func (n *SavingsSettingsNamespace) Update(ctx context.Context, params SavingsSettingsUpdateParams, opts ...RequestOption) (*RealizedSavingsSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/savings/settings")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *RealizedSavingsSettings
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
