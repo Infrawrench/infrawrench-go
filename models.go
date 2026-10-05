@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.60.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.62.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.60.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.62.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -828,6 +828,12 @@ type AllocationRuleMatch struct {
 	AccountID *string `json:"accountId,omitempty"`
 	PluginID  *string `json:"pluginId,omitempty"`
 	Service   *string `json:"service,omitempty"`
+	// VirtualTagKey: One of the organization's virtual tags, by key. Alone it
+	// matches rows where the tag is set; a split virtual tag routes each share
+	// separately.
+	VirtualTagKey *string `json:"virtualTagKey,omitempty"`
+	// VirtualTagValue: Only meaningful with virtualTagKey.
+	VirtualTagValue *string `json:"virtualTagValue,omitempty"`
 }
 
 // APIKey is the `ApiKey` schema.
@@ -1431,7 +1437,7 @@ const (
 // BudgetCostFilter is the `BudgetCostFilter` schema.
 type BudgetCostFilter struct {
 	// Dimension: One of "provider", "account", "service", "region", "resource",
-	// "tag", "charge_type", "commitment".
+	// "tag", "charge_type", "commitment", "virtual_tag".
 	Dimension string `json:"dimension"`
 	// Op: One of "in", "not_in".
 	Op     string   `json:"op"`
@@ -1922,7 +1928,7 @@ const (
 // BusinessMetricScopeTerm is the `BusinessMetricScopeTerm` schema.
 type BusinessMetricScopeTerm struct {
 	// Dimension: One of "provider", "account", "service", "region", "resource",
-	// "tag", "charge_type", "commitment".
+	// "tag", "charge_type", "commitment", "virtual_tag".
 	Dimension string `json:"dimension"`
 	// Op: One of "in", "not_in".
 	Op     string   `json:"op"`
@@ -2793,7 +2799,7 @@ type CostAlert struct {
 	// offending group fires its own event.
 	//
 	// One of "provider", "account", "service", "region", "resource", "tag",
-	// "charge_type", "commitment".
+	// "charge_type", "commitment", "virtual_tag".
 	GroupBy              *string             `json:"groupBy"`
 	GroupByTagKey        *string             `json:"groupByTagKey"`
 	Cadence              CostChangeCadence   `json:"cadence"`
@@ -2838,7 +2844,7 @@ type CostAlertEvent struct {
 // CostAlertFilter is the `CostAlertFilter` schema.
 type CostAlertFilter struct {
 	// Dimension: One of "provider", "account", "service", "region", "resource",
-	// "tag", "charge_type", "commitment".
+	// "tag", "charge_type", "commitment", "virtual_tag".
 	Dimension string `json:"dimension"`
 	// Op: One of "in", "not_in".
 	Op     string   `json:"op"`
@@ -2855,7 +2861,7 @@ type CostAlertInput struct {
 	// offending group fires its own event.
 	//
 	// One of "provider", "account", "service", "region", "resource", "tag",
-	// "charge_type", "commitment".
+	// "charge_type", "commitment", "virtual_tag".
 	GroupBy *string `json:"groupBy,omitempty"`
 	// GroupByTagKey: Required when groupBy is tag.
 	GroupByTagKey *string           `json:"groupByTagKey,omitempty"`
@@ -3264,6 +3270,7 @@ const (
 	CostDimensionTag        CostDimension = "tag"
 	CostDimensionChargeType CostDimension = "charge_type"
 	CostDimensionCommitment CostDimension = "commitment"
+	CostDimensionVirtualTag CostDimension = "virtual_tag"
 )
 
 // CostDimensionValues is the `CostDimensionValues` schema.
@@ -3398,7 +3405,7 @@ type CostExportDestination = any
 // CostExportFilter is the `CostExportFilter` schema.
 type CostExportFilter struct {
 	// Dimension: One of "provider", "account", "service", "region", "resource",
-	// "tag", "charge_type", "commitment".
+	// "tag", "charge_type", "commitment", "virtual_tag".
 	Dimension string `json:"dimension"`
 	// Op: One of "in", "not_in".
 	Op     string   `json:"op"`
@@ -3467,9 +3474,13 @@ type CostExportQuery struct {
 	// magnitude smaller than a per-resource one.
 	Dimensions []string `json:"dimensions"`
 	// TagKeys: Tag keys emitted as their own `tag_<key>` columns.
-	TagKeys     []string           `json:"tagKeys"`
-	Filters     []CostExportFilter `json:"filters"`
-	ChargeTypes []string           `json:"chargeTypes,omitempty"`
+	TagKeys []string `json:"tagKeys"`
+	// VirtualTagKeys: Virtual tag keys emitted as their own `vtag_<key>`
+	// columns. A row a split rule divides is exported once per share with
+	// weighted amounts, so the file still sums to the total.
+	VirtualTagKeys []string           `json:"virtualTagKeys,omitempty"`
+	Filters        []CostExportFilter `json:"filters"`
+	ChargeTypes    []string           `json:"chargeTypes,omitempty"`
 	// CostBasis: One of "cash", "amortized".
 	CostBasis *string `json:"costBasis,omitempty"`
 }
@@ -3564,7 +3575,7 @@ type CostGraphConfig struct {
 	Binning   CostBinning   `json:"binning"`
 	DateRange CostDateRange `json:"dateRange"`
 	// GroupBy: One of "none", "provider", "account", "service", "region",
-	// "resource", "tag", "charge_type", "commitment".
+	// "resource", "tag", "charge_type", "commitment", "virtual_tag".
 	GroupBy       string             `json:"groupBy"`
 	GroupByTagKey *string            `json:"groupByTagKey,omitempty"`
 	Filters       []CostReportFilter `json:"filters,omitempty"`
@@ -3633,7 +3644,7 @@ type CostQueryRequest struct {
 	To      string      `json:"to"`
 	Binning CostBinning `json:"binning"`
 	// GroupBy: One of "none", "provider", "account", "service", "region",
-	// "resource", "tag", "charge_type", "commitment".
+	// "resource", "tag", "charge_type", "commitment", "virtual_tag".
 	GroupBy       string       `json:"groupBy"`
 	GroupByTagKey *string      `json:"groupByTagKey,omitempty"`
 	Filters       []CostFilter `json:"filters,omitempty"`
@@ -3760,7 +3771,7 @@ type CostReport struct {
 // CostReportFilter is the `CostReportFilter` schema.
 type CostReportFilter struct {
 	// Dimension: One of "provider", "account", "service", "region", "resource",
-	// "tag", "charge_type", "commitment".
+	// "tag", "charge_type", "commitment", "virtual_tag".
 	Dimension string `json:"dimension"`
 	// Op: One of "in", "not_in".
 	Op     string   `json:"op"`
@@ -3939,7 +3950,7 @@ type CostScenarioResult struct {
 // CostScenarioScopeTerm is the `CostScenarioScopeTerm` schema.
 type CostScenarioScopeTerm struct {
 	// Dimension: One of "provider", "account", "service", "region", "resource",
-	// "tag", "charge_type", "commitment".
+	// "tag", "charge_type", "commitment", "virtual_tag".
 	Dimension string `json:"dimension"`
 	// Op: One of "in", "not_in".
 	Op     string   `json:"op"`
@@ -5051,6 +5062,36 @@ type DiscountTreatment struct {
 	// PassThroughPercent: `partial` only: the share the customer receives,
 	// strictly between 0 and 100.
 	PassThroughPercent *float64 `json:"passThroughPercent,omitempty"`
+}
+
+// DiscoveredTagKey is the `DiscoveredTagKey` schema.
+type DiscoveredTagKey struct {
+	Key string `json:"key"`
+	// Providers: Plugin ids whose cost rows or resources carry the key.
+	Providers []string `json:"providers"`
+	Sources   []string `json:"sources"`
+	// CostRowCount: Cost rows in the lookback window carrying the key.
+	CostRowCount int64 `json:"costRowCount"`
+	// CostResourceCount: Distinct billed resource ids among those rows.
+	CostResourceCount int64 `json:"costResourceCount"`
+	// InventoryCount: Synced resources whose tags or labels carry the key
+	// (newest 2,000 scanned).
+	InventoryCount int64 `json:"inventoryCount"`
+	// LastSeen: Most recent cost day carrying the key; null when only in the
+	// inventory.
+	LastSeen *string `json:"lastSeen"`
+	Hidden   bool    `json:"hidden"`
+	// HiddenBy: The hidden entry (exact key or prefix pattern) that matched.
+	HiddenBy  *string `json:"hiddenBy"`
+	Preferred bool    `json:"preferred"`
+}
+
+// DiscoveredTagKeys is the `DiscoveredTagKeys` schema.
+type DiscoveredTagKeys struct {
+	Keys         []DiscoveredTagKey `json:"keys"`
+	Settings     TagKeySettings     `json:"settings"`
+	LookbackDays int64              `json:"lookbackDays"`
+	Truncated    bool               `json:"truncated"`
 }
 
 // DismissedAccessFinding is the `DismissedAccessFinding` schema.
@@ -7544,7 +7585,11 @@ type MetricAlertRuleWithStatus struct {
 // MetricAlertSelectorOptions is the `MetricAlertSelectorOptions` schema.
 type MetricAlertSelectorOptions struct {
 	Plugins []MetricAlertSelectorOptionsPlugins `json:"plugins"`
-	TagKeys []string                            `json:"tagKeys"`
+	// TagKeys: Tag keys on the org's resources, with its tag key settings
+	// applied: preferred keys first, hidden keys omitted.
+	TagKeys []string `json:"tagKeys"`
+	// PreferredTagKeys: The subset of `tagKeys` the org pins, in its order.
+	PreferredTagKeys []string `json:"preferredTagKeys"`
 }
 
 // MetricAlertSelectorPreview is the `MetricAlertSelectorPreview` schema.
@@ -11187,7 +11232,7 @@ type SavedCostFilterReferent struct {
 // SavedCostFilterTerm is the `SavedCostFilterTerm` schema.
 type SavedCostFilterTerm struct {
 	// Dimension: One of "provider", "account", "service", "region", "resource",
-	// "tag", "charge_type", "commitment".
+	// "tag", "charge_type", "commitment", "virtual_tag".
 	Dimension string `json:"dimension"`
 	// Op: One of "in", "not_in".
 	Op     string   `json:"op"`
@@ -12360,6 +12405,20 @@ type TagComplianceReport struct {
 	Accounts []AccountTagCompliance `json:"accounts"`
 }
 
+// TagKeySettings is the `TagKeySettings` schema.
+type TagKeySettings struct {
+	// Hidden: Tag keys left out of every tag picker. Each entry is an exact key
+	// (`Name`) or a prefix pattern ending in a single `*`
+	// (`aws:cloudformation:*`). A lone `*` and a `*` anywhere but the end are
+	// rejected. Matching is case-sensitive. Hidden keys' data is untouched:
+	// stored, exported, and queryable by a filter naming them.
+	Hidden []string `json:"hidden"`
+	// Preferred: Exact tag keys pinned to the top of every tag picker, in this
+	// order. A key cannot be both hidden and preferred; a preferred key under a
+	// hidden prefix stays visible.
+	Preferred []string `json:"preferred"`
+}
+
 // TagPolicy is the `TagPolicy` schema.
 type TagPolicy struct {
 	RequiredTags []RequiredTag `json:"requiredTags"`
@@ -12585,6 +12644,113 @@ type ValidateTabsRequest struct {
 // ValidateTabsResponse is the `ValidateTabsResponse` schema.
 type ValidateTabsResponse struct {
 	ValidTabIDs []string `json:"validTabIds"`
+}
+
+// VirtualTag is the `VirtualTag` schema.
+type VirtualTag struct {
+	ID           string           `json:"id"`
+	Key          string           `json:"key"`
+	Name         string           `json:"name"`
+	Description  *string          `json:"description"`
+	DefaultValue *string          `json:"defaultValue"`
+	Rules        []VirtualTagRule `json:"rules"`
+	// Status: The background evaluation over stored history. Queries never wait
+	// on it: a saved rule applies to every read immediately; this is the account
+	// of what the rules do.
+	Status          VirtualTagStatus `json:"status"`
+	CreatedByUserID *string          `json:"createdByUserId"`
+	CreatedAt       string           `json:"createdAt"`
+	UpdatedAt       string           `json:"updatedAt"`
+}
+
+// VirtualTagAllocation is the `VirtualTagAllocation` schema.
+type VirtualTagAllocation struct {
+	Value string `json:"value"`
+	// Percent: `split` only. The shares of one rule sum to 100.
+	Percent *float64 `json:"percent,omitempty"`
+	// MetricID: `metric_split` only. The business metric whose daily value
+	// weights this share. A day where any share's metric has no value carries
+	// the last good day's weights forward, or splits evenly when there is none.
+	MetricID *string `json:"metricId,omitempty"`
+}
+
+// VirtualTagCurrencyStats is the `VirtualTagCurrencyStats` schema.
+type VirtualTagCurrencyStats struct {
+	Currency string  `json:"currency"`
+	Total    float64 `json:"total"`
+	// Unmatched: Spend no rule matched.
+	Unmatched float64 `json:"unmatched"`
+	// ByRule: Spend each rule claimed, in rule order.
+	ByRule    []float64                          `json:"byRule"`
+	TopValues []VirtualTagCurrencyStatsTopValues `json:"topValues"`
+}
+
+// VirtualTagInput is the `VirtualTagInput` schema.
+type VirtualTagInput struct {
+	// Key: How filters address the tag: `virtual_tag['team'] = 'payments'`.
+	// Immutable after creation, because saved filters, budgets, reports and
+	// exports store it.
+	Key         string  `json:"key"`
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	// DefaultValue: Value for rows no rule matches; null leaves them unset.
+	DefaultValue *string `json:"defaultValue,omitempty"`
+	// Rules: Evaluated in order; the first rule a row matches decides its value.
+	Rules []VirtualTagRule `json:"rules"`
+}
+
+// VirtualTagRule is the `VirtualTagRule` schema.
+type VirtualTagRule struct {
+	// Query: Cost-query-language filter a row must match, e.g. `provider = 'aws'
+	// AND service = 'AmazonRDS'`. Empty matches every row. May not reference
+	// another virtual tag.
+	Query       *string `json:"query,omitempty"`
+	Description *string `json:"description,omitempty"`
+	// StartsOn: Inclusive UTC day the rule starts applying; null for no start.
+	StartsOn *string `json:"startsOn,omitempty"`
+	// EndsOn: Inclusive UTC day the rule stops applying; null for no end.
+	EndsOn *string `json:"endsOn,omitempty"`
+	// Kind: `value`: a fixed value. `tag`: copy the value from the first present
+	// provider tag key in `sources` (key collapsing). `split`: divide the row
+	// across `allocations` by percentage. `metric_split`: divide it in
+	// proportion to business metrics, day by day.
+	//
+	// One of "value", "tag", "split", "metric_split".
+	Kind string `json:"kind"`
+	// Value: `value` only.
+	Value *string `json:"value,omitempty"`
+	// Sources: `tag` only.
+	Sources []VirtualTagSource `json:"sources,omitempty"`
+	// ValueTransform: `tag` only. Case fold applied to the copied value before
+	// the prefix.
+	//
+	// One of "none", "lower", "upper".
+	ValueTransform *string `json:"valueTransform,omitempty"`
+	// Allocations: `split` and `metric_split` only; at least two.
+	Allocations []VirtualTagAllocation `json:"allocations,omitempty"`
+}
+
+// VirtualTagSource is the `VirtualTagSource` schema.
+type VirtualTagSource struct {
+	TagKey string `json:"tagKey"`
+	// ValuePrefix: Prepended to the copied value, e.g. `az-`.
+	ValuePrefix *string `json:"valuePrefix,omitempty"`
+	// Query: Cost-query-language filter that must also hold for this key to be
+	// read, e.g. `provider = 'azure'`. Null for always.
+	Query *string `json:"query,omitempty"`
+}
+
+// VirtualTagStats is the `VirtualTagStats` schema.
+//
+// The API may send null in its place.
+type VirtualTagStats struct {
+	From       *string                   `json:"from"`
+	To         *string                   `json:"to"`
+	Currencies []VirtualTagCurrencyStats `json:"currencies"`
+	// MetricFallbackDays: Days a metric split carried weights forward or split
+	// evenly.
+	MetricFallbackDays int64 `json:"metricFallbackDays"`
+	DistinctValues     int64 `json:"distinctValues"`
 }
 
 // WallboardFailureLine is the `WallboardFailureLine` schema.
@@ -13746,6 +13912,21 @@ type UntaggedSpendReportTopUntagged struct {
 type ValidateTabsRequestTabs struct {
 	ID     string    `json:"id"`
 	Target TabTarget `json:"target"`
+}
+
+// VirtualTagStatus is an object the spec declares inline.
+type VirtualTagStatus struct {
+	// State: One of "pending", "processing", "ready", "failed".
+	State       string           `json:"state"`
+	ProcessedAt *string          `json:"processedAt"`
+	Error       *string          `json:"error"`
+	Stats       *VirtualTagStats `json:"stats"`
+}
+
+// VirtualTagCurrencyStatsTopValues is an object the spec declares inline.
+type VirtualTagCurrencyStatsTopValues struct {
+	Value  string  `json:"value"`
+	Amount float64 `json:"amount"`
 }
 
 // CostAccountStatusCostPollErrorHelpLink is an object the spec declares inline.

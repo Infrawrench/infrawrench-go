@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.60.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.62.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.60.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.62.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -233,10 +233,14 @@ type APIV1Client struct {
 	StatusPages *StatusPagesNamespace
 	// Storage: `client.storage`.
 	Storage *StorageNamespace
+	// TagKeys: `client.tagKeys`.
+	TagKeys *TagKeysNamespace
 	// TagPolicy: `client.tagPolicy`.
 	TagPolicy *TagPolicyNamespace
 	// Team: `client.team`.
 	Team *TeamNamespace
+	// VirtualTags: `client.virtualTags`.
+	VirtualTags *VirtualTagsNamespace
 	// Wallboard: `client.wallboard`.
 	Wallboard *WallboardNamespace
 	// WorkflowApprovals: `client.workflowApprovals`.
@@ -354,8 +358,10 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.StatusIncidents = newStatusIncidentsNamespace(t)
 	c.StatusPages = newStatusPagesNamespace(t)
 	c.Storage = newStorageNamespace(t)
+	c.TagKeys = newTagKeysNamespace(t)
 	c.TagPolicy = newTagPolicyNamespace(t)
 	c.Team = newTeamNamespace(t)
+	c.VirtualTags = newVirtualTagsNamespace(t)
 	c.Wallboard = newWallboardNamespace(t)
 	c.WorkflowApprovals = newWorkflowApprovalsNamespace(t)
 	c.WorkflowSecrets = newWorkflowSecretsNamespace(t)
@@ -8455,20 +8461,29 @@ type CostsDimensionsParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Dimension: One of "provider", "account", "service", "region", "resource",
-	// "tag", "charge_type", "commitment", "tag-keys", "usage-units".
+	// "tag", "charge_type", "commitment", "virtual_tag", "tag-keys",
+	// "usage-units", "virtual-tag-keys".
 	Dimension string
 	TagKey    *string
+	// IncludeHidden: dimension=tag-keys only: also list keys the org hides,
+	// flagged `hidden`.
+	//
+	// One of "true", "false".
+	IncludeHidden *string
 }
 
 // Dimensions: List distinct values for a cost dimension
 //
 // Feeds the filter and group-by pickers. Pass dimension=tag-keys for tag keys,
-// or dimension=usage-units for the usage units providers report (a usage
-// budget's unit); dimension=tag requires tagKey. `charge_type` answers from the
-// fixed set of charge types rather than from the stored data, so the picker is
-// populated before any provider has reported one. `usage-units` lists the usage
-// units present in the cost data, most common first, for the `usage` measure's
-// unit picker.
+// which follow the org's tag key settings (preferred keys first and flagged,
+// hidden keys omitted unless includeHidden=true), dimension=virtual-tag-keys for
+// the organization's virtual tag keys (labelled by name), or
+// dimension=usage-units for the usage units providers report (a usage budget's
+// unit); dimension=tag and dimension=virtual_tag require tagKey. `charge_type`
+// answers from the fixed set of charge types rather than from the stored data,
+// so the picker is populated before any provider has reported one. `usage-units`
+// lists the usage units present in the cost data, most common first, for the
+// `usage` measure's unit picker.
 //
 // _Requires permission: `costs:read`._
 //
@@ -8480,6 +8495,7 @@ func (n *CostsNamespace) Dimensions(ctx context.Context, params CostsDimensionsP
 	r.setPath("orgId", params.OrgID)
 	r.addQuery("dimension", params.Dimension)
 	r.addQuery("tagKey", params.TagKey)
+	r.addQuery("includeHidden", params.IncludeHidden)
 	var out *CostDimensionValues
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
@@ -21833,6 +21849,124 @@ func (n *StorageNamespace) Upload(ctx context.Context, params StorageUploadParam
 	return out, nil
 }
 
+// TagKeysNamespace is `client.tagKeys`.
+type TagKeysNamespace struct {
+	t *transport
+
+	// Settings: `client.tagKeys.settings`.
+	Settings *TagKeysSettingsNamespace
+}
+
+func newTagKeysNamespace(t *transport) *TagKeysNamespace {
+	n := &TagKeysNamespace{t: t}
+	n.Settings = newTagKeysSettingsNamespace(t)
+	return n
+}
+
+// TagKeysGetParams holds the parameters for `client.tagKeys.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type TagKeysGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Discovered tag keys with usage
+//
+// Every tag key the org's cost data (trailing 90 days) and resource inventory
+// carry, with the providers using it, row and resource counts, and whether the
+// tag key settings hide or pin it. Preferred keys first, then by usage. Cost
+// counts are included only when the caller also holds `costs:read`.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/tag-keys
+func (n *TagKeysNamespace) Get(ctx context.Context, params *TagKeysGetParams, opts ...RequestOption) (*DiscoveredTagKeys, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/tag-keys")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *DiscoveredTagKeys
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// TagKeysSettingsNamespace is `client.tagKeys.settings`.
+type TagKeysSettingsNamespace struct {
+	t *transport
+}
+
+func newTagKeysSettingsNamespace(t *transport) *TagKeysSettingsNamespace {
+	n := &TagKeysSettingsNamespace{t: t}
+	return n
+}
+
+// TagKeysSettingsGetParams holds the parameters for
+// `client.tagKeys.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type TagKeysSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: The org's hidden and preferred tag keys
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/tag-keys/settings
+func (n *TagKeysSettingsNamespace) Get(ctx context.Context, params *TagKeysSettingsGetParams, opts ...RequestOption) (*TagKeySettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/tag-keys/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *TagKeySettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// TagKeysSettingsUpdateParams holds the parameters for
+// `client.tagKeys.settings.update`.
+type TagKeysSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body TagKeySettings
+}
+
+// Update: Replace the org's hidden and preferred tag keys
+//
+// Applied to every tag-key listing the API serves (`GET
+// /costs/dimensions?dimension=tag-keys`, the metric alert selector options, the
+// MCP tools): preferred keys first, hidden keys omitted. A display preference
+// only; no stored data changes.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/tag-keys/settings
+//
+// Raises on 400: Bad request
+func (n *TagKeysSettingsNamespace) Update(ctx context.Context, params TagKeysSettingsUpdateParams, opts ...RequestOption) (*TagKeySettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/tag-keys/settings")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *TagKeySettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // TagPolicyNamespace is `client.tagPolicy`.
 type TagPolicyNamespace struct {
 	t *transport
@@ -22319,6 +22453,240 @@ func (n *TeamRolesNamespace) Update(ctx context.Context, params TeamRolesUpdateP
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *Role
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VirtualTagsNamespace is `client.virtualTags`.
+type VirtualTagsNamespace struct {
+	t *transport
+}
+
+func newVirtualTagsNamespace(t *transport) *VirtualTagsNamespace {
+	n := &VirtualTagsNamespace{t: t}
+	return n
+}
+
+// VirtualTagsCreateParams holds the parameters for `client.virtualTags.create`.
+type VirtualTagsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body VirtualTagInput
+}
+
+// Create: Create a virtual tag
+//
+// Queues the background evaluation over stored history at once.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/virtual-tags
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: Conflict
+func (n *VirtualTagsNamespace) Create(ctx context.Context, params VirtualTagsCreateParams, opts ...RequestOption) (*VirtualTag, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/virtual-tags")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *VirtualTag
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VirtualTagsDeleteParams holds the parameters for `client.virtualTags.delete`.
+type VirtualTagsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a virtual tag
+//
+// Refused with a 409 that names every saved filter, budget, report, dashboard
+// card, change alert, allocation rule, cost export or business metric still
+// referencing the key: deleting it would make those fail rather than quietly
+// widen to all spend.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/virtual-tags/{id}
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *VirtualTagsNamespace) Delete(ctx context.Context, params VirtualTagsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/virtual-tags/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VirtualTagsGetParams holds the parameters for `client.virtualTags.get`.
+type VirtualTagsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get a virtual tag
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/virtual-tags/{id}
+//
+// Raises on 404: Not found
+func (n *VirtualTagsNamespace) Get(ctx context.Context, params VirtualTagsGetParams, opts ...RequestOption) (*VirtualTag, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/virtual-tags/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *VirtualTag
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VirtualTagsListParams holds the parameters for `client.virtualTags.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type VirtualTagsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List virtual tags
+//
+// Virtual tags are tags the organisation computes from its own ordered rules:
+// merge `env`/`Environment`/`ENV` into one key, assign values by any cost
+// filter, split shared spend by percentage or by a business metric, with
+// optional start and end dates per rule. They work as the `virtual_tag` cost
+// dimension everywhere a tag does.
+//
+// **They are computed at query time and never written into stored cost data**,
+// and splits are weighted so a total never changes.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/virtual-tags
+func (n *VirtualTagsNamespace) List(ctx context.Context, params *VirtualTagsListParams, opts ...RequestOption) ([]VirtualTag, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/virtual-tags")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []VirtualTag
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VirtualTagsPreviewParams holds the parameters for
+// `client.virtualTags.preview`.
+type VirtualTagsPreviewParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body VirtualTagInput
+}
+
+// Preview: Preview an unsaved virtual tag
+//
+// Evaluates a definition over the trailing 30 days without storing it: spend per
+// rule, unmatched spend and the top values. Validates exactly as a save would.
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/virtual-tags/preview
+//
+// Raises on 400: Bad request
+func (n *VirtualTagsNamespace) Preview(ctx context.Context, params VirtualTagsPreviewParams, opts ...RequestOption) (*VirtualTagStats, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/virtual-tags/preview")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *VirtualTagStats
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VirtualTagsReprocessParams holds the parameters for
+// `client.virtualTags.reprocess`.
+type VirtualTagsReprocessParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Reprocess: Re-run a virtual tag's evaluation
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/virtual-tags/{id}/reprocess
+//
+// Raises on 404: Not found
+func (n *VirtualTagsNamespace) Reprocess(ctx context.Context, params VirtualTagsReprocessParams, opts ...RequestOption) (*VirtualTag, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/virtual-tags/{id}/reprocess")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *VirtualTag
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VirtualTagsUpdateParams holds the parameters for `client.virtualTags.update`.
+type VirtualTagsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body VirtualTagInput
+}
+
+// Update: Update a virtual tag
+//
+// A full replace, rule order included. The key cannot change (400). Saving
+// re-queues the background evaluation.
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/virtual-tags/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *VirtualTagsNamespace) Update(ctx context.Context, params VirtualTagsUpdateParams, opts ...RequestOption) (*VirtualTag, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/virtual-tags/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *VirtualTag
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
