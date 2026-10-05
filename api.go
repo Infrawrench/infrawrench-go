@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.52.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.54.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.52.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.54.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -137,6 +137,8 @@ type APIV1Client struct {
 	Environments *EnvironmentsNamespace
 	// Expiring: `client.expiring`.
 	Expiring *ExpiringNamespace
+	// GithubIssues: `client.githubIssues`.
+	GithubIssues *GithubIssuesNamespace
 	// Iac: `client.iac`.
 	Iac *IacNamespace
 	// Incidents: `client.incidents`.
@@ -298,6 +300,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.EnvironmentDiff = newEnvironmentDiffNamespace(t)
 	c.Environments = newEnvironmentsNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
+	c.GithubIssues = newGithubIssuesNamespace(t)
 	c.Iac = newIacNamespace(t)
 	c.Incidents = newIncidentsNamespace(t)
 	c.Invitations = newInvitationsNamespace(t)
@@ -3280,6 +3283,74 @@ func (n *BillingRulesNamespace) List(ctx context.Context, params *BillingRulesLi
 	if params != nil {
 		r.setPath("orgId", params.OrgID)
 	}
+	var out []BillingRule
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BillingRulesPreviewParams holds the parameters for
+// `client.billingRules.preview`.
+type BillingRulesPreviewParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body PricingPreviewRequest
+}
+
+// Preview: Preview a rule or customer pricing against a month of spend
+//
+// Prices one calendar month (last month by default) twice: with the saved rules
+// and settings, and with the candidate rule or customer settings swapped in.
+// Nothing is written. Returns both totals, every effect, re-rating coverage, any
+// expression failures and the lines that moved most.
+//
+// Requires `costs:read`, and `invoices:read` as well when a customer is named.
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/billing-rules/preview
+//
+// Raises on 400: Bad request
+func (n *BillingRulesNamespace) Preview(ctx context.Context, params BillingRulesPreviewParams, opts ...RequestOption) (*PricingPreviewResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/billing-rules/preview")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *PricingPreviewResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BillingRulesReorderParams holds the parameters for
+// `client.billingRules.reorder`.
+type BillingRulesReorderParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body BillingRuleOrder
+}
+
+// Reorder: Reorder billing rules
+//
+// Rewrites every rule's priority to match the given order (10, 20, 30…) in one
+// transaction and one audit entry. The list must name every rule exactly once.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/billing-rules/reorder
+//
+// Raises on 400: Bad request
+func (n *BillingRulesNamespace) Reorder(ctx context.Context, params BillingRulesReorderParams, opts ...RequestOption) ([]BillingRule, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/billing-rules/reorder")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
 	var out []BillingRule
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
@@ -10598,6 +10669,377 @@ func (n *ExpiringSettingsNamespace) Update(ctx context.Context, params *Expiring
 		r.setJSONBody(params.Body)
 	}
 	var out *ExpiryAlertSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubIssuesNamespace is `client.githubIssues`.
+type GithubIssuesNamespace struct {
+	t *transport
+
+	// PullRequests: `client.githubIssues.pullRequests`.
+	PullRequests *GithubIssuesPullRequestsNamespace
+}
+
+func newGithubIssuesNamespace(t *transport) *GithubIssuesNamespace {
+	n := &GithubIssuesNamespace{t: t}
+	n.PullRequests = newGithubIssuesPullRequestsNamespace(t)
+	return n
+}
+
+// GithubIssuesAssigneesParams holds the parameters for
+// `client.githubIssues.assignees`.
+type GithubIssuesAssigneesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	InstallationID int64
+	Repo           string
+}
+
+// Assignees: List a repository's assignable users
+//
+// Backs the assignee picker.
+//
+// _Requires permission: `github-issues:read`._
+//
+// GET /api/org/{orgId}/github-issues/assignees
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: The GitHub App installation needs a permission an owner has not
+// approved yet
+//
+// Raises on 502: GitHub refused the request or was unreachable
+func (n *GithubIssuesNamespace) Assignees(ctx context.Context, params GithubIssuesAssigneesParams, opts ...RequestOption) ([]GithubAssignee, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/github-issues/assignees")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("installationId", params.InstallationID)
+	r.addQuery("repo", params.Repo)
+	var out []GithubAssignee
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubIssuesBranchesParams holds the parameters for
+// `client.githubIssues.branches`.
+type GithubIssuesBranchesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	InstallationID int64
+	Repo           string
+}
+
+// Branches: List a repository's branches
+//
+// Backs the base-branch picker for Terraform sources.
+//
+// _Requires permission: `github-issues:read`._
+//
+// GET /api/org/{orgId}/github-issues/branches
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: The GitHub App installation needs a permission an owner has not
+// approved yet
+//
+// Raises on 502: GitHub refused the request or was unreachable
+func (n *GithubIssuesNamespace) Branches(ctx context.Context, params GithubIssuesBranchesParams, opts ...RequestOption) ([]string, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/github-issues/branches")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("installationId", params.InstallationID)
+	r.addQuery("repo", params.Repo)
+	var out []string
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubIssuesGetParams holds the parameters for `client.githubIssues.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type GithubIssuesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get GitHub issue settings and installation access
+//
+// _Requires permission: `github-issues:read`._
+//
+// GET /api/org/{orgId}/github-issues
+func (n *GithubIssuesNamespace) Get(ctx context.Context, params *GithubIssuesGetParams, opts ...RequestOption) (*GithubIssuesStatus, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/github-issues")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *GithubIssuesStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubIssuesIssuesParams holds the parameters for
+// `client.githubIssues.issues`.
+type GithubIssuesIssuesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body FileGithubIssueInput
+}
+
+// Issues: File a finding as a GitHub issue
+//
+// Opens an issue in the routed repository, or comments on the open issue already
+// filed for the same finding (matched by fingerprint, including a hidden marker
+// in issue bodies).
+//
+// _Requires permission: `github-issues:write`._
+//
+// POST /api/org/{orgId}/github-issues/issues
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: The GitHub App installation needs a permission an owner has not
+// approved yet
+//
+// Raises on 502: GitHub refused the request or was unreachable
+func (n *GithubIssuesNamespace) Issues(ctx context.Context, params GithubIssuesIssuesParams, opts ...RequestOption) (*FileGithubIssueResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/github-issues/issues")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *FileGithubIssueResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubIssuesLabelsParams holds the parameters for
+// `client.githubIssues.labels`.
+type GithubIssuesLabelsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	InstallationID int64
+	Repo           string
+}
+
+// Labels: List a repository's labels
+//
+// Backs the label picker.
+//
+// _Requires permission: `github-issues:read`._
+//
+// GET /api/org/{orgId}/github-issues/labels
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: The GitHub App installation needs a permission an owner has not
+// approved yet
+//
+// Raises on 502: GitHub refused the request or was unreachable
+func (n *GithubIssuesNamespace) Labels(ctx context.Context, params GithubIssuesLabelsParams, opts ...RequestOption) ([]GithubLabel, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/github-issues/labels")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("installationId", params.InstallationID)
+	r.addQuery("repo", params.Repo)
+	var out []GithubLabel
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubIssuesLinksParams holds the parameters for `client.githubIssues.links`.
+//
+// Every field is optional; pass nil to take the defaults.
+type GithubIssuesLinksParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	SourceKind *GithubIssueSourceKind
+	// State: One of "open", "closed".
+	State    *string
+	SourceID []string
+}
+
+// Links: Look up filed GitHub issues for a set of findings
+//
+// _Requires permission: `github-issues:read`._
+//
+// GET /api/org/{orgId}/github-issues/links
+//
+// Raises on 400: Bad request
+func (n *GithubIssuesNamespace) Links(ctx context.Context, params *GithubIssuesLinksParams, opts ...RequestOption) ([]GithubIssueLink, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/github-issues/links")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("sourceKind", params.SourceKind)
+		r.addQuery("state", params.State)
+		r.addQuery("sourceId", params.SourceID)
+	}
+	var out []GithubIssueLink
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubIssuesRouteParams holds the parameters for `client.githubIssues.route`.
+//
+// Every field is optional; pass nil to take the defaults.
+type GithubIssuesRouteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ResourceID *string
+}
+
+// Route: Resolve where a finding would be filed
+//
+// _Requires permission: `github-issues:read`._
+//
+// GET /api/org/{orgId}/github-issues/route
+func (n *GithubIssuesNamespace) Route(ctx context.Context, params *GithubIssuesRouteParams, opts ...RequestOption) (*GithubIssueRouteResolution, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/github-issues/route")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("resourceId", params.ResourceID)
+	}
+	var out *GithubIssueRouteResolution
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubIssuesSettingsParams holds the parameters for
+// `client.githubIssues.settings`.
+type GithubIssuesSettingsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body GithubIssueSettingsInput
+}
+
+// Settings: Replace the GitHub issue settings
+//
+// Whole-document replace: route order is part of the meaning. Route and source
+// ids are kept when supplied.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/github-issues/settings
+//
+// Raises on 400: Bad request
+func (n *GithubIssuesNamespace) Settings(ctx context.Context, params GithubIssuesSettingsParams, opts ...RequestOption) (*GithubIssueSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/github-issues/settings")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *GithubIssueSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubIssuesPullRequestsNamespace is `client.githubIssues.pullRequests`.
+type GithubIssuesPullRequestsNamespace struct {
+	t *transport
+}
+
+func newGithubIssuesPullRequestsNamespace(t *transport) *GithubIssuesPullRequestsNamespace {
+	n := &GithubIssuesPullRequestsNamespace{t: t}
+	return n
+}
+
+// GithubIssuesPullRequestsCreateParams holds the parameters for
+// `client.githubIssues.pullRequests.create`.
+type GithubIssuesPullRequestsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body GithubPullRequestInput
+}
+
+// Create: Open an IaC pull request for a finding
+//
+// Creates a branch, commits the one-file change and opens a pull request against
+// the mapped base branch. Never merged automatically.
+//
+// _Requires permission: `github-issues:write`._
+//
+// POST /api/org/{orgId}/github-issues/pull-requests
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: The GitHub App installation needs a permission an owner has not
+// approved yet
+//
+// Raises on 502: GitHub refused the request or was unreachable
+func (n *GithubIssuesPullRequestsNamespace) Create(ctx context.Context, params GithubIssuesPullRequestsCreateParams, opts ...RequestOption) (*GithubPullRequestResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/github-issues/pull-requests")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *GithubPullRequestResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubIssuesPullRequestsPreviewParams holds the parameters for
+// `client.githubIssues.pullRequests.preview`.
+type GithubIssuesPullRequestsPreviewParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body GithubPullRequestInput
+}
+
+// Preview: Preview an IaC pull request for a finding
+//
+// Reads only. Says what the pull request would change (one file, as a diff), or
+// why the change is not mechanical.
+//
+// _Requires permission: `github-issues:write`._
+//
+// POST /api/org/{orgId}/github-issues/pull-requests/preview
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: The GitHub App installation needs a permission an owner has not
+// approved yet
+//
+// Raises on 502: GitHub refused the request or was unreachable
+func (n *GithubIssuesPullRequestsNamespace) Preview(ctx context.Context, params GithubIssuesPullRequestsPreviewParams, opts ...RequestOption) (GithubPullRequestPreview, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/github-issues/pull-requests/preview")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out GithubPullRequestPreview
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.52.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.54.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.52.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.54.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -567,6 +567,12 @@ type AlertDelivery struct {
 // resolves to nobody — disabled, empty, not yet started — contributes nobody and
 // the rule's **other** destinations still deliver: an alert lost to a
 // misconfigured rotation would be the worst outcome the feature could have.
+//
+// `github-issues` files the alert's finding as a GitHub issue in the repository
+// the organization's GitHub issue settings route it to (`/github-issues`),
+// commenting on the open issue instead when one already exists for that finding.
+// Only alerts that carry a finding (savings findings, cost anomalies, idle
+// commitments) can be filed; for other triggers this destination is skipped.
 type AlertDestination = any
 
 // AlertRule is the `AlertRule` schema.
@@ -641,6 +647,7 @@ const (
 	AlertTriggerCommitmentExpiryAlerts   AlertTrigger = "commitmentExpiryAlerts"
 	AlertTriggerCommitmentIdleAlerts     AlertTrigger = "commitmentIdleAlerts"
 	AlertTriggerUnitCostRegressionAlerts AlertTrigger = "unitCostRegressionAlerts"
+	AlertTriggerSavingsFindings          AlertTrigger = "savingsFindings"
 	AlertTriggerMetricAlerts             AlertTrigger = "metricAlerts"
 	AlertTriggerResourceDrift            AlertTrigger = "resourceDrift"
 	AlertTriggerWorkflowPages            AlertTrigger = "workflowPages"
@@ -1008,15 +1015,16 @@ const (
 
 // BillingRule is the `BillingRule` schema.
 type BillingRule struct {
-	ID          string                `json:"id"`
-	Name        string                `json:"name"`
-	Description *string               `json:"description"`
-	Enabled     bool                  `json:"enabled"`
-	Priority    int64                 `json:"priority"`
-	Match       BillingRuleMatch      `json:"match"`
-	Adjustment  BillingRuleAdjustment `json:"adjustment"`
-	CreatedAt   string                `json:"createdAt"`
-	UpdatedAt   string                `json:"updatedAt"`
+	ID                string                `json:"id"`
+	Name              string                `json:"name"`
+	Description       *string               `json:"description"`
+	Enabled           bool                  `json:"enabled"`
+	Priority          int64                 `json:"priority"`
+	Match             BillingRuleMatch      `json:"match"`
+	Adjustment        BillingRuleAdjustment `json:"adjustment"`
+	ManagedAccountIDs []string              `json:"managedAccountIds"`
+	CreatedAt         string                `json:"createdAt"`
+	UpdatedAt         string                `json:"updatedAt"`
 }
 
 // BillingRuleAdjustment is the `BillingRuleAdjustment` schema.
@@ -1028,7 +1036,13 @@ type BillingRuleAdjustment struct {
 	// cost centre or account; the first matching reallocation rule wins, so a
 	// row moves exactly once and the organisation's total is unchanged.
 	//
-	// One of "percentage", "fixed", "reallocation".
+	// `tiered` and `expression` apply **only when a managed account's invoice is
+	// priced**: `tiered` marks a customer's matched monthly spend up or down by
+	// rate tiers on its volume, and `expression` computes each matched line's
+	// new cost with a sandboxed pricing expression. Neither ever changes the
+	// organisation's own graphs, budgets or showback.
+	//
+	// One of "percentage", "fixed", "reallocation", "tiered", "expression".
 	Kind string `json:"kind"`
 	// Percent: `percentage` only. Signed: +15 marks up by 15%, -10 discounts by
 	// 10%. Bounded below at -100 because a discount larger than the cost would
@@ -1048,6 +1062,28 @@ type BillingRuleAdjustment struct {
 	// One of "cost_centre", "account".
 	TargetKind *string `json:"targetKind,omitempty"`
 	TargetID   *string `json:"targetId,omitempty"`
+	// Tiers: `tiered` only. Ascending, with strictly increasing `upTo`; only the
+	// last tier is open-ended. Thresholds are in `currency`, which a tiered rule
+	// requires.
+	Tiers []BillingRuleTier `json:"tiers,omitempty"`
+	// TierMode: `tiered` only. `marginal` charges each slice of the month's
+	// spend at its own tier's rate; `volume` charges the whole month at the rate
+	// of the tier the total falls in.
+	//
+	// One of "marginal", "volume".
+	TierMode *string `json:"tierMode,omitempty"`
+	// TierScope: `tiered` only. Whether volume is the customer's matched spend
+	// overall or per service.
+	//
+	// One of "overall", "per_service".
+	TierScope *string `json:"tierScope,omitempty"`
+	// Expression: `expression` only. A pricing expression giving the line's new
+	// cost, e.g. `if service == "AmazonEC2" and tag.env == "prod" then cost *
+	// 1.1`. Parsed and type-checked on save; a syntax or type error is a 400
+	// naming the character it was found at. It is evaluated by a small
+	// interpreter over a closed set of fields and functions, never handed to a
+	// database or a script engine.
+	Expression *string `json:"expression,omitempty"`
 }
 
 // BillingRuleInput is the `BillingRuleInput` schema.
@@ -1063,6 +1099,10 @@ type BillingRuleInput struct {
 	Priority   int64                 `json:"priority"`
 	Match      BillingRuleMatch      `json:"match"`
 	Adjustment BillingRuleAdjustment `json:"adjustment"`
+	// ManagedAccountIDs: `tiered` and `expression` only: the managed accounts
+	// whose invoices this rule prices. Empty or absent means every customer
+	// whose billing rules are on.
+	ManagedAccountIDs []string `json:"managedAccountIds,omitempty"`
 }
 
 // BillingRuleMatch: All set fields must match (AND); a rule with no fields
@@ -1083,6 +1123,20 @@ type BillingRuleMatch struct {
 	// "commitment_discount", "credit", "tax", "refund", "adjustment", "support",
 	// "other".
 	ChargeType *string `json:"chargeType,omitempty"`
+}
+
+// BillingRuleOrder is the `BillingRuleOrder` schema.
+type BillingRuleOrder struct {
+	IDs []string `json:"ids"`
+}
+
+// BillingRuleTier is the `BillingRuleTier` schema.
+type BillingRuleTier struct {
+	// UpTo: Exclusive upper bound of monthly spend this tier covers, in the
+	// rule's `currency`. Null on the last tier, which is open-ended.
+	UpTo *float64 `json:"upTo"`
+	// Percent: Signed: +8 marks up by 8%, -2 discounts by 2%.
+	Percent float64 `json:"percent"`
 }
 
 // BillingStatus is the `BillingStatus` schema.
@@ -4221,6 +4275,17 @@ type DigestTransportResult struct {
 	Succeeded int64 `json:"succeeded"`
 }
 
+// DiscountTreatment: Provider discounts: `commitment_discount` lines and
+// negative `other`/`adjustment` lines (enterprise agreements, private pricing,
+// Savings Plan negation).
+type DiscountTreatment struct {
+	// Mode: One of "pass_through", "partial", "retain".
+	Mode string `json:"mode"`
+	// PassThroughPercent: `partial` only: the share the customer receives,
+	// strictly between 0 and 100.
+	PassThroughPercent *float64 `json:"passThroughPercent,omitempty"`
+}
+
 // DismissedAccessFinding is the `DismissedAccessFinding` schema.
 type DismissedAccessFinding struct {
 	// ResourceID: Infrawrench resource id the finding is on.
@@ -5045,6 +5110,33 @@ type FieldActionResponse struct {
 	Option *FieldActionResponseOption `json:"option,omitempty"`
 }
 
+// FileGithubIssueInput is the `FileGithubIssueInput` schema.
+type FileGithubIssueInput struct {
+	SourceKind  GithubIssueSourceKind            `json:"sourceKind"`
+	SourceID    string                           `json:"sourceId"`
+	Title       string                           `json:"title"`
+	Details     []FileGithubIssueInputDetails    `json:"details,omitempty"`
+	Note        *string                          `json:"note,omitempty"`
+	ResourceID  *string                          `json:"resourceId,omitempty"`
+	MonthlyCost *FileGithubIssueInputMonthlyCost `json:"monthlyCost,omitempty"`
+	// Remediation: Shell commands that fix the finding, rendered as a code block
+	// to review.
+	Remediation []string       `json:"remediation,omitempty"`
+	Repo        *GithubRepoRef `json:"repo,omitempty"`
+	Labels      []string       `json:"labels,omitempty"`
+	Assignees   []string       `json:"assignees,omitempty"`
+	AppURL      *string        `json:"appUrl,omitempty"`
+}
+
+// FileGithubIssueResult is the `FileGithubIssueResult` schema.
+type FileGithubIssueResult struct {
+	// Action: `commented` when an open issue for the finding already existed.
+	//
+	// One of "created", "commented".
+	Action string          `json:"action"`
+	Link   GithubIssueLink `json:"link"`
+}
+
 // FocusExportRequest is the `FocusExportRequest` schema.
 type FocusExportRequest struct {
 	From    string       `json:"from"`
@@ -5104,6 +5196,229 @@ type GeneratedSSHKey struct {
 	// PrivateKey: Returned once. Not persisted in plaintext.
 	PrivateKey string `json:"privateKey"`
 }
+
+// GithubAssignee is the `GithubAssignee` schema.
+type GithubAssignee struct {
+	Login     string  `json:"login"`
+	AvatarURL *string `json:"avatarUrl"`
+}
+
+// GithubIacSource is the `GithubIacSource` schema.
+type GithubIacSource struct {
+	ID string `json:"id"`
+	// IacAccountID: The IaC state scope this maps: the account an uploaded state
+	// document covers, or null for the organization-wide state.
+	IacAccountID *string        `json:"iacAccountId"`
+	Repo         *GithubRepoRef `json:"repo"`
+	// BaseBranch: Branch pull requests target. Null means the repository's
+	// default branch.
+	BaseBranch *string `json:"baseBranch"`
+	// Directory: Directory holding the root module's `.tf` files. Empty for the
+	// repository root.
+	Directory string `json:"directory"`
+}
+
+// GithubIacSourceInput is the `GithubIacSourceInput` schema.
+type GithubIacSourceInput struct {
+	ID *string `json:"id,omitempty"`
+	// IacAccountID: The IaC state scope this maps: the account an uploaded state
+	// document covers, or null for the organization-wide state.
+	IacAccountID *string        `json:"iacAccountId"`
+	Repo         *GithubRepoRef `json:"repo"`
+	// BaseBranch: Branch pull requests target. Null means the repository's
+	// default branch.
+	BaseBranch *string `json:"baseBranch"`
+	// Directory: Directory holding the root module's `.tf` files. Empty for the
+	// repository root.
+	Directory string `json:"directory"`
+}
+
+// GithubInstallationAccess: What an installation has **accepted**. An
+// installation made before issue filing existed shows `issues: none` until an
+// owner of the GitHub account approves the app's updated permissions.
+type GithubInstallationAccess struct {
+	InstallationID int64   `json:"installationId"`
+	AccountLogin   *string `json:"accountLogin"`
+	// Issues: One of "none", "read", "write", "admin".
+	Issues string `json:"issues"`
+	// PullRequests: One of "none", "read", "write", "admin".
+	PullRequests string `json:"pullRequests"`
+	// Contents: One of "none", "read", "write", "admin".
+	Contents  string  `json:"contents"`
+	Suspended bool    `json:"suspended"`
+	ManageURL *string `json:"manageUrl"`
+	// Checked: False when GitHub could not be asked; the levels are then all
+	// `none`.
+	Checked bool `json:"checked"`
+}
+
+// GithubIssueLink is the `GithubIssueLink` schema.
+type GithubIssueLink struct {
+	ID         string                `json:"id"`
+	SourceKind GithubIssueSourceKind `json:"sourceKind"`
+	SourceID   string                `json:"sourceId"`
+	// Fingerprint: Hash of the finding; also written into the issue body as a
+	// hidden marker.
+	Fingerprint    string `json:"fingerprint"`
+	Repo           string `json:"repo"`
+	InstallationID int64  `json:"installationId"`
+	IssueNumber    int64  `json:"issueNumber"`
+	IssueURL       string `json:"issueUrl"`
+	// State: One of "open", "closed".
+	State             string  `json:"state"`
+	AutoFiled         bool    `json:"autoFiled"`
+	PullRequestNumber *int64  `json:"pullRequestNumber"`
+	PullRequestURL    *string `json:"pullRequestUrl"`
+	CreatedByUserID   *string `json:"createdByUserId"`
+	CreatedAt         string  `json:"createdAt"`
+	ResolvedAt        *string `json:"resolvedAt"`
+}
+
+// GithubIssueRoute is the `GithubIssueRoute` schema.
+type GithubIssueRoute struct {
+	ID    string                `json:"id"`
+	Match GithubIssueRouteMatch `json:"match"`
+	Repo  *GithubRepoRef        `json:"repo"`
+	// Labels: Added to the organization-wide labels.
+	Labels []string `json:"labels"`
+	// Assignees: Replace the organization-wide assignees when non-empty.
+	Assignees []string `json:"assignees"`
+}
+
+// GithubIssueRouteInput is the `GithubIssueRouteInput` schema.
+type GithubIssueRouteInput struct {
+	ID    *string               `json:"id,omitempty"`
+	Match GithubIssueRouteMatch `json:"match"`
+	Repo  *GithubRepoRef        `json:"repo"`
+	// Labels: Added to the organization-wide labels.
+	Labels []string `json:"labels"`
+	// Assignees: Replace the organization-wide assignees when non-empty.
+	Assignees []string `json:"assignees"`
+}
+
+// GithubIssueRouteMatch: What sends a finding to this route's repository: the
+// cost centre the organization's allocation rules place its resource in, or a
+// tag on the resource. Allocation rules that match on `service` cannot be judged
+// from a resource and never match here.
+type GithubIssueRouteMatch = any
+
+// GithubIssueRouteResolution is the `GithubIssueRouteResolution` schema.
+type GithubIssueRouteResolution struct {
+	Repo      *GithubRepoRef `json:"repo"`
+	Labels    []string       `json:"labels"`
+	Assignees []string       `json:"assignees"`
+	RouteID   *string        `json:"routeId"`
+}
+
+// GithubIssueSettings is the `GithubIssueSettings` schema.
+type GithubIssueSettings struct {
+	Enabled             bool                `json:"enabled"`
+	DefaultRepo         *GithubRepoRef      `json:"defaultRepo"`
+	Labels              []string            `json:"labels"`
+	Assignees           []string            `json:"assignees"`
+	Routes              []GithubIssueRoute  `json:"routes"`
+	ResolveAction       GithubResolveAction `json:"resolveAction"`
+	PullRequestsEnabled bool                `json:"pullRequestsEnabled"`
+	IacSources          []GithubIacSource   `json:"iacSources"`
+	UpdatedAt           *string             `json:"updatedAt"`
+}
+
+// GithubIssueSettingsInput is the `GithubIssueSettingsInput` schema.
+type GithubIssueSettingsInput struct {
+	// Enabled: Master switch for filing, manual and routed.
+	Enabled     bool           `json:"enabled"`
+	DefaultRepo *GithubRepoRef `json:"defaultRepo"`
+	Labels      []string       `json:"labels"`
+	Assignees   []string       `json:"assignees"`
+	// Routes: Ordered; the first match wins and no match falls back to
+	// `defaultRepo`.
+	Routes        []GithubIssueRouteInput `json:"routes"`
+	ResolveAction GithubResolveAction     `json:"resolveAction"`
+	// PullRequestsEnabled: Allow holders of `github-issues:write` to open pull
+	// requests editing Terraform for IaC-managed findings. Never auto-merged.
+	PullRequestsEnabled bool                   `json:"pullRequestsEnabled"`
+	IacSources          []GithubIacSourceInput `json:"iacSources"`
+}
+
+// GithubIssueSourceKind: Which detector produced the finding the issue was filed
+// from.
+type GithubIssueSourceKind = string
+
+// The values GithubIssueSourceKind takes.
+const (
+	GithubIssueSourceKindCostAnomaly    GithubIssueSourceKind = "cost_anomaly"
+	GithubIssueSourceKindOrphan         GithubIssueSourceKind = "orphan"
+	GithubIssueSourceKindOversized      GithubIssueSourceKind = "oversized"
+	GithubIssueSourceKindPostureFinding GithubIssueSourceKind = "posture_finding"
+	GithubIssueSourceKindExpiring       GithubIssueSourceKind = "expiring"
+	GithubIssueSourceKindProbe          GithubIssueSourceKind = "probe"
+	GithubIssueSourceKindCommitmentIdle GithubIssueSourceKind = "commitment_idle"
+)
+
+// GithubIssuesStatus is the `GithubIssuesStatus` schema.
+type GithubIssuesStatus struct {
+	AppConfigured bool                       `json:"appConfigured"`
+	Installations []GithubInstallationAccess `json:"installations"`
+	Settings      GithubIssueSettings        `json:"settings"`
+}
+
+// GithubLabel is the `GithubLabel` schema.
+type GithubLabel struct {
+	Name        string  `json:"name"`
+	Color       string  `json:"color"`
+	Description *string `json:"description"`
+}
+
+// GithubPermissionRequired: The installation has not accepted the permission
+// this needs. An owner of the GitHub account approves it from `manageUrl`.
+type GithubPermissionRequired struct {
+	Error string `json:"error"`
+	// Code: One of "github_permission_required".
+	Code           string   `json:"code"`
+	Permissions    []string `json:"permissions"`
+	InstallationID int64    `json:"installationId"`
+	AccountLogin   *string  `json:"accountLogin"`
+	ManageURL      *string  `json:"manageUrl"`
+}
+
+// GithubPullRequestInput is the `GithubPullRequestInput` schema.
+type GithubPullRequestInput struct {
+	SourceKind GithubIssueSourceKind `json:"sourceKind"`
+	SourceID   string                `json:"sourceId"`
+	ResourceID string                `json:"resourceId"`
+	Change     any                   `json:"change"`
+}
+
+// GithubPullRequestPreview is the `GithubPullRequestPreview` schema.
+type GithubPullRequestPreview = any
+
+// GithubPullRequestResult is the `GithubPullRequestResult` schema.
+type GithubPullRequestResult struct {
+	PullRequest GithubPullRequestResultPullRequest `json:"pullRequest"`
+	Link        any                                `json:"link"`
+}
+
+// GithubRepoRef is the `GithubRepoRef` schema.
+//
+// The API may send null in its place.
+type GithubRepoRef struct {
+	// InstallationID: A GitHub App installation connected to the organization
+	// (`/github/status`).
+	InstallationID int64 `json:"installationId"`
+	// FullName: `owner/name`, as listed by `/github/repos`.
+	FullName string `json:"fullName"`
+}
+
+// GithubResolveAction: What happens to an open issue when its finding goes away:
+// close it with a comment, only comment, or leave it alone.
+type GithubResolveAction = string
+
+// The values GithubResolveAction takes.
+const (
+	GithubResolveActionClose   GithubResolveAction = "close"
+	GithubResolveActionComment GithubResolveAction = "comment"
+	GithubResolveActionNone    GithubResolveAction = "none"
+)
 
 // HygieneFinding is the `HygieneFinding` schema.
 type HygieneFinding struct {
@@ -5660,7 +5975,14 @@ type InvoiceDerivation struct {
 	// MissingScope: Scope entries that no longer exist. Recorded rather than
 	// silently skipped — an invoice that is quietly short is worse than one that
 	// says why.
-	MissingScope []string `json:"missingScope"`
+	MissingScope []string               `json:"missingScope"`
+	Pricing      *ManagedAccountPricing `json:"pricing,omitempty"`
+	// Effects: Every rule or setting that moved money, in pipeline order, with
+	// its total per currency: the per-invoice answer to which rule changed what.
+	Effects            []PricingEffect            `json:"effects,omitempty"`
+	RerateCoverage     *RerateCoverage            `json:"rerateCoverage,omitempty"`
+	Warnings           []string                   `json:"warnings,omitempty"`
+	ExpressionFailures []PricingExpressionFailure `json:"expressionFailures,omitempty"`
 }
 
 // InvoiceInput: A new invoice is always a draft. There is no status field and no
@@ -5704,6 +6026,11 @@ type InvoiceLine struct {
 	Rate *float64 `json:"rate"`
 	// Billed: `adjusted × rate`, in the invoice currency.
 	Billed *float64 `json:"billed"`
+	// Effects: What moved this line, in pipeline order and in the line's
+	// currency: one entry per re-rating step, discount treatment or billing
+	// rule. Sums to `adjustment`. `key` matches an entry in the derivation's
+	// `effects`. Absent on invoices approved before the breakdown existed.
+	Effects []InvoiceLineEffects `json:"effects,omitempty"`
 }
 
 // InvoiceSendRequest is the `InvoiceSendRequest` schema.
@@ -6247,15 +6574,16 @@ type ManagedAccount struct {
 	BillingAddress  *string `json:"billingAddress"`
 	BillingCurrency string  `json:"billingCurrency"`
 	// CostBasis: One of "cash", "amortized".
-	CostBasis         string   `json:"costBasis"`
-	ApplyBillingRules bool     `json:"applyBillingRules"`
-	Notes             *string  `json:"notes"`
-	CostCentreIDs     []string `json:"costCentreIds"`
-	AccountIDs        []string `json:"accountIds"`
-	InvoiceCount      int64    `json:"invoiceCount"`
-	CreatedByUserID   *string  `json:"createdByUserId"`
-	CreatedAt         string   `json:"createdAt"`
-	UpdatedAt         string   `json:"updatedAt"`
+	CostBasis         string                 `json:"costBasis"`
+	ApplyBillingRules bool                   `json:"applyBillingRules"`
+	Pricing           *ManagedAccountPricing `json:"pricing"`
+	Notes             *string                `json:"notes"`
+	CostCentreIDs     []string               `json:"costCentreIds"`
+	AccountIDs        []string               `json:"accountIds"`
+	InvoiceCount      int64                  `json:"invoiceCount"`
+	CreatedByUserID   *string                `json:"createdByUserId"`
+	CreatedAt         string                 `json:"createdAt"`
+	UpdatedAt         string                 `json:"updatedAt"`
 }
 
 // ManagedAccountInput is the `ManagedAccountInput` schema.
@@ -6278,8 +6606,9 @@ type ManagedAccountInput struct {
 	// ApplyBillingRules: Defaults to true. False is a pass-through contract: the
 	// customer is billed exactly what the providers charged, with no markup,
 	// discount or fixed fee applied.
-	ApplyBillingRules *bool   `json:"applyBillingRules,omitempty"`
-	Notes             *string `json:"notes,omitempty"`
+	ApplyBillingRules *bool                  `json:"applyBillingRules,omitempty"`
+	Pricing           *ManagedAccountPricing `json:"pricing,omitempty"`
+	Notes             *string                `json:"notes,omitempty"`
 	// CostCentreIDs: Cost centres whose spend belongs to this customer.
 	// **Subtrees are included** — naming a parent bills every descendant, and
 	// naming both a parent and its child bills the child once, not twice.
@@ -6295,6 +6624,19 @@ type ManagedAccountInput struct {
 	// spend no cost centre already claimed. Every cost row therefore resolves
 	// exactly once: nothing is billed twice and nothing goes missing.
 	AccountIDs []string `json:"accountIds,omitempty"`
+}
+
+// ManagedAccountPricing: Customer settings to try instead of the saved ones.
+//
+// The API may send null in its place.
+type ManagedAccountPricing struct {
+	// Rerate: Present usage at the provider's public on-demand list price
+	// instead of what the organisation actually paid. Applies to usage and
+	// commitment-covered usage lines only.
+	Rerate             ManagedAccountPricingRerate `json:"rerate"`
+	Discounts          DiscountTreatment           `json:"discounts"`
+	Credits            DiscountTreatment           `json:"credits"`
+	CommitmentBenefits DiscountTreatment           `json:"commitmentBenefits"`
 }
 
 // Manifest is the `Manifest` schema.
@@ -7538,6 +7880,8 @@ const (
 	PermissionJiraWrite              Permission = "jira:write"
 	PermissionLinearRead             Permission = "linear:read"
 	PermissionLinearWrite            Permission = "linear:write"
+	PermissionGithubIssuesRead       Permission = "github-issues:read"
+	PermissionGithubIssuesWrite      Permission = "github-issues:write"
 	PermissionInvoicesRead           Permission = "invoices:read"
 	PermissionInvoicesWrite          Permission = "invoices:write"
 	PermissionInvoicesIssue          Permission = "invoices:issue"
@@ -8051,6 +8395,69 @@ const (
 	PriceRateTypeReserved    PriceRateType = "reserved"
 	PriceRateTypeSavingsPlan PriceRateType = "savings-plan"
 )
+
+// PricingEffect: One rule or setting that moved money, in pipeline order.
+type PricingEffect struct {
+	// Key: A billing rule id, or one of `rerate:list`, `rerate:fallback`,
+	// `treatment:discounts`, `treatment:credits`,
+	// `treatment:commitment_benefits`.
+	Key    string  `json:"key"`
+	RuleID *string `json:"ruleId"`
+	Label  string  `json:"label"`
+	// Kind: One of "rerate_list", "rerate_fallback", "discounts", "credits",
+	// "commitment_benefits", "percentage", "fixed", "reallocation", "tiered",
+	// "expression".
+	Kind string `json:"kind"`
+	// Totals: Currency → what it added or removed.
+	Totals map[string]float64 `json:"totals"`
+}
+
+// PricingExpressionFailure: An expression rule that could not price some lines
+// (division by zero, a non-finite result). Those lines kept their previous cost
+// rather than becoming zero.
+type PricingExpressionFailure struct {
+	RuleID  string `json:"ruleId"`
+	Name    string `json:"name"`
+	Lines   int64  `json:"lines"`
+	Message string `json:"message"`
+}
+
+// PricingPreviewRequest is the `PricingPreviewRequest` schema.
+type PricingPreviewRequest struct {
+	Rule any `json:"rule,omitempty"`
+	// RuleID: With `rule`, the saved rule it replaces (an edit being previewed).
+	// Alone, previews the saved rule as it stands. Either way `before` is priced
+	// without this rule.
+	RuleID *string `json:"ruleId,omitempty"`
+	// ManagedAccountID: Price this customer's scope with their settings. Absent
+	// prices the organisation's whole spend as one customer. Naming a customer
+	// also needs `invoices:read`.
+	ManagedAccountID *string                `json:"managedAccountId,omitempty"`
+	Pricing          *ManagedAccountPricing `json:"pricing,omitempty"`
+	// Month: `YYYY-MM`; defaults to last calendar month.
+	Month *string `json:"month,omitempty"`
+}
+
+// PricingPreviewResult is the `PricingPreviewResult` schema.
+type PricingPreviewResult struct {
+	Month            string             `json:"month"`
+	From             string             `json:"from"`
+	To               string             `json:"to"`
+	ManagedAccountID *string            `json:"managedAccountId"`
+	Collected        map[string]float64 `json:"collected"`
+	// Before: Priced without the candidate: the saved rules minus `ruleId`, with
+	// the saved settings.
+	Before map[string]float64 `json:"before"`
+	// After: Priced with the candidate swapped in.
+	After              map[string]float64         `json:"after"`
+	Effects            []PricingEffect            `json:"effects"`
+	Coverage           *RerateCoverage            `json:"coverage"`
+	Warnings           []string                   `json:"warnings"`
+	ExpressionFailures []PricingExpressionFailure `json:"expressionFailures"`
+	// Changes: The lines that moved most, largest change first, at most 25.
+	Changes   []PricingPreviewResultChanges `json:"changes"`
+	LineCount int64                         `json:"lineCount"`
+}
 
 // ProbeMetricSeries is the `ProbeMetricSeries` schema.
 type ProbeMetricSeries struct {
@@ -8616,6 +9023,14 @@ type RequiredTag struct {
 	// AllowedValues: When set, the tag's value must be one of these (compared
 	// exactly).
 	AllowedValues []string `json:"allowedValues,omitempty"`
+}
+
+// RerateCoverage is the `RerateCoverage` schema.
+//
+// The API may send null in its place.
+type RerateCoverage struct {
+	ByCurrency map[string]RerateCoverageByCurrencyValue `json:"byCurrency"`
+	Services   []RerateCoverageServices                 `json:"services"`
 }
 
 // Resource is the `Resource` schema.
@@ -11699,7 +12114,8 @@ type CostAccountStatusCoverage struct {
 type CostAdjustmentSummaryRules struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
-	// Kind: One of "percentage", "fixed", "reallocation".
+	// Kind: One of "percentage", "fixed", "reallocation", "tiered",
+	// "expression".
 	Kind    string `json:"kind"`
 	Summary string `json:"summary"`
 }
@@ -11900,6 +12316,24 @@ type FieldActionResponseOption struct {
 	Label string `json:"label"`
 }
 
+// FileGithubIssueInputDetails is an object the spec declares inline.
+type FileGithubIssueInputDetails struct {
+	Label string `json:"label"`
+	Value any    `json:"value,omitempty"`
+}
+
+// FileGithubIssueInputMonthlyCost is an object the spec declares inline.
+type FileGithubIssueInputMonthlyCost struct {
+	Amount   float64 `json:"amount"`
+	Currency string  `json:"currency"`
+}
+
+// GithubPullRequestResultPullRequest is an object the spec declares inline.
+type GithubPullRequestResultPullRequest struct {
+	Number int64  `json:"number"`
+	URL    string `json:"url"`
+}
+
 // HygieneReportCounts is an object the spec declares inline.
 type HygieneReportCounts struct {
 	High   int64 `json:"high"`
@@ -11977,7 +12411,8 @@ type InvoiceDerivationRates struct {
 type InvoiceDerivationRules struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
-	// Kind: One of "percentage", "fixed", "reallocation".
+	// Kind: One of "percentage", "fixed", "reallocation", "tiered",
+	// "expression".
 	Kind    string `json:"kind"`
 	Summary string `json:"summary"`
 }
@@ -11986,6 +12421,12 @@ type InvoiceDerivationRules struct {
 type InvoiceDerivationScope struct {
 	CostCentres []InvoiceDerivationScopeCostCentres `json:"costCentres"`
 	Accounts    []InvoiceDerivationScopeAccounts    `json:"accounts"`
+}
+
+// InvoiceLineEffects is an object the spec declares inline.
+type InvoiceLineEffects struct {
+	Key    string  `json:"key"`
+	Amount float64 `json:"amount"`
 }
 
 // InvoiceVoidResponseReplacement is an object the spec declares inline.
@@ -12023,6 +12464,20 @@ type InvoiceVoidResponseReplacement struct {
 	SentByUserID     *string `json:"sentByUserId"`
 	VoidedByUserID   *string `json:"voidedByUserId"`
 	CreatedByUserID  *string `json:"createdByUserId"`
+}
+
+// ManagedAccountPricingRerate is an object the spec declares inline.
+type ManagedAccountPricingRerate struct {
+	Enabled bool `json:"enabled"`
+	// Scope: Providers or services to re-rate. Empty means every provider.
+	Scope []ManagedAccountPricingRerateScope `json:"scope"`
+	// FallbackUpliftPercent: Applied to in-scope usage the provider reports no
+	// list price for: such a line is billed at collected plus this percentage,
+	// and counted as `fallback` in the coverage.
+	FallbackUpliftPercent float64 `json:"fallbackUpliftPercent"`
+	// Uplifts: Per-provider or per-service overrides of the fallback uplift; the
+	// most specific wins.
+	Uplifts []ManagedAccountPricingRerateUplifts `json:"uplifts"`
 }
 
 // MetricAlertSelectorOptionsPlugins is an object the spec declares inline.
@@ -12217,6 +12672,18 @@ type PriceCatalogRowEstimate struct {
 	Fields         map[string]string `json:"fields"`
 }
 
+// PricingPreviewResultChanges is an object the spec declares inline.
+type PricingPreviewResultChanges struct {
+	PluginID    string  `json:"pluginId"`
+	Service     string  `json:"service"`
+	AccountName string  `json:"accountName"`
+	ChargeType  string  `json:"chargeType"`
+	Currency    string  `json:"currency"`
+	Collected   float64 `json:"collected"`
+	Before      float64 `json:"before"`
+	After       float64 `json:"after"`
+}
+
 // ProbeMetricSeriesPoints is an object the spec declares inline.
 type ProbeMetricSeriesPoints struct {
 	// Timestamp: Unix epoch milliseconds.
@@ -12274,6 +12741,25 @@ type ReportNotificationSendResultTeams struct {
 type ReportNotificationSendResultEmail struct {
 	Attempted int64 `json:"attempted"`
 	Succeeded int64 `json:"succeeded"`
+}
+
+// RerateCoverageByCurrencyValue is an object the spec declares inline.
+type RerateCoverageByCurrencyValue struct {
+	// ListPriced: Collected spend priced from a provider-reported list price.
+	ListPriced float64 `json:"listPriced"`
+	// ListTotal: What that spend lists at.
+	ListTotal float64 `json:"listTotal"`
+	// Fallback: Collected spend with no list price, priced at the uplift.
+	Fallback float64 `json:"fallback"`
+}
+
+// RerateCoverageServices is an object the spec declares inline.
+type RerateCoverageServices struct {
+	PluginID   string  `json:"pluginId"`
+	Service    string  `json:"service"`
+	Currency   string  `json:"currency"`
+	ListPriced float64 `json:"listPriced"`
+	Fallback   float64 `json:"fallback"`
 }
 
 // ResourceCarbonEstimateAssumptions is an object the spec declares inline.
@@ -12452,6 +12938,21 @@ type InvoiceDerivationScopeCostCentres struct {
 type InvoiceDerivationScopeAccounts struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
+}
+
+// ManagedAccountPricingRerateScope is an object the spec declares inline.
+type ManagedAccountPricingRerateScope struct {
+	PluginID string `json:"pluginId"`
+	// Service: Absent or null means every service of the provider.
+	Service *string `json:"service,omitempty"`
+}
+
+// ManagedAccountPricingRerateUplifts is an object the spec declares inline.
+type ManagedAccountPricingRerateUplifts struct {
+	PluginID string `json:"pluginId"`
+	// Service: Absent or null means every service of the provider.
+	Service *string `json:"service,omitempty"`
+	Percent float64 `json:"percent"`
 }
 
 // OrgConfigCostCentreRulesMatch is an object the spec declares inline.
