@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.48.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.49.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.48.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.49.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7526,6 +7526,7 @@ const (
 	PluginIDAssemblyai     PluginID = "assemblyai"
 	PluginIDAWS            PluginID = "aws"
 	PluginIDAzure          PluginID = "azure"
+	PluginIDBaseten        PluginID = "baseten"
 	PluginIDCartesia       PluginID = "cartesia"
 	PluginIDCircleci       PluginID = "circleci"
 	PluginIDClickhouse     PluginID = "clickhouse"
@@ -8790,6 +8791,7 @@ const (
 	ResourceTypeIDChMember                       ResourceTypeID = "ch-member"
 	ResourceTypeIDChPostgres                     ResourceTypeID = "ch-postgres"
 	ResourceTypeIDChService                      ResourceTypeID = "ch-service"
+	ResourceTypeIDChain                          ResourceTypeID = "chain"
 	ResourceTypeIDCksCluster                     ResourceTypeID = "cks-cluster"
 	ResourceTypeIDClientKey                      ResourceTypeID = "client-key"
 	ResourceTypeIDCloud                          ResourceTypeID = "cloud"
@@ -9043,6 +9045,7 @@ const (
 	ResourceTypeIDMistralModel                   ResourceTypeID = "mistral-model"
 	ResourceTypeIDMistralVoice                   ResourceTypeID = "mistral-voice"
 	ResourceTypeIDModel                          ResourceTypeID = "model"
+	ResourceTypeIDModelAPI                       ResourceTypeID = "model-api"
 	ResourceTypeIDModelAPIKey                    ResourceTypeID = "model-api-key"
 	ResourceTypeIDModelEndpoint                  ResourceTypeID = "model-endpoint"
 	ResourceTypeIDModelVersion                   ResourceTypeID = "model-version"
@@ -9244,6 +9247,8 @@ const (
 	ResourceTypeIDTopicJob                       ResourceTypeID = "topic-job"
 	ResourceTypeIDTrafficFilter                  ResourceTypeID = "traffic-filter"
 	ResourceTypeIDTraining                       ResourceTypeID = "training"
+	ResourceTypeIDTrainingJob                    ResourceTypeID = "training-job"
+	ResourceTypeIDTrainingProject                ResourceTypeID = "training-project"
 	ResourceTypeIDTranscript                     ResourceTypeID = "transcript"
 	ResourceTypeIDTranscription                  ResourceTypeID = "transcription"
 	ResourceTypeIDTransformation                 ResourceTypeID = "transformation"
