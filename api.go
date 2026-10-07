@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.75.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.76.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.75.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.76.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -187,6 +187,12 @@ type APIV1Client struct {
 	Ownership *OwnershipNamespace
 	// Pages: `client.pages`.
 	Pages *PagesNamespace
+	// PagingIncidents: `client.pagingIncidents`.
+	PagingIncidents *PagingIncidentsNamespace
+	// PagingProviders: `client.pagingProviders`.
+	PagingProviders *PagingProvidersNamespace
+	// PagingWebhooks: `client.pagingWebhooks`.
+	PagingWebhooks *PagingWebhooksNamespace
 	// Posture: `client.posture`.
 	Posture *PostureNamespace
 	// PriceCatalog: `client.priceCatalog`.
@@ -341,6 +347,9 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Orphans = newOrphansNamespace(t)
 	c.Ownership = newOwnershipNamespace(t)
 	c.Pages = newPagesNamespace(t)
+	c.PagingIncidents = newPagingIncidentsNamespace(t)
+	c.PagingProviders = newPagingProvidersNamespace(t)
+	c.PagingWebhooks = newPagingWebhooksNamespace(t)
 	c.Posture = newPostureNamespace(t)
 	c.PriceCatalog = newPriceCatalogNamespace(t)
 	c.Probes = newProbesNamespace(t)
@@ -17209,6 +17218,500 @@ func (n *PagesNamespace) Delete(ctx context.Context, params PagesDeleteParams, o
 		return out, err
 	}
 	return out, nil
+}
+
+// PagingIncidentsNamespace is `client.pagingIncidents`.
+type PagingIncidentsNamespace struct {
+	t *transport
+}
+
+func newPagingIncidentsNamespace(t *transport) *PagingIncidentsNamespace {
+	n := &PagingIncidentsNamespace{t: t}
+	return n
+}
+
+// PagingIncidentsAcknowledgeParams holds the parameters for
+// `client.pagingIncidents.acknowledge`.
+type PagingIncidentsAcknowledgeParams struct {
+	// OrgID: Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Acknowledge: Acknowledge a provider incident
+//
+// Written to the provider as the acting member where the provider records who
+// acted (PagerDuty's `From` header), falling back to the account's default user.
+// The returned state is the provider's answer, not an assumption.
+//
+// POST /api/org/{orgId}/paging-incidents/{id}/acknowledge
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PagingIncidentsNamespace) Acknowledge(ctx context.Context, params PagingIncidentsAcknowledgeParams, opts ...RequestOption) (*PagerIncident, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/paging-incidents/{id}/acknowledge")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *PagerIncident
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagingIncidentsGetParams holds the parameters for
+// `client.pagingIncidents.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PagingIncidentsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Status: One of "open", "all".
+	Status *string
+}
+
+// Get: List incidents mirrored from paging providers
+//
+// Only accounts with inbound mirroring turned on contribute. Open incidents by
+// default; `status=all` includes resolved ones. These are a provider's pages,
+// distinct from incidents declared in Infrawrench (`/incidents`).
+//
+// GET /api/org/{orgId}/paging-incidents
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PagingIncidentsNamespace) Get(ctx context.Context, params *PagingIncidentsGetParams, opts ...RequestOption) (*PagerIncidentsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/paging-incidents")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("status", params.Status)
+	}
+	var out *PagerIncidentsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagingIncidentsResolveParams holds the parameters for
+// `client.pagingIncidents.resolve`.
+type PagingIncidentsResolveParams struct {
+	// OrgID: Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Resolve: Resolve a provider incident
+//
+// Written to the provider as the acting member where the provider records who
+// acted (PagerDuty's `From` header), falling back to the account's default user.
+// The returned state is the provider's answer, not an assumption.
+//
+// POST /api/org/{orgId}/paging-incidents/{id}/resolve
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PagingIncidentsNamespace) Resolve(ctx context.Context, params PagingIncidentsResolveParams, opts ...RequestOption) (*PagerIncident, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/paging-incidents/{id}/resolve")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *PagerIncident
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagingProvidersNamespace is `client.pagingProviders`.
+type PagingProvidersNamespace struct {
+	t *transport
+
+	// OnCall: `client.pagingProviders.onCall`.
+	OnCall *PagingProvidersOnCallNamespace
+}
+
+func newPagingProvidersNamespace(t *transport) *PagingProvidersNamespace {
+	n := &PagingProvidersNamespace{t: t}
+	n.OnCall = newPagingProvidersOnCallNamespace(t)
+	return n
+}
+
+// PagingProvidersDestinationsParams holds the parameters for
+// `client.pagingProviders.destinations`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PagingProvidersDestinationsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Destinations: List the targets and on-call sources a routing rule can name
+//
+// Listed live from each provider, so a destination is picked by name. A failure
+// is reported per account in `error` rather than failing the response.
+//
+// GET /api/org/{orgId}/paging-providers/destinations
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PagingProvidersNamespace) Destinations(ctx context.Context, params *PagingProvidersDestinationsParams, opts ...RequestOption) (*PagingDestinationsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/paging-providers/destinations")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *PagingDestinationsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagingProvidersEventsParams holds the parameters for
+// `client.pagingProviders.events`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PagingProvidersEventsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	Limit *int64
+}
+
+// Events: List upstream alerts Infrawrench opened
+//
+// One row per (account, target, dedup key): a trigger, its acknowledgement and
+// its resolution are one alert upstream. `pendingAction` is set while a send is
+// queued or being retried.
+//
+// GET /api/org/{orgId}/paging-providers/events
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PagingProvidersNamespace) Events(ctx context.Context, params *PagingProvidersEventsParams, opts ...RequestOption) (*PagingEventsResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/paging-providers/events")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("limit", params.Limit)
+	}
+	var out *PagingEventsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagingProvidersGetParams holds the parameters for
+// `client.pagingProviders.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PagingProvidersGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List paging provider accounts and their settings
+//
+// GET /api/org/{orgId}/paging-providers
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PagingProvidersNamespace) Get(ctx context.Context, params *PagingProvidersGetParams, opts ...RequestOption) (*PagingProvidersResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/paging-providers")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *PagingProvidersResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagingProvidersSettingsParams holds the parameters for
+// `client.pagingProviders.settings`.
+type PagingProvidersSettingsParams struct {
+	// OrgID: Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// AccountID: A connected account whose plugin can page
+	AccountID string
+	// Body: the JSON request body.
+	Body *PagingProviderSettingsInput
+}
+
+// Settings: Configure incident mirroring for a paging provider account
+//
+// Turning inbound on with a `managed` webhook subscribes one through the
+// provider's API; turning it off removes the subscription and forgets the
+// mirrored incidents. A webhook that cannot be subscribed is reported in
+// `warning` and mirroring falls back to reconciling on a timer.
+//
+// PUT /api/org/{orgId}/paging-providers/{accountId}/settings
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PagingProvidersNamespace) Settings(ctx context.Context, params PagingProvidersSettingsParams, opts ...RequestOption) (*PagingProviderSettingsResult, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/paging-providers/{accountId}/settings")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("accountId", params.AccountID)
+	r.setJSONBody(params.Body)
+	var out *PagingProviderSettingsResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagingProvidersSyncParams holds the parameters for
+// `client.pagingProviders.sync`.
+type PagingProvidersSyncParams struct {
+	// OrgID: Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// AccountID: A connected account whose plugin can page
+	AccountID string
+}
+
+// Sync: Reconcile an account's incidents now
+//
+// POST /api/org/{orgId}/paging-providers/{accountId}/sync
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PagingProvidersNamespace) Sync(ctx context.Context, params PagingProvidersSyncParams, opts ...RequestOption) (*PagingSyncResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/paging-providers/{accountId}/sync")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("accountId", params.AccountID)
+	var out *PagingSyncResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagingProvidersOnCallNamespace is `client.pagingProviders.onCall`.
+type PagingProvidersOnCallNamespace struct {
+	t *transport
+}
+
+func newPagingProvidersOnCallNamespace(t *transport) *PagingProvidersOnCallNamespace {
+	n := &PagingProvidersOnCallNamespace{t: t}
+	return n
+}
+
+// PagingProvidersOnCallGetParams holds the parameters for
+// `client.pagingProviders.onCall.get`.
+type PagingProvidersOnCallGetParams struct {
+	// OrgID: Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// AccountID: A connected account whose plugin can page
+	AccountID string
+	SourceID  string
+}
+
+// Get: Who is on call on a provider schedule or escalation policy
+//
+// Takes `team:read`, like the rotation preview. Each person is matched to an
+// organization member by email; `memberUserId` is null for somebody who is on
+// call upstream but not a member here.
+//
+// GET /api/org/{orgId}/paging-providers/{accountId}/on-call/{sourceId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *PagingProvidersOnCallNamespace) Get(ctx context.Context, params PagingProvidersOnCallGetParams, opts ...RequestOption) (*PagingOnCallNowResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/paging-providers/{accountId}/on-call/{sourceId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("accountId", params.AccountID)
+	r.setPath("sourceId", params.SourceID)
+	var out *PagingOnCallNowResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PagingWebhooksNamespace is `client.pagingWebhooks`.
+type PagingWebhooksNamespace struct {
+	t *transport
+}
+
+func newPagingWebhooksNamespace(t *transport) *PagingWebhooksNamespace {
+	n := &PagingWebhooksNamespace{t: t}
+	return n
+}
+
+// PagingWebhooksCreateParams holds the parameters for
+// `client.pagingWebhooks.create`.
+type PagingWebhooksCreateParams struct {
+	Token string
+}
+
+// Create: Inbound paging provider webhook
+//
+// Called by the provider, not by clients. The token in the path picks the
+// account; the provider's signature, verified with the stored secret,
+// authenticates the delivery. The payload is treated as a nudge: each incident
+// it names is re-read from the provider's API.
+//
+// POST /api/paging-webhooks/{token}
+//
+// Raises on 401: The signature did not verify
+//
+// Raises on 404: Unknown token
+func (n *PagingWebhooksNamespace) Create(ctx context.Context, params PagingWebhooksCreateParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodPost, "/api/paging-webhooks/{token}")
+	r.setPath("token", params.Token)
+	return n.t.do(ctx, r, nil, opts)
 }
 
 // PostureNamespace is `client.posture`.
