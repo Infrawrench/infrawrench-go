@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.77.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.78.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.77.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.78.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -891,6 +891,7 @@ const (
 	AlertTriggerLogMatchAlerts           AlertTrigger = "logMatchAlerts"
 	AlertTriggerPostureAlerts            AlertTrigger = "postureAlerts"
 	AlertTriggerProbeAlerts              AlertTrigger = "probeAlerts"
+	AlertTriggerSloAlerts                AlertTrigger = "sloAlerts"
 	AlertTriggerQuotaAlerts              AlertTrigger = "quotaAlerts"
 	AlertTriggerExtendedSupportAlerts    AlertTrigger = "extendedSupportAlerts"
 	AlertTriggerIncidentAlerts           AlertTrigger = "incidentAlerts"
@@ -9215,6 +9216,7 @@ type OrgConfigDocument struct {
 	Dashboards    []OrgConfigDashboard           `json:"dashboards,omitempty"`
 	MetricAlerts  []OrgConfigMetricAlert         `json:"metricAlerts,omitempty"`
 	Probes        []OrgConfigProbe               `json:"probes,omitempty"`
+	Slos          []OrgConfigSlo                 `json:"slos,omitempty"`
 	CostCentres   []OrgConfigCostCentre          `json:"costCentres,omitempty"`
 	TagPolicy     *OrgConfigDocumentTagPolicy    `json:"tagPolicy,omitempty"`
 	AlertSettings *OrgConfigAlertSettings        `json:"alertSettings,omitempty"`
@@ -9286,10 +9288,39 @@ const (
 	OrgConfigSectionDashboards    OrgConfigSection = "dashboards"
 	OrgConfigSectionMetricAlerts  OrgConfigSection = "metricAlerts"
 	OrgConfigSectionProbes        OrgConfigSection = "probes"
+	OrgConfigSectionSlos          OrgConfigSection = "slos"
 	OrgConfigSectionCostCentres   OrgConfigSection = "costCentres"
 	OrgConfigSectionTagPolicy     OrgConfigSection = "tagPolicy"
 	OrgConfigSectionAlertSettings OrgConfigSection = "alertSettings"
 )
+
+// OrgConfigSlo is the `OrgConfigSlo` schema.
+type OrgConfigSlo struct {
+	// Key: Stable slug identifying this entity across organizations. Derived
+	// from the name on export; it is what an apply matches on, so renaming an
+	// entity while keeping its key is a rename rather than a delete-and-create.
+	Key         string  `json:"key"`
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	// SliKind: One of "probe_availability", "probe_latency", "metric_threshold".
+	SliKind string `json:"sliKind"`
+	// ProbeKey: `probe_*`: key of a probe in this document's `probes` or the
+	// organization's.
+	ProbeKey           *string `json:"probeKey,omitempty"`
+	LatencyThresholdMs *int64  `json:"latencyThresholdMs,omitempty"`
+	// Resource: `metric_threshold`: the resource, resolved against the
+	// organization's inventory on apply.
+	Resource  *OrgConfigSloResource `json:"resource,omitempty"`
+	MetricKey *string               `json:"metricKey,omitempty"`
+	// Comparator: One of "<", "<=", ">", ">=".
+	Comparator    *string  `json:"comparator,omitempty"`
+	Threshold     *float64 `json:"threshold,omitempty"`
+	TargetPercent float64  `json:"targetPercent"`
+	WindowDays    *float64 `json:"windowDays,omitempty"`
+	AlertsEnabled *bool    `json:"alertsEnabled,omitempty"`
+	SuggestFreeze *bool    `json:"suggestFreeze,omitempty"`
+	Enabled       *bool    `json:"enabled,omitempty"`
+}
 
 // OrgConfigUnresolved: Something the document asked for that this organization
 // could not satisfy; a pin for a resource nobody has synced, an account name
@@ -13920,6 +13951,207 @@ type SleepScheduleUpdate struct {
 	Paused   *bool   `json:"paused,omitempty"`
 }
 
+// Slo is the `Slo` schema.
+type Slo struct {
+	ID string `json:"id"`
+	// Name: Unique in the organization; at most 120 characters.
+	Name string `json:"name"`
+	// Description: At most 500 characters.
+	Description *string `json:"description"`
+	// TargetPercent: Objective as a percentage, at least 50 and at most 99.999.
+	TargetPercent float64 `json:"targetPercent"`
+	// WindowDays: Rolling window in days.
+	WindowDays float64 `json:"windowDays"`
+	// AlertsEnabled: Route burn-rate and exhaustion alerts through the org's
+	// alert routing rules.
+	AlertsEnabled bool `json:"alertsEnabled"`
+	// SuggestFreeze: When the budget runs out, the alert and the page suggest a
+	// change freeze.
+	SuggestFreeze bool `json:"suggestFreeze"`
+	Enabled       bool `json:"enabled"`
+	// SliKind: Where the SLI comes from: a synthetic probe's success ratio, the
+	// share of a probe's checks at or under a latency threshold, or the share of
+	// minutes a resource's metric series satisfies a comparison.
+	//
+	// One of "probe_availability", "probe_latency", "metric_threshold".
+	SliKind string `json:"sliKind"`
+	// ProbeID: `probe_*`: the synthetic probe the SLI is read from.
+	ProbeID *string `json:"probeId"`
+	// LatencyThresholdMs: `probe_latency`: a check is good at or under this many
+	// ms (1-60000).
+	LatencyThresholdMs *int64 `json:"latencyThresholdMs"`
+	// ResourceID: `metric_threshold`: the synced resource reporting the series.
+	ResourceID *string `json:"resourceId"`
+	// MetricKey: `metric_threshold`: the series label as the resource reports
+	// it, e.g. "CPU %".
+	MetricKey *string `json:"metricKey"`
+	// Comparator: `metric_threshold` only: a minute is good when `value
+	// <comparator> threshold`.
+	//
+	// One of "<", "<=", ">", ">=".
+	Comparator *string `json:"comparator"`
+	// Threshold: `metric_threshold`: the comparison's right side.
+	Threshold *float64 `json:"threshold"`
+	// ProbeName: The probe's name; null when it was deleted.
+	ProbeName *string `json:"probeName"`
+	// ResourceName: The resource's name; null when it is gone.
+	ResourceName   *string   `json:"resourceName"`
+	AccountID      *string   `json:"accountId"`
+	PluginID       *PluginID `json:"pluginId"`
+	ResourceTypeID *string   `json:"resourceTypeId"`
+	// Status: Worst true thing first: `exhausted` (no budget left), `fast_burn`
+	// (a page-severity burn-rate pair is firing), `slow_burn` (the ticket pair),
+	// `ok`, or `unknown` (no data in the window, never evaluated, or disabled).
+	//
+	// One of "exhausted", "fast_burn", "slow_burn", "ok", "unknown".
+	Status string `json:"status"`
+	// Sli: Fraction of good events over the window (0-1).
+	Sli        *float64 `json:"sli"`
+	GoodEvents float64  `json:"goodEvents"`
+	// TotalEvents: Minutes with data in the window.
+	TotalEvents float64 `json:"totalEvents"`
+	// BudgetRemaining: Fraction of the window's error budget left; negative when
+	// overspent.
+	BudgetRemaining *float64 `json:"budgetRemaining"`
+	// BudgetTotalMinutes: The window's whole budget in minutes (43.2 for 99.9%
+	// over 30 days).
+	BudgetTotalMinutes     float64  `json:"budgetTotalMinutes"`
+	BudgetRemainingMinutes *float64 `json:"budgetRemainingMinutes"`
+	// BurnRates: Burn rate per window (`5m`, `30m`, `1h`, `6h`, `3d`); 1 is
+	// exactly on budget, null where the window held no events.
+	BurnRates map[string]*float64 `json:"burnRates"`
+	// BurnAlert: The alert level the evaluator last settled on.
+	//
+	// One of "none", "slow", "fast".
+	BurnAlert   string  `json:"burnAlert"`
+	ExhaustedAt *string `json:"exhaustedAt"`
+	LastEvalAt  *string `json:"lastEvalAt"`
+	LastError   *string `json:"lastError"`
+	CreatedAt   string  `json:"createdAt"`
+	UpdatedAt   string  `json:"updatedAt"`
+}
+
+// SloActiveFreeze: The change freeze in effect, if any.
+//
+// The API may send null in its place.
+type SloActiveFreeze struct {
+	ID     string  `json:"id"`
+	Name   string  `json:"name"`
+	EndsAt *string `json:"endsAt"`
+}
+
+// SloBucket is the `SloBucket` schema.
+type SloBucket struct {
+	// StartMs: Hour start, Unix epoch ms.
+	StartMs float64 `json:"startMs"`
+	Good    float64 `json:"good"`
+	// Total: Minutes with data in the hour.
+	Total float64 `json:"total"`
+}
+
+// SloCreate is the `SloCreate` schema.
+type SloCreate struct {
+	// Name: Unique in the organization; at most 120 characters.
+	Name string `json:"name"`
+	// Description: At most 500 characters.
+	Description *string `json:"description,omitempty"`
+	// SliKind: Where the SLI comes from: a synthetic probe's success ratio, the
+	// share of a probe's checks at or under a latency threshold, or the share of
+	// minutes a resource's metric series satisfies a comparison.
+	//
+	// One of "probe_availability", "probe_latency", "metric_threshold".
+	SliKind string `json:"sliKind"`
+	// ProbeID: `probe_*`: the synthetic probe the SLI is read from.
+	ProbeID *string `json:"probeId,omitempty"`
+	// LatencyThresholdMs: `probe_latency`: a check is good at or under this many
+	// ms (1-60000).
+	LatencyThresholdMs *int64 `json:"latencyThresholdMs,omitempty"`
+	// ResourceID: `metric_threshold`: the synced resource reporting the series.
+	ResourceID *string `json:"resourceId,omitempty"`
+	// MetricKey: `metric_threshold`: the series label as the resource reports
+	// it, e.g. "CPU %".
+	MetricKey *string `json:"metricKey,omitempty"`
+	// Comparator: `metric_threshold` only: a minute is good when `value
+	// <comparator> threshold`.
+	//
+	// One of "<", "<=", ">", ">=".
+	Comparator *string `json:"comparator,omitempty"`
+	// Threshold: `metric_threshold`: the comparison's right side.
+	Threshold *float64 `json:"threshold,omitempty"`
+	// TargetPercent: Objective as a percentage, at least 50 and at most 99.999.
+	TargetPercent *float64 `json:"targetPercent,omitempty"`
+	// WindowDays: Rolling window in days.
+	WindowDays    *float64 `json:"windowDays,omitempty"`
+	AlertsEnabled *bool    `json:"alertsEnabled,omitempty"`
+	SuggestFreeze *bool    `json:"suggestFreeze,omitempty"`
+	Enabled       *bool    `json:"enabled,omitempty"`
+}
+
+// SloDetail is the `SloDetail` schema.
+type SloDetail struct {
+	Slo Slo `json:"slo"`
+	// Buckets: Hourly events over the window, oldest first.
+	Buckets      []SloBucket      `json:"buckets"`
+	ActiveFreeze *SloActiveFreeze `json:"activeFreeze"`
+}
+
+// SloFreezeRequest is the `SloFreezeRequest` schema.
+type SloFreezeRequest struct {
+	// DurationHours: How long the freeze lasts; null or omitted means until
+	// somebody ends it.
+	DurationHours *float64 `json:"durationHours,omitempty"`
+	Reason        *string  `json:"reason,omitempty"`
+}
+
+// SloList is the `SloList` schema.
+type SloList struct {
+	Slos []Slo `json:"slos"`
+}
+
+// SloSources is the `SloSources` schema.
+type SloSources struct {
+	Probes          []SloSourcesProbes          `json:"probes"`
+	MetricResources []SloSourcesMetricResources `json:"metricResources"`
+}
+
+// SloUpdate is the `SloUpdate` schema.
+type SloUpdate struct {
+	// Name: Unique in the organization; at most 120 characters.
+	Name *string `json:"name,omitempty"`
+	// Description: At most 500 characters.
+	Description *string `json:"description,omitempty"`
+	// SliKind: Where the SLI comes from: a synthetic probe's success ratio, the
+	// share of a probe's checks at or under a latency threshold, or the share of
+	// minutes a resource's metric series satisfies a comparison.
+	//
+	// One of "probe_availability", "probe_latency", "metric_threshold".
+	SliKind *string `json:"sliKind,omitempty"`
+	// ProbeID: `probe_*`: the synthetic probe the SLI is read from.
+	ProbeID *string `json:"probeId,omitempty"`
+	// LatencyThresholdMs: `probe_latency`: a check is good at or under this many
+	// ms (1-60000).
+	LatencyThresholdMs *int64 `json:"latencyThresholdMs,omitempty"`
+	// ResourceID: `metric_threshold`: the synced resource reporting the series.
+	ResourceID *string `json:"resourceId,omitempty"`
+	// MetricKey: `metric_threshold`: the series label as the resource reports
+	// it, e.g. "CPU %".
+	MetricKey *string `json:"metricKey,omitempty"`
+	// Comparator: `metric_threshold` only: a minute is good when `value
+	// <comparator> threshold`.
+	//
+	// One of "<", "<=", ">", ">=".
+	Comparator *string `json:"comparator,omitempty"`
+	// Threshold: `metric_threshold`: the comparison's right side.
+	Threshold *float64 `json:"threshold,omitempty"`
+	// TargetPercent: Objective as a percentage, at least 50 and at most 99.999.
+	TargetPercent *float64 `json:"targetPercent,omitempty"`
+	// WindowDays: Rolling window in days.
+	WindowDays    *float64 `json:"windowDays,omitempty"`
+	AlertsEnabled *bool    `json:"alertsEnabled,omitempty"`
+	SuggestFreeze *bool    `json:"suggestFreeze,omitempty"`
+	Enabled       *bool    `json:"enabled,omitempty"`
+}
+
 // SQLEstimateRequest is the `SqlEstimateRequest` schema.
 //
 // Spec schema: `SqlEstimateRequest`.
@@ -14453,7 +14685,7 @@ type TabTarget struct {
 	// "changes", "expiring", "posture", "access-review", "jit-access",
 	// "backups", "wallboard", "calendar", "runbooks", "query-monitors", "dns",
 	// "iac", "environment-diff", "environments", "ssh-fanout", "metric-alerts",
-	// "probes", "status-pages", "quotas", "price-catalog", "incidents",
+	// "probes", "status-pages", "quotas", "price-catalog", "incidents", "slos",
 	// "workflows", "deployments", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
@@ -14463,6 +14695,7 @@ type TabTarget struct {
 	ReportID       *string     `json:"reportId,omitempty"`
 	InvoiceID      *string     `json:"invoiceId,omitempty"`
 	CanvasID       *string     `json:"canvasId,omitempty"`
+	SloID          *string     `json:"sloId,omitempty"`
 	SessionID      *string     `json:"sessionId,omitempty"`
 	WindowID       *int64      `json:"windowId,omitempty"`
 	AppID          *string     `json:"appId,omitempty"`
@@ -15962,6 +16195,15 @@ type OrgConfigPlanCounts struct {
 	Unchanged int64 `json:"unchanged"`
 }
 
+// OrgConfigSloResource is an object the spec declares inline.
+type OrgConfigSloResource struct {
+	PluginID       string `json:"pluginId"`
+	ResourceTypeID string `json:"resourceTypeId"`
+	ExternalID     string `json:"externalId"`
+	// Account: Account display name.
+	Account string `json:"account"`
+}
+
 // OrgConfigWorkflowMetrics is an object the spec declares inline.
 type OrgConfigWorkflowMetrics struct {
 	Key   string  `json:"key"`
@@ -16220,6 +16462,25 @@ type SignSshkeyRequestContext struct {
 	Username *string `json:"username,omitempty"`
 }
 
+// SloSourcesProbes is an object the spec declares inline.
+type SloSourcesProbes struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
+	// Status: One of "up", "down", "unknown".
+	Status string `json:"status"`
+}
+
+// SloSourcesMetricResources is an object the spec declares inline.
+type SloSourcesMetricResources struct {
+	ResourceID     string                            `json:"resourceId"`
+	DisplayName    string                            `json:"displayName"`
+	AccountID      string                            `json:"accountId"`
+	PluginID       PluginID                          `json:"pluginId"`
+	ResourceTypeID string                            `json:"resourceTypeId"`
+	Series         []SloSourcesMetricResourcesSeries `json:"series"`
+}
+
 // SshfanoutHostResultHostKeyTrust is an object the spec declares inline.
 type SshfanoutHostResultHostKeyTrust struct {
 	// Kind: One of "unknown", "mismatch".
@@ -16405,6 +16666,12 @@ type OrgConfigCostCentreRulesMatch struct {
 type OrgConfigDocumentTagPolicyRequiredTags struct {
 	Key           string   `json:"key"`
 	AllowedValues []string `json:"allowedValues,omitempty"`
+}
+
+// SloSourcesMetricResourcesSeries is an object the spec declares inline.
+type SloSourcesMetricResourcesSeries struct {
+	Label string `json:"label"`
+	Unit  string `json:"unit"`
 }
 
 // UnitCostQueryResponseConversionConverted is an object the spec declares

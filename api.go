@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.77.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.78.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.77.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.78.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -231,6 +231,8 @@ type APIV1Client struct {
 	Sharing *SharingNamespace
 	// Slack: `client.slack`.
 	Slack *SlackNamespace
+	// Slos: `client.slos`.
+	Slos *SlosNamespace
 	// SQL: `client.sql`.
 	SQL *SQLNamespace
 	// SSHFanout: `client.sshFanout`.
@@ -371,6 +373,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.SharedConsoles = newSharedConsolesNamespace(t)
 	c.Sharing = newSharingNamespace(t)
 	c.Slack = newSlackNamespace(t)
+	c.Slos = newSlosNamespace(t)
 	c.SQL = newSQLNamespace(t)
 	c.SSHFanout = newSSHFanoutNamespace(t)
 	c.SSHKeys = newSSHKeysNamespace(t)
@@ -6121,14 +6124,14 @@ type ConfigExportParams struct {
 	OrgID *string
 	// Sections: Comma-separated subset of sections to export. Defaults to all
 	// of: budgets, customGraphs, workflows, dashboards, metricAlerts, probes,
-	// costCentres, tagPolicy, alertSettings.
+	// slos, costCentres, tagPolicy, alertSettings.
 	Sections *string
 }
 
 // Export: Export the organization's configuration as one document
 //
 // Dashboards, workflows, custom graphs, budgets, metric alerts, synthetic
-// probes, cost centres, the tag policy and the org-wide alert settings,
+// probes, SLOs, cost centres, the tag policy and the org-wide alert settings,
 // addressed by stable keys rather than row ids so the result applies to any
 // organization.
 //
@@ -23273,6 +23276,260 @@ func (n *SlackInstallationsNamespace) Delete(ctx context.Context, params SlackIn
 	r.setPath("orgId", params.OrgID)
 	r.setPath("installationId", params.InstallationID)
 	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlosNamespace is `client.slos`.
+type SlosNamespace struct {
+	t *transport
+
+	// Get: `client.slos.get`.
+	Get *SlosGetNamespace
+}
+
+func newSlosNamespace(t *transport) *SlosNamespace {
+	n := &SlosNamespace{t: t}
+	n.Get = newSlosGetNamespace(t)
+	return n
+}
+
+// SlosCreateParams holds the parameters for `client.slos.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SlosCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *SloCreate
+}
+
+// Create: Create an SLO
+//
+// Out-of-range inputs are rejected, not clamped. The source must exist in the
+// organization. The first evaluation runs within one poller tick. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/slos
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *SlosNamespace) Create(ctx context.Context, params *SlosCreateParams, opts ...RequestOption) (*Slo, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/slos")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *Slo
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlosDeleteParams holds the parameters for `client.slos.delete`.
+type SlosDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	SloID string
+}
+
+// Delete: Delete an SLO
+//
+// The measured series are untouched. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/slos/{sloId}
+//
+// Raises on 404: Not found
+func (n *SlosNamespace) Delete(ctx context.Context, params SlosDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/slos/{sloId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("sloId", params.SloID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// SlosFreezeParams holds the parameters for `client.slos.freeze`.
+type SlosFreezeParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	SloID string
+	// Body: the JSON request body.
+	Body *SloFreezeRequest
+}
+
+// Freeze: Start a change freeze for an SLO
+//
+// Acts on the freeze suggestion an exhausted budget makes: creates an ordinary
+// change freeze named after the SLO, listed and ended like any other. Needs
+// `freezes:write`.
+//
+// _Requires permission: `freezes:write`._
+//
+// POST /api/org/{orgId}/slos/{sloId}/freeze
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *SlosNamespace) Freeze(ctx context.Context, params SlosFreezeParams, opts ...RequestOption) (*SloActiveFreeze, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/slos/{sloId}/freeze")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("sloId", params.SloID)
+	r.setJSONBody(params.Body)
+	var out *SloActiveFreeze
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlosSourcesParams holds the parameters for `client.slos.sources`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SlosSourcesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Sources: List what an SLO can be measured from
+//
+// Every synthetic probe, and every synced resource that reported a metric series
+// in the last week with the series it reported. Feeds the editor's pickers.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/slos/sources
+func (n *SlosNamespace) Sources(ctx context.Context, params *SlosSourcesParams, opts ...RequestOption) (*SloSources, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/slos/sources")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SloSources
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlosUpdateParams holds the parameters for `client.slos.update`.
+type SlosUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	SloID string
+	// Body: the JSON request body.
+	Body *SloUpdate
+}
+
+// Update: Update an SLO
+//
+// Omitted fields keep their value. Changing the source, target or window resets
+// the snapshot and the alert state. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// PUT /api/org/{orgId}/slos/{sloId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *SlosNamespace) Update(ctx context.Context, params SlosUpdateParams, opts ...RequestOption) (*Slo, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/slos/{sloId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("sloId", params.SloID)
+	r.setJSONBody(params.Body)
+	var out *Slo
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlosGetNamespace is `client.slos.get`.
+type SlosGetNamespace struct {
+	t *transport
+}
+
+func newSlosGetNamespace(t *transport) *SlosGetNamespace {
+	n := &SlosGetNamespace{t: t}
+	return n
+}
+
+// SlosGetGetParams holds the parameters for `client.slos.get.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SlosGetGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List SLOs
+//
+// Every service-level objective with its last snapshot: SLI, error budget
+// remaining (as a fraction and in minutes) and burn rates over the alerting
+// windows.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/slos
+func (n *SlosGetNamespace) Get(ctx context.Context, params *SlosGetGetParams, opts ...RequestOption) (*SloList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/slos")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SloList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SlosGetGetOrgOrgIDSlosSloIDParams holds the parameters for
+// `client.slos.get.getOrgOrgIdSlosSloId`.
+type SlosGetGetOrgOrgIDSlosSloIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	SloID string
+}
+
+// GetOrgOrgIDSlosSloID: Read an SLO with its history
+//
+// The SLO plus hourly good/total buckets over its window (the SLI and
+// budget-burndown charts are drawn from these) and the change freeze in effect,
+// if any.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/slos/{sloId}
+//
+// Raises on 404: Not found
+func (n *SlosGetNamespace) GetOrgOrgIDSlosSloID(ctx context.Context, params SlosGetGetOrgOrgIDSlosSloIDParams, opts ...RequestOption) (*SloDetail, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/slos/{sloId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("sloId", params.SloID)
+	var out *SloDetail
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
