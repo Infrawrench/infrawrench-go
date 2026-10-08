@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.76.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.77.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.76.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.77.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -159,6 +159,8 @@ type APIV1Client struct {
 	Invoices *InvoicesNamespace
 	// Jira: `client.jira`.
 	Jira *JiraNamespace
+	// JitAccess: `client.jitAccess`.
+	JitAccess *JitAccessNamespace
 	// KV: `client.kv`.
 	KV *KVNamespace
 	// Leases: `client.leases`.
@@ -333,6 +335,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Invitations = newInvitationsNamespace(t)
 	c.Invoices = newInvoicesNamespace(t)
 	c.Jira = newJiraNamespace(t)
+	c.JitAccess = newJitAccessNamespace(t)
 	c.KV = newKVNamespace(t)
 	c.Leases = newLeasesNamespace(t)
 	c.Linear = newLinearNamespace(t)
@@ -14910,6 +14913,664 @@ func (n *JiraProjectsNamespace) List(ctx context.Context, params *JiraProjectsLi
 		r.setPath("orgId", params.OrgID)
 	}
 	var out []JiraProject
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessNamespace is `client.jitAccess`.
+type JitAccessNamespace struct {
+	t *transport
+
+	// Accounts: `client.jitAccess.accounts`.
+	Accounts *JitAccessAccountsNamespace
+	// Policies: `client.jitAccess.policies`.
+	Policies *JitAccessPoliciesNamespace
+	// Requests: `client.jitAccess.requests`.
+	Requests *JitAccessRequestsNamespace
+}
+
+func newJitAccessNamespace(t *transport) *JitAccessNamespace {
+	n := &JitAccessNamespace{t: t}
+	n.Accounts = newJitAccessAccountsNamespace(t)
+	n.Policies = newJitAccessPoliciesNamespace(t)
+	n.Requests = newJitAccessRequestsNamespace(t)
+	return n
+}
+
+// JitAccessAccountsNamespace is `client.jitAccess.accounts`.
+type JitAccessAccountsNamespace struct {
+	t *transport
+}
+
+func newJitAccessAccountsNamespace(t *transport) *JitAccessAccountsNamespace {
+	n := &JitAccessAccountsNamespace{t: t}
+	return n
+}
+
+// JitAccessAccountsListParams holds the parameters for
+// `client.jitAccess.accounts.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type JitAccessAccountsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: Accounts that can grant just-in-time access
+//
+// Connected accounts whose provider plugin declares the just-in-time capability.
+//
+// _Requires permission: `access:read`._
+//
+// GET /api/org/{orgId}/jit-access/accounts
+func (n *JitAccessAccountsNamespace) List(ctx context.Context, params *JitAccessAccountsListParams, opts ...RequestOption) ([]JitAccessAccount, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/accounts")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []JitAccessAccount
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessAccountsRolesParams holds the parameters for
+// `client.jitAccess.accounts.roles`.
+type JitAccessAccountsRolesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	AccountID string
+	ScopeID   string
+}
+
+// Roles: Grantable roles in a scope (picker)
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/jit-access/accounts/{accountId}/roles
+//
+// Raises on 502: Provider error
+func (n *JitAccessAccountsNamespace) Roles(ctx context.Context, params JitAccessAccountsRolesParams, opts ...RequestOption) ([]JitPickerOption, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/accounts/{accountId}/roles")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("accountId", params.AccountID)
+	r.addQuery("scopeId", params.ScopeID)
+	var out []JitPickerOption
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessAccountsScopesParams holds the parameters for
+// `client.jitAccess.accounts.scopes`.
+type JitAccessAccountsScopesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	AccountID string
+}
+
+// Scopes: Scopes on an account (picker)
+//
+// The places a role can be granted (AWS accounts, GCP projects, namespaces),
+// read from the provider.
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/jit-access/accounts/{accountId}/scopes
+//
+// Raises on 502: Provider error
+func (n *JitAccessAccountsNamespace) Scopes(ctx context.Context, params JitAccessAccountsScopesParams, opts ...RequestOption) ([]JitPickerOption, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/accounts/{accountId}/scopes")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("accountId", params.AccountID)
+	var out []JitPickerOption
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessPoliciesNamespace is `client.jitAccess.policies`.
+type JitAccessPoliciesNamespace struct {
+	t *transport
+}
+
+func newJitAccessPoliciesNamespace(t *transport) *JitAccessPoliciesNamespace {
+	n := &JitAccessPoliciesNamespace{t: t}
+	return n
+}
+
+// JitAccessPoliciesCreateParams holds the parameters for
+// `client.jitAccess.policies.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type JitAccessPoliciesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *JitPolicyInput
+}
+
+// Create: Create a policy
+//
+// Audit-logged. At least one approver (member, role or on-call rotation) is
+// required.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/jit-access/policies
+//
+// Raises on 400: Bad request
+func (n *JitAccessPoliciesNamespace) Create(ctx context.Context, params *JitAccessPoliciesCreateParams, opts ...RequestOption) (*JitPolicy, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/policies")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *JitPolicy
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessPoliciesDeleteParams holds the parameters for
+// `client.jitAccess.policies.delete`.
+type JitAccessPoliciesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	PolicyID string
+}
+
+// Delete: Delete a policy
+//
+// Grants the policy produced still end on time; its pending requests have no
+// approvers and time out.
+//
+// _Requires permission: `org:settings:write`._
+//
+// DELETE /api/org/{orgId}/jit-access/policies/{policyId}
+//
+// Raises on 404: Not found
+func (n *JitAccessPoliciesNamespace) Delete(ctx context.Context, params JitAccessPoliciesDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/jit-access/policies/{policyId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("policyId", params.PolicyID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessPoliciesGetParams holds the parameters for
+// `client.jitAccess.policies.get`.
+type JitAccessPoliciesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	PolicyID string
+}
+
+// Get: Get a policy
+//
+// _Requires permission: `access:read`._
+//
+// GET /api/org/{orgId}/jit-access/policies/{policyId}
+//
+// Raises on 404: Not found
+func (n *JitAccessPoliciesNamespace) Get(ctx context.Context, params JitAccessPoliciesGetParams, opts ...RequestOption) (*JitPolicy, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/policies/{policyId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("policyId", params.PolicyID)
+	var out *JitPolicy
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessPoliciesListParams holds the parameters for
+// `client.jitAccess.policies.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type JitAccessPoliciesListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List just-in-time access policies
+//
+// _Requires permission: `access:read`._
+//
+// GET /api/org/{orgId}/jit-access/policies
+func (n *JitAccessPoliciesNamespace) List(ctx context.Context, params *JitAccessPoliciesListParams, opts ...RequestOption) ([]JitPolicy, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/policies")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []JitPolicy
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessPoliciesPrincipalParams holds the parameters for
+// `client.jitAccess.policies.principal`.
+type JitAccessPoliciesPrincipalParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	PolicyID string
+}
+
+// Principal: Resolve the caller's provider principal
+//
+// Who the grant would go to, matched by the caller's email in the provider.
+//
+// _Requires permission: `access:request`._
+//
+// GET /api/org/{orgId}/jit-access/policies/{policyId}/principal
+//
+// Raises on 403: Not a requester
+func (n *JitAccessPoliciesNamespace) Principal(ctx context.Context, params JitAccessPoliciesPrincipalParams, opts ...RequestOption) (*JitPrincipalResolution, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/policies/{policyId}/principal")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("policyId", params.PolicyID)
+	var out *JitPrincipalResolution
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessPoliciesPrincipalsParams holds the parameters for
+// `client.jitAccess.policies.principals`.
+type JitAccessPoliciesPrincipalsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	PolicyID string
+	Q        *string
+}
+
+// Principals: Principals the caller may pick
+//
+// _Requires permission: `access:request`._
+//
+// GET /api/org/{orgId}/jit-access/policies/{policyId}/principals
+func (n *JitAccessPoliciesNamespace) Principals(ctx context.Context, params JitAccessPoliciesPrincipalsParams, opts ...RequestOption) ([]*JitPrincipalOption, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/policies/{policyId}/principals")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("policyId", params.PolicyID)
+	r.addQuery("q", params.Q)
+	var out []*JitPrincipalOption
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessPoliciesUpdateParams holds the parameters for
+// `client.jitAccess.policies.update`.
+type JitAccessPoliciesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	PolicyID string
+	// Body: the JSON request body.
+	Body *JitPolicyInput
+}
+
+// Update: Replace a policy
+//
+// Live grants keep their window; pending requests are decided against the new
+// approver set.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/jit-access/policies/{policyId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *JitAccessPoliciesNamespace) Update(ctx context.Context, params JitAccessPoliciesUpdateParams, opts ...RequestOption) (*JitPolicy, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/jit-access/policies/{policyId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("policyId", params.PolicyID)
+	r.setJSONBody(params.Body)
+	var out *JitPolicy
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessRequestsNamespace is `client.jitAccess.requests`.
+type JitAccessRequestsNamespace struct {
+	t *transport
+}
+
+func newJitAccessRequestsNamespace(t *transport) *JitAccessRequestsNamespace {
+	n := &JitAccessRequestsNamespace{t: t}
+	return n
+}
+
+// JitAccessRequestsApproveParams holds the parameters for
+// `client.jitAccess.requests.approve`.
+type JitAccessRequestsApproveParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RequestID string
+	// Body: the JSON request body.
+	Body *JitAccessRequestsApproveRequest
+}
+
+// Approve: Approve a request
+//
+// The caller must be in the policy's approver set at this moment. On approval
+// the provider grant is made; the response may still read `granting` when it
+// completes in the background. Audit-logged. Not available to API keys.
+//
+// _Requires permission: `access:read`._
+//
+// POST /api/org/{orgId}/jit-access/requests/{requestId}/approve
+//
+// Raises on 403: Not allowed
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Already decided, timed out, or not in a state for this
+func (n *JitAccessRequestsNamespace) Approve(ctx context.Context, params JitAccessRequestsApproveParams, opts ...RequestOption) (*JitAccessRequest, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests/{requestId}/approve")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("requestId", params.RequestID)
+	r.setJSONBody(params.Body)
+	var out *JitAccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessRequestsCancelParams holds the parameters for
+// `client.jitAccess.requests.cancel`.
+type JitAccessRequestsCancelParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RequestID string
+	// Body: the JSON request body.
+	Body *JitAccessRequestsCancelRequest
+}
+
+// Cancel: Cancel your pending request
+//
+// Requester only. Audit-logged. Not available to API keys.
+//
+// _Requires permission: `access:request`._
+//
+// POST /api/org/{orgId}/jit-access/requests/{requestId}/cancel
+//
+// Raises on 403: Not allowed
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Already decided, timed out, or not in a state for this
+func (n *JitAccessRequestsNamespace) Cancel(ctx context.Context, params JitAccessRequestsCancelParams, opts ...RequestOption) (*JitAccessRequest, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests/{requestId}/cancel")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("requestId", params.RequestID)
+	r.setJSONBody(params.Body)
+	var out *JitAccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessRequestsCreateParams holds the parameters for
+// `client.jitAccess.requests.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type JitAccessRequestsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *JitCreateRequest
+}
+
+// Create: Request just-in-time access
+//
+// Ask for one of a policy's scope and role pairs for a bounded window. Approvers
+// are notified over push, Slack (with Approve/Deny buttons) and Microsoft Teams.
+// Not available to API keys.
+//
+// _Requires permission: `access:request`._
+//
+// POST /api/org/{orgId}/jit-access/requests
+//
+// Raises on 400: Invalid
+//
+// Raises on 403: Not a requester under this policy
+//
+// Raises on 409: A pending or active request already covers this
+func (n *JitAccessRequestsNamespace) Create(ctx context.Context, params *JitAccessRequestsCreateParams, opts ...RequestOption) (*JitAccessRequest, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *JitAccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessRequestsDenyParams holds the parameters for
+// `client.jitAccess.requests.deny`.
+type JitAccessRequestsDenyParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RequestID string
+	// Body: the JSON request body.
+	Body *JitAccessRequestsDenyRequest
+}
+
+// Deny: Deny a request
+//
+// The caller must be in the policy's approver set. Audit-logged. Not available
+// to API keys.
+//
+// _Requires permission: `access:read`._
+//
+// POST /api/org/{orgId}/jit-access/requests/{requestId}/deny
+//
+// Raises on 403: Not allowed
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Already decided, timed out, or not in a state for this
+func (n *JitAccessRequestsNamespace) Deny(ctx context.Context, params JitAccessRequestsDenyParams, opts ...RequestOption) (*JitAccessRequest, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests/{requestId}/deny")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("requestId", params.RequestID)
+	r.setJSONBody(params.Body)
+	var out *JitAccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessRequestsExtendParams holds the parameters for
+// `client.jitAccess.requests.extend`.
+type JitAccessRequestsExtendParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RequestID string
+	// Body: the JSON request body.
+	Body *JitAccessRequestsExtendRequest
+}
+
+// Extend: Extend an active grant
+//
+// Approvers only, within the policy maximum for the whole window. A
+// provider-enforced expiry is moved upstream first. Audit-logged. Not available
+// to API keys.
+//
+// _Requires permission: `access:read`._
+//
+// POST /api/org/{orgId}/jit-access/requests/{requestId}/extend
+//
+// Raises on 400: Beyond the policy maximum
+//
+// Raises on 403: Not an approver
+//
+// Raises on 409: Not active
+func (n *JitAccessRequestsNamespace) Extend(ctx context.Context, params JitAccessRequestsExtendParams, opts ...RequestOption) (*JitAccessRequest, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests/{requestId}/extend")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("requestId", params.RequestID)
+	r.setJSONBody(params.Body)
+	var out *JitAccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessRequestsGetParams holds the parameters for
+// `client.jitAccess.requests.get`.
+type JitAccessRequestsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RequestID string
+}
+
+// Get: Get a request
+//
+// _Requires permission: `access:read`._
+//
+// GET /api/org/{orgId}/jit-access/requests/{requestId}
+//
+// Raises on 404: Not found
+func (n *JitAccessRequestsNamespace) Get(ctx context.Context, params JitAccessRequestsGetParams, opts ...RequestOption) (*JitAccessRequest, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/requests/{requestId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("requestId", params.RequestID)
+	var out *JitAccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessRequestsListParams holds the parameters for
+// `client.jitAccess.requests.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type JitAccessRequestsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID  *string
+	Status *JitRequestStatus
+	// Mine: One of "1".
+	Mine *string
+	// Holding: Only rows that may be holding access upstream.
+	//
+	// One of "1".
+	Holding *string
+}
+
+// List: List just-in-time access requests
+//
+// Newest first, with caller-relative action flags.
+//
+// _Requires permission: `access:read`._
+//
+// GET /api/org/{orgId}/jit-access/requests
+//
+// Raises on 400: Bad request
+func (n *JitAccessRequestsNamespace) List(ctx context.Context, params *JitAccessRequestsListParams, opts ...RequestOption) ([]JitAccessRequest, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/requests")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("status", params.Status)
+		r.addQuery("mine", params.Mine)
+		r.addQuery("holding", params.Holding)
+	}
+	var out []JitAccessRequest
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// JitAccessRequestsRevokeParams holds the parameters for
+// `client.jitAccess.requests.revoke`.
+type JitAccessRequestsRevokeParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	RequestID string
+	// Body: the JSON request body.
+	Body *JitAccessRequestsRevokeRequest
+}
+
+// Revoke: End a grant early
+//
+// Allowed for the holder, an approver, or a member with org:settings:write.
+// Audit-logged. Not available to API keys.
+//
+// POST /api/org/{orgId}/jit-access/requests/{requestId}/revoke
+//
+// Raises on 403: Not allowed
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Already decided, timed out, or not in a state for this
+func (n *JitAccessRequestsNamespace) Revoke(ctx context.Context, params JitAccessRequestsRevokeParams, opts ...RequestOption) (*JitAccessRequest, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests/{requestId}/revoke")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("requestId", params.RequestID)
+	r.setJSONBody(params.Body)
+	var out *JitAccessRequest
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.76.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.77.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.76.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.77.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -251,6 +251,10 @@ type AccessReviewResponse struct {
 	// StaleDays: The staleness window this review was computed against.
 	StaleDays   int64  `json:"staleDays"`
 	GeneratedAt string `json:"generatedAt"`
+	// JitGrantIssues: Just-in-time grants whose revocation failed, that the
+	// provider still reports after a revoke, or that are still marked held past
+	// their window.
+	JitGrantIssues []JitGrantIssue `json:"jitGrantIssues,omitempty"`
 }
 
 // AccessReviewRoleCounts is the `AccessReviewRoleCounts` schema.
@@ -7744,6 +7748,221 @@ type JiraVerifyResult struct {
 	EmailAddress *string `json:"emailAddress"`
 }
 
+// JitAccessAccount is the `JitAccessAccount` schema.
+type JitAccessAccount struct {
+	ID          string            `json:"id"`
+	DisplayName string            `json:"displayName"`
+	PluginID    string            `json:"pluginId"`
+	Labels      JitProviderLabels `json:"labels"`
+}
+
+// JitAccessRequest is the `JitAccessRequest` schema.
+type JitAccessRequest struct {
+	ID            string  `json:"id"`
+	PolicyID      *string `json:"policyId"`
+	PolicyName    *string `json:"policyName"`
+	AccountID     string  `json:"accountId"`
+	AccountName   *string `json:"accountName"`
+	PluginID      string  `json:"pluginId"`
+	ScopeID       string  `json:"scopeId"`
+	ScopeName     string  `json:"scopeName"`
+	RoleID        string  `json:"roleId"`
+	RoleName      string  `json:"roleName"`
+	UserID        string  `json:"userId"`
+	UserName      *string `json:"userName"`
+	PrincipalID   string  `json:"principalId"`
+	PrincipalName string  `json:"principalName"`
+	// PrincipalKind: One of "user", "group".
+	PrincipalKind string `json:"principalKind"`
+	// PrincipalMatched: True when the principal was resolved from the
+	// requester's own email.
+	PrincipalMatched bool             `json:"principalMatched"`
+	Reason           string           `json:"reason"`
+	Ticket           *string          `json:"ticket"`
+	DurationMinutes  int64            `json:"durationMinutes"`
+	Status           JitRequestStatus `json:"status"`
+	RequestExpiresAt string           `json:"requestExpiresAt"`
+	DecidedAt        *string          `json:"decidedAt"`
+	DecidedByUserID  *string          `json:"decidedByUserId"`
+	DecidedByName    *string          `json:"decidedByName"`
+	DecisionNote     *string          `json:"decisionNote"`
+	SelfApproved     bool             `json:"selfApproved"`
+	IncidentID       *string          `json:"incidentId"`
+	GrantedAt        *string          `json:"grantedAt"`
+	GrantExpiresAt   *string          `json:"grantExpiresAt"`
+	// Preexisting: The principal already held the role; nothing was created and
+	// nothing is removed.
+	Preexisting     bool    `json:"preexisting"`
+	ExtendedMinutes int64   `json:"extendedMinutes"`
+	EndedAt         *string `json:"endedAt"`
+	EndedByName     *string `json:"endedByName"`
+	// EndReason: One of "expired", "revoked", "grant_failed".
+	EndReason      *string `json:"endReason"`
+	LastError      *string `json:"lastError"`
+	RevokeAttempts int64   `json:"revokeAttempts"`
+	CreatedAt      string  `json:"createdAt"`
+	CanDecide      bool    `json:"canDecide"`
+	CanCancel      bool    `json:"canCancel"`
+	CanExtend      bool    `json:"canExtend"`
+	CanRevoke      bool    `json:"canRevoke"`
+}
+
+// JitCreateRequest is the `JitCreateRequest` schema.
+type JitCreateRequest struct {
+	PolicyID        string  `json:"policyId"`
+	ScopeID         string  `json:"scopeId"`
+	RoleID          string  `json:"roleId"`
+	DurationMinutes int64   `json:"durationMinutes"`
+	Reason          string  `json:"reason"`
+	Ticket          *string `json:"ticket,omitempty"`
+	// PrincipalID: Only when the caller's email does not resolve; must be one
+	// the provider lists.
+	PrincipalID *string `json:"principalId,omitempty"`
+}
+
+// JitError is the `JitError` schema.
+type JitError struct {
+	Error string  `json:"error"`
+	Code  *string `json:"code,omitempty"`
+}
+
+// JitGrantIssue is the `JitGrantIssue` schema.
+type JitGrantIssue struct {
+	RequestID string `json:"requestId"`
+	// Kind: One of "revoke_failed", "overdue", "still_present".
+	Kind           string  `json:"kind"`
+	AccountID      string  `json:"accountId"`
+	AccountName    *string `json:"accountName"`
+	PluginID       string  `json:"pluginId"`
+	ScopeName      string  `json:"scopeName"`
+	RoleName       string  `json:"roleName"`
+	PrincipalName  string  `json:"principalName"`
+	UserName       *string `json:"userName"`
+	GrantExpiresAt *string `json:"grantExpiresAt"`
+	LastError      *string `json:"lastError"`
+	RevokeAttempts int64   `json:"revokeAttempts"`
+}
+
+// JitPickerOption is the `JitPickerOption` schema.
+type JitPickerOption struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	Privileged  *bool   `json:"privileged,omitempty"`
+}
+
+// JitPolicy is the `JitPolicy` schema.
+type JitPolicy struct {
+	ID                     string            `json:"id"`
+	Name                   string            `json:"name"`
+	Description            *string           `json:"description"`
+	Enabled                bool              `json:"enabled"`
+	AccountID              string            `json:"accountId"`
+	AccountName            *string           `json:"accountName"`
+	PluginID               string            `json:"pluginId"`
+	Targets                []JitPolicyTarget `json:"targets"`
+	MaxDurationMinutes     int64             `json:"maxDurationMinutes"`
+	DefaultDurationMinutes int64             `json:"defaultDurationMinutes"`
+	RequestTimeoutMinutes  int64             `json:"requestTimeoutMinutes"`
+	// RequesterUserIDs: Who may ask. Empty (with requesterRoleIds) means any
+	// member with access:request.
+	RequesterUserIDs []string `json:"requesterUserIds"`
+	RequesterRoleIDs []string `json:"requesterRoleIds"`
+	ApproverUserIDs  []string `json:"approverUserIds"`
+	ApproverRoleIDs  []string `json:"approverRoleIds"`
+	// ApproverOnCallScheduleIDs: Rotations whose current on-call person may
+	// approve.
+	ApproverOnCallScheduleIDs       []string `json:"approverOnCallScheduleIds"`
+	AllowSelfApprovalDuringIncident bool     `json:"allowSelfApprovalDuringIncident"`
+	RequireReason                   bool     `json:"requireReason"`
+	RequireTicket                   bool     `json:"requireTicket"`
+	CreatedAt                       string   `json:"createdAt"`
+	UpdatedAt                       string   `json:"updatedAt"`
+	Labels                          any      `json:"labels,omitempty"`
+	// CanRequest: Caller-relative: whether the caller may ask under this policy.
+	CanRequest *bool `json:"canRequest,omitempty"`
+}
+
+// JitPolicyInput is the `JitPolicyInput` schema.
+type JitPolicyInput struct {
+	Name                            string            `json:"name"`
+	Description                     *string           `json:"description,omitempty"`
+	Enabled                         *bool             `json:"enabled,omitempty"`
+	AccountID                       string            `json:"accountId"`
+	Targets                         []JitPolicyTarget `json:"targets"`
+	MaxDurationMinutes              int64             `json:"maxDurationMinutes"`
+	DefaultDurationMinutes          *int64            `json:"defaultDurationMinutes,omitempty"`
+	RequestTimeoutMinutes           *int64            `json:"requestTimeoutMinutes,omitempty"`
+	RequesterUserIDs                []string          `json:"requesterUserIds,omitempty"`
+	RequesterRoleIDs                []string          `json:"requesterRoleIds,omitempty"`
+	ApproverUserIDs                 []string          `json:"approverUserIds,omitempty"`
+	ApproverRoleIDs                 []string          `json:"approverRoleIds,omitempty"`
+	ApproverOnCallScheduleIDs       []string          `json:"approverOnCallScheduleIds,omitempty"`
+	AllowSelfApprovalDuringIncident *bool             `json:"allowSelfApprovalDuringIncident,omitempty"`
+	RequireReason                   *bool             `json:"requireReason,omitempty"`
+	RequireTicket                   *bool             `json:"requireTicket,omitempty"`
+}
+
+// JitPolicyTarget is the `JitPolicyTarget` schema.
+type JitPolicyTarget struct {
+	// ScopeID: Provider id of the scope (account, project, namespace).
+	ScopeID   string `json:"scopeId"`
+	ScopeName string `json:"scopeName"`
+	// RoleID: Provider id of the role (permission set ARN, role name).
+	RoleID   string `json:"roleId"`
+	RoleName string `json:"roleName"`
+}
+
+// JitPrincipalOption is the `JitPrincipalOption` schema.
+//
+// The API may send null in its place.
+type JitPrincipalOption struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Kind: One of "user", "group".
+	Kind  string  `json:"kind"`
+	Email *string `json:"email,omitempty"`
+}
+
+// JitPrincipalResolution is the `JitPrincipalResolution` schema.
+type JitPrincipalResolution struct {
+	Principal *JitPrincipalOption `json:"principal"`
+	CanPick   bool                `json:"canPick"`
+	Labels    JitProviderLabels   `json:"labels"`
+}
+
+// JitProviderLabels is the `JitProviderLabels` schema.
+type JitProviderLabels struct {
+	ScopeLabel     string  `json:"scopeLabel"`
+	RoleLabel      string  `json:"roleLabel"`
+	PrincipalLabel string  `json:"principalLabel"`
+	Description    *string `json:"description,omitempty"`
+	// ProviderEnforcedExpiry: True when the provider itself ends the access on
+	// time (a time-bound IAM Condition).
+	ProviderEnforcedExpiry bool `json:"providerEnforcedExpiry"`
+	PrincipalPicker        bool `json:"principalPicker"`
+}
+
+// JitRequestStatus: `pending` (awaiting an approver) or `timed_out`; `denied` /
+// `cancelled`; `granting` (the provider call is in flight), `active`,
+// `grant_failed`; `revoking` then `revoked` when the window ends;
+// `revoke_failed` while a failed revoke is retried.
+type JitRequestStatus = string
+
+// The values JitRequestStatus takes.
+const (
+	JitRequestStatusPending      JitRequestStatus = "pending"
+	JitRequestStatusTimedOut     JitRequestStatus = "timed_out"
+	JitRequestStatusDenied       JitRequestStatus = "denied"
+	JitRequestStatusCancelled    JitRequestStatus = "cancelled"
+	JitRequestStatusGranting     JitRequestStatus = "granting"
+	JitRequestStatusActive       JitRequestStatus = "active"
+	JitRequestStatusGrantFailed  JitRequestStatus = "grant_failed"
+	JitRequestStatusRevoking     JitRequestStatus = "revoking"
+	JitRequestStatusRevoked      JitRequestStatus = "revoked"
+	JitRequestStatusRevokeFailed JitRequestStatus = "revoke_failed"
+)
+
 // JSONObject: Free-form JSON object whose shape depends on the plugin.
 //
 // Spec schema: `JsonObject`.
@@ -14231,9 +14450,9 @@ type SyntheticProbeUpdate struct {
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "cost-canvases", "invoices", "graph", "logs",
-	// "changes", "expiring", "posture", "access-review", "backups", "wallboard",
-	// "calendar", "runbooks", "query-monitors", "dns", "iac",
-	// "environment-diff", "environments", "ssh-fanout", "metric-alerts",
+	// "changes", "expiring", "posture", "access-review", "jit-access",
+	// "backups", "wallboard", "calendar", "runbooks", "query-monitors", "dns",
+	// "iac", "environment-diff", "environments", "ssh-fanout", "metric-alerts",
 	// "probes", "status-pages", "quotas", "price-catalog", "incidents",
 	// "workflows", "deployments", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
@@ -16556,6 +16775,31 @@ type IacStatesCreateResponse struct {
 // JiraGetResponse is an object the spec declares inline.
 type JiraGetResponse struct {
 	Integration *JiraIntegration `json:"integration"`
+}
+
+// JitAccessRequestsApproveRequest is an object the spec declares inline.
+type JitAccessRequestsApproveRequest struct {
+	Note *string `json:"note,omitempty"`
+}
+
+// JitAccessRequestsCancelRequest is an object the spec declares inline.
+type JitAccessRequestsCancelRequest struct {
+	Note *string `json:"note,omitempty"`
+}
+
+// JitAccessRequestsDenyRequest is an object the spec declares inline.
+type JitAccessRequestsDenyRequest struct {
+	Note *string `json:"note,omitempty"`
+}
+
+// JitAccessRequestsExtendRequest is an object the spec declares inline.
+type JitAccessRequestsExtendRequest struct {
+	Minutes int64 `json:"minutes"`
+}
+
+// JitAccessRequestsRevokeRequest is an object the spec declares inline.
+type JitAccessRequestsRevokeRequest struct {
+	Note *string `json:"note,omitempty"`
 }
 
 // LinearGetResponse is an object the spec declares inline.
