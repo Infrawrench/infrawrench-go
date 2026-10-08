@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.78.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.79.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.78.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.79.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -197,6 +197,8 @@ type APIV1Client struct {
 	PagingWebhooks *PagingWebhooksNamespace
 	// Posture: `client.posture`.
 	Posture *PostureNamespace
+	// PrChecks: `client.prChecks`.
+	PrChecks *PrChecksNamespace
 	// PriceCatalog: `client.priceCatalog`.
 	PriceCatalog *PriceCatalogNamespace
 	// Probes: `client.probes`.
@@ -356,6 +358,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.PagingProviders = newPagingProvidersNamespace(t)
 	c.PagingWebhooks = newPagingWebhooksNamespace(t)
 	c.Posture = newPostureNamespace(t)
+	c.PrChecks = newPrChecksNamespace(t)
 	c.PriceCatalog = newPriceCatalogNamespace(t)
 	c.Probes = newProbesNamespace(t)
 	c.Profile = newProfileNamespace(t)
@@ -6124,7 +6127,7 @@ type ConfigExportParams struct {
 	OrgID *string
 	// Sections: Comma-separated subset of sections to export. Defaults to all
 	// of: budgets, customGraphs, workflows, dashboards, metricAlerts, probes,
-	// slos, costCentres, tagPolicy, alertSettings.
+	// costCentres, tagPolicy, alertSettings.
 	Sections *string
 }
 
@@ -18583,6 +18586,276 @@ func (n *PostureSettingsNamespace) Update(ctx context.Context, params *PostureSe
 		r.setJSONBody(params.Body)
 	}
 	var out *PostureAlertSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PrChecksNamespace is `client.prChecks`.
+type PrChecksNamespace struct {
+	t *transport
+
+	// Repositories: `client.prChecks.repositories`.
+	Repositories *PrChecksRepositoriesNamespace
+}
+
+func newPrChecksNamespace(t *transport) *PrChecksNamespace {
+	n := &PrChecksNamespace{t: t}
+	n.Repositories = newPrChecksRepositoriesNamespace(t)
+	return n
+}
+
+// PrChecksGetParams holds the parameters for `client.prChecks.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PrChecksGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get pull request check settings and installation access
+//
+// _Requires permission: `iac:read`._
+//
+// GET /api/org/{orgId}/pr-checks
+func (n *PrChecksNamespace) Get(ctx context.Context, params *PrChecksGetParams, opts ...RequestOption) (*PrCheckStatus, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/pr-checks")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *PrCheckStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PrChecksPreviewParams holds the parameters for `client.prChecks.preview`.
+type PrChecksPreviewParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body PrCheckPreviewInput
+}
+
+// Preview: Preview a pull request check without posting it
+//
+// Runs the same analysis the check posts, for a pull request in a configured
+// repository or for file contents from a local diff. Reads only: nothing is
+// posted to GitHub and nothing is stored.
+//
+// _Requires permission: `iac:read`._
+//
+// POST /api/org/{orgId}/pr-checks/preview
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 502: GitHub refused the request or was unreachable
+func (n *PrChecksNamespace) Preview(ctx context.Context, params PrChecksPreviewParams, opts ...RequestOption) (*PrCheckPreview, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/pr-checks/preview")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *PrCheckPreview
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PrChecksRunsParams holds the parameters for `client.prChecks.runs`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PrChecksRunsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID        *string
+	RepositoryID *string
+	Limit        *int64
+}
+
+// Runs: List recent pull request checks
+//
+// _Requires permission: `iac:read`._
+//
+// GET /api/org/{orgId}/pr-checks/runs
+func (n *PrChecksNamespace) Runs(ctx context.Context, params *PrChecksRunsParams, opts ...RequestOption) ([]PrCheckRun, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/pr-checks/runs")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("repositoryId", params.RepositoryID)
+		r.addQuery("limit", params.Limit)
+	}
+	var out []PrCheckRun
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PrChecksRepositoriesNamespace is `client.prChecks.repositories`.
+type PrChecksRepositoriesNamespace struct {
+	t *transport
+}
+
+func newPrChecksRepositoriesNamespace(t *transport) *PrChecksRepositoriesNamespace {
+	n := &PrChecksRepositoriesNamespace{t: t}
+	return n
+}
+
+// PrChecksRepositoriesCreateParams holds the parameters for
+// `client.prChecks.repositories.create`.
+type PrChecksRepositoriesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body PrCheckRepositoryInput
+}
+
+// Create: Turn on pull request checks for a repository
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/pr-checks/repositories
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: Conflict
+func (n *PrChecksRepositoriesNamespace) Create(ctx context.Context, params PrChecksRepositoriesCreateParams, opts ...RequestOption) (*PrCheckRepository, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/pr-checks/repositories")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *PrCheckRepository
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PrChecksRepositoriesDeleteParams holds the parameters for
+// `client.prChecks.repositories.delete`.
+type PrChecksRepositoriesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Stop pull request checks for a repository
+//
+// Removes the settings and the repository's check history.
+//
+// _Requires permission: `org:settings:write`._
+//
+// DELETE /api/org/{orgId}/pr-checks/repositories/{id}
+//
+// Raises on 404: Not found
+func (n *PrChecksRepositoriesNamespace) Delete(ctx context.Context, params PrChecksRepositoriesDeleteParams, opts ...RequestOption) (*PrChecksRepositoriesDeleteResponse, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/pr-checks/repositories/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *PrChecksRepositoriesDeleteResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PrChecksRepositoriesGetParams holds the parameters for
+// `client.prChecks.repositories.get`.
+type PrChecksRepositoriesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get one repository's pull request check settings
+//
+// _Requires permission: `iac:read`._
+//
+// GET /api/org/{orgId}/pr-checks/repositories/{id}
+//
+// Raises on 404: Not found
+func (n *PrChecksRepositoriesNamespace) Get(ctx context.Context, params PrChecksRepositoriesGetParams, opts ...RequestOption) (*PrCheckRepository, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/pr-checks/repositories/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *PrCheckRepository
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PrChecksRepositoriesListParams holds the parameters for
+// `client.prChecks.repositories.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type PrChecksRepositoriesListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List repositories with pull request checks
+//
+// _Requires permission: `iac:read`._
+//
+// GET /api/org/{orgId}/pr-checks/repositories
+func (n *PrChecksRepositoriesNamespace) List(ctx context.Context, params *PrChecksRepositoriesListParams, opts ...RequestOption) ([]PrCheckRepository, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/pr-checks/repositories")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []PrCheckRepository
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// PrChecksRepositoriesUpdateParams holds the parameters for
+// `client.prChecks.repositories.update`.
+type PrChecksRepositoriesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body PrCheckRepositoryInput
+}
+
+// Update: Replace one repository's pull request check settings
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/pr-checks/repositories/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *PrChecksRepositoriesNamespace) Update(ctx context.Context, params PrChecksRepositoriesUpdateParams, opts ...RequestOption) (*PrCheckRepository, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/pr-checks/repositories/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *PrCheckRepository
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

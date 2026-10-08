@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.78.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.79.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.78.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.79.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -891,7 +891,6 @@ const (
 	AlertTriggerLogMatchAlerts           AlertTrigger = "logMatchAlerts"
 	AlertTriggerPostureAlerts            AlertTrigger = "postureAlerts"
 	AlertTriggerProbeAlerts              AlertTrigger = "probeAlerts"
-	AlertTriggerSloAlerts                AlertTrigger = "sloAlerts"
 	AlertTriggerQuotaAlerts              AlertTrigger = "quotaAlerts"
 	AlertTriggerExtendedSupportAlerts    AlertTrigger = "extendedSupportAlerts"
 	AlertTriggerIncidentAlerts           AlertTrigger = "incidentAlerts"
@@ -9288,7 +9287,6 @@ const (
 	OrgConfigSectionDashboards    OrgConfigSection = "dashboards"
 	OrgConfigSectionMetricAlerts  OrgConfigSection = "metricAlerts"
 	OrgConfigSectionProbes        OrgConfigSection = "probes"
-	OrgConfigSectionSlos          OrgConfigSection = "slos"
 	OrgConfigSectionCostCentres   OrgConfigSection = "costCentres"
 	OrgConfigSectionTagPolicy     OrgConfigSection = "tagPolicy"
 	OrgConfigSectionAlertSettings OrgConfigSection = "alertSettings"
@@ -10207,6 +10205,196 @@ type PostureSeverityCounts struct {
 	Medium   int64 `json:"medium"`
 	Low      int64 `json:"low"`
 }
+
+// PrCheckChange is the `PrCheckChange` schema.
+type PrCheckChange struct {
+	Address       string `json:"address"`
+	TerraformType string `json:"terraformType"`
+	// Action: One of "create", "update", "delete".
+	Action string `json:"action"`
+	Path   string `json:"path"`
+	Line   *int64 `json:"line"`
+	// ResourceID: The synced resource the block manages, matched through
+	// uploaded Terraform state.
+	ResourceID        *string  `json:"resourceId"`
+	DisplayName       *string  `json:"displayName"`
+	PluginID          *string  `json:"pluginId"`
+	ResourceTypeID    *string  `json:"resourceTypeId"`
+	ChangedAttributes []string `json:"changedAttributes"`
+	// Count: The block's literal `count`; null for `for_each` or a computed
+	// count.
+	Count  *int64               `json:"count"`
+	Before *PrCheckEstimateSide `json:"before"`
+	After  *PrCheckEstimateSide `json:"after"`
+	// MonthlyDelta: Null when either side could not be priced; never zero for
+	// unknown.
+	MonthlyDelta   *float64                  `json:"monthlyDelta"`
+	Currency       *string                   `json:"currency"`
+	UnpricedReason *string                   `json:"unpricedReason"`
+	BlastRadius    *PrCheckChangeBlastRadius `json:"blastRadius"`
+	Warnings       []PrCheckChangeWarnings   `json:"warnings"`
+}
+
+// PrCheckConclusion is the `PrCheckConclusion` schema.
+//
+// The API may send null in its place.
+type PrCheckConclusion = string
+
+// The values PrCheckConclusion takes.
+const (
+	PrCheckConclusionSuccess PrCheckConclusion = "success"
+	PrCheckConclusionNeutral PrCheckConclusion = "neutral"
+	PrCheckConclusionFailure PrCheckConclusion = "failure"
+)
+
+// PrCheckEstimateSide is the `PrCheckEstimateSide` schema.
+//
+// The API may send null in its place.
+type PrCheckEstimateSide struct {
+	MonthlyAmount float64 `json:"monthlyAmount"`
+	Currency      string  `json:"currency"`
+	Partial       bool    `json:"partial"`
+}
+
+// PrCheckInstallationAccess: What an installation has **accepted** of the
+// permissions checks need: `checks: write`, `pull_requests` (read, or write for
+// the comment) and `contents: read`. An installation made before checks existed
+// shows `checks: none` until an owner of the GitHub account approves the app's
+// updated permissions.
+type PrCheckInstallationAccess struct {
+	InstallationID int64   `json:"installationId"`
+	AccountLogin   *string `json:"accountLogin"`
+	// Checks: One of "none", "read", "write", "admin".
+	Checks string `json:"checks"`
+	// PullRequests: One of "none", "read", "write", "admin".
+	PullRequests string `json:"pullRequests"`
+	// Contents: One of "none", "read", "write", "admin".
+	Contents  string  `json:"contents"`
+	Suspended bool    `json:"suspended"`
+	ManageURL *string `json:"manageUrl"`
+	// Checked: False when GitHub could not be asked; the levels are then all
+	// `none`.
+	Checked bool `json:"checked"`
+}
+
+// PrCheckPreview is the `PrCheckPreview` schema.
+type PrCheckPreview struct {
+	Report     *PrCheckReport     `json:"report"`
+	Conclusion *PrCheckConclusion `json:"conclusion"`
+	Title      string             `json:"title"`
+	// Markdown: The check run summary, as GitHub renders it.
+	Markdown string `json:"markdown"`
+}
+
+// PrCheckPreviewInput: Either a configured repository and pull request number
+// (read through the GitHub App), or file contents from a local diff (`before`
+// null for an added file, `after` null for a removed one).
+type PrCheckPreviewInput = any
+
+// PrCheckReport is the `PrCheckReport` schema.
+//
+// The API may send null in its place.
+type PrCheckReport struct {
+	GeneratedAt string               `json:"generatedAt"`
+	Files       []PrCheckReportFiles `json:"files"`
+	Changes     []PrCheckChange      `json:"changes"`
+	Totals      PrCheckReportTotals  `json:"totals"`
+	Blast       PrCheckReportBlast   `json:"blast"`
+	Notes       []string             `json:"notes"`
+	Truncated   bool                 `json:"truncated"`
+}
+
+// PrCheckRepository is the `PrCheckRepository` schema.
+type PrCheckRepository struct {
+	// InstallationID: A GitHub App installation connected to the organization
+	// (`/github/status`).
+	InstallationID int64 `json:"installationId"`
+	// Repo: `owner/name`, as listed by `/github/repos`.
+	Repo string `json:"repo"`
+	// Enabled: Post checks on this repository's pull requests. Off keeps the
+	// settings.
+	Enabled bool `json:"enabled"`
+	// CommentEnabled: Also keep one summary comment on each infrastructure pull
+	// request, edited in place on every push rather than re-posted. Needs the
+	// installation's `pull_requests: write`.
+	CommentEnabled bool `json:"commentEnabled"`
+	// CostThreshold: Monthly cost increase, in the estimate's currency (USD for
+	// every provider that prices today), above which the check concludes
+	// `thresholdConclusion`. Null never trips. An increase that could not be
+	// priced never trips it either.
+	CostThreshold       *float64                   `json:"costThreshold"`
+	ThresholdConclusion PrCheckThresholdConclusion `json:"thresholdConclusion"`
+	// Directories: Path prefixes the check looks in, without leading or trailing
+	// slashes. Empty covers the whole repository.
+	Directories []string `json:"directories"`
+	ID          string   `json:"id"`
+	CreatedAt   string   `json:"createdAt"`
+	UpdatedAt   string   `json:"updatedAt"`
+}
+
+// PrCheckRepositoryInput is the `PrCheckRepositoryInput` schema.
+type PrCheckRepositoryInput struct {
+	// InstallationID: A GitHub App installation connected to the organization
+	// (`/github/status`).
+	InstallationID int64 `json:"installationId"`
+	// Repo: `owner/name`, as listed by `/github/repos`.
+	Repo string `json:"repo"`
+	// Enabled: Post checks on this repository's pull requests. Off keeps the
+	// settings.
+	Enabled bool `json:"enabled"`
+	// CommentEnabled: Also keep one summary comment on each infrastructure pull
+	// request, edited in place on every push rather than re-posted. Needs the
+	// installation's `pull_requests: write`.
+	CommentEnabled bool `json:"commentEnabled"`
+	// CostThreshold: Monthly cost increase, in the estimate's currency (USD for
+	// every provider that prices today), above which the check concludes
+	// `thresholdConclusion`. Null never trips. An increase that could not be
+	// priced never trips it either.
+	CostThreshold       *float64                   `json:"costThreshold"`
+	ThresholdConclusion PrCheckThresholdConclusion `json:"thresholdConclusion"`
+	// Directories: Path prefixes the check looks in, without leading or trailing
+	// slashes. Empty covers the whole repository.
+	Directories []string `json:"directories"`
+}
+
+// PrCheckRun is the `PrCheckRun` schema.
+type PrCheckRun struct {
+	ID           string  `json:"id"`
+	RepositoryID string  `json:"repositoryId"`
+	Repo         string  `json:"repo"`
+	PullNumber   int64   `json:"pullNumber"`
+	PullTitle    *string `json:"pullTitle"`
+	PullURL      *string `json:"pullUrl"`
+	HeadSha      string  `json:"headSha"`
+	// Status: One of "running", "completed", "failed".
+	Status      string             `json:"status"`
+	Conclusion  *PrCheckConclusion `json:"conclusion"`
+	CheckRunURL *string            `json:"checkRunUrl"`
+	CommentURL  *string            `json:"commentUrl"`
+	Report      *PrCheckReport     `json:"report"`
+	Error       *string            `json:"error"`
+	CreatedAt   string             `json:"createdAt"`
+	CompletedAt *string            `json:"completedAt"`
+}
+
+// PrCheckStatus is the `PrCheckStatus` schema.
+type PrCheckStatus struct {
+	AppConfigured bool                        `json:"appConfigured"`
+	Installations []PrCheckInstallationAccess `json:"installations"`
+	Repositories  []PrCheckRepository         `json:"repositories"`
+}
+
+// PrCheckThresholdConclusion: What the check concludes when the priced monthly
+// increase exceeds `costThreshold`: `neutral` flags it without blocking,
+// `failure` fails it (and blocks merging where branch protection requires the
+// check).
+type PrCheckThresholdConclusion = string
+
+// The values PrCheckThresholdConclusion takes.
+const (
+	PrCheckThresholdConclusionNeutral PrCheckThresholdConclusion = "neutral"
+	PrCheckThresholdConclusionFailure PrCheckThresholdConclusion = "failure"
+)
 
 // PreflightCapability is the `PreflightCapability` schema.
 type PreflightCapability struct {
@@ -16268,6 +16456,56 @@ type PolicyTemplateHelpLink struct {
 	URL   string `json:"url"`
 }
 
+// PrCheckChangeBlastRadius is an object the spec declares inline.
+type PrCheckChangeBlastRadius struct {
+	DirectDependants     int64 `json:"directDependants"`
+	TransitiveDependants int64 `json:"transitiveDependants"`
+	References           int64 `json:"references"`
+	// Severity: One of "none", "low", "medium", "high", "unknown".
+	Severity      string   `json:"severity"`
+	Headline      string   `json:"headline"`
+	TopDependants []string `json:"topDependants"`
+	Unchecked     int64    `json:"unchecked"`
+}
+
+// PrCheckChangeWarnings is an object the spec declares inline.
+type PrCheckChangeWarnings struct {
+	// Kind: One of "rightsizing", "tag-policy", "posture", "parse".
+	Kind string `json:"kind"`
+	// Severity: One of "notice", "warning".
+	Severity string `json:"severity"`
+	Message  string `json:"message"`
+}
+
+// PrCheckReportFiles is an object the spec declares inline.
+type PrCheckReportFiles struct {
+	Path string `json:"path"`
+	// Kind: One of "terraform", "infrafile", "kubernetes".
+	Kind string `json:"kind"`
+	// Status: One of "added", "modified", "removed", "renamed".
+	Status   string  `json:"status"`
+	Analysed bool    `json:"analysed"`
+	Note     *string `json:"note"`
+}
+
+// PrCheckReportTotals is an object the spec declares inline.
+type PrCheckReportTotals struct {
+	MonthlyDelta         *float64 `json:"monthlyDelta"`
+	Currency             *string  `json:"currency"`
+	Partial              bool     `json:"partial"`
+	PricedChanges        int64    `json:"pricedChanges"`
+	UnpricedChanges      int64    `json:"unpricedChanges"`
+	OtherCurrencyChanges int64    `json:"otherCurrencyChanges"`
+}
+
+// PrCheckReportBlast is an object the spec declares inline.
+type PrCheckReportBlast struct {
+	TouchedResources int64 `json:"touchedResources"`
+	Dependants       int64 `json:"dependants"`
+	// HighestSeverity: One of "none", "low", "medium", "high", "unknown".
+	HighestSeverity *string `json:"highestSeverity"`
+}
+
 // PreflightCheckHelpLink is an object the spec declares inline.
 type PreflightCheckHelpLink struct {
 	Label string `json:"label"`
@@ -17091,6 +17329,11 @@ type NetworkFlowsKubernetesSettingsUpdateRequest struct {
 // OnCallOverridesGetResponse is an object the spec declares inline.
 type OnCallOverridesGetResponse struct {
 	Overrides []OnCallOverride `json:"overrides"`
+}
+
+// PrChecksRepositoriesDeleteResponse is an object the spec declares inline.
+type PrChecksRepositoriesDeleteResponse struct {
+	OK bool `json:"ok"`
 }
 
 // PriceCatalogProvidersResponse is an object the spec declares inline.
