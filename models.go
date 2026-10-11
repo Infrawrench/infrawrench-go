@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.79.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.80.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.79.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.80.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -301,8 +301,9 @@ type Account struct {
 	DisplayName string `json:"displayName"`
 	// BastionID: Bastion this account's cloud-API egress is routed through.
 	// `null` ⇒ direct egress.
-	BastionID *string `json:"bastionId"`
-	CreatedAt string  `json:"createdAt"`
+	BastionID   *string             `json:"bastionId"`
+	OAuthStatus *AccountOAuthStatus `json:"oauthStatus"`
+	CreatedAt   string              `json:"createdAt"`
 }
 
 // AccountDeleted is the `AccountDeleted` schema.
@@ -330,6 +331,20 @@ type AccountDetail struct {
 	PluginDisplayName string                `json:"pluginDisplayName"`
 	PluginLogoSvg     string                `json:"pluginLogoSvg"`
 }
+
+// AccountOAuthStatus: Provider OAuth connection state. `null` for pasted
+// credentials; `reconnect_required` when the provider revoked the connection or
+// its refresh token expired, and the account needs `POST
+// /provider-oauth/{pluginId}/authorize` with its `accountId` again.
+//
+// The API may send null in its place.
+type AccountOAuthStatus = string
+
+// The values AccountOAuthStatus takes.
+const (
+	AccountOAuthStatusConnected         AccountOAuthStatus = "connected"
+	AccountOAuthStatusReconnectRequired AccountOAuthStatus = "reconnect_required"
+)
 
 // AccountTagCompliance is the `AccountTagCompliance` schema.
 type AccountTagCompliance struct {
@@ -891,6 +906,7 @@ const (
 	AlertTriggerLogMatchAlerts           AlertTrigger = "logMatchAlerts"
 	AlertTriggerPostureAlerts            AlertTrigger = "postureAlerts"
 	AlertTriggerProbeAlerts              AlertTrigger = "probeAlerts"
+	AlertTriggerSloAlerts                AlertTrigger = "sloAlerts"
 	AlertTriggerQuotaAlerts              AlertTrigger = "quotaAlerts"
 	AlertTriggerExtendedSupportAlerts    AlertTrigger = "extendedSupportAlerts"
 	AlertTriggerIncidentAlerts           AlertTrigger = "incidentAlerts"
@@ -4477,8 +4493,13 @@ type CostVisibilitySummary struct {
 
 // CreateAccountRequest is the `CreateAccountRequest` schema.
 type CreateAccountRequest struct {
-	PluginID    string            `json:"pluginId"`
-	DisplayName string            `json:"displayName"`
+	PluginID    string `json:"pluginId"`
+	DisplayName string `json:"displayName"`
+	// Credentials: An `__oauth` key may only carry the sealed grant returned by
+	// the provider OAuth callback (for this organization, the calling user and
+	// this plugin, within 30 minutes) or the redacted grant `GET
+	// .../credentials` returned, which counts as no grant (the stored one is
+	// kept while the token is unchanged). Any other value is rejected with 400.
 	Credentials map[string]string `json:"credentials"`
 	// BastionID: Optional bastion id to route this account's cloud API traffic
 	// through.
@@ -9287,6 +9308,7 @@ const (
 	OrgConfigSectionDashboards    OrgConfigSection = "dashboards"
 	OrgConfigSectionMetricAlerts  OrgConfigSection = "metricAlerts"
 	OrgConfigSectionProbes        OrgConfigSection = "probes"
+	OrgConfigSectionSlos          OrgConfigSection = "slos"
 	OrgConfigSectionCostCentres   OrgConfigSection = "costCentres"
 	OrgConfigSectionTagPolicy     OrgConfigSection = "tagPolicy"
 	OrgConfigSectionAlertSettings OrgConfigSection = "alertSettings"
@@ -10085,6 +10107,30 @@ const (
 	PluginIDXata                PluginID = "xata"
 )
 
+// PluginOAuthSummary: Present only when this server can connect the plugin
+// through provider OAuth (the plugin supports it and the server has a client
+// configured). See `POST /provider-oauth/{pluginId}/authorize`.
+type PluginOAuthSummary struct {
+	// Access: What the granted token can do. `full` means the provider offers no
+	// narrower scope.
+	//
+	// One of "read-only", "read-write", "full".
+	Access string `json:"access"`
+	// Refresh: How the server keeps the access token valid: `rotating` and
+	// `reusable` refresh it before expiry, `none` means it does not expire.
+	//
+	// One of "rotating", "reusable", "none".
+	Refresh string  `json:"refresh"`
+	DocsURL *string `json:"docsUrl,omitempty"`
+	// TokenField: The credential field the connection fills with the access
+	// token.
+	TokenField string `json:"tokenField"`
+	// Clients: OAuth clients the plugin declares. Always contains `server` here;
+	// `desktop` means the desktop app can also connect accounts it stores
+	// locally.
+	Clients []string `json:"clients"`
+}
+
 // PluginSummary is the `PluginSummary` schema.
 type PluginSummary struct {
 	ID               string                `json:"id"`
@@ -10092,6 +10138,7 @@ type PluginSummary struct {
 	LogoSvg          string                `json:"logoSvg"`
 	CredentialFields []CredentialField     `json:"credentialFields"`
 	Preflight        *PreflightDeclaration `json:"preflight"`
+	OAuth            *PluginOAuthSummary   `json:"oauth,omitempty"`
 }
 
 // PolicyTemplate is the `PolicyTemplate` schema.
@@ -10802,6 +10849,27 @@ const (
 	ProviderIncidentStateMonitoring    ProviderIncidentState = "monitoring"
 	ProviderIncidentStateResolved      ProviderIncidentState = "resolved"
 )
+
+// ProviderOAuthAuthorizeRequest is the `ProviderOAuthAuthorizeRequest` schema.
+type ProviderOAuthAuthorizeRequest struct {
+	// ReturnTo: `web`: the callback page posts the result to the window that
+	// opened it (`window.opener.postMessage`, targeted at this server's app
+	// origin). `desktop`: the callback redirects to
+	// `infrawrench://provider-oauth?payload=<base64url JSON>`.
+	//
+	// One of "web", "desktop".
+	ReturnTo string `json:"returnTo"`
+	// AccountID: Reconnecting an existing account: its id. Echoed in the result
+	// so the client knows which account to update.
+	AccountID *string `json:"accountId,omitempty"`
+}
+
+// ProviderOAuthAuthorizeResponse is the `ProviderOAuthAuthorizeResponse` schema.
+type ProviderOAuthAuthorizeResponse struct {
+	// URL: The provider's consent URL. Open it in a popup (web) or the system
+	// browser (desktop); it is valid for 15 minutes.
+	URL string `json:"url"`
+}
 
 // PublicStatusComponent is the `PublicStatusComponent` schema.
 type PublicStatusComponent struct {
@@ -15523,9 +15591,10 @@ type AcceptInvitationResponseOrganization struct {
 
 // AccountDetailAccount is an object the spec declares inline.
 type AccountDetailAccount struct {
-	ID          string `json:"id"`
-	PluginID    string `json:"pluginId"`
-	DisplayName string `json:"displayName"`
+	ID          string              `json:"id"`
+	PluginID    string              `json:"pluginId"`
+	DisplayName string              `json:"displayName"`
+	OAuthStatus *AccountOAuthStatus `json:"oauthStatus"`
 }
 
 // AiRequestSourceKindOptionAccounts is an object the spec declares inline.
@@ -16928,8 +16997,13 @@ type UnitCostQueryResponseConversionConvertedRates struct {
 
 // AccountsCreateRequest is an object the spec declares inline.
 type AccountsCreateRequest struct {
-	PluginID    *PluginID         `json:"pluginId,omitempty"`
-	DisplayName string            `json:"displayName"`
+	PluginID    *PluginID `json:"pluginId,omitempty"`
+	DisplayName string    `json:"displayName"`
+	// Credentials: An `__oauth` key may only carry the sealed grant returned by
+	// the provider OAuth callback (for this organization, the calling user and
+	// this plugin, within 30 minutes) or the redacted grant `GET
+	// .../credentials` returned, which counts as no grant (the stored one is
+	// kept while the token is unchanged). Any other value is rejected with 400.
 	Credentials map[string]string `json:"credentials"`
 	// BastionID: Optional bastion id to route this account's cloud API traffic
 	// through.
@@ -16940,7 +17014,14 @@ type AccountsCreateRequest struct {
 type AccountsCredentialsUpdateRequest struct {
 	// Credentials: Complete credentials map. Sensitive fields the caller doesn't
 	// want to change should be re-sent with their previous value (the server
-	// doesn't merge with the existing blob).
+	// doesn't merge with the existing blob). For an account connected through
+	// provider OAuth, the stored connection is kept when the token field is
+	// omitted or unchanged; a different token switches the account to that
+	// pasted token. An `__oauth` key may only carry the sealed grant returned by
+	// the provider OAuth callback (for this organization, the calling user and
+	// this plugin, within 30 minutes) or the redacted grant `GET
+	// .../credentials` returned, which counts as no grant (the stored one is
+	// kept while the token is unchanged). Any other value is rejected with 400.
 	Credentials map[string]string `json:"credentials"`
 }
 

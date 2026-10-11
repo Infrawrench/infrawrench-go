@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.79.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.80.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.79.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.80.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -205,6 +205,8 @@ type APIV1Client struct {
 	Probes *ProbesNamespace
 	// Profile: `client.profile`.
 	Profile *ProfileNamespace
+	// ProviderOAuth: `client.providerOauth`.
+	ProviderOAuth *ProviderOAuthNamespace
 	// QueryMonitors: `client.queryMonitors`.
 	QueryMonitors *QueryMonitorsNamespace
 	// Quotas: `client.quotas`.
@@ -362,6 +364,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.PriceCatalog = newPriceCatalogNamespace(t)
 	c.Probes = newProbesNamespace(t)
 	c.Profile = newProfileNamespace(t)
+	c.ProviderOAuth = newProviderOAuthNamespace(t)
 	c.QueryMonitors = newQueryMonitorsNamespace(t)
 	c.Quotas = newQuotasNamespace(t)
 	c.Resources = newResourcesNamespace(t)
@@ -1200,7 +1203,13 @@ type AccountsCredentialsGetParams struct {
 // Get: Fetch the decrypted credentials for an account
 //
 // Returns the credentials map as it was originally submitted. Sensitive: gate
-// access carefully.
+// access carefully. For an account connected through provider OAuth, the access
+// token is refreshed first when it is about to expire, and `__oauth` comes back
+// redacted: the grant state without its refresh token (or a registered client
+// secret), so plugins can tell an OAuth token from a pasted one. Sending that
+// redacted value back on `PUT .../credentials` keeps the stored connection. An
+// account whose connection was revoked (`oauthStatus: reconnect_required`)
+// returns its stored credentials without refreshing.
 //
 // _Requires permission: `secrets:read`._
 //
@@ -6127,7 +6136,7 @@ type ConfigExportParams struct {
 	OrgID *string
 	// Sections: Comma-separated subset of sections to export. Defaults to all
 	// of: budgets, customGraphs, workflows, dashboards, metricAlerts, probes,
-	// costCentres, tagPolicy, alertSettings.
+	// slos, costCentres, tagPolicy, alertSettings.
 	Sections *string
 }
 
@@ -19729,6 +19738,58 @@ func (n *ProfileSessionsNamespace) List(ctx context.Context, opts ...RequestOpti
 func (n *ProfileSessionsNamespace) RevokeOthers(ctx context.Context, opts ...RequestOption) (*ProfileSessionsRevokeOthersResponse, error) {
 	r := newRequest(http.MethodPost, "/api/profile/sessions/revoke-others")
 	var out *ProfileSessionsRevokeOthersResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ProviderOAuthNamespace is `client.providerOauth`.
+type ProviderOAuthNamespace struct {
+	t *transport
+}
+
+func newProviderOAuthNamespace(t *transport) *ProviderOAuthNamespace {
+	n := &ProviderOAuthNamespace{t: t}
+	return n
+}
+
+// ProviderOAuthAuthorizeParams holds the parameters for
+// `client.providerOauth.authorize`.
+type ProviderOAuthAuthorizeParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	PluginID PluginID
+	// Body: the JSON request body.
+	Body ProviderOAuthAuthorizeRequest
+}
+
+// Authorize: Start connecting a provider account with OAuth
+//
+// Returns the provider's consent URL for a plugin whose listing carries `oauth`.
+// After consent the provider redirects to
+// `/api/provider-oauth/{pluginId}/callback`, which delivers `{ type:
+// "infrawrench:provider-oauth", ok, pluginId, accountId?, credentials,
+// accountName? }` (or `{ type, ok: false, pluginId, error }`) as `returnTo`
+// asks. `credentials` holds the access token in the plugin's token field,
+// prefilled fields the provider identified, and a sealed `__oauth` grant; send
+// them unchanged to `POST /accounts` or `PUT /accounts/{id}/credentials` within
+// 30 minutes. Requires `accounts:write`. 400 when the plugin has no OAuth flow
+// or this server has no client configured for it.
+//
+// POST /api/org/{orgId}/provider-oauth/{pluginId}/authorize
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ProviderOAuthNamespace) Authorize(ctx context.Context, params ProviderOAuthAuthorizeParams, opts ...RequestOption) (*ProviderOAuthAuthorizeResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/provider-oauth/{pluginId}/authorize")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("pluginId", params.PluginID)
+	r.setJSONBody(params.Body)
+	var out *ProviderOAuthAuthorizeResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
