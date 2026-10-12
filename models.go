@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.80.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.81.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.80.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.81.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -905,8 +905,11 @@ const (
 	AlertTriggerExpiryAlerts             AlertTrigger = "expiryAlerts"
 	AlertTriggerLogMatchAlerts           AlertTrigger = "logMatchAlerts"
 	AlertTriggerPostureAlerts            AlertTrigger = "postureAlerts"
+	AlertTriggerLeakedSecretAlerts       AlertTrigger = "leakedSecretAlerts"
+	AlertTriggerVulnerabilityAlerts      AlertTrigger = "vulnerabilityAlerts"
 	AlertTriggerProbeAlerts              AlertTrigger = "probeAlerts"
 	AlertTriggerSloAlerts                AlertTrigger = "sloAlerts"
+	AlertTriggerScorecardAlerts          AlertTrigger = "scorecardAlerts"
 	AlertTriggerQuotaAlerts              AlertTrigger = "quotaAlerts"
 	AlertTriggerExtendedSupportAlerts    AlertTrigger = "extendedSupportAlerts"
 	AlertTriggerIncidentAlerts           AlertTrigger = "incidentAlerts"
@@ -2885,6 +2888,193 @@ type CommitmentsFeed struct {
 	PendingAccountIDs     []string `json:"pendingAccountIds"`
 	UtilizationWindowDays int64    `json:"utilizationWindowDays"`
 	PlannerWindowDays     int64    `json:"plannerWindowDays"`
+}
+
+// ComplianceControlOwner is the `ComplianceControlOwner` schema.
+//
+// The API may send null in its place.
+type ComplianceControlOwner struct {
+	UserID      *string `json:"userId"`
+	DisplayName string  `json:"displayName"`
+	IsLabel     bool    `json:"isLabel"`
+}
+
+// ComplianceControlRow is the `ComplianceControlRow` schema.
+type ComplianceControlRow struct {
+	ID string `json:"id"`
+	// Title: Short paraphrase of the control, not the framework's own text.
+	Title   string   `json:"title"`
+	Group   string   `json:"group"`
+	Sources []string `json:"sources"`
+	// Status: `evidence`: at least one mapped source has evidence and none shows
+	// a gap. `gaps`: a source shows a gap, or no mapped source produced
+	// evidence. `not-applicable`: the org said so, with a justification.
+	//
+	// One of "evidence", "gaps", "not-applicable".
+	Status           string                  `json:"status"`
+	Reasons          []string                `json:"reasons"`
+	MissingSources   []string                `json:"missingSources"`
+	Applicable       bool                    `json:"applicable"`
+	Justification    *string                 `json:"justification"`
+	Owner            *ComplianceControlOwner `json:"owner"`
+	Notes            *string                 `json:"notes"`
+	SettingUpdatedAt *string                 `json:"settingUpdatedAt"`
+}
+
+// ComplianceControlSetting is the `ComplianceControlSetting` schema.
+type ComplianceControlSetting struct {
+	// FrameworkID: Framework registry id: `soc2` or `iso27001`.
+	FrameworkID string `json:"frameworkId"`
+	ControlID   string `json:"controlId"`
+	Applicable  bool   `json:"applicable"`
+	// Justification: Required when `applicable` is false.
+	Justification *string `json:"justification"`
+	// OwnerUserID: A member who owns the control.
+	OwnerUserID *string `json:"ownerUserId"`
+	// OwnerLabel: A team or alias, when the owner is not one member.
+	OwnerLabel      *string `json:"ownerLabel"`
+	Notes           *string `json:"notes"`
+	UpdatedByUserID *string `json:"updatedByUserId"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// ComplianceControlSettingInput is the `ComplianceControlSettingInput` schema.
+type ComplianceControlSettingInput struct {
+	Applicable    bool    `json:"applicable"`
+	Justification *string `json:"justification,omitempty"`
+	OwnerUserID   *string `json:"ownerUserId,omitempty"`
+	OwnerLabel    *string `json:"ownerLabel,omitempty"`
+	Notes         *string `json:"notes,omitempty"`
+}
+
+// ComplianceEvidenceMetric is the `ComplianceEvidenceMetric` schema.
+type ComplianceEvidenceMetric struct {
+	Key   string `json:"key"`
+	Label string `json:"label"`
+	// Value: Null when unknown; never read as zero.
+	Value any `json:"value"`
+}
+
+// ComplianceEvidenceSourceResult is the `ComplianceEvidenceSourceResult` schema.
+type ComplianceEvidenceSourceResult struct {
+	SourceID string `json:"sourceId"`
+	Label    string `json:"label"`
+	// Kind: `snapshot` sources describe the org at generation time; `period`
+	// sources are filtered to the period.
+	//
+	// One of "snapshot", "period".
+	Kind string `json:"kind"`
+	// Status: `present`: evidence exists and shows nothing wrong. `gap`:
+	// evidence shows a problem. `no-data`: the source ran and has nothing to
+	// show. `unavailable`: the source could not be read (missing permission,
+	// read failure, no evaluator); never counted as evidence.
+	//
+	// One of "present", "gap", "no-data", "unavailable".
+	Status  string                     `json:"status"`
+	Summary string                     `json:"summary"`
+	Metrics []ComplianceEvidenceMetric `json:"metrics"`
+	Gaps    []string                   `json:"gaps"`
+	// ItemCount: Rows this source contributes to an evidence pack.
+	ItemCount int64   `json:"itemCount"`
+	Error     *string `json:"error"`
+}
+
+// ComplianceFrameworkSummary is the `ComplianceFrameworkSummary` schema.
+type ComplianceFrameworkSummary struct {
+	// ID: Framework registry id: `soc2` or `iso27001`.
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	Description string `json:"description"`
+	// ScopeNote: Which controls the registry covers and which need outside
+	// evidence.
+	ScopeNote    string `json:"scopeNote"`
+	ControlCount int64  `json:"controlCount"`
+}
+
+// CompliancePackDeliveryTargets is the `CompliancePackDeliveryTargets` schema.
+type CompliancePackDeliveryTargets struct {
+	SlackChannels  []CompliancePackDeliveryTargetsSlackChannels `json:"slackChannels"`
+	TeamsWebhooks  []CompliancePackDeliveryTargetsTeamsWebhooks `json:"teamsWebhooks"`
+	EmailAvailable bool                                         `json:"emailAvailable"`
+}
+
+// CompliancePackSchedule is the `CompliancePackSchedule` schema.
+type CompliancePackSchedule struct {
+	ID string `json:"id"`
+	// FrameworkID: Framework registry id: `soc2` or `iso27001`.
+	FrameworkID string `json:"frameworkId"`
+	// Cadence: `monthly` delivers the previous calendar month on
+	// `sendDayOfMonth`; `quarterly` delivers the previous calendar quarter in
+	// January, April, July and October.
+	//
+	// One of "monthly", "quarterly".
+	Cadence         string   `json:"cadence"`
+	SendDayOfMonth  int64    `json:"sendDayOfMonth"`
+	Hour            int64    `json:"hour"`
+	Timezone        string   `json:"timezone"`
+	SlackChannelIDs []string `json:"slackChannelIds"`
+	TeamsWebhookIDs []string `json:"teamsWebhookIds"`
+	EmailRecipients []string `json:"emailRecipients"`
+	Enabled         bool     `json:"enabled"`
+	NextSendAt      *string  `json:"nextSendAt"`
+	LastSentAt      *string  `json:"lastSentAt"`
+	// LastStatus: One of "pending", "succeeded", "partial", "failed",
+	// "no_targets".
+	LastStatus      *string `json:"lastStatus"`
+	LastError       *string `json:"lastError"`
+	CreatedByUserID *string `json:"createdByUserId"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// CompliancePackScheduleInput is the `CompliancePackScheduleInput` schema.
+type CompliancePackScheduleInput struct {
+	// FrameworkID: Framework registry id: `soc2` or `iso27001`.
+	FrameworkID string `json:"frameworkId"`
+	// Cadence: `monthly` delivers the previous calendar month on
+	// `sendDayOfMonth`; `quarterly` delivers the previous calendar quarter in
+	// January, April, July and October.
+	//
+	// One of "monthly", "quarterly".
+	Cadence         string   `json:"cadence"`
+	SendDayOfMonth  *int64   `json:"sendDayOfMonth,omitempty"`
+	Hour            int64    `json:"hour"`
+	Timezone        string   `json:"timezone"`
+	EmailRecipients []string `json:"emailRecipients"`
+	SlackChannelIDs []string `json:"slackChannelIds,omitempty"`
+	TeamsWebhookIDs []string `json:"teamsWebhookIds,omitempty"`
+	Enabled         bool     `json:"enabled"`
+}
+
+// CompliancePackSendResult is the `CompliancePackSendResult` schema.
+type CompliancePackSendResult struct {
+	Attempted          int64                         `json:"attempted"`
+	Succeeded          int64                         `json:"succeeded"`
+	Slack              CompliancePackSendResultSlack `json:"slack"`
+	Teams              CompliancePackSendResultTeams `json:"teams"`
+	Email              CompliancePackSendResultEmail `json:"email"`
+	PdfAttached        bool                          `json:"pdfAttached"`
+	SlackFilesUploaded int64                         `json:"slackFilesUploaded"`
+}
+
+// ComplianceStatus is the `ComplianceStatus` schema.
+type ComplianceStatus struct {
+	Framework   ComplianceFrameworkSummary       `json:"framework"`
+	Period      ComplianceStatusPeriod           `json:"period"`
+	Controls    []ComplianceControlRow           `json:"controls"`
+	Sources     []ComplianceEvidenceSourceResult `json:"sources"`
+	Counts      ComplianceStatusCounts           `json:"counts"`
+	GeneratedAt string                           `json:"generatedAt"`
+}
+
+// ComplianceStatusCounts is the `ComplianceStatusCounts` schema.
+type ComplianceStatusCounts struct {
+	Evidence      int64 `json:"evidence"`
+	Gaps          int64 `json:"gaps"`
+	NotApplicable int64 `json:"notApplicable"`
+	Total         int64 `json:"total"`
+	Unowned       int64 `json:"unowned"`
 }
 
 // ConnectEnvDeployRequest is the `ConnectEnvDeployRequest` schema.
@@ -5669,6 +5859,51 @@ type DismissedPostureFinding struct {
 	Dismissal PostureDismissal `json:"dismissal"`
 }
 
+// DismissedVulnerabilityFinding is the `DismissedVulnerabilityFinding` schema.
+type DismissedVulnerabilityFinding struct {
+	// Key: Unique within the organization (account id and finding id).
+	Key         string   `json:"key"`
+	AccountID   string   `json:"accountId"`
+	AccountName string   `json:"accountName"`
+	PluginID    PluginID `json:"pluginId"`
+	PluginName  string   `json:"pluginName"`
+	Scanner     string   `json:"scanner"`
+	// FindingID: The provider's own finding id.
+	FindingID  string `json:"findingId"`
+	AdvisoryID string `json:"advisoryId"`
+	// Aliases: Other ids for the same advisory.
+	Aliases []string `json:"aliases"`
+	Title   *string  `json:"title"`
+	// Severity: Normalised scanner severity. `unknown` means the scanner has not
+	// scored the advisory; it is never folded into `low`.
+	//
+	// One of "critical", "high", "medium", "low", "unknown".
+	Severity         string   `json:"severity"`
+	CvssScore        *float64 `json:"cvssScore"`
+	CvssVector       *string  `json:"cvssVector"`
+	PackageName      *string  `json:"packageName"`
+	PackageEcosystem *string  `json:"packageEcosystem"`
+	InstalledVersion *string  `json:"installedVersion"`
+	FixedVersion     *string  `json:"fixedVersion"`
+	// FixAvailable: Null when the scanner does not say.
+	FixAvailable *bool `json:"fixAvailable"`
+	// ExploitAvailable: Null when the scanner does not say.
+	ExploitAvailable *bool                                 `json:"exploitAvailable"`
+	Kev              *VulnerabilityKevEntry                `json:"kev"`
+	Artifact         DismissedVulnerabilityFindingArtifact `json:"artifact"`
+	FirstSeenAt      *string                               `json:"firstSeenAt"`
+	LastSeenAt       *string                               `json:"lastSeenAt"`
+	URL              *string                               `json:"url"`
+	CollectedAt      string                                `json:"collectedAt"`
+	// Running: Synced resources running the artifact now; empty when it runs
+	// nowhere we see.
+	Running []VulnerabilityRunningRef `json:"running"`
+	// Services: Services the running resources belong to, deduplicated, most
+	// critical tier first; empty when none of them is in a service.
+	Services  []DismissedVulnerabilityFindingServices `json:"services"`
+	Dismissal VulnerabilityDismissal                  `json:"dismissal"`
+}
+
 // DNSInventoryCounts: Record counts per status; zones counted separately.
 //
 // Spec schema: `DnsInventoryCounts`.
@@ -5829,6 +6064,208 @@ type DockerCommandRequest struct {
 // DockerCommandResponse is the `DockerCommandResponse` schema.
 type DockerCommandResponse struct {
 	Result any `json:"result,omitempty"`
+}
+
+// DoraBand: The standard DORA performance band: deploys at least daily / weekly
+// / monthly; lead time under a day / week / month; change failure rate at most
+// 5% / 10% / 15%; time to restore under an hour / day / week. Null when there
+// was nothing to measure.
+//
+// The API may send null in its place.
+type DoraBand = string
+
+// The values DoraBand takes.
+const (
+	DoraBandElite  DoraBand = "elite"
+	DoraBandHigh   DoraBand = "high"
+	DoraBandMedium DoraBand = "medium"
+	DoraBandLow    DoraBand = "low"
+)
+
+// DoraChange is the `DoraChange` schema.
+type DoraChange struct {
+	ID string `json:"id"`
+	// Type: One of "deploy", "resource_change".
+	Type        string  `json:"type"`
+	Name        string  `json:"name"`
+	Environment *string `json:"environment"`
+	Repository  *string `json:"repository"`
+	CommitSha   *string `json:"commitSha"`
+	At          string  `json:"at"`
+	// Status: One of "success", "failure", "in_progress", "canceled".
+	Status        string       `json:"status"`
+	Source        DoraSource   `json:"source"`
+	PluginID      *string      `json:"pluginId"`
+	URL           *string      `json:"url"`
+	IsRollback    bool         `json:"isRollback"`
+	LeadTimeHours *float64     `json:"leadTimeHours"`
+	Failure       *DoraFailure `json:"failure"`
+	// Scope: Dimension id to value; null where the dimension is not known for
+	// this change.
+	Scope map[string]any `json:"scope"`
+}
+
+// DoraChangeList is the `DoraChangeList` schema.
+type DoraChangeList struct {
+	Changes   []DoraChange `json:"changes"`
+	Truncated bool         `json:"truncated"`
+}
+
+// DoraDeploymentInput is the `DoraDeploymentInput` schema.
+type DoraDeploymentInput struct {
+	// ExternalID: Your id for the deploy (max 200). Sending it again updates the
+	// same deploy.
+	ExternalID string `json:"externalId"`
+	// Name: What was deployed, as a person calls it (max 300).
+	Name string `json:"name"`
+	// Environment: Environment name, matched against the production patterns.
+	Environment string `json:"environment"`
+	// Repository: `owner/name` or a repository URL.
+	Repository *string `json:"repository,omitempty"`
+	// CommitSha: Hexadecimal, 7-64 characters.
+	CommitSha *string `json:"commitSha,omitempty"`
+	// CommitAt: When the commit was authored, if known.
+	CommitAt   *string `json:"commitAt,omitempty"`
+	DeployedAt string  `json:"deployedAt"`
+	// Status: Defaults to `success`.
+	//
+	// One of "success", "failure", "in_progress", "canceled".
+	Status     *string `json:"status,omitempty"`
+	IsRollback *bool   `json:"isRollback,omitempty"`
+	URL        *string `json:"url,omitempty"`
+}
+
+// DoraDeploymentRecorded is the `DoraDeploymentRecorded` schema.
+type DoraDeploymentRecorded struct {
+	ID string `json:"id"`
+}
+
+// DoraFailure is the `DoraFailure` schema.
+//
+// The API may send null in its place.
+type DoraFailure struct {
+	// Kind: One of "incident", "rollback", "failed_deploy", "reverted".
+	Kind  string `json:"kind"`
+	RefID string `json:"refId"`
+	Title string `json:"title"`
+	At    string `json:"at"`
+}
+
+// DoraReport is the `DoraReport` schema.
+type DoraReport struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+	// Bucket: One of "day", "week".
+	Bucket   string            `json:"bucket"`
+	Filter   *DoraScopeFilter  `json:"filter"`
+	GroupBy  string            `json:"groupBy"`
+	Summary  DoraSummary       `json:"summary"`
+	Previous DoraSummary       `json:"previous"`
+	Trend    []DoraReportTrend `json:"trend"`
+	// Breakdown: The four metrics per value of `groupBy`, busiest first, at most
+	// 25 rows.
+	Breakdown []DoraReportBreakdown `json:"breakdown"`
+	// Dimensions: Scope dimensions this server knows: environment, repository,
+	// owner, and any added.
+	Dimensions []DoraReportDimensions `json:"dimensions"`
+	Settings   DoraSettings           `json:"settings"`
+	// EventCount: Deploy events of any environment in the window.
+	EventCount int64 `json:"eventCount"`
+	// ScopeValues: Every value each dimension took in the window: what a scope
+	// picker offers.
+	ScopeValues map[string][]DoraScopeValue `json:"scopeValues"`
+}
+
+// DoraRestore is the `DoraRestore` schema.
+type DoraRestore struct {
+	// Kind: One of "incident", "rollback".
+	Kind       string  `json:"kind"`
+	ID         string  `json:"id"`
+	Title      string  `json:"title"`
+	StartedAt  string  `json:"startedAt"`
+	RestoredAt string  `json:"restoredAt"`
+	Hours      float64 `json:"hours"`
+	ChangeID   *string `json:"changeId"`
+}
+
+// DoraRestoreList is the `DoraRestoreList` schema.
+type DoraRestoreList struct {
+	Restores []DoraRestore `json:"restores"`
+}
+
+// DoraScopeFilter is the `DoraScopeFilter` schema.
+//
+// The API may send null in its place.
+type DoraScopeFilter struct {
+	Dimension string  `json:"dimension"`
+	Value     *string `json:"value"`
+}
+
+// DoraScopeValue is the `DoraScopeValue` schema.
+type DoraScopeValue struct {
+	// Key: Stable key; what `value` filters by.
+	Key   string `json:"key"`
+	Label string `json:"label"`
+}
+
+// DoraSettings is the `DoraSettings` schema.
+type DoraSettings struct {
+	// FailureWindowHours: Hours after a change in which an incident or rollback
+	// counts against it (1-720).
+	FailureWindowHours int64 `json:"failureWindowHours"`
+	// ProductionEnvironments: Environment name patterns that count as
+	// production; `*` matches anything. 1-50.
+	ProductionEnvironments []string `json:"productionEnvironments"`
+	// PipelinePatterns: CI pipeline names that count as deploys (Buildkite,
+	// CircleCI, GitLab...). 0-50.
+	PipelinePatterns []string `json:"pipelinePatterns"`
+	// CountFailedDeploys: Count a production deploy that failed as a failed
+	// change.
+	CountFailedDeploys bool `json:"countFailedDeploys"`
+	// IncludeResourceChanges: Count changes observed by sync (the change
+	// timeline) as changes too.
+	IncludeResourceChanges bool `json:"includeResourceChanges"`
+	// DigestEnabled: Include the Delivery line in the weekly digest.
+	DigestEnabled bool `json:"digestEnabled"`
+	// UpdatedAt: Null until the settings were first saved.
+	UpdatedAt *string `json:"updatedAt"`
+}
+
+// DoraSettingsUpdate is the `DoraSettingsUpdate` schema.
+type DoraSettingsUpdate struct {
+	FailureWindowHours     *int64   `json:"failureWindowHours,omitempty"`
+	ProductionEnvironments []string `json:"productionEnvironments,omitempty"`
+	PipelinePatterns       []string `json:"pipelinePatterns,omitempty"`
+	CountFailedDeploys     *bool    `json:"countFailedDeploys,omitempty"`
+	IncludeResourceChanges *bool    `json:"includeResourceChanges,omitempty"`
+	DigestEnabled          *bool    `json:"digestEnabled,omitempty"`
+}
+
+// DoraSource: Where the change was learned from: an Infrafile run, a synced
+// provider deploy, a GitHub deployment, one recorded over this API, or the
+// change timeline.
+type DoraSource = string
+
+// The values DoraSource takes.
+const (
+	DoraSourceInfrafile      DoraSource = "infrafile"
+	DoraSourcePlugin         DoraSource = "plugin"
+	DoraSourceGithub         DoraSource = "github"
+	DoraSourceAPI            DoraSource = "api"
+	DoraSourceChangeTimeline DoraSource = "change_timeline"
+)
+
+// DoraSummary is the `DoraSummary` schema.
+type DoraSummary struct {
+	// DeploymentFrequency: `value` is successful production deploys per day.
+	DeploymentFrequency DoraSummaryDeploymentFrequency `json:"deploymentFrequency"`
+	// LeadTime: `value` is the median hours from commit to production.
+	LeadTime DoraSummaryLeadTime `json:"leadTime"`
+	// ChangeFailureRate: `value` is the share of production changes that failed,
+	// 0-1.
+	ChangeFailureRate DoraSummaryChangeFailureRate `json:"changeFailureRate"`
+	// TimeToRestore: `value` is the median hours from failure to recovery.
+	TimeToRestore DoraSummaryTimeToRestore `json:"timeToRestore"`
 }
 
 // DriftAlertSettings is the `DriftAlertSettings` schema.
@@ -6285,6 +6722,1495 @@ type Error struct {
 type EscalationPolicy struct {
 	AfterMinutes int64              `json:"afterMinutes"`
 	Destinations []AlertDestination `json:"destinations"`
+}
+
+// EventDataAccountSyncFailingV1: `data` of a `account.sync.failing` event,
+// version 1. An account's sync kept failing past the org's paging threshold.
+//
+// Spec schema: `EventData_account_sync_failing_v1`.
+type EventDataAccountSyncFailingV1 struct {
+	// AccountID: The account whose sync is failing.
+	AccountID string `json:"accountId"`
+	// AccountName: Account display name.
+	AccountName string `json:"accountName"`
+	// ResourceTypeID: The resource type the failing sync lists.
+	ResourceTypeID string `json:"resourceTypeId"`
+	// IncidentID: Sync incident id (shared by failing and recovered).
+	IncidentID string `json:"incidentId"`
+	// Error: The provider's last error.
+	Error string `json:"error"`
+	// FailureCount: Failures in the window.
+	FailureCount int64 `json:"failureCount"`
+	// WindowMinutes: The window the failures were counted in.
+	WindowMinutes int64 `json:"windowMinutes"`
+}
+
+// EventDataAccountSyncRecoveredV1: `data` of a `account.sync.recovered` event,
+// version 1. A failing account sync succeeded again.
+//
+// Spec schema: `EventData_account_sync_recovered_v1`.
+type EventDataAccountSyncRecoveredV1 struct {
+	// AccountID: The account whose sync is failing.
+	AccountID string `json:"accountId"`
+	// AccountName: Account display name.
+	AccountName string `json:"accountName"`
+	// ResourceTypeID: The resource type the failing sync lists.
+	ResourceTypeID string `json:"resourceTypeId"`
+	// IncidentID: Sync incident id (shared by failing and recovered).
+	IncidentID string `json:"incidentId"`
+}
+
+// EventDataBudgetThresholdCrossedV1: `data` of a `budget.threshold.crossed`
+// event, version 1. A budget's actual or forecast spend (or usage) reached one
+// of its alert thresholds.
+//
+// Spec schema: `EventData_budget_threshold_crossed_v1`.
+type EventDataBudgetThresholdCrossedV1 struct {
+	// BudgetID: Budget id.
+	BudgetID string `json:"budgetId"`
+	// BudgetName: Budget name.
+	BudgetName string `json:"budgetName"`
+	// PeriodKey: The budget period the threshold fired in.
+	PeriodKey string `json:"periodKey"`
+	// PeriodStart: First day of the period (YYYY-MM-DD); null for a calendar
+	// month.
+	PeriodStart *string `json:"periodStart"`
+	// PeriodEnd: Last day of the period (YYYY-MM-DD); null for a calendar month.
+	PeriodEnd *string `json:"periodEnd"`
+	// ThresholdType: Whether actual or forecast crossed.
+	//
+	// One of "actual", "forecast".
+	ThresholdType string `json:"thresholdType"`
+	// ThresholdPercent: The threshold, as a percent of the limit.
+	ThresholdPercent float64 `json:"thresholdPercent"`
+	// Measure: A spend budget or a usage budget.
+	//
+	// One of "spend", "usage".
+	Measure string `json:"measure"`
+	// Observed: The observed figure: cents for spend, units for usage.
+	Observed float64 `json:"observed"`
+	// Limit: The budget's limit, in the same unit as `observed`.
+	Limit float64 `json:"limit"`
+	// Currency: ISO 4217 code for a spend budget.
+	Currency *string `json:"currency"`
+}
+
+// EventDataCostAnomalyDetectedV1: `data` of a `cost.anomaly.detected` event,
+// version 1. A provider or service spent well outside its baseline, or a new
+// source of spend appeared.
+//
+// Spec schema: `EventData_cost_anomaly_detected_v1`.
+type EventDataCostAnomalyDetectedV1 struct {
+	// AnomalyID: Cost anomaly id.
+	AnomalyID string `json:"anomalyId"`
+	// Day: The day (YYYY-MM-DD, UTC) the spend landed on.
+	Day string `json:"day"`
+	// Kind: Spike against a baseline, or a source with no prior spend.
+	//
+	// One of "spike", "new_source".
+	Kind string `json:"kind"`
+	// Dimension: What `dimensionKey` names.
+	//
+	// One of "provider", "service".
+	Dimension string `json:"dimension"`
+	// DimensionKey: The provider id or service name.
+	DimensionKey string `json:"dimensionKey"`
+	// Actual: Spend on `day`, in `currency`.
+	Actual float64 `json:"actual"`
+	// Baseline: Mean daily spend over the baseline window, in `currency`.
+	Baseline float64 `json:"baseline"`
+	// Currency: ISO 4217 currency code.
+	Currency string `json:"currency"`
+	// Hints: What the change timeline and audit log say happened around then.
+	Hints []string `json:"hints"`
+}
+
+// EventDataDoraBandChangedV1: `data` of a `dora.band_changed` event, version 1.
+// One of the four DORA metrics for production moved to a different performance
+// band over the trailing 30 days. Checked once a day.
+//
+// Spec schema: `EventData_dora_band_changed_v1`.
+type EventDataDoraBandChangedV1 struct {
+	// Metric: The metric.
+	//
+	// One of "deployment_frequency", "lead_time", "change_failure_rate",
+	// "time_to_restore".
+	Metric string `json:"metric"`
+	// PreviousBand: Band over the 30 days ending the day before.
+	//
+	// One of "elite", "high", "medium", "low".
+	PreviousBand string `json:"previousBand"`
+	// Band: Band over the 30 days ending `windowEnd`.
+	//
+	// One of "elite", "high", "medium", "low".
+	Band string `json:"band"`
+	// Direction: Whether performance got better or worse.
+	//
+	// One of "improved", "worsened".
+	Direction string `json:"direction"`
+	// Value: The metric now: deploys per day, median hours, or a 0-1 failure
+	// fraction.
+	Value float64 `json:"value"`
+	// PreviousValue: The metric over the window ending the day before.
+	PreviousValue float64 `json:"previousValue"`
+	// Sample: Observations the current value rests on.
+	Sample int64 `json:"sample"`
+	// WindowStart: First day of the current window (YYYY-MM-DD, UTC).
+	WindowStart string `json:"windowStart"`
+	// WindowEnd: Last day of the current window (YYYY-MM-DD, UTC).
+	WindowEnd string `json:"windowEnd"`
+}
+
+// EventDataDriftDetectedV1: `data` of a `drift.detected` event, version 1.
+// Resources changed outside Infrawrench since the last drift window.
+//
+// Spec schema: `EventData_drift_detected_v1`.
+type EventDataDriftDetectedV1 struct {
+	// Since: Start of the window the changes were observed in.
+	Since string `json:"since"`
+	// ChangeCount: Changes in the window.
+	ChangeCount int64 `json:"changeCount"`
+	// Created: Resources that appeared.
+	Created int64 `json:"created"`
+	// Updated: Resources whose fields changed.
+	Updated int64 `json:"updated"`
+	// Deleted: Resources that disappeared.
+	Deleted int64 `json:"deleted"`
+	// AccountIDs: Accounts the changes touched.
+	AccountIDs []string `json:"accountIds"`
+}
+
+// EventDataIncidentDeclaredV1: `data` of a `incident.declared` event, version 1.
+// Someone declared an incident.
+//
+// Spec schema: `EventData_incident_declared_v1`.
+type EventDataIncidentDeclaredV1 struct {
+	// IncidentID: Incident id.
+	IncidentID string `json:"incidentId"`
+	// Title: Incident title.
+	Title string `json:"title"`
+	// IncidentSeverity: Declared severity.
+	//
+	// One of "sev1", "sev2", "sev3", "sev4".
+	IncidentSeverity string `json:"incidentSeverity"`
+	// Status: Status after this change.
+	Status string `json:"status"`
+	// Summary: Summary, if one was given.
+	Summary *string `json:"summary"`
+	// StartedAt: When the incident started.
+	StartedAt string `json:"startedAt"`
+	// ResolvedAt: When it was resolved.
+	ResolvedAt *string `json:"resolvedAt"`
+	// DeclaredByName: Who declared it.
+	DeclaredByName *string `json:"declaredByName"`
+	// AffectedResourceIDs: Resources named as affected.
+	AffectedResourceIDs []string `json:"affectedResourceIds"`
+}
+
+// EventDataIncidentMitigatedV1: `data` of a `incident.mitigated` event, version 1. A declared incident was marked mitigated.
+//
+// Spec schema: `EventData_incident_mitigated_v1`.
+type EventDataIncidentMitigatedV1 struct {
+	// IncidentID: Incident id.
+	IncidentID string `json:"incidentId"`
+	// Title: Incident title.
+	Title string `json:"title"`
+	// IncidentSeverity: Declared severity.
+	//
+	// One of "sev1", "sev2", "sev3", "sev4".
+	IncidentSeverity string `json:"incidentSeverity"`
+	// Status: Status after this change.
+	Status string `json:"status"`
+	// Summary: Summary, if one was given.
+	Summary *string `json:"summary"`
+	// StartedAt: When the incident started.
+	StartedAt string `json:"startedAt"`
+	// ResolvedAt: When it was resolved.
+	ResolvedAt *string `json:"resolvedAt"`
+	// DeclaredByName: Who declared it.
+	DeclaredByName *string `json:"declaredByName"`
+	// AffectedResourceIDs: Resources named as affected.
+	AffectedResourceIDs []string `json:"affectedResourceIds"`
+}
+
+// EventDataIncidentResolvedV1: `data` of a `incident.resolved` event, version 1.
+// A declared incident was resolved.
+//
+// Spec schema: `EventData_incident_resolved_v1`.
+type EventDataIncidentResolvedV1 struct {
+	// IncidentID: Incident id.
+	IncidentID string `json:"incidentId"`
+	// Title: Incident title.
+	Title string `json:"title"`
+	// IncidentSeverity: Declared severity.
+	//
+	// One of "sev1", "sev2", "sev3", "sev4".
+	IncidentSeverity string `json:"incidentSeverity"`
+	// Status: Status after this change.
+	Status string `json:"status"`
+	// Summary: Summary, if one was given.
+	Summary *string `json:"summary"`
+	// StartedAt: When the incident started.
+	StartedAt string `json:"startedAt"`
+	// ResolvedAt: When it was resolved.
+	ResolvedAt *string `json:"resolvedAt"`
+	// DeclaredByName: Who declared it.
+	DeclaredByName *string `json:"declaredByName"`
+	// AffectedResourceIDs: Resources named as affected.
+	AffectedResourceIDs []string `json:"affectedResourceIds"`
+}
+
+// EventDataInfrawrenchTestV1: `data` of a `infrawrench.test` event, version 1.
+// Sent by Send test event. Never raised by anything else.
+//
+// Spec schema: `EventData_infrawrench_test_v1`.
+type EventDataInfrawrenchTestV1 struct {
+	// Message: Fixed text saying this is a test.
+	Message string `json:"message"`
+	// SubscriptionID: The subscription the test was sent to.
+	SubscriptionID string `json:"subscriptionId"`
+}
+
+// EventDataJitAccessApprovedV1: `data` of a `jit_access.approved` event, version 1. An approver approved a just-in-time access request.
+//
+// Spec schema: `EventData_jit_access_approved_v1`.
+type EventDataJitAccessApprovedV1 struct {
+	// RequestID: Just-in-time access request id.
+	RequestID string `json:"requestId"`
+	// AccountID: The account the role is granted through.
+	AccountID string `json:"accountId"`
+	// PluginID: Provider plugin id.
+	PluginID string `json:"pluginId"`
+	// ScopeID: Scope the role applies to (project, subscription, account).
+	ScopeID string `json:"scopeId"`
+	// RoleID: The provider role.
+	RoleID string `json:"roleId"`
+	// PrincipalID: Provider principal receiving the role.
+	PrincipalID *string `json:"principalId"`
+	// RequesterUserID: Infrawrench user who asked.
+	RequesterUserID string `json:"requesterUserId"`
+	// ActorName: Who caused this change; null for the expiry sweep.
+	ActorName *string `json:"actorName"`
+	// DurationMinutes: Requested duration.
+	DurationMinutes *int64 `json:"durationMinutes"`
+}
+
+// EventDataJitAccessDeniedV1: `data` of a `jit_access.denied` event, version 1.
+// An approver denied a just-in-time access request.
+//
+// Spec schema: `EventData_jit_access_denied_v1`.
+type EventDataJitAccessDeniedV1 struct {
+	// RequestID: Just-in-time access request id.
+	RequestID string `json:"requestId"`
+	// AccountID: The account the role is granted through.
+	AccountID string `json:"accountId"`
+	// PluginID: Provider plugin id.
+	PluginID string `json:"pluginId"`
+	// ScopeID: Scope the role applies to (project, subscription, account).
+	ScopeID string `json:"scopeId"`
+	// RoleID: The provider role.
+	RoleID string `json:"roleId"`
+	// PrincipalID: Provider principal receiving the role.
+	PrincipalID *string `json:"principalId"`
+	// RequesterUserID: Infrawrench user who asked.
+	RequesterUserID string `json:"requesterUserId"`
+	// ActorName: Who caused this change; null for the expiry sweep.
+	ActorName *string `json:"actorName"`
+	// DurationMinutes: Requested duration.
+	DurationMinutes *int64 `json:"durationMinutes"`
+}
+
+// EventDataJitAccessExpiredV1: `data` of a `jit_access.expired` event, version 1. A granted role reached the end of its window and was removed.
+//
+// Spec schema: `EventData_jit_access_expired_v1`.
+type EventDataJitAccessExpiredV1 struct {
+	// RequestID: Just-in-time access request id.
+	RequestID string `json:"requestId"`
+	// AccountID: The account the role is granted through.
+	AccountID string `json:"accountId"`
+	// PluginID: Provider plugin id.
+	PluginID string `json:"pluginId"`
+	// ScopeID: Scope the role applies to (project, subscription, account).
+	ScopeID string `json:"scopeId"`
+	// RoleID: The provider role.
+	RoleID string `json:"roleId"`
+	// PrincipalID: Provider principal receiving the role.
+	PrincipalID *string `json:"principalId"`
+	// RequesterUserID: Infrawrench user who asked.
+	RequesterUserID string `json:"requesterUserId"`
+	// ActorName: Who caused this change; null for the expiry sweep.
+	ActorName *string `json:"actorName"`
+	// DurationMinutes: Requested duration.
+	DurationMinutes *int64 `json:"durationMinutes"`
+}
+
+// EventDataJitAccessRequestedV1: `data` of a `jit_access.requested` event,
+// version 1. A member asked for a time-boxed cloud role.
+//
+// Spec schema: `EventData_jit_access_requested_v1`.
+type EventDataJitAccessRequestedV1 struct {
+	// RequestID: Just-in-time access request id.
+	RequestID string `json:"requestId"`
+	// AccountID: The account the role is granted through.
+	AccountID string `json:"accountId"`
+	// PluginID: Provider plugin id.
+	PluginID string `json:"pluginId"`
+	// ScopeID: Scope the role applies to (project, subscription, account).
+	ScopeID string `json:"scopeId"`
+	// RoleID: The provider role.
+	RoleID string `json:"roleId"`
+	// PrincipalID: Provider principal receiving the role.
+	PrincipalID *string `json:"principalId"`
+	// RequesterUserID: Infrawrench user who asked.
+	RequesterUserID string `json:"requesterUserId"`
+	// ActorName: Who caused this change; null for the expiry sweep.
+	ActorName *string `json:"actorName"`
+	// DurationMinutes: Requested duration.
+	DurationMinutes *int64 `json:"durationMinutes"`
+}
+
+// EventDataMetricAlertFiredV1: `data` of a `metric_alert.fired` event, version 1. A metric threshold alert started firing on a resource.
+//
+// Spec schema: `EventData_metric_alert_fired_v1`.
+type EventDataMetricAlertFiredV1 struct {
+	// RuleID: Metric alert rule id.
+	RuleID string `json:"ruleId"`
+	// RuleName: Rule name.
+	RuleName string `json:"ruleName"`
+	// MetricKey: The metric the rule watches.
+	MetricKey string `json:"metricKey"`
+	// Comparator: How `threshold` is compared.
+	Comparator string `json:"comparator"`
+	// Threshold: The rule's threshold.
+	Threshold float64 `json:"threshold"`
+	// ForMinutes: How long the condition must hold.
+	ForMinutes int64 `json:"forMinutes"`
+	// ResourceID: The resource the metric belongs to.
+	ResourceID string `json:"resourceId"`
+	// ResourceName: Resource display name.
+	ResourceName string `json:"resourceName"`
+	// Observed: The value that tripped the rule; null on resolve.
+	Observed *float64 `json:"observed"`
+	// AlertEventID: Metric alert event id (shared by a firing and its resolve).
+	AlertEventID string `json:"alertEventId"`
+}
+
+// EventDataMetricAlertResolvedV1: `data` of a `metric_alert.resolved` event,
+// version 1. A firing metric alert went back within its threshold.
+//
+// Spec schema: `EventData_metric_alert_resolved_v1`.
+type EventDataMetricAlertResolvedV1 struct {
+	// RuleID: Metric alert rule id.
+	RuleID string `json:"ruleId"`
+	// RuleName: Rule name.
+	RuleName string `json:"ruleName"`
+	// MetricKey: The metric the rule watches.
+	MetricKey string `json:"metricKey"`
+	// Comparator: How `threshold` is compared.
+	Comparator string `json:"comparator"`
+	// Threshold: The rule's threshold.
+	Threshold float64 `json:"threshold"`
+	// ForMinutes: How long the condition must hold.
+	ForMinutes int64 `json:"forMinutes"`
+	// ResourceID: The resource the metric belongs to.
+	ResourceID string `json:"resourceId"`
+	// ResourceName: Resource display name.
+	ResourceName string `json:"resourceName"`
+	// Observed: The value that tripped the rule; null on resolve.
+	Observed *float64 `json:"observed"`
+	// AlertEventID: Metric alert event id (shared by a firing and its resolve).
+	AlertEventID string `json:"alertEventId"`
+}
+
+// EventDataPostureFindingDetectedV1: `data` of a `posture.finding.detected`
+// event, version 1. A critical or high severity posture check started failing on
+// a resource. Each finding is sent once.
+//
+// Spec schema: `EventData_posture_finding_detected_v1`.
+type EventDataPostureFindingDetectedV1 struct {
+	// ResourceID: Infrawrench resource id.
+	ResourceID string `json:"resourceId"`
+	// ResourceName: Resource display name.
+	ResourceName string `json:"resourceName"`
+	// ResourceTypeID: Resource type id.
+	ResourceTypeID string `json:"resourceTypeId"`
+	// PluginID: Provider plugin id.
+	PluginID string `json:"pluginId"`
+	// ExternalID: Provider-native id.
+	ExternalID *string `json:"externalId"`
+	// RuleID: The posture rule that matched.
+	RuleID string `json:"ruleId"`
+	// Title: Short rule title.
+	Title string `json:"title"`
+	// FindingSeverity: The finding's own severity.
+	//
+	// One of "critical", "high".
+	FindingSeverity string `json:"findingSeverity"`
+	// Category: Posture category.
+	Category string `json:"category"`
+	// Reason: Why the resource fails the rule.
+	Reason string `json:"reason"`
+}
+
+// EventDataScorecardLevelChangedV1: `data` of a `scorecard.level_changed` event,
+// version 1. A service moved up or down a level on a scorecard between two
+// evaluations. A service's first evaluation is never sent.
+//
+// Spec schema: `EventData_scorecard_level_changed_v1`.
+type EventDataScorecardLevelChangedV1 struct {
+	// ScorecardID: Scorecard id.
+	ScorecardID string `json:"scorecardId"`
+	// ScorecardName: Scorecard name.
+	ScorecardName string `json:"scorecardName"`
+	// ServiceID: Service id.
+	ServiceID string `json:"serviceId"`
+	// ServiceSlug: The service's slug.
+	ServiceSlug string `json:"serviceSlug"`
+	// ServiceName: Service name.
+	ServiceName string `json:"serviceName"`
+	// Direction: Whether the service went up or down the ladder.
+	//
+	// One of "up", "down".
+	Direction string `json:"direction"`
+	// PreviousLevel: Level key before; null for no level.
+	PreviousLevel *string `json:"previousLevel"`
+	// PreviousLevelName: Level name before; null for no level.
+	PreviousLevelName *string `json:"previousLevelName"`
+	// Level: Level key now; null for no level.
+	Level *string `json:"level"`
+	// LevelName: Level name now; null for no level.
+	LevelName *string `json:"levelName"`
+	// Score: Weighted score now, 0-100; null when no check applied.
+	Score *float64 `json:"score"`
+	// FailingChecks: Names of the checks failing (or erroring) now.
+	FailingChecks []string `json:"failingChecks"`
+}
+
+// EventDataSecretLeakedV1: `data` of a `secret.leaked` event, version 1. A
+// secret scanner found a credential committed to code. Each finding is sent
+// once; the value itself is never included.
+//
+// Spec schema: `EventData_secret_leaked_v1`.
+type EventDataSecretLeakedV1 struct {
+	// LeakID: Infrawrench leaked secret id.
+	LeakID string `json:"leakId"`
+	// TokenType: The scanner's identifier for the token type.
+	TokenType string `json:"tokenType"`
+	// TokenTypeLabel: Human name of the token type.
+	TokenTypeLabel string `json:"tokenTypeLabel"`
+	// OwnerPluginID: Plugin that issues this token type.
+	OwnerPluginID *string `json:"ownerPluginId"`
+	// MatchKind: What the leak was matched to.
+	//
+	// One of "account", "secret-field", "output", "none".
+	MatchKind string `json:"matchKind"`
+	// MatchedAccountID: The connected account the leak belongs to.
+	MatchedAccountID *string `json:"matchedAccountId"`
+	// MatchedResourceID: The resource whose stored secret leaked.
+	MatchedResourceID *string `json:"matchedResourceId"`
+	// ScannerPluginID: Plugin of the scanner that found it.
+	ScannerPluginID string `json:"scannerPluginId"`
+	// ScannerAccountID: Scanner account that found it.
+	ScannerAccountID string `json:"scannerAccountId"`
+	// MatchConfidence: How the match was made.
+	//
+	// One of "fingerprint", "token-type", "none".
+	MatchConfidence string `json:"matchConfidence"`
+	// Repository: Repository the secret was found in.
+	Repository *string `json:"repository"`
+	// Path: File the secret was found in.
+	Path *string `json:"path"`
+	// URL: The finding on the scanner.
+	URL *string `json:"url"`
+	// Validity: The scanner's validity check.
+	//
+	// One of "active", "inactive", "unknown".
+	Validity *string `json:"validity"`
+	// PubliclyLeaked: The scanner also found it in a public place.
+	PubliclyLeaked bool `json:"publiclyLeaked"`
+	// DetectedAt: When the scanner first saw it.
+	DetectedAt string `json:"detectedAt"`
+}
+
+// EventDataSecretRotatedV1: `data` of a `secret.rotated` event, version 1. A
+// leaked credential was rotated, or its stored value was seen to change.
+//
+// Spec schema: `EventData_secret_rotated_v1`.
+type EventDataSecretRotatedV1 struct {
+	// LeakID: Infrawrench leaked secret id.
+	LeakID string `json:"leakId"`
+	// TokenType: The scanner's identifier for the token type.
+	TokenType string `json:"tokenType"`
+	// TokenTypeLabel: Human name of the token type.
+	TokenTypeLabel string `json:"tokenTypeLabel"`
+	// OwnerPluginID: Plugin that issues this token type.
+	OwnerPluginID *string `json:"ownerPluginId"`
+	// MatchKind: What the leak was matched to.
+	//
+	// One of "account", "secret-field", "output", "none".
+	MatchKind string `json:"matchKind"`
+	// MatchedAccountID: The connected account the leak belongs to.
+	MatchedAccountID *string `json:"matchedAccountId"`
+	// MatchedResourceID: The resource whose stored secret leaked.
+	MatchedResourceID *string `json:"matchedResourceId"`
+	// Method: How the rotation was recorded.
+	//
+	// One of "reissued", "replaced", "detected", "manual".
+	Method string `json:"method"`
+	// RotatedBy: Who rotated it, when a person did.
+	RotatedBy *string `json:"rotatedBy"`
+	// UpstreamResolved: The finding was closed on the scanner as revoked.
+	UpstreamResolved bool `json:"upstreamResolved"`
+}
+
+// EventDataServiceChangedV1: `data` of a `service.changed` event, version 1. A
+// service in the catalog was created, edited, deleted, or had resources added or
+// removed.
+//
+// Spec schema: `EventData_service_changed_v1`.
+type EventDataServiceChangedV1 struct {
+	// Action: What happened to the service.
+	//
+	// One of "created", "updated", "deleted".
+	Action string `json:"action"`
+	// ServiceID: Service id.
+	ServiceID string `json:"serviceId"`
+	// Slug: The service's slug.
+	Slug string `json:"slug"`
+	// Name: Service name.
+	Name string `json:"name"`
+	// Tier: Tier 1 (most critical) to 4; null when untiered.
+	Tier *int64 `json:"tier"`
+	// OwnerTeam: Free-text owning team.
+	OwnerTeam *string `json:"ownerTeam"`
+	// ChangedFields: Fields the change touched: the edited service fields, or
+	// `members` for a membership change. Empty on create and delete.
+	ChangedFields []string `json:"changedFields"`
+}
+
+// EventDataSloBurnAlertV1: `data` of a `slo.burn_alert` event, version 1. An SLO
+// started or stopped burning its error budget, or exhausted it.
+//
+// Spec schema: `EventData_slo_burn_alert_v1`.
+type EventDataSloBurnAlertV1 struct {
+	// SloID: SLO id.
+	SloID string `json:"sloId"`
+	// SloName: SLO name.
+	SloName string `json:"sloName"`
+	// Status: What changed.
+	//
+	// One of "fast_burn", "slow_burn", "recovered", "exhausted".
+	Status string `json:"status"`
+	// TargetPercent: The SLO target, e.g. 99.9.
+	TargetPercent float64 `json:"targetPercent"`
+	// WindowDays: The SLO window in days.
+	WindowDays int64 `json:"windowDays"`
+	// Sli: Current SLI percent over the window.
+	Sli *float64 `json:"sli"`
+	// BudgetRemaining: Fraction of the error budget left (negative when
+	// overspent).
+	BudgetRemaining *float64 `json:"budgetRemaining"`
+	// BurnRate1h: Burn rate over the last hour.
+	BurnRate1h *float64 `json:"burnRate1h"`
+	// BurnRate3d: Burn rate over the last three days.
+	BurnRate3d *float64 `json:"burnRate3d"`
+}
+
+// EventDataVulnerabilityFoundV1: `data` of a `vulnerability.found` event,
+// version 1. A vulnerability finding became alertable under the org's
+// vulnerability alert settings. Each finding is sent once.
+//
+// Spec schema: `EventData_vulnerability_found_v1`.
+type EventDataVulnerabilityFoundV1 struct {
+	// FindingID: The scanner's finding id, unique within `accountId`.
+	FindingID string `json:"findingId"`
+	// AccountID: The account whose scanner reported it.
+	AccountID string `json:"accountId"`
+	// PluginID: Provider plugin id.
+	PluginID string `json:"pluginId"`
+	// Scanner: The scanner, e.g. Amazon Inspector.
+	Scanner string `json:"scanner"`
+	// AdvisoryID: Advisory id, CVE first when there is one.
+	AdvisoryID string `json:"advisoryId"`
+	// Aliases: Other ids for the same advisory.
+	Aliases []string `json:"aliases"`
+	// Title: Advisory title.
+	Title *string `json:"title"`
+	// FindingSeverity: The finding's own severity.
+	//
+	// One of "critical", "high", "medium", "low", "unknown".
+	FindingSeverity string `json:"findingSeverity"`
+	// CvssScore: CVSS base score.
+	CvssScore *float64 `json:"cvssScore"`
+	// KnownExploited: Listed in the CISA Known Exploited Vulnerabilities
+	// catalog.
+	KnownExploited bool `json:"knownExploited"`
+	// KevDueDate: CISA remediation due date (YYYY-MM-DD), when listed and set.
+	KevDueDate *string `json:"kevDueDate"`
+	// ExploitAvailable: An exploit is public; null when the scanner does not
+	// say.
+	ExploitAvailable *bool `json:"exploitAvailable"`
+	// FixAvailable: A fixed version exists; null when the scanner does not say.
+	FixAvailable *bool `json:"fixAvailable"`
+	// PackageName: Affected package.
+	PackageName *string `json:"packageName"`
+	// InstalledVersion: Installed package version.
+	InstalledVersion *string `json:"installedVersion"`
+	// FixedVersion: First version with the fix.
+	FixedVersion *string `json:"fixedVersion"`
+	// ArtifactKind: What the finding affects.
+	//
+	// One of "image", "function", "host", "repository", "package".
+	ArtifactKind string `json:"artifactKind"`
+	// ArtifactName: Image repository, function, host or repository name.
+	ArtifactName string `json:"artifactName"`
+	// ArtifactDigest: Image digest, when the scanner gives one.
+	ArtifactDigest *string `json:"artifactDigest"`
+	// RunningResourceCount: Synced resources running the artifact now.
+	RunningResourceCount int64 `json:"runningResourceCount"`
+	// RunningResourceIDs: Up to 50 of those resources' Infrawrench ids.
+	RunningResourceIDs []string `json:"runningResourceIds"`
+	// FirstSeenAt: When the scanner first saw it.
+	FirstSeenAt *string `json:"firstSeenAt"`
+	// URL: The finding on the scanner.
+	URL *string `json:"url"`
+}
+
+// EventDelivery is the `EventDelivery` schema.
+type EventDelivery struct {
+	ID             string `json:"id"`
+	SubscriptionID string `json:"subscriptionId"`
+	EventID        string `json:"eventId"`
+	EventType      string `json:"eventType"`
+	// State: One of "pending", "retrying", "succeeded", "dead", "skipped".
+	State           string                 `json:"state"`
+	AttemptCount    int64                  `json:"attemptCount"`
+	NextAttemptAt   *string                `json:"nextAttemptAt"`
+	LastAttemptAt   *string                `json:"lastAttemptAt"`
+	DeliveredAt     *string                `json:"deliveredAt"`
+	ResponseStatus  *int64                 `json:"responseStatus"`
+	ResponseExcerpt *string                `json:"responseExcerpt"`
+	Error           *string                `json:"error"`
+	Test            bool                   `json:"test"`
+	RedeliveryOf    *string                `json:"redeliveryOf"`
+	Attempts        []EventDeliveryAttempt `json:"attempts"`
+	CreatedAt       string                 `json:"createdAt"`
+	// Payload: The envelope as sent.
+	Payload map[string]any `json:"payload"`
+}
+
+// EventDeliveryAttempt is the `EventDeliveryAttempt` schema.
+type EventDeliveryAttempt struct {
+	At         string  `json:"at"`
+	Status     *int64  `json:"status"`
+	DurationMs int64   `json:"durationMs"`
+	Error      *string `json:"error"`
+}
+
+// EventDestination is the `EventDestination` schema.
+type EventDestination = any
+
+// EventSeverity is the `EventSeverity` schema.
+type EventSeverity = string
+
+// The values EventSeverity takes.
+const (
+	EventSeverityInfo     EventSeverity = "info"
+	EventSeverityWarning  EventSeverity = "warning"
+	EventSeverityCritical EventSeverity = "critical"
+)
+
+// EventSubscription is the `EventSubscription` schema.
+type EventSubscription struct {
+	ID          string           `json:"id"`
+	Name        string           `json:"name"`
+	Enabled     bool             `json:"enabled"`
+	Destination EventDestination `json:"destination"`
+	// DestinationLabel: Human label for the destination.
+	DestinationLabel string `json:"destinationLabel"`
+	// EventTypes: Event types to receive (see /event-subscriptions/catalog).
+	// Empty means all.
+	EventTypes  []string       `json:"eventTypes"`
+	MinSeverity *EventSeverity `json:"minSeverity"`
+	// AccountIDs: Only events about these accounts. Empty does not filter; an
+	// event with no account never matches a non-empty list.
+	AccountIDs []string `json:"accountIds"`
+	// Environments: Only events whose environment is one of these
+	// (case-insensitive). Empty does not filter; an event with no environment
+	// never matches a non-empty list.
+	Environments []string `json:"environments"`
+	// SecretHint: Last four characters of the signing secret; null for publish
+	// destinations.
+	SecretHint *string `json:"secretHint"`
+	// PreviousSecretExpiresAt: Until when the secret before the last reroll
+	// still signs.
+	PreviousSecretExpiresAt *string `json:"previousSecretExpiresAt"`
+	// DisabledReason: Set when the subscription was turned off automatically
+	// after sustained failure.
+	DisabledReason      *string `json:"disabledReason"`
+	DisabledAt          *string `json:"disabledAt"`
+	ConsecutiveFailures int64   `json:"consecutiveFailures"`
+	FailingSince        *string `json:"failingSince"`
+	LastSuccessAt       *string `json:"lastSuccessAt"`
+	LastFailureAt       *string `json:"lastFailureAt"`
+	CreatedAt           string  `json:"createdAt"`
+	UpdatedAt           string  `json:"updatedAt"`
+}
+
+// EventSubscriptionInput is the `EventSubscriptionInput` schema.
+type EventSubscriptionInput struct {
+	Name        string           `json:"name"`
+	Enabled     *bool            `json:"enabled,omitempty"`
+	Destination EventDestination `json:"destination"`
+	// EventTypes: Event types to receive (see /event-subscriptions/catalog).
+	// Empty means all.
+	EventTypes  []string       `json:"eventTypes,omitempty"`
+	MinSeverity *EventSeverity `json:"minSeverity,omitempty"`
+	// AccountIDs: Only events about these accounts. Empty does not filter; an
+	// event with no account never matches a non-empty list.
+	AccountIDs []string `json:"accountIds,omitempty"`
+	// Environments: Only events whose environment is one of these
+	// (case-insensitive). Empty does not filter; an event with no environment
+	// never matches a non-empty list.
+	Environments []string `json:"environments,omitempty"`
+}
+
+// EventSubscriptionOptions is the `EventSubscriptionOptions` schema.
+type EventSubscriptionOptions struct {
+	Accounts           []EventSubscriptionOptionsAccounts `json:"accounts"`
+	Environments       []string                           `json:"environments"`
+	Sinks              []EventSubscriptionOptionsSinks    `json:"sinks"`
+	CanSubscribeToCost bool                               `json:"canSubscribeToCost"`
+}
+
+// EventSubscriptionWithSecret is the `EventSubscriptionWithSecret` schema.
+type EventSubscriptionWithSecret struct {
+	Subscription EventSubscription `json:"subscription"`
+	// Secret: The signing secret (`iwhsec_…`). Returned only here; store it now.
+	// Null for publish destinations.
+	Secret *string `json:"secret"`
+}
+
+// EventTypeInfo is the `EventTypeInfo` schema.
+type EventTypeInfo struct {
+	Type        string `json:"type"`
+	Version     int64  `json:"version"`
+	Label       string `json:"label"`
+	Description string `json:"description"`
+	// Category: One of "cost", "security", "reliability", "access",
+	// "operations", "system".
+	Category        string        `json:"category"`
+	DefaultSeverity EventSeverity `json:"defaultSeverity"`
+	// CarriesCost: Receiving it needs costs:read as well as org:settings:write.
+	CarriesCost bool `json:"carriesCost"`
+	// Schema: JSON Schema of `data`.
+	Schema map[string]any `json:"schema"`
+}
+
+// EventAccountSyncFailingV1: An account's sync kept failing past the org's
+// paging threshold.
+//
+// Spec schema: `Event_account_sync_failing_v1`.
+type EventAccountSyncFailingV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "account.sync.failing".
+	Type string                        `json:"type"`
+	Data EventDataAccountSyncFailingV1 `json:"data"`
+}
+
+// EventAccountSyncRecoveredV1: A failing account sync succeeded again.
+//
+// Spec schema: `Event_account_sync_recovered_v1`.
+type EventAccountSyncRecoveredV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "account.sync.recovered".
+	Type string                          `json:"type"`
+	Data EventDataAccountSyncRecoveredV1 `json:"data"`
+}
+
+// EventBudgetThresholdCrossedV1: A budget's actual or forecast spend (or usage)
+// reached one of its alert thresholds.
+//
+// Spec schema: `Event_budget_threshold_crossed_v1`.
+type EventBudgetThresholdCrossedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "budget.threshold.crossed".
+	Type string                            `json:"type"`
+	Data EventDataBudgetThresholdCrossedV1 `json:"data"`
+}
+
+// EventCostAnomalyDetectedV1: A provider or service spent well outside its
+// baseline, or a new source of spend appeared.
+//
+// Spec schema: `Event_cost_anomaly_detected_v1`.
+type EventCostAnomalyDetectedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "cost.anomaly.detected".
+	Type string                         `json:"type"`
+	Data EventDataCostAnomalyDetectedV1 `json:"data"`
+}
+
+// EventDoraBandChangedV1: One of the four DORA metrics for production moved to a
+// different performance band over the trailing 30 days. Checked once a day.
+//
+// Spec schema: `Event_dora_band_changed_v1`.
+type EventDoraBandChangedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "dora.band_changed".
+	Type string                     `json:"type"`
+	Data EventDataDoraBandChangedV1 `json:"data"`
+}
+
+// EventDriftDetectedV1: Resources changed outside Infrawrench since the last
+// drift window.
+//
+// Spec schema: `Event_drift_detected_v1`.
+type EventDriftDetectedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "drift.detected".
+	Type string                   `json:"type"`
+	Data EventDataDriftDetectedV1 `json:"data"`
+}
+
+// EventIncidentDeclaredV1: Someone declared an incident.
+//
+// Spec schema: `Event_incident_declared_v1`.
+type EventIncidentDeclaredV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "incident.declared".
+	Type string                      `json:"type"`
+	Data EventDataIncidentDeclaredV1 `json:"data"`
+}
+
+// EventIncidentMitigatedV1: A declared incident was marked mitigated.
+//
+// Spec schema: `Event_incident_mitigated_v1`.
+type EventIncidentMitigatedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "incident.mitigated".
+	Type string                       `json:"type"`
+	Data EventDataIncidentMitigatedV1 `json:"data"`
+}
+
+// EventIncidentResolvedV1: A declared incident was resolved.
+//
+// Spec schema: `Event_incident_resolved_v1`.
+type EventIncidentResolvedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "incident.resolved".
+	Type string                      `json:"type"`
+	Data EventDataIncidentResolvedV1 `json:"data"`
+}
+
+// EventInfrawrenchTestV1: Sent by Send test event. Never raised by anything
+// else.
+//
+// Spec schema: `Event_infrawrench_test_v1`.
+type EventInfrawrenchTestV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "infrawrench.test".
+	Type string                     `json:"type"`
+	Data EventDataInfrawrenchTestV1 `json:"data"`
+}
+
+// EventJitAccessApprovedV1: An approver approved a just-in-time access request.
+//
+// Spec schema: `Event_jit_access_approved_v1`.
+type EventJitAccessApprovedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "jit_access.approved".
+	Type string                       `json:"type"`
+	Data EventDataJitAccessApprovedV1 `json:"data"`
+}
+
+// EventJitAccessDeniedV1: An approver denied a just-in-time access request.
+//
+// Spec schema: `Event_jit_access_denied_v1`.
+type EventJitAccessDeniedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "jit_access.denied".
+	Type string                     `json:"type"`
+	Data EventDataJitAccessDeniedV1 `json:"data"`
+}
+
+// EventJitAccessExpiredV1: A granted role reached the end of its window and was
+// removed.
+//
+// Spec schema: `Event_jit_access_expired_v1`.
+type EventJitAccessExpiredV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "jit_access.expired".
+	Type string                      `json:"type"`
+	Data EventDataJitAccessExpiredV1 `json:"data"`
+}
+
+// EventJitAccessRequestedV1: A member asked for a time-boxed cloud role.
+//
+// Spec schema: `Event_jit_access_requested_v1`.
+type EventJitAccessRequestedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "jit_access.requested".
+	Type string                        `json:"type"`
+	Data EventDataJitAccessRequestedV1 `json:"data"`
+}
+
+// EventMetricAlertFiredV1: A metric threshold alert started firing on a
+// resource.
+//
+// Spec schema: `Event_metric_alert_fired_v1`.
+type EventMetricAlertFiredV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "metric_alert.fired".
+	Type string                      `json:"type"`
+	Data EventDataMetricAlertFiredV1 `json:"data"`
+}
+
+// EventMetricAlertResolvedV1: A firing metric alert went back within its
+// threshold.
+//
+// Spec schema: `Event_metric_alert_resolved_v1`.
+type EventMetricAlertResolvedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "metric_alert.resolved".
+	Type string                         `json:"type"`
+	Data EventDataMetricAlertResolvedV1 `json:"data"`
+}
+
+// EventPostureFindingDetectedV1: A critical or high severity posture check
+// started failing on a resource. Each finding is sent once.
+//
+// Spec schema: `Event_posture_finding_detected_v1`.
+type EventPostureFindingDetectedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "posture.finding.detected".
+	Type string                            `json:"type"`
+	Data EventDataPostureFindingDetectedV1 `json:"data"`
+}
+
+// EventScorecardLevelChangedV1: A service moved up or down a level on a
+// scorecard between two evaluations. A service's first evaluation is never sent.
+//
+// Spec schema: `Event_scorecard_level_changed_v1`.
+type EventScorecardLevelChangedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "scorecard.level_changed".
+	Type string                           `json:"type"`
+	Data EventDataScorecardLevelChangedV1 `json:"data"`
+}
+
+// EventSecretLeakedV1: A secret scanner found a credential committed to code.
+// Each finding is sent once; the value itself is never included.
+//
+// Spec schema: `Event_secret_leaked_v1`.
+type EventSecretLeakedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "secret.leaked".
+	Type string                  `json:"type"`
+	Data EventDataSecretLeakedV1 `json:"data"`
+}
+
+// EventSecretRotatedV1: A leaked credential was rotated, or its stored value was
+// seen to change.
+//
+// Spec schema: `Event_secret_rotated_v1`.
+type EventSecretRotatedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "secret.rotated".
+	Type string                   `json:"type"`
+	Data EventDataSecretRotatedV1 `json:"data"`
+}
+
+// EventServiceChangedV1: A service in the catalog was created, edited, deleted,
+// or had resources added or removed.
+//
+// Spec schema: `Event_service_changed_v1`.
+type EventServiceChangedV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "service.changed".
+	Type string                    `json:"type"`
+	Data EventDataServiceChangedV1 `json:"data"`
+}
+
+// EventSloBurnAlertV1: An SLO started or stopped burning its error budget, or
+// exhausted it.
+//
+// Spec schema: `Event_slo_burn_alert_v1`.
+type EventSloBurnAlertV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "slo.burn_alert".
+	Type string                  `json:"type"`
+	Data EventDataSloBurnAlertV1 `json:"data"`
+}
+
+// EventVulnerabilityFoundV1: A vulnerability finding became alertable under the
+// org's vulnerability alert settings. Each finding is sent once.
+//
+// Spec schema: `Event_vulnerability_found_v1`.
+type EventVulnerabilityFoundV1 struct {
+	// ID: `evt_…`. Unique per event and stable across retries and redeliveries:
+	// dedupe on it.
+	ID string `json:"id"`
+	// Version: Payload schema version of `type`.
+	Version int64 `json:"version"`
+	// CreatedAt: When the event happened.
+	CreatedAt      string        `json:"createdAt"`
+	OrganizationID string        `json:"organizationId"`
+	Severity       EventSeverity `json:"severity"`
+	// AccountID: The account the event is about; null when it spans several or
+	// none.
+	AccountID *string `json:"accountId"`
+	// Environment: The `env`/`environment`/`stage` tag of the resource the event
+	// is about; null when there is none.
+	Environment *string `json:"environment"`
+	// Title: One line for a human.
+	Title string `json:"title"`
+	// URL: Deep link into Infrawrench.
+	URL *string `json:"url"`
+	// Test: True only for Send test event.
+	Test bool `json:"test"`
+	// Type: One of "vulnerability.found".
+	Type string                        `json:"type"`
+	Data EventDataVulnerabilityFoundV1 `json:"data"`
 }
 
 // ExchangeRate is the `ExchangeRate` schema.
@@ -7291,6 +9217,9 @@ type IncidentDeclare struct {
 type IncidentDetail struct {
 	Incident Incident       `json:"incident"`
 	Notes    []IncidentNote `json:"notes"`
+	// AffectedServices: Services the affected resources belong to, resolved on
+	// read.
+	AffectedServices []IncidentDetailAffectedServices `json:"affectedServices"`
 }
 
 // IncidentList is the `IncidentList` schema.
@@ -8059,6 +9988,141 @@ type KVCommandRequest struct {
 // Spec schema: `KvCommandResponse`.
 type KVCommandResponse struct {
 	Result any `json:"result,omitempty"`
+}
+
+// LeakedSecret is the `LeakedSecret` schema.
+type LeakedSecret struct {
+	ID string `json:"id"`
+	// Status: `open` needs rotating; `rotated` was rotated through Infrawrench
+	// or detected because the stored value changed; `dismissed` was accepted as
+	// not a risk; `resolved` was closed on the scanner by someone else before it
+	// was rotated here.
+	//
+	// One of "open", "rotated", "dismissed", "resolved".
+	Status string `json:"status"`
+	// ScannerAccountID: The scanner account (GitHub, GitLab) the finding came
+	// from.
+	ScannerAccountID   string `json:"scannerAccountId"`
+	ScannerAccountName string `json:"scannerAccountName"`
+	ScannerPluginID    string `json:"scannerPluginId"`
+	// TokenType: The scanner's identifier for the token type.
+	TokenType      string `json:"tokenType"`
+	TokenTypeLabel string `json:"tokenTypeLabel"`
+	// OwnerPluginID: The plugin that issues this kind of token.
+	OwnerPluginID   *string `json:"ownerPluginId"`
+	OwnerPluginName *string `json:"ownerPluginName"`
+	// SecretHint: At most the first and last four characters. The secret itself
+	// is never stored or returned.
+	SecretHint *string `json:"secretHint"`
+	Repository *string `json:"repository"`
+	Path       *string `json:"path"`
+	Line       *int64  `json:"line"`
+	CommitSha  *string `json:"commitSha"`
+	// URL: The finding on the scanner.
+	URL *string `json:"url"`
+	// UpstreamState: One of "open", "resolved".
+	UpstreamState      string  `json:"upstreamState"`
+	UpstreamResolution *string `json:"upstreamResolution"`
+	// Validity: One of "active", "inactive", "unknown".
+	Validity       *string `json:"validity"`
+	PubliclyLeaked bool    `json:"publiclyLeaked"`
+	DetectedAt     string  `json:"detectedAt"`
+	FirstSeenAt    string  `json:"firstSeenAt"`
+	// MatchKind: What the leak was matched to: an account credential, a secret
+	// stored on a resource, a resource output other resources reference, or
+	// nothing Infrawrench holds.
+	//
+	// One of "account", "secret-field", "output", "none".
+	MatchKind string `json:"matchKind"`
+	// MatchConfidence: `fingerprint`: the leaked value equals a stored one
+	// (compared by keyed hash, never by value). `token-type`: the scanner
+	// withheld the value, so only the token's issuer is known.
+	//
+	// One of "fingerprint", "token-type", "none".
+	MatchConfidence       string  `json:"matchConfidence"`
+	MatchedAccountID      *string `json:"matchedAccountId"`
+	MatchedAccountName    *string `json:"matchedAccountName"`
+	MatchedResourceID     *string `json:"matchedResourceId"`
+	MatchedResourceName   *string `json:"matchedResourceName"`
+	MatchedResourceTypeID *string `json:"matchedResourceTypeId"`
+	MatchedPluginID       *string `json:"matchedPluginId"`
+	MatchedFieldKey       *string `json:"matchedFieldKey"`
+	// CandidateAccountIDs: Accounts it may belong to when a token-type match is
+	// ambiguous.
+	CandidateAccountIDs []string             `json:"candidateAccountIds"`
+	Rotation            LeakedSecretRotation `json:"rotation"`
+	RotatedAt           *string              `json:"rotatedAt"`
+	RotatedBy           *string              `json:"rotatedBy"`
+	// RotationMethod: One of "reissued", "replaced", "detected", "manual".
+	RotationMethod *string `json:"rotationMethod"`
+	// DismissedReason: One of "false-positive", "wont-fix", "used-in-tests".
+	DismissedReason      *string `json:"dismissedReason"`
+	DismissedComment     *string `json:"dismissedComment"`
+	DismissedAt          *string `json:"dismissedAt"`
+	DismissedBy          *string `json:"dismissedBy"`
+	UpstreamResolvedAt   *string `json:"upstreamResolvedAt"`
+	UpstreamResolveError *string `json:"upstreamResolveError"`
+	CanResolveUpstream   bool    `json:"canResolveUpstream"`
+}
+
+// LeakedSecretDismiss is the `LeakedSecretDismiss` schema.
+type LeakedSecretDismiss struct {
+	// Reason: One of "false-positive", "wont-fix", "used-in-tests".
+	Reason  string  `json:"reason"`
+	Comment *string `json:"comment,omitempty"`
+	// ResolveUpstream: Close the finding on the scanner afterwards, when it can.
+	// Defaults to true.
+	ResolveUpstream *bool `json:"resolveUpstream,omitempty"`
+}
+
+// LeakedSecretList is the `LeakedSecretList` schema.
+type LeakedSecretList struct {
+	// Leaks: Open first, newest first within a status. At most 500.
+	Leaks       []LeakedSecret         `json:"leaks"`
+	Counts      LeakedSecretListCounts `json:"counts"`
+	Scanners    []LeakedSecretScanner  `json:"scanners"`
+	GeneratedAt string                 `json:"generatedAt"`
+}
+
+// LeakedSecretMarkRotated is the `LeakedSecretMarkRotated` schema.
+type LeakedSecretMarkRotated struct {
+	// ResolveUpstream: Close the finding on the scanner afterwards, when it can.
+	// Defaults to true.
+	ResolveUpstream *bool `json:"resolveUpstream,omitempty"`
+}
+
+// LeakedSecretResponse is the `LeakedSecretResponse` schema.
+type LeakedSecretResponse struct {
+	Leak LeakedSecret `json:"leak"`
+}
+
+// LeakedSecretRotate is the `LeakedSecretRotate` schema.
+type LeakedSecretRotate struct {
+	// Value: The new value, for a `replace` rotation.
+	Value *string `json:"value,omitempty"`
+	// ResolveUpstream: Close the finding on the scanner afterwards, when it can.
+	// Defaults to true.
+	ResolveUpstream *bool `json:"resolveUpstream,omitempty"`
+}
+
+// LeakedSecretScanResult is the `LeakedSecretScanResult` schema.
+type LeakedSecretScanResult struct {
+	Scanned  int64 `json:"scanned"`
+	NewLeaks int64 `json:"newLeaks"`
+	Errors   int64 `json:"errors"`
+}
+
+// LeakedSecretScanner is the `LeakedSecretScanner` schema.
+type LeakedSecretScanner struct {
+	AccountID          string  `json:"accountId"`
+	AccountName        string  `json:"accountName"`
+	PluginID           string  `json:"pluginId"`
+	Label              string  `json:"label"`
+	CanResolve         bool    `json:"canResolve"`
+	ReturnsSecretValue bool    `json:"returnsSecretValue"`
+	LastScannedAt      *string `json:"lastScannedAt"`
+	LastError          *string `json:"lastError"`
+	LastCount          *int64  `json:"lastCount"`
 }
 
 // LeaseConflict is the `LeaseConflict` schema.
@@ -9390,6 +11454,101 @@ type OrgMembership struct {
 	Role        OrganizationRole `json:"role"`
 }
 
+// OrgScorecard is the `OrgScorecard` schema.
+type OrgScorecard struct {
+	// Score: Weighted mean over the assessed pillars, or null when none could be
+	// assessed: an organization with nothing connected has nothing to grade.
+	Score   *int64               `json:"score"`
+	Grade   *OrgScorecardGrade   `json:"grade"`
+	Pillars []OrgScorecardPillar `json:"pillars"`
+	// FailedPillars: Pillars whose computation failed, as opposed to having no
+	// data. Excluded from the overall exactly as unassessed ones are, but named
+	// apart.
+	FailedPillars []OrgScorecardPillarID `json:"failedPillars"`
+	// Trend: Stored daily readings for the last 90 days, oldest first.
+	Trend       []OrgScorecardTrendPoint `json:"trend"`
+	GeneratedAt string                   `json:"generatedAt"`
+}
+
+// OrgScorecardFact is the `OrgScorecardFact` schema.
+type OrgScorecardFact struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
+	// Bad: True when this is the number that hurts.
+	Bad *bool `json:"bad,omitempty"`
+}
+
+// OrgScorecardGrade is the `OrgScorecardGrade` schema.
+//
+// The API may send null in its place.
+type OrgScorecardGrade = string
+
+// The values OrgScorecardGrade takes.
+const (
+	OrgScorecardGradeA OrgScorecardGrade = "A"
+	OrgScorecardGradeB OrgScorecardGrade = "B"
+	OrgScorecardGradeC OrgScorecardGrade = "C"
+	OrgScorecardGradeD OrgScorecardGrade = "D"
+	OrgScorecardGradeF OrgScorecardGrade = "F"
+)
+
+// OrgScorecardHistory is the `OrgScorecardHistory` schema.
+type OrgScorecardHistory struct {
+	Trend []OrgScorecardTrendPoint `json:"trend"`
+}
+
+// OrgScorecardPillar is the `OrgScorecardPillar` schema.
+type OrgScorecardPillar struct {
+	ID OrgScorecardPillarID `json:"id"`
+	// Score: Null when the pillar could not be assessed, **never zero**. An
+	// unassessed pillar is excluded from the overall rather than counted as
+	// failure.
+	Score *int64 `json:"score"`
+	// Weight: Relative weight in the overall, fixed: posture 25, recoverability
+	// 20, services 15, deadlines 15, access 10, headroom 10, ownership 5.
+	// Weights renormalize over the assessed pillars, so gaining one cannot read
+	// as a regression.
+	Weight int64 `json:"weight"`
+	// Headline: What the score measures over, in one line.
+	Headline string `json:"headline"`
+	// UnassessedReason: Why there is no score, phrased so a reader can act on
+	// it. Null when scored.
+	UnassessedReason *string `json:"unassessedReason"`
+	// NextStep: The single most valuable thing to fix. Null when clean or
+	// unassessed.
+	NextStep *string            `json:"nextStep"`
+	Facts    []OrgScorecardFact `json:"facts"`
+}
+
+// OrgScorecardPillarID: Which existing feed the org grade pillar reads. Each is
+// a reading of a feed that already exists, so a pillar can never disagree with
+// the page it links to.
+//
+// Spec schema: `OrgScorecardPillarId`.
+type OrgScorecardPillarID = string
+
+// The values OrgScorecardPillarID takes.
+const (
+	OrgScorecardPillarIDPosture        OrgScorecardPillarID = "posture"
+	OrgScorecardPillarIDRecoverability OrgScorecardPillarID = "recoverability"
+	OrgScorecardPillarIDServices       OrgScorecardPillarID = "services"
+	OrgScorecardPillarIDDeadlines      OrgScorecardPillarID = "deadlines"
+	OrgScorecardPillarIDAccess         OrgScorecardPillarID = "access"
+	OrgScorecardPillarIDHeadroom       OrgScorecardPillarID = "headroom"
+	OrgScorecardPillarIDOwnership      OrgScorecardPillarID = "ownership"
+)
+
+// OrgScorecardTrendPoint is the `OrgScorecardTrendPoint` schema.
+type OrgScorecardTrendPoint struct {
+	// Day: UTC calendar day.
+	Day   string             `json:"day"`
+	Score int64              `json:"score"`
+	Grade *OrgScorecardGrade `json:"grade"`
+	// Pillars: Per-pillar scores that day. A pillar unassessed then is absent,
+	// not zero.
+	Pillars map[string]int64 `json:"pillars"`
+}
+
 // OrgStatusIncident is the `OrgStatusIncident` schema.
 type OrgStatusIncident struct {
 	// ID: Cached incident row id.
@@ -10241,7 +12400,10 @@ type PostureListResponse struct {
 	// finding that has since been fixed simply drops out.
 	Dismissed      []DismissedPostureFinding `json:"dismissed"`
 	DismissedCount int64                     `json:"dismissedCount"`
-	GeneratedAt    string                    `json:"generatedAt"`
+	// LeakedCredentials: The Leaked credentials category: secrets a scanner
+	// found committed to code. The rows are at `GET /leaked-secrets`.
+	LeakedCredentials *PostureListResponseLeakedCredentials `json:"leakedCredentials,omitempty"`
+	GeneratedAt       string                                `json:"generatedAt"`
 }
 
 // PostureSeverityCounts: Live finding count per severity; every bucket present,
@@ -13500,6 +15662,7 @@ const (
 	SavingsEventKindOrphanDeletion SavingsEventKind = "orphan_deletion"
 	SavingsEventKindSleepSchedule  SavingsEventKind = "sleep_schedule"
 	SavingsEventKindCommitment     SavingsEventKind = "commitment"
+	SavingsEventKindSaasSeat       SavingsEventKind = "saas_seat"
 	SavingsEventKindManual         SavingsEventKind = "manual"
 )
 
@@ -13610,6 +15773,158 @@ type ScheduleTransition struct {
 	Action string `json:"action"`
 }
 
+// Scorecard is the `Scorecard` schema.
+type Scorecard struct {
+	ID string `json:"id"`
+	// Name: Unique in the organization; at most 120 characters.
+	Name string `json:"name"`
+	// Description: At most 1000 characters.
+	Description *string `json:"description"`
+	// Checks: 1 to 30 checks.
+	Checks []ScorecardCheck `json:"checks"`
+	// Levels: 1 to 6 levels; stored lowest first.
+	Levels []ScorecardLevel `json:"levels"`
+	// ApplicableTiers: Tiers it applies to; empty means every service.
+	ApplicableTiers []float64 `json:"applicableTiers"`
+	// AlertOnLevelDrop: Route a `scorecardAlerts` alert when a service drops a
+	// level.
+	AlertOnLevelDrop bool `json:"alertOnLevelDrop"`
+	Enabled          bool `json:"enabled"`
+	// IsDefault: The scorecard seeded for the organization.
+	IsDefault       bool    `json:"isDefault"`
+	LastEvaluatedAt *string `json:"lastEvaluatedAt"`
+	CreatedAt       string  `json:"createdAt"`
+	UpdatedAt       string  `json:"updatedAt"`
+}
+
+// ScorecardCheck is the `ScorecardCheck` schema.
+type ScorecardCheck struct {
+	// ID: Stable within the scorecard.
+	ID   string             `json:"id"`
+	Type ScorecardCheckType `json:"type"`
+	// Name: Display override; the type's label when null.
+	Name *string `json:"name"`
+	// Weight: 1 to 10.
+	Weight int64 `json:"weight"`
+	// Params: Type parameters: `minBudgetRemainingPercent` (0-100),
+	// `drillWithinDays` (1-730), `severities` (critical/high/medium/low), `tags`
+	// (tag keys), `maxFailureRatePercent` (0-100), `windowDays` (1-90).
+	Params map[string]any `json:"params"`
+}
+
+// ScorecardCheckResult is the `ScorecardCheckResult` schema.
+type ScorecardCheckResult struct {
+	CheckID string             `json:"checkId"`
+	Type    ScorecardCheckType `json:"type"`
+	Name    string             `json:"name"`
+	Weight  int64              `json:"weight"`
+	// Status: `not_applicable` leaves the score's denominator; `error` (a feed
+	// that could not be read) counts as failing.
+	//
+	// One of "pass", "fail", "not_applicable", "error".
+	Status string  `json:"status"`
+	Detail *string `json:"detail"`
+}
+
+// ScorecardCheckType: A check type from the scorecard registry.
+type ScorecardCheckType = string
+
+// The values ScorecardCheckType takes.
+const (
+	ScorecardCheckTypeHasOwner                  ScorecardCheckType = "has_owner"
+	ScorecardCheckTypeHasOnCall                 ScorecardCheckType = "has_on_call"
+	ScorecardCheckTypeSloWithinBudget           ScorecardCheckType = "slo_within_budget"
+	ScorecardCheckTypeHasRunbook                ScorecardCheckType = "has_runbook"
+	ScorecardCheckTypeBackupsVerified           ScorecardCheckType = "backups_verified"
+	ScorecardCheckTypeNoCriticalPosture         ScorecardCheckType = "no_critical_posture"
+	ScorecardCheckTypeNoOrphans                 ScorecardCheckType = "no_orphans"
+	ScorecardCheckTypeRequiredTags              ScorecardCheckType = "required_tags"
+	ScorecardCheckTypeCostWithinBudget          ScorecardCheckType = "cost_within_budget"
+	ScorecardCheckTypeNoCriticalVulnerabilities ScorecardCheckType = "no_critical_vulnerabilities"
+	ScorecardCheckTypeChangeFailureRate         ScorecardCheckType = "change_failure_rate"
+)
+
+// ScorecardCreate is the `ScorecardCreate` schema.
+type ScorecardCreate struct {
+	// Name: Unique in the organization; at most 120 characters.
+	Name string `json:"name"`
+	// Description: At most 1000 characters.
+	Description *string `json:"description,omitempty"`
+	// Checks: 1 to 30 checks.
+	Checks []ScorecardCheck `json:"checks,omitempty"`
+	// Levels: 1 to 6 levels; stored lowest first.
+	Levels []ScorecardLevel `json:"levels,omitempty"`
+	// ApplicableTiers: Tiers it applies to; empty means every service.
+	ApplicableTiers []float64 `json:"applicableTiers,omitempty"`
+	// AlertOnLevelDrop: Route a `scorecardAlerts` alert when a service drops a
+	// level.
+	AlertOnLevelDrop *bool `json:"alertOnLevelDrop,omitempty"`
+	Enabled          *bool `json:"enabled,omitempty"`
+}
+
+// ScorecardHistoryPoint is the `ScorecardHistoryPoint` schema.
+type ScorecardHistoryPoint struct {
+	// Day: `YYYY-MM-DD`, UTC.
+	Day   string   `json:"day"`
+	Score *float64 `json:"score"`
+	Level *string  `json:"level"`
+}
+
+// ScorecardLevel is the `ScorecardLevel` schema.
+type ScorecardLevel struct {
+	// Key: Lower-case letters, digits, dashes and underscores; unique.
+	Key string `json:"key"`
+	// Name: At most 40 characters.
+	Name string `json:"name"`
+	// MinScore: 0 to 100; unique within the scorecard.
+	MinScore float64 `json:"minScore"`
+	// Color: Six-digit hex, e.g. `#d4a72c`.
+	Color *string `json:"color"`
+}
+
+// ScorecardList is the `ScorecardList` schema.
+type ScorecardList struct {
+	Scorecards []Scorecard `json:"scorecards"`
+}
+
+// ScorecardOverview is the `ScorecardOverview` schema.
+type ScorecardOverview struct {
+	Scorecards []Scorecard                 `json:"scorecards"`
+	Services   []ScorecardOverviewServices `json:"services"`
+	Results    []ScorecardResult           `json:"results"`
+}
+
+// ScorecardResult is the `ScorecardResult` schema.
+type ScorecardResult struct {
+	ScorecardID   string `json:"scorecardId"`
+	ScorecardName string `json:"scorecardName"`
+	ServiceID     string `json:"serviceId"`
+	// Score: 0-100; null when no check applied.
+	Score       *float64               `json:"score"`
+	Level       *string                `json:"level"`
+	LevelName   *string                `json:"levelName"`
+	Checks      []ScorecardCheckResult `json:"checks"`
+	EvaluatedAt string                 `json:"evaluatedAt"`
+}
+
+// ScorecardUpdate is the `ScorecardUpdate` schema.
+type ScorecardUpdate struct {
+	// Name: Unique in the organization; at most 120 characters.
+	Name *string `json:"name,omitempty"`
+	// Description: At most 1000 characters.
+	Description *string `json:"description,omitempty"`
+	// Checks: 1 to 30 checks.
+	Checks []ScorecardCheck `json:"checks,omitempty"`
+	// Levels: 1 to 6 levels; stored lowest first.
+	Levels []ScorecardLevel `json:"levels,omitempty"`
+	// ApplicableTiers: Tiers it applies to; empty means every service.
+	ApplicableTiers []float64 `json:"applicableTiers,omitempty"`
+	// AlertOnLevelDrop: Route a `scorecardAlerts` alert when a service drops a
+	// level.
+	AlertOnLevelDrop *bool `json:"alertOnLevelDrop,omitempty"`
+	Enabled          *bool `json:"enabled,omitempty"`
+}
+
 // SearchHit is the `SearchHit` schema.
 type SearchHit struct {
 	ID                ResourceID `json:"id"`
@@ -13622,6 +15937,83 @@ type SearchHit struct {
 	AccountName       string     `json:"accountName"`
 	DisplayName       string     `json:"displayName"`
 	Subtitle          *string    `json:"subtitle,omitempty"`
+}
+
+// Seat is the `Seat` schema.
+type Seat struct {
+	// ID: Infrawrench seat id; the handle for removal.
+	ID          string   `json:"id"`
+	AccountID   string   `json:"accountId"`
+	AccountName string   `json:"accountName"`
+	PluginID    PluginID `json:"pluginId"`
+	PluginName  string   `json:"pluginName"`
+	// MemberID: Provider-native member id.
+	MemberID string `json:"memberId"`
+	// SeatKey: Empty unless one member holds several seats on the account.
+	SeatKey string  `json:"seatKey"`
+	Name    *string `json:"name"`
+	Email   *string `json:"email"`
+	Login   *string `json:"login"`
+	Product string  `json:"product"`
+	// Category: What the seat is for. Two seats one person holds in the same
+	// category on different products are a duplicate finding; `other` never is.
+	//
+	// One of "ai-coding", "ai-assistant", "source-control", "identity", "other".
+	Category string `json:"category"`
+	SeatType string `json:"seatType"`
+	// MonthlyPrice: Per month; null when unpriced.
+	MonthlyPrice *float64 `json:"monthlyPrice"`
+	Currency     *string  `json:"currency"`
+	// PriceSource: `billing`/`catalog`: read from the provider. `configured`:
+	// the price set on the account. `list-price`: the provider's published list
+	// price, an estimate.
+	//
+	// One of "billing", "catalog", "configured", "list-price".
+	PriceSource *string `json:"priceSource"`
+	PriceNote   *string `json:"priceNote"`
+	// ActivityBasis: How the provider evidences use: `last-activity` (last use
+	// of the product), `last-login` (last sign-in), `usage-window` (per-day
+	// usage over `activityWindowDays`), or `none` (no evidence; never flagged
+	// inactive).
+	//
+	// One of "last-activity", "last-login", "usage-window", "none".
+	ActivityBasis      string  `json:"activityBasis"`
+	LastActiveAt       *string `json:"lastActiveAt"`
+	ActivityWindowDays *int64  `json:"activityWindowDays"`
+	// ActivitySource: Plain-English description of the evidence.
+	ActivitySource   string  `json:"activitySource"`
+	AssignedAt       *string `json:"assignedAt"`
+	PendingRemovalOn *string `json:"pendingRemovalOn"`
+	// Removable: Whether the in-app Remove can remove it.
+	Removable   bool              `json:"removable"`
+	RemovalNote *string           `json:"removalNote"`
+	Downgrade   *SeatDowngrade    `json:"downgrade"`
+	Context     map[string]string `json:"context"`
+	Resource    *SeatResource     `json:"resource"`
+	LastSeenAt  string            `json:"lastSeenAt"`
+	// Status: `inactive`: the evidence covers the threshold and shows no use.
+	// `new`: assigned inside the threshold and not used yet. `unknown`: the
+	// evidence cannot cover the threshold. `pending-removal`: already being
+	// removed at the provider.
+	//
+	// One of "active", "inactive", "new", "unknown", "pending-removal".
+	Status       string `json:"status"`
+	DaysInactive *int64 `json:"daysInactive"`
+	NeverActive  bool   `json:"neverActive"`
+}
+
+// SeatFinding is the `SeatFinding` schema.
+type SeatFinding struct {
+	// Kind: One of "inactive", "duplicate", "downgrade".
+	Kind          string   `json:"kind"`
+	SeatID        string   `json:"seatId"`
+	MonthlySaving *float64 `json:"monthlySaving"`
+	Currency      *string  `json:"currency"`
+	// Duplicate: For a duplicate: the seat kept (the one used most recently).
+	Duplicate      *SeatFindingDuplicate `json:"duplicate,omitempty"`
+	TargetSeatType *string               `json:"targetSeatType,omitempty"`
+	Reason         *string               `json:"reason,omitempty"`
+	Remediation    *FindingRemediation   `json:"remediation,omitempty"`
 }
 
 // SeatLimitResponse is the `SeatLimitResponse` schema.
@@ -13638,6 +16030,50 @@ type SeatLimitResponse struct {
 	// the org's capacity is entirely prepaid capacity slots: there is no monthly
 	// seat to buy, so the only remedy is another capacity slot.
 	CanAddSeat bool `json:"canAddSeat"`
+}
+
+// SeatListResponse is the `SeatListResponse` schema.
+type SeatListResponse struct {
+	InactiveDays int64  `json:"inactiveDays"`
+	Seats        []Seat `json:"seats"`
+	// Findings: Largest saving first; at most one per seat.
+	Findings       []SeatFinding              `json:"findings"`
+	SavingsMonthly []SeatTotal                `json:"savingsMonthly"`
+	SpendMonthly   []SeatTotal                `json:"spendMonthly"`
+	Counts         SeatListResponseCounts     `json:"counts"`
+	Accounts       []SeatListResponseAccounts `json:"accounts"`
+}
+
+// SeatPrice is the `SeatPrice` schema.
+type SeatPrice struct {
+	Monthly  float64 `json:"monthly"`
+	Currency string  `json:"currency"`
+	// Source: `billing`/`catalog`: read from the provider. `configured`: the
+	// price set on the account. `list-price`: the provider's published list
+	// price, an estimate.
+	//
+	// One of "billing", "catalog", "configured", "list-price".
+	Source string  `json:"source"`
+	Note   *string `json:"note,omitempty"`
+}
+
+// SeatRemovalResponse is the `SeatRemovalResponse` schema.
+type SeatRemovalResponse struct {
+	// Effective: One of "immediate", "end-of-cycle".
+	Effective string  `json:"effective"`
+	Message   *string `json:"message"`
+}
+
+// SeatSettings is the `SeatSettings` schema.
+type SeatSettings struct {
+	// InactiveDays: Days without use before a seat is flagged. Default 30.
+	InactiveDays int64 `json:"inactiveDays"`
+}
+
+// SeatTotal is the `SeatTotal` schema.
+type SeatTotal struct {
+	Currency string  `json:"currency"`
+	Monthly  float64 `json:"monthly"`
 }
 
 // SecretAccessRequest is the `SecretAccessRequest` schema.
@@ -13699,6 +16135,260 @@ type SecretVersionResponse struct {
 // SecretVersionsResponse is the `SecretVersionsResponse` schema.
 type SecretVersionsResponse struct {
 	Versions []SecretVersion `json:"versions"`
+}
+
+// Service is the `Service` schema.
+type Service struct {
+	ID string `json:"id"`
+	// Name: Unique in the organization; at most 120 characters.
+	Name string `json:"name"`
+	// Slug: Lower-case letters, digits and dashes; unique. Derived from the name
+	// when omitted.
+	Slug string `json:"slug"`
+	// Description: At most 1000 characters.
+	Description *string `json:"description"`
+	// Tier: Criticality, 1 being the most critical.
+	Tier *float64 `json:"tier"`
+	// OwnerTeam: Free-text owning team; display-only, never routed. At most 120
+	// characters.
+	OwnerTeam *string `json:"ownerTeam"`
+	// OwnerUserIDs: Owning org members (at most 20).
+	OwnerUserIDs []string `json:"ownerUserIds"`
+	// Links: Dashboards, repositories, docs (at most 20).
+	Links            []ServiceLink `json:"links"`
+	OnCallScheduleID *string       `json:"onCallScheduleId"`
+	// SloIDs: Linked SLOs (at most 50).
+	SloIDs []string `json:"sloIds"`
+	// RunbookIDs: Linked runbooks (at most 50).
+	RunbookIDs []string `json:"runbookIds"`
+	// Rules: Membership rules (at most 20).
+	Rules []ServiceMembershipRule `json:"rules"`
+	// MonthlyBudget: Monthly budget in `budgetCurrency`; read by the cost
+	// scorecard check.
+	MonthlyBudget *float64 `json:"monthlyBudget"`
+	// BudgetCurrency: ISO 4217 code; required with a budget.
+	BudgetCurrency     *string         `json:"budgetCurrency"`
+	Owners             []ServiceOwners `json:"owners"`
+	OnCallScheduleName *string         `json:"onCallScheduleName"`
+	// MemberCount: Resolved members: explicit plus rule-matched.
+	MemberCount int64 `json:"memberCount"`
+	// Scores: Current standing on each enabled scorecard.
+	Scores    []ServiceScoreBadge `json:"scores"`
+	CreatedAt string              `json:"createdAt"`
+	UpdatedAt string              `json:"updatedAt"`
+}
+
+// ServiceCreate is the `ServiceCreate` schema.
+type ServiceCreate struct {
+	// Name: Unique in the organization; at most 120 characters.
+	Name string `json:"name"`
+	// Slug: Lower-case letters, digits and dashes; unique. Derived from the name
+	// when omitted.
+	Slug *string `json:"slug,omitempty"`
+	// Description: At most 1000 characters.
+	Description *string `json:"description,omitempty"`
+	// Tier: Criticality, 1 being the most critical.
+	Tier *float64 `json:"tier,omitempty"`
+	// OwnerTeam: Free-text owning team; display-only, never routed. At most 120
+	// characters.
+	OwnerTeam *string `json:"ownerTeam,omitempty"`
+	// OwnerUserIDs: Owning org members (at most 20).
+	OwnerUserIDs []string `json:"ownerUserIds,omitempty"`
+	// Links: Dashboards, repositories, docs (at most 20).
+	Links            []ServiceLink `json:"links,omitempty"`
+	OnCallScheduleID *string       `json:"onCallScheduleId,omitempty"`
+	// SloIDs: Linked SLOs (at most 50).
+	SloIDs []string `json:"sloIds,omitempty"`
+	// RunbookIDs: Linked runbooks (at most 50).
+	RunbookIDs []string `json:"runbookIds,omitempty"`
+	// Rules: Membership rules (at most 20).
+	Rules []ServiceMembershipRule `json:"rules,omitempty"`
+	// MonthlyBudget: Monthly budget in `budgetCurrency`; read by the cost
+	// scorecard check.
+	MonthlyBudget *float64 `json:"monthlyBudget,omitempty"`
+	// BudgetCurrency: ISO 4217 code; required with a budget.
+	BudgetCurrency *string `json:"budgetCurrency,omitempty"`
+}
+
+// ServiceDetail is the `ServiceDetail` schema.
+type ServiceDetail struct {
+	Service Service         `json:"service"`
+	Members []ServiceMember `json:"members"`
+	// Excluded: Rule-matched resources the service deliberately leaves out.
+	Excluded []ServiceMember `json:"excluded"`
+}
+
+// ServiceLink is the `ServiceLink` schema.
+type ServiceLink struct {
+	// Label: At most 80 characters.
+	Label string `json:"label"`
+	// URL: An http or https URL.
+	URL string `json:"url"`
+}
+
+// ServiceList is the `ServiceList` schema.
+type ServiceList struct {
+	Services []Service `json:"services"`
+}
+
+// ServiceMember is the `ServiceMember` schema.
+type ServiceMember struct {
+	ResourceID     string   `json:"resourceId"`
+	AccountID      string   `json:"accountId"`
+	AccountName    *string  `json:"accountName"`
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	ResourceName   string   `json:"resourceName"`
+	ExternalID     *string  `json:"externalId"`
+	// Source: One of "manual", "rule".
+	Source string `json:"source"`
+	// RuleIndex: Index into `rules` for `rule` members.
+	RuleIndex *int64              `json:"ruleIndex"`
+	Owner     *ServiceMemberOwner `json:"owner"`
+	// Missing: The resource was deleted upstream.
+	Missing bool `json:"missing"`
+}
+
+// ServiceMemberOwner is the `ServiceMemberOwner` schema.
+//
+// The API may send null in its place.
+type ServiceMemberOwner struct {
+	// UserID: Set when a routable org member owns it.
+	UserID      *string `json:"userId"`
+	DisplayName string  `json:"displayName"`
+	// IsLabel: True when `displayName` is free text.
+	IsLabel   bool    `json:"isLabel"`
+	TicketURL *string `json:"ticketUrl"`
+	Purpose   *string `json:"purpose"`
+}
+
+// ServiceMembersRequest is the `ServiceMembersRequest` schema.
+type ServiceMembersRequest struct {
+	// ResourceIDs: Infrawrench resource ids (at most 500).
+	ResourceIDs []string `json:"resourceIds"`
+}
+
+// ServiceMembershipRule is the `ServiceMembershipRule` schema.
+type ServiceMembershipRule struct {
+	// Kind: `tag`: the resource carries provider tag `key` (with `value` when
+	// set). `virtual_tag`: the org's virtual tag `key` resolves to `value` on
+	// the resource's cost rows over the last 30 days. `name`: the display name
+	// matches `value` per `nameMatch`, case-insensitively.
+	//
+	// One of "tag", "virtual_tag", "name".
+	Kind string `json:"kind"`
+	// Key: `tag` / `virtual_tag`: the key. Null for `name`.
+	Key *string `json:"key"`
+	// Value: `tag`: exact value, null for any. `virtual_tag`: required. `name`:
+	// the pattern.
+	Value *string `json:"value"`
+	// NameMatch: `name` only; defaults to `contains`.
+	//
+	// One of "contains", "prefix", "suffix", "exact".
+	NameMatch *string `json:"nameMatch"`
+	// PluginID: Narrow the rule to one provider.
+	PluginID *string `json:"pluginId"`
+	// AccountID: Narrow the rule to one account.
+	AccountID *string `json:"accountId"`
+}
+
+// ServicePostureFinding is the `ServicePostureFinding` schema.
+type ServicePostureFinding struct {
+	ResourceID       string  `json:"resourceId"`
+	PluginID         string  `json:"pluginId"`
+	PluginName       string  `json:"pluginName"`
+	ResourceTypeID   string  `json:"resourceTypeId"`
+	ResourceTypeName string  `json:"resourceTypeName"`
+	AccountID        string  `json:"accountId"`
+	AccountName      string  `json:"accountName"`
+	DisplayName      string  `json:"displayName"`
+	ExternalID       *string `json:"externalId"`
+	RuleID           string  `json:"ruleId"`
+	Title            string  `json:"title"`
+	// Severity: One of "critical", "high", "medium", "low".
+	Severity string `json:"severity"`
+	Category string `json:"category"`
+	Reason   string `json:"reason"`
+}
+
+// ServiceRef is the `ServiceRef` schema.
+type ServiceRef struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+	// Tier: Criticality, 1 being the most critical.
+	Tier *float64 `json:"tier"`
+}
+
+// ServiceScoreBadge is the `ServiceScoreBadge` schema.
+type ServiceScoreBadge struct {
+	ScorecardID   string   `json:"scorecardId"`
+	ScorecardName string   `json:"scorecardName"`
+	Score         *float64 `json:"score"`
+	Level         *string  `json:"level"`
+	LevelName     *string  `json:"levelName"`
+}
+
+// ServiceScorecards is the `ServiceScorecards` schema.
+type ServiceScorecards struct {
+	Results []ScorecardResult `json:"results"`
+	// History: Per scorecard id, oldest first, at most 90 days.
+	History map[string][]ScorecardHistoryPoint `json:"history"`
+}
+
+// ServiceSummary is the `ServiceSummary` schema.
+type ServiceSummary struct {
+	Service     Service `json:"service"`
+	MemberCount int64   `json:"memberCount"`
+	// Cost: Trailing member spend, per currency. Respects the caller's cost
+	// visibility scope.
+	Cost          ServiceSummaryCost            `json:"cost"`
+	Slos          []ServiceSummarySlos          `json:"slos"`
+	Runbooks      []ServiceSummaryRunbooks      `json:"runbooks"`
+	OnCall        *ServiceSummaryOnCall         `json:"onCall"`
+	Findings      ServiceSummaryFindings        `json:"findings"`
+	RecentChanges []ServiceSummaryRecentChanges `json:"recentChanges"`
+	Scorecards    []ScorecardResult             `json:"scorecards"`
+	GeneratedAt   string                        `json:"generatedAt"`
+}
+
+// ServiceUpdate is the `ServiceUpdate` schema.
+type ServiceUpdate struct {
+	// Name: Unique in the organization; at most 120 characters.
+	Name *string `json:"name,omitempty"`
+	// Slug: Lower-case letters, digits and dashes; unique. Derived from the name
+	// when omitted.
+	Slug *string `json:"slug,omitempty"`
+	// Description: At most 1000 characters.
+	Description *string `json:"description,omitempty"`
+	// Tier: Criticality, 1 being the most critical.
+	Tier *float64 `json:"tier,omitempty"`
+	// OwnerTeam: Free-text owning team; display-only, never routed. At most 120
+	// characters.
+	OwnerTeam *string `json:"ownerTeam,omitempty"`
+	// OwnerUserIDs: Owning org members (at most 20).
+	OwnerUserIDs []string `json:"ownerUserIds,omitempty"`
+	// Links: Dashboards, repositories, docs (at most 20).
+	Links            []ServiceLink `json:"links,omitempty"`
+	OnCallScheduleID *string       `json:"onCallScheduleId,omitempty"`
+	// SloIDs: Linked SLOs (at most 50).
+	SloIDs []string `json:"sloIds,omitempty"`
+	// RunbookIDs: Linked runbooks (at most 50).
+	RunbookIDs []string `json:"runbookIds,omitempty"`
+	// Rules: Membership rules (at most 20).
+	Rules []ServiceMembershipRule `json:"rules,omitempty"`
+	// MonthlyBudget: Monthly budget in `budgetCurrency`; read by the cost
+	// scorecard check.
+	MonthlyBudget *float64 `json:"monthlyBudget,omitempty"`
+	// BudgetCurrency: ISO 4217 code; required with a budget.
+	BudgetCurrency *string `json:"budgetCurrency,omitempty"`
+}
+
+// ServicesForResources is the `ServicesForResources` schema.
+type ServicesForResources struct {
+	// Services: Resource id to the services it belongs to; resources in none are
+	// absent.
+	Services map[string][]ServiceRef `json:"services"`
 }
 
 // Session is the `Session` schema.
@@ -14938,10 +17628,11 @@ type SyntheticProbeUpdate struct {
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
 	// "savings", "cost-reports", "cost-canvases", "invoices", "graph", "logs",
-	// "changes", "expiring", "posture", "access-review", "jit-access",
-	// "backups", "wallboard", "calendar", "runbooks", "query-monitors", "dns",
-	// "iac", "environment-diff", "environments", "ssh-fanout", "metric-alerts",
-	// "probes", "status-pages", "quotas", "price-catalog", "incidents", "slos",
+	// "changes", "expiring", "posture", "vulnerabilities", "compliance",
+	// "access-review", "jit-access", "backups", "wallboard", "calendar",
+	// "runbooks", "query-monitors", "dns", "iac", "environment-diff",
+	// "environments", "ssh-fanout", "metric-alerts", "probes", "status-pages",
+	// "quotas", "price-catalog", "incidents", "slos", "services", "delivery",
 	// "workflows", "deployments", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
@@ -14952,9 +17643,13 @@ type TabTarget struct {
 	InvoiceID      *string     `json:"invoiceId,omitempty"`
 	CanvasID       *string     `json:"canvasId,omitempty"`
 	SloID          *string     `json:"sloId,omitempty"`
-	SessionID      *string     `json:"sessionId,omitempty"`
-	WindowID       *int64      `json:"windowId,omitempty"`
-	AppID          *string     `json:"appId,omitempty"`
+	ServiceID      *string     `json:"serviceId,omitempty"`
+	// View: One of "details", "ssh", "sftp", "apps", "scorecards".
+	View      *string `json:"view,omitempty"`
+	Framework *string `json:"framework,omitempty"`
+	SessionID *string `json:"sessionId,omitempty"`
+	WindowID  *int64  `json:"windowId,omitempty"`
+	AppID     *string `json:"appId,omitempty"`
 }
 
 // TagComplianceReport is the `TagComplianceReport` schema.
@@ -15397,6 +18092,166 @@ type VirtualTagStats struct {
 	DistinctValues     int64 `json:"distinctValues"`
 }
 
+// VulnerabilityDismissal is the `VulnerabilityDismissal` schema.
+type VulnerabilityDismissal struct {
+	AdvisoryID string `json:"advisoryId"`
+	// ArtifactKey: An artifact key from a finding, or `*` for every artifact.
+	ArtifactKey string  `json:"artifactKey"`
+	DismissedAt string  `json:"dismissedAt"`
+	DismissedBy *string `json:"dismissedBy"`
+	Reason      *string `json:"reason"`
+}
+
+// VulnerabilityDismissalCreate is the `VulnerabilityDismissalCreate` schema.
+type VulnerabilityDismissalCreate struct {
+	AdvisoryID string `json:"advisoryId"`
+	// ArtifactKey: A finding's `artifact.key`, or `*` for every artifact.
+	ArtifactKey string  `json:"artifactKey"`
+	Reason      *string `json:"reason,omitempty"`
+}
+
+// VulnerabilityFinding is the `VulnerabilityFinding` schema.
+type VulnerabilityFinding struct {
+	// Key: Unique within the organization (account id and finding id).
+	Key         string   `json:"key"`
+	AccountID   string   `json:"accountId"`
+	AccountName string   `json:"accountName"`
+	PluginID    PluginID `json:"pluginId"`
+	PluginName  string   `json:"pluginName"`
+	Scanner     string   `json:"scanner"`
+	// FindingID: The provider's own finding id.
+	FindingID  string `json:"findingId"`
+	AdvisoryID string `json:"advisoryId"`
+	// Aliases: Other ids for the same advisory.
+	Aliases []string `json:"aliases"`
+	Title   *string  `json:"title"`
+	// Severity: Normalised scanner severity. `unknown` means the scanner has not
+	// scored the advisory; it is never folded into `low`.
+	//
+	// One of "critical", "high", "medium", "low", "unknown".
+	Severity         string   `json:"severity"`
+	CvssScore        *float64 `json:"cvssScore"`
+	CvssVector       *string  `json:"cvssVector"`
+	PackageName      *string  `json:"packageName"`
+	PackageEcosystem *string  `json:"packageEcosystem"`
+	InstalledVersion *string  `json:"installedVersion"`
+	FixedVersion     *string  `json:"fixedVersion"`
+	// FixAvailable: Null when the scanner does not say.
+	FixAvailable *bool `json:"fixAvailable"`
+	// ExploitAvailable: Null when the scanner does not say.
+	ExploitAvailable *bool                        `json:"exploitAvailable"`
+	Kev              *VulnerabilityKevEntry       `json:"kev"`
+	Artifact         VulnerabilityFindingArtifact `json:"artifact"`
+	FirstSeenAt      *string                      `json:"firstSeenAt"`
+	LastSeenAt       *string                      `json:"lastSeenAt"`
+	URL              *string                      `json:"url"`
+	CollectedAt      string                       `json:"collectedAt"`
+	// Running: Synced resources running the artifact now; empty when it runs
+	// nowhere we see.
+	Running []VulnerabilityRunningRef `json:"running"`
+	// Services: Services the running resources belong to, deduplicated, most
+	// critical tier first; empty when none of them is in a service.
+	Services []VulnerabilityFindingServices `json:"services"`
+}
+
+// VulnerabilityKevEntry: CISA Known Exploited Vulnerabilities entry, when
+// listed.
+//
+// The API may send null in its place.
+type VulnerabilityKevEntry struct {
+	// DateAdded: Date CISA added it (YYYY-MM-DD).
+	DateAdded string `json:"dateAdded"`
+	// DueDate: Federal remediation due date, when set.
+	DueDate *string `json:"dueDate"`
+	// KnownRansomware: CISA lists known ransomware campaign use.
+	KnownRansomware bool `json:"knownRansomware"`
+}
+
+// VulnerabilityListResponse is the `VulnerabilityListResponse` schema.
+type VulnerabilityListResponse struct {
+	// Findings: Live findings: worst first, running before not running, then
+	// KEV, then CVSS.
+	Findings       []VulnerabilityFinding          `json:"findings"`
+	TotalCount     int64                           `json:"totalCount"`
+	Counts         VulnerabilitySeverityCounts     `json:"counts"`
+	RunningCounts  VulnerabilitySeverityCounts     `json:"runningCounts"`
+	Dismissed      []DismissedVulnerabilityFinding `json:"dismissed"`
+	DismissedCount int64                           `json:"dismissedCount"`
+	// Sources: Every account whose plugin can report findings.
+	Sources      []VulnerabilitySource `json:"sources"`
+	KevUpdatedAt *string               `json:"kevUpdatedAt"`
+	GeneratedAt  string                `json:"generatedAt"`
+}
+
+// VulnerabilityRunningRef is the `VulnerabilityRunningRef` schema.
+type VulnerabilityRunningRef struct {
+	// ResourceID: Infrawrench resource id.
+	ResourceID             string   `json:"resourceId"`
+	PluginID               PluginID `json:"pluginId"`
+	ResourceTypeID         string   `json:"resourceTypeId"`
+	ResourceTypeName       string   `json:"resourceTypeName"`
+	ResourceTypePluralName string   `json:"resourceTypePluralName"`
+	AccountID              string   `json:"accountId"`
+	AccountName            string   `json:"accountName"`
+	DisplayName            string   `json:"displayName"`
+	// MatchedBy: How the resource was tied to the finding: it runs the scanned
+	// image digest, the scanner named it directly, or it runs a tag the scanned
+	// image carries with no digest to confirm it.
+	//
+	// One of "digest", "resource", "tag".
+	MatchedBy string `json:"matchedBy"`
+}
+
+// VulnerabilitySettings is the `VulnerabilitySettings` schema.
+type VulnerabilitySettings struct {
+	AlertsEnabled bool `json:"alertsEnabled"`
+	// MinSeverity: Lowest severity that alerts. CISA KEV-listed findings alert
+	// regardless.
+	//
+	// One of "critical", "high".
+	MinSeverity string `json:"minSeverity"`
+	// RunningOnly: Only alert on findings whose artifact is running somewhere.
+	RunningOnly bool `json:"runningOnly"`
+	// LastNotifiedAt: When the alert scan last ran. Owned by the poller; not
+	// writable.
+	LastNotifiedAt *string `json:"lastNotifiedAt"`
+}
+
+// VulnerabilitySettingsUpdate is the `VulnerabilitySettingsUpdate` schema.
+type VulnerabilitySettingsUpdate struct {
+	AlertsEnabled *bool `json:"alertsEnabled,omitempty"`
+	// MinSeverity: One of "critical", "high".
+	MinSeverity *string `json:"minSeverity,omitempty"`
+	RunningOnly *bool   `json:"runningOnly,omitempty"`
+}
+
+// VulnerabilitySeverityCounts is the `VulnerabilitySeverityCounts` schema.
+type VulnerabilitySeverityCounts struct {
+	Critical int64 `json:"critical"`
+	High     int64 `json:"high"`
+	Medium   int64 `json:"medium"`
+	Low      int64 `json:"low"`
+	Unknown  int64 `json:"unknown"`
+}
+
+// VulnerabilitySource is the `VulnerabilitySource` schema.
+type VulnerabilitySource struct {
+	AccountID   string   `json:"accountId"`
+	AccountName string   `json:"accountName"`
+	PluginID    PluginID `json:"pluginId"`
+	PluginName  string   `json:"pluginName"`
+	Scanner     string   `json:"scanner"`
+	ConsoleURL  *string  `json:"consoleUrl"`
+	// Partial: The plugin reports a bounded subset of the scanner's findings.
+	Partial         bool    `json:"partial"`
+	LastCollectedAt *string `json:"lastCollectedAt"`
+	// Error: Why the last read failed, when it did.
+	Error        *string `json:"error"`
+	HelpLabel    *string `json:"helpLabel"`
+	HelpURL      *string `json:"helpUrl"`
+	FindingCount int64   `json:"findingCount"`
+}
+
 // WallboardFailureLine is the `WallboardFailureLine` schema.
 type WallboardFailureLine struct {
 	ID     string  `json:"id"`
@@ -15768,6 +18623,44 @@ type ChangeFreezeBlockedFreeze struct {
 	EndsAt   *string `json:"endsAt"`
 }
 
+// CompliancePackDeliveryTargetsSlackChannels is an object the spec declares
+// inline.
+type CompliancePackDeliveryTargetsSlackChannels struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// CompliancePackDeliveryTargetsTeamsWebhooks is an object the spec declares
+// inline.
+type CompliancePackDeliveryTargetsTeamsWebhooks struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// CompliancePackSendResultSlack is an object the spec declares inline.
+type CompliancePackSendResultSlack struct {
+	Attempted int64 `json:"attempted"`
+	Succeeded int64 `json:"succeeded"`
+}
+
+// CompliancePackSendResultTeams is an object the spec declares inline.
+type CompliancePackSendResultTeams struct {
+	Attempted int64 `json:"attempted"`
+	Succeeded int64 `json:"succeeded"`
+}
+
+// CompliancePackSendResultEmail is an object the spec declares inline.
+type CompliancePackSendResultEmail struct {
+	Attempted int64 `json:"attempted"`
+	Succeeded int64 `json:"succeeded"`
+}
+
+// ComplianceStatusPeriod is an object the spec declares inline.
+type ComplianceStatusPeriod struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+}
+
 // CostAccountStatusCostPollError is an object the spec declares inline.
 type CostAccountStatusCostPollError struct {
 	Message  string                                  `json:"message"`
@@ -16026,6 +18919,96 @@ type DeploymentRunInputError struct {
 	Message string `json:"message"`
 }
 
+// DismissedVulnerabilityFindingArtifact is an object the spec declares inline.
+type DismissedVulnerabilityFindingArtifact struct {
+	// Kind: What the finding is about: a container image, a serverless function,
+	// a VM or node, a source repository, or a stored package. Only images,
+	// functions and hosts can be running.
+	//
+	// One of "image", "function", "host", "repository", "package".
+	Kind string `json:"kind"`
+	// Name: Image repository without tag or digest, or the artifact name.
+	Name               string   `json:"name"`
+	Digest             *string  `json:"digest"`
+	Tags               []string `json:"tags"`
+	ResourceExternalID *string  `json:"resourceExternalId"`
+	URL                *string  `json:"url"`
+	// Key: What a dismissal is keyed on.
+	Key string `json:"key"`
+}
+
+// DismissedVulnerabilityFindingServices is an object the spec declares inline.
+type DismissedVulnerabilityFindingServices struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+	// Tier: Criticality, 1 being the most critical.
+	Tier *float64 `json:"tier"`
+}
+
+// DoraReportTrend is an object the spec declares inline.
+type DoraReportTrend struct {
+	Start               string   `json:"start"`
+	Deploys             int64    `json:"deploys"`
+	Changes             int64    `json:"changes"`
+	Failures            int64    `json:"failures"`
+	Restores            int64    `json:"restores"`
+	LeadTimeMedianHours *float64 `json:"leadTimeMedianHours"`
+	ChangeFailureRate   *float64 `json:"changeFailureRate"`
+	RestoreMedianHours  *float64 `json:"restoreMedianHours"`
+}
+
+// DoraReportBreakdown is an object the spec declares inline.
+type DoraReportBreakdown struct {
+	Key     *string     `json:"key"`
+	Label   string      `json:"label"`
+	Summary DoraSummary `json:"summary"`
+}
+
+// DoraReportDimensions is an object the spec declares inline.
+type DoraReportDimensions struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// DoraSummaryDeploymentFrequency is an object the spec declares inline.
+type DoraSummaryDeploymentFrequency struct {
+	Value *float64  `json:"value"`
+	Band  *DoraBand `json:"band"`
+	// Sample: How many observations the value rests on.
+	Sample  int64   `json:"sample"`
+	Deploys int64   `json:"deploys"`
+	Days    float64 `json:"days"`
+}
+
+// DoraSummaryLeadTime is an object the spec declares inline.
+type DoraSummaryLeadTime struct {
+	Value *float64  `json:"value"`
+	Band  *DoraBand `json:"band"`
+	// Sample: How many observations the value rests on.
+	Sample   int64    `json:"sample"`
+	P90Hours *float64 `json:"p90Hours"`
+}
+
+// DoraSummaryChangeFailureRate is an object the spec declares inline.
+type DoraSummaryChangeFailureRate struct {
+	Value *float64  `json:"value"`
+	Band  *DoraBand `json:"band"`
+	// Sample: How many observations the value rests on.
+	Sample   int64 `json:"sample"`
+	Changes  int64 `json:"changes"`
+	Failures int64 `json:"failures"`
+}
+
+// DoraSummaryTimeToRestore is an object the spec declares inline.
+type DoraSummaryTimeToRestore struct {
+	Value *float64  `json:"value"`
+	Band  *DoraBand `json:"band"`
+	// Sample: How many observations the value rests on.
+	Sample   int64 `json:"sample"`
+	Restores int64 `json:"restores"`
+}
+
 // EnvironmentCaptureDraftSkipped is an object the spec declares inline.
 type EnvironmentCaptureDraftSkipped struct {
 	ResourceID  string `json:"resourceId"`
@@ -16056,6 +19039,25 @@ type EnvironmentCostEstimateMembers struct {
 type EnvironmentParameterOptions struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
+}
+
+// EventSubscriptionOptionsAccounts is an object the spec declares inline.
+type EventSubscriptionOptionsAccounts struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	PluginID string `json:"pluginId"`
+}
+
+// EventSubscriptionOptionsSinks is an object the spec declares inline.
+type EventSubscriptionOptionsSinks struct {
+	AccountID        string `json:"accountId"`
+	AccountName      string `json:"accountName"`
+	PluginID         string `json:"pluginId"`
+	PluginName       string `json:"pluginName"`
+	ResourceTypeID   string `json:"resourceTypeId"`
+	ResourceTypeName string `json:"resourceTypeName"`
+	ResourceID       string `json:"resourceId"`
+	ResourceName     string `json:"resourceName"`
 }
 
 // ExtendedSupportFindingNextTier is an object the spec declares inline.
@@ -16165,6 +19167,14 @@ type IacReconciliationResponseUnderivable struct {
 type IacStateOnlyResourceCandidates struct {
 	PluginID       PluginID `json:"pluginId"`
 	ResourceTypeID string   `json:"resourceTypeId"`
+}
+
+// IncidentDetailAffectedServices is an object the spec declares inline.
+type IncidentDetailAffectedServices struct {
+	ID   string   `json:"id"`
+	Name string   `json:"name"`
+	Slug string   `json:"slug"`
+	Tier *float64 `json:"tier"`
 }
 
 // IncidentTimelineFeeds is an object the spec declares inline.
@@ -16310,6 +19320,26 @@ type KubernetesNetworkReportMethods struct {
 	// One of "flow_log", "in_cluster_flows", "counter_estimate", "".
 	Method string  `json:"method"`
 	Bytes  float64 `json:"bytes"`
+}
+
+// LeakedSecretRotation is an object the spec declares inline.
+type LeakedSecretRotation struct {
+	// Mode: `reissue`: one call rotates it. `replace`: send the new value.
+	// `account`: rotate it at the provider and update the account; the change is
+	// detected. `manual`: rotate it at the provider and mark it rotated.
+	//
+	// One of "reissue", "replace", "account", "manual".
+	Mode string `json:"mode"`
+	// ManageURL: The provider's own key management page.
+	ManageURL *string `json:"manageUrl"`
+}
+
+// LeakedSecretListCounts is an object the spec declares inline.
+type LeakedSecretListCounts struct {
+	Open      int64 `json:"open"`
+	Rotated   int64 `json:"rotated"`
+	Dismissed int64 `json:"dismissed"`
+	Resolved  int64 `json:"resolved"`
 }
 
 // ManagedAccountPricingRerate is an object the spec declares inline.
@@ -16525,6 +19555,16 @@ type PolicyTemplateHelpLink struct {
 	URL   string `json:"url"`
 }
 
+// PostureListResponseLeakedCredentials is an object the spec declares inline.
+type PostureListResponseLeakedCredentials struct {
+	// Open: Open leaked credentials.
+	Open int64 `json:"open"`
+	// Matched: Open leaks matched to something Infrawrench holds.
+	Matched int64 `json:"matched"`
+	// Scanners: Secret scanning accounts connected.
+	Scanners int64 `json:"scanners"`
+}
+
 // PrCheckChangeBlastRadius is an object the spec declares inline.
 type PrCheckChangeBlastRadius struct {
 	DirectDependants     int64 `json:"directDependants"`
@@ -16726,10 +19766,126 @@ type ResourceTypeSummaryAttachTargets struct {
 	Verb           *string `json:"verb,omitempty"`
 }
 
+// ScorecardOverviewServices is an object the spec declares inline.
+type ScorecardOverviewServices struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+	// Tier: Criticality, 1 being the most critical.
+	Tier      *float64 `json:"tier"`
+	OwnerTeam *string  `json:"ownerTeam"`
+}
+
+// SeatDowngrade is an object the spec declares inline.
+type SeatDowngrade struct {
+	SeatType string    `json:"seatType"`
+	Price    SeatPrice `json:"price"`
+	Reason   string    `json:"reason"`
+}
+
+// SeatResource is an object the spec declares inline.
+type SeatResource struct {
+	ResourceTypeID string `json:"resourceTypeId"`
+	ExternalID     string `json:"externalId"`
+}
+
+// SeatFindingDuplicate is an object the spec declares inline.
+type SeatFindingDuplicate struct {
+	KeptSeatID       string  `json:"keptSeatId"`
+	KeptProduct      string  `json:"keptProduct"`
+	KeptAccountName  string  `json:"keptAccountName"`
+	KeptLastActiveAt *string `json:"keptLastActiveAt"`
+}
+
+// SeatListResponseCounts is an object the spec declares inline.
+type SeatListResponseCounts struct {
+	Seats           int64 `json:"seats"`
+	Inactive        int64 `json:"inactive"`
+	Duplicate       int64 `json:"duplicate"`
+	Downgrade       int64 `json:"downgrade"`
+	UnknownActivity int64 `json:"unknownActivity"`
+	Unpriced        int64 `json:"unpriced"`
+}
+
+// SeatListResponseAccounts is an object the spec declares inline.
+type SeatListResponseAccounts struct {
+	AccountID    string   `json:"accountId"`
+	AccountName  string   `json:"accountName"`
+	PluginID     PluginID `json:"pluginId"`
+	PluginName   string   `json:"pluginName"`
+	SeatCount    int64    `json:"seatCount"`
+	LastPolledAt *string  `json:"lastPolledAt"`
+	LastError    *string  `json:"lastError"`
+}
+
 // SecretExportTemplateEntries is an object the spec declares inline.
 type SecretExportTemplateEntries struct {
 	OutputKey string `json:"outputKey"`
 	EnvKey    string `json:"envKey"`
+}
+
+// ServiceOwners is an object the spec declares inline.
+type ServiceOwners struct {
+	UserID string  `json:"userId"`
+	Name   *string `json:"name"`
+	Email  *string `json:"email"`
+}
+
+// ServiceSummaryCost is an object the spec declares inline.
+type ServiceSummaryCost struct {
+	WindowDays int64 `json:"windowDays"`
+	// Available: False when the cost warehouse could not be read; never read
+	// that as zero.
+	Available     bool                           `json:"available"`
+	Totals        []ServiceSummaryCostTotals     `json:"totals"`
+	ByProvider    []ServiceSummaryCostByProvider `json:"byProvider"`
+	CostedMembers int64                          `json:"costedMembers"`
+}
+
+// ServiceSummarySlos is an object the spec declares inline.
+type ServiceSummarySlos struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Status: One of "exhausted", "fast_burn", "slow_burn", "ok", "unknown".
+	Status          string   `json:"status"`
+	TargetPercent   float64  `json:"targetPercent"`
+	BudgetRemaining *float64 `json:"budgetRemaining"`
+}
+
+// ServiceSummaryRunbooks is an object the spec declares inline.
+type ServiceSummaryRunbooks struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Enabled bool   `json:"enabled"`
+}
+
+// ServiceSummaryOnCall is an object the spec declares inline.
+type ServiceSummaryOnCall struct {
+	ScheduleID   string                       `json:"scheduleId"`
+	ScheduleName string                       `json:"scheduleName"`
+	Enabled      bool                         `json:"enabled"`
+	Current      *ServiceSummaryOnCallCurrent `json:"current"`
+	Next         *ServiceSummaryOnCallNext    `json:"next"`
+}
+
+// ServiceSummaryFindings is an object the spec declares inline.
+type ServiceSummaryFindings struct {
+	Posture     ServiceSummaryFindingsPosture   `json:"posture"`
+	Orphans     []ServiceSummaryFindingsOrphans `json:"orphans"`
+	Backups     []ServiceSummaryFindingsBackups `json:"backups"`
+	Unavailable []string                        `json:"unavailable"`
+}
+
+// ServiceSummaryRecentChanges is an object the spec declares inline.
+type ServiceSummaryRecentChanges struct {
+	ID           string `json:"id"`
+	ResourceID   string `json:"resourceId"`
+	ResourceName string `json:"resourceName"`
+	PluginID     string `json:"pluginId"`
+	// ChangeKind: One of "created", "updated", "deleted".
+	ChangeKind string   `json:"changeKind"`
+	Fields     []string `json:"fields"`
+	At         string   `json:"at"`
 }
 
 // SessionRecordingParticipants is an object the spec declares inline.
@@ -16894,6 +20050,33 @@ type VirtualTagCurrencyStatsTopValues struct {
 	Amount float64 `json:"amount"`
 }
 
+// VulnerabilityFindingArtifact is an object the spec declares inline.
+type VulnerabilityFindingArtifact struct {
+	// Kind: What the finding is about: a container image, a serverless function,
+	// a VM or node, a source repository, or a stored package. Only images,
+	// functions and hosts can be running.
+	//
+	// One of "image", "function", "host", "repository", "package".
+	Kind string `json:"kind"`
+	// Name: Image repository without tag or digest, or the artifact name.
+	Name               string   `json:"name"`
+	Digest             *string  `json:"digest"`
+	Tags               []string `json:"tags"`
+	ResourceExternalID *string  `json:"resourceExternalId"`
+	URL                *string  `json:"url"`
+	// Key: What a dismissal is keyed on.
+	Key string `json:"key"`
+}
+
+// VulnerabilityFindingServices is an object the spec declares inline.
+type VulnerabilityFindingServices struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+	// Tier: Criticality, 1 being the most critical.
+	Tier *float64 `json:"tier"`
+}
+
 // CostAccountStatusCostPollErrorHelpLink is an object the spec declares inline.
 type CostAccountStatusCostPollErrorHelpLink struct {
 	Label string `json:"label"`
@@ -16975,6 +20158,58 @@ type OrgConfigDocumentTagPolicyRequiredTags struct {
 	AllowedValues []string `json:"allowedValues,omitempty"`
 }
 
+// ServiceSummaryCostTotals is an object the spec declares inline.
+type ServiceSummaryCostTotals struct {
+	Currency string  `json:"currency"`
+	Amount   float64 `json:"amount"`
+}
+
+// ServiceSummaryCostByProvider is an object the spec declares inline.
+type ServiceSummaryCostByProvider struct {
+	PluginID string  `json:"pluginId"`
+	Currency string  `json:"currency"`
+	Amount   float64 `json:"amount"`
+}
+
+// ServiceSummaryOnCallCurrent is an object the spec declares inline.
+type ServiceSummaryOnCallCurrent struct {
+	UserID string  `json:"userId"`
+	Name   *string `json:"name"`
+	Email  *string `json:"email"`
+	EndsAt string  `json:"endsAt"`
+}
+
+// ServiceSummaryOnCallNext is an object the spec declares inline.
+type ServiceSummaryOnCallNext struct {
+	UserID string  `json:"userId"`
+	Name   *string `json:"name"`
+	Email  *string `json:"email"`
+}
+
+// ServiceSummaryFindingsPosture is an object the spec declares inline.
+type ServiceSummaryFindingsPosture struct {
+	Counts ServiceSummaryFindingsPostureCounts `json:"counts"`
+	// Items: At most 25, worst first.
+	Items []ServicePostureFinding `json:"items"`
+}
+
+// ServiceSummaryFindingsOrphans is an object the spec declares inline.
+type ServiceSummaryFindingsOrphans struct {
+	ResourceID   string `json:"resourceId"`
+	ResourceName string `json:"resourceName"`
+	Reason       string `json:"reason"`
+}
+
+// ServiceSummaryFindingsBackups is an object the spec declares inline.
+type ServiceSummaryFindingsBackups struct {
+	ResourceID   string `json:"resourceId"`
+	ResourceName string `json:"resourceName"`
+	// Kind: `unprotected`, `rpo-breach`, `retention-below-policy`,
+	// `drill-stale`, `drill-failed` or `drill-never`.
+	Kind   string `json:"kind"`
+	Detail string `json:"detail"`
+}
+
 // SloSourcesMetricResourcesSeries is an object the spec declares inline.
 type SloSourcesMetricResourcesSeries struct {
 	Label string `json:"label"`
@@ -16986,6 +20221,14 @@ type SloSourcesMetricResourcesSeries struct {
 type UnitCostQueryResponseConversionConverted struct {
 	Currency string                                          `json:"currency"`
 	Rates    []UnitCostQueryResponseConversionConvertedRates `json:"rates"`
+}
+
+// ServiceSummaryFindingsPostureCounts is an object the spec declares inline.
+type ServiceSummaryFindingsPostureCounts struct {
+	Critical int64 `json:"critical"`
+	High     int64 `json:"high"`
+	Medium   int64 `json:"medium"`
+	Low      int64 `json:"low"`
 }
 
 // UnitCostQueryResponseConversionConvertedRates is an object the spec declares
@@ -17208,6 +20451,16 @@ type BusinessMetricsValuesGetResponse struct {
 	Values []BusinessMetricValue `json:"values"`
 }
 
+// ComplianceFrameworksResponse is an object the spec declares inline.
+type ComplianceFrameworksResponse struct {
+	Frameworks []ComplianceFrameworkSummary `json:"frameworks"`
+}
+
+// ComplianceControlsGetResponse is an object the spec declares inline.
+type ComplianceControlsGetResponse struct {
+	Settings []ComplianceControlSetting `json:"settings"`
+}
+
 // CostAlertsEventsResponse is an object the spec declares inline.
 type CostAlertsEventsResponse struct {
 	Events []CostAlertEvent `json:"events"`
@@ -17353,6 +20606,32 @@ type DigestRecipientsDeleteResponse struct {
 	OK bool `json:"ok"`
 }
 
+// EventSubscriptionsCatalogResponse is an object the spec declares inline.
+type EventSubscriptionsCatalogResponse struct {
+	EventTypes []EventTypeInfo `json:"eventTypes"`
+}
+
+// EventSubscriptionsTestResponse is an object the spec declares inline.
+type EventSubscriptionsTestResponse struct {
+	Delivery EventDelivery `json:"delivery"`
+}
+
+// EventSubscriptionsDeliveriesGetResponse is an object the spec declares inline.
+type EventSubscriptionsDeliveriesGetResponse struct {
+	Deliveries []EventDelivery `json:"deliveries"`
+}
+
+// EventSubscriptionsDeliveriesRedeliverResponse is an object the spec declares
+// inline.
+type EventSubscriptionsDeliveriesRedeliverResponse struct {
+	Delivery EventDelivery `json:"delivery"`
+}
+
+// EventSubscriptionsGetGetResponse is an object the spec declares inline.
+type EventSubscriptionsGetGetResponse struct {
+	Subscriptions []EventSubscription `json:"subscriptions"`
+}
+
 // IacStatesCreateResponse is an object the spec declares inline.
 type IacStatesCreateResponse struct {
 	State IacState `json:"state"`
@@ -17490,6 +20769,11 @@ type ResourcesNoSqlcommandResponse struct {
 // SavedCostFiltersReferentsResponse is an object the spec declares inline.
 type SavedCostFiltersReferentsResponse struct {
 	Referents []SavedCostFilterReferent `json:"referents"`
+}
+
+// SeatsRefreshResponse is an object the spec declares inline.
+type SeatsRefreshResponse struct {
+	Queued int64 `json:"queued"`
 }
 
 // SharedConsolesHandoverRequest is an object the spec declares inline.

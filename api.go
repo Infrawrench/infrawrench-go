@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.80.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.81.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.80.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.81.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -89,6 +89,8 @@ type APIV1Client struct {
 	Chat *ChatNamespace
 	// Commitments: `client.commitments`.
 	Commitments *CommitmentsNamespace
+	// Compliance: `client.compliance`.
+	Compliance *ComplianceNamespace
 	// Config: `client.config`.
 	Config *ConfigNamespace
 	// Connect: `client.connect`.
@@ -139,10 +141,14 @@ type APIV1Client struct {
 	DNS *DNSNamespace
 	// Docker: `client.docker`.
 	Docker *DockerNamespace
+	// Dora: `client.dora`.
+	Dora *DoraNamespace
 	// EnvironmentDiff: `client.environmentDiff`.
 	EnvironmentDiff *EnvironmentDiffNamespace
 	// Environments: `client.environments`.
 	Environments *EnvironmentsNamespace
+	// EventSubscriptions: `client.eventSubscriptions`.
+	EventSubscriptions *EventSubscriptionsNamespace
 	// Expiring: `client.expiring`.
 	Expiring *ExpiringNamespace
 	// ExtendedSupport: `client.extendedSupport`.
@@ -163,6 +169,8 @@ type APIV1Client struct {
 	JitAccess *JitAccessNamespace
 	// KV: `client.kv`.
 	KV *KVNamespace
+	// LeakedSecrets: `client.leakedSecrets`.
+	LeakedSecrets *LeakedSecretsNamespace
 	// Leases: `client.leases`.
 	Leases *LeasesNamespace
 	// Linear: `client.linear`.
@@ -223,8 +231,14 @@ type APIV1Client struct {
 	Savings *SavingsNamespace
 	// Schedules: `client.schedules`.
 	Schedules *SchedulesNamespace
+	// Scorecards: `client.scorecards`.
+	Scorecards *ScorecardsNamespace
 	// Search: `client.search`.
 	Search *SearchNamespace
+	// Seats: `client.seats`.
+	Seats *SeatsNamespace
+	// Services: `client.services`.
+	Services *ServicesNamespace
 	// SessionRecordings: `client.sessionRecordings`.
 	SessionRecordings *SessionRecordingsNamespace
 	// SFTP: `client.sftp`.
@@ -261,6 +275,8 @@ type APIV1Client struct {
 	Team *TeamNamespace
 	// VirtualTags: `client.virtualTags`.
 	VirtualTags *VirtualTagsNamespace
+	// Vulnerabilities: `client.vulnerabilities`.
+	Vulnerabilities *VulnerabilitiesNamespace
 	// Wallboard: `client.wallboard`.
 	Wallboard *WallboardNamespace
 	// WorkflowApprovals: `client.workflowApprovals`.
@@ -306,6 +322,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Changes = newChangesNamespace(t)
 	c.Chat = newChatNamespace(t)
 	c.Commitments = newCommitmentsNamespace(t)
+	c.Compliance = newComplianceNamespace(t)
 	c.Config = newConfigNamespace(t)
 	c.Connect = newConnectNamespace(t)
 	c.CostAlerts = newCostAlertsNamespace(t)
@@ -331,8 +348,10 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Digest = newDigestNamespace(t)
 	c.DNS = newDNSNamespace(t)
 	c.Docker = newDockerNamespace(t)
+	c.Dora = newDoraNamespace(t)
 	c.EnvironmentDiff = newEnvironmentDiffNamespace(t)
 	c.Environments = newEnvironmentsNamespace(t)
+	c.EventSubscriptions = newEventSubscriptionsNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
 	c.ExtendedSupport = newExtendedSupportNamespace(t)
 	c.GithubIssues = newGithubIssuesNamespace(t)
@@ -343,6 +362,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Jira = newJiraNamespace(t)
 	c.JitAccess = newJitAccessNamespace(t)
 	c.KV = newKVNamespace(t)
+	c.LeakedSecrets = newLeakedSecretsNamespace(t)
 	c.Leases = newLeasesNamespace(t)
 	c.Linear = newLinearNamespace(t)
 	c.LogWorkspaces = newLogWorkspacesNamespace(t)
@@ -373,7 +393,10 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.SavedCostFilters = newSavedCostFiltersNamespace(t)
 	c.Savings = newSavingsNamespace(t)
 	c.Schedules = newSchedulesNamespace(t)
+	c.Scorecards = newScorecardsNamespace(t)
 	c.Search = newSearchNamespace(t)
+	c.Seats = newSeatsNamespace(t)
+	c.Services = newServicesNamespace(t)
 	c.SessionRecordings = newSessionRecordingsNamespace(t)
 	c.SFTP = newSFTPNamespace(t)
 	c.SharedConsoles = newSharedConsolesNamespace(t)
@@ -392,6 +415,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.TagPolicy = newTagPolicyNamespace(t)
 	c.Team = newTeamNamespace(t)
 	c.VirtualTags = newVirtualTagsNamespace(t)
+	c.Vulnerabilities = newVulnerabilitiesNamespace(t)
 	c.Wallboard = newWallboardNamespace(t)
 	c.WorkflowApprovals = newWorkflowApprovalsNamespace(t)
 	c.WorkflowSecrets = newWorkflowSecretsNamespace(t)
@@ -6071,6 +6095,505 @@ func (n *CommitmentsNamespace) Get(ctx context.Context, params *CommitmentsGetPa
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *CommitmentsFeed
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ComplianceNamespace is `client.compliance`.
+type ComplianceNamespace struct {
+	t *transport
+
+	// Controls: `client.compliance.controls`.
+	Controls *ComplianceControlsNamespace
+	// Schedules: `client.compliance.schedules`.
+	Schedules *ComplianceSchedulesNamespace
+}
+
+func newComplianceNamespace(t *transport) *ComplianceNamespace {
+	n := &ComplianceNamespace{t: t}
+	n.Controls = newComplianceControlsNamespace(t)
+	n.Schedules = newComplianceSchedulesNamespace(t)
+	return n
+}
+
+// ComplianceFrameworksParams holds the parameters for
+// `client.compliance.frameworks`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ComplianceFrameworksParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Frameworks: List compliance frameworks
+//
+// The framework registry: SOC 2 Trust Services Criteria and ISO/IEC 27001:2022
+// Annex A, each listing only the controls Infrawrench holds evidence for.
+//
+// _Requires permission: `audit:read`._
+//
+// GET /api/org/{orgId}/compliance/frameworks
+func (n *ComplianceNamespace) Frameworks(ctx context.Context, params *ComplianceFrameworksParams, opts ...RequestOption) (*ComplianceFrameworksResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/compliance/frameworks")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ComplianceFrameworksResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ComplianceGetParams holds the parameters for `client.compliance.get`.
+type ComplianceGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Framework: Framework registry id: `soc2` or `iso27001`.
+	Framework string
+	// From: First day of the period (UTC). Defaults to 90 days before `to`.
+	From *string
+	// To: Last day of the period, inclusive (UTC). Defaults to today.
+	To *string
+}
+
+// Get: Compliance status for a framework and period
+//
+// Runs every evidence source the framework maps (access review, just-in-time
+// access, the audit log, posture, vulnerabilities, backup coverage, restore
+// drills, the change timeline, change freezes, session recordings, incidents,
+// service scorecards, leaked credentials) and returns a status per control.
+// Makes no provider API calls. A source whose own permission the caller lacks
+// comes back `unavailable` naming it, rather than failing the request.
+//
+// _Requires permission: `audit:read`._
+//
+// GET /api/org/{orgId}/compliance
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ComplianceNamespace) Get(ctx context.Context, params ComplianceGetParams, opts ...RequestOption) (*ComplianceStatus, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/compliance")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("framework", params.Framework)
+	r.addQuery("from", params.From)
+	r.addQuery("to", params.To)
+	var out *ComplianceStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CompliancePackParams holds the parameters for `client.compliance.pack`.
+type CompliancePackParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Framework: Framework registry id: `soc2` or `iso27001`.
+	Framework string
+	// From: First day of the period (UTC). Defaults to 90 days before `to`.
+	From *string
+	// To: Last day of the period, inclusive (UTC). Defaults to today.
+	To *string
+}
+
+// Pack: Download an evidence pack
+//
+// A ZIP holding `summary.pdf`, `controls.csv`/`controls.json`, one CSV and JSON
+// per control under `controls/`, one CSV and JSON per evidence source under
+// `evidence/`, `manifest.json` (every other file with its SHA-256) and
+// `SHA256SUMS` (the manifest's own digest, in `sha256sum -c` format). Audited as
+// `compliance.pack_exported`.
+//
+// _Requires permission: `audit:read`._
+//
+// GET /api/org/{orgId}/compliance/pack
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ComplianceNamespace) Pack(ctx context.Context, params CompliancePackParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/compliance/pack")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("framework", params.Framework)
+	r.addQuery("from", params.From)
+	r.addQuery("to", params.To)
+	return n.t.stream(ctx, r, opts)
+}
+
+// ComplianceControlsNamespace is `client.compliance.controls`.
+type ComplianceControlsNamespace struct {
+	t *transport
+}
+
+func newComplianceControlsNamespace(t *transport) *ComplianceControlsNamespace {
+	n := &ComplianceControlsNamespace{t: t}
+	return n
+}
+
+// ComplianceControlsDeleteParams holds the parameters for
+// `client.compliance.controls.delete`.
+type ComplianceControlsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// FrameworkID: Framework registry id: `soc2` or `iso27001`.
+	FrameworkID string
+	ControlID   string
+}
+
+// Delete: Reset a control to applicable and unowned
+//
+// _Requires permission: `org:settings:write`._
+//
+// DELETE /api/org/{orgId}/compliance/controls/{frameworkId}/{controlId}
+//
+// Raises on 404: Not found
+func (n *ComplianceControlsNamespace) Delete(ctx context.Context, params ComplianceControlsDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/compliance/controls/{frameworkId}/{controlId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("frameworkId", params.FrameworkID)
+	r.setPath("controlId", params.ControlID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// ComplianceControlsGetParams holds the parameters for
+// `client.compliance.controls.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ComplianceControlsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Framework: Framework registry id: `soc2` or `iso27001`.
+	Framework *string
+}
+
+// Get: List stored control decisions
+//
+// Only controls somebody decided about; a missing control is applicable and
+// unowned.
+//
+// _Requires permission: `audit:read`._
+//
+// GET /api/org/{orgId}/compliance/controls
+//
+// Raises on 404: Not found
+func (n *ComplianceControlsNamespace) Get(ctx context.Context, params *ComplianceControlsGetParams, opts ...RequestOption) (*ComplianceControlsGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/compliance/controls")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("framework", params.Framework)
+	}
+	var out *ComplianceControlsGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ComplianceControlsGetOrgOrgIDComplianceControlsFrameworkIDControlIDParams
+// holds the parameters for
+// `client.compliance.controls.getOrgOrgIdComplianceControlsFrameworkIdControlId`.
+type ComplianceControlsGetOrgOrgIDComplianceControlsFrameworkIDControlIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// FrameworkID: Framework registry id: `soc2` or `iso27001`.
+	FrameworkID string
+	ControlID   string
+}
+
+// GetOrgOrgIDComplianceControlsFrameworkIDControlID: Get one control decision
+//
+// _Requires permission: `audit:read`._
+//
+// GET /api/org/{orgId}/compliance/controls/{frameworkId}/{controlId}
+//
+// Raises on 404: Not found
+func (n *ComplianceControlsNamespace) GetOrgOrgIDComplianceControlsFrameworkIDControlID(ctx context.Context, params ComplianceControlsGetOrgOrgIDComplianceControlsFrameworkIDControlIDParams, opts ...RequestOption) (*ComplianceControlSetting, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/compliance/controls/{frameworkId}/{controlId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("frameworkId", params.FrameworkID)
+	r.setPath("controlId", params.ControlID)
+	var out *ComplianceControlSetting
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ComplianceControlsUpdateParams holds the parameters for
+// `client.compliance.controls.update`.
+type ComplianceControlsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// FrameworkID: Framework registry id: `soc2` or `iso27001`.
+	FrameworkID string
+	ControlID   string
+	// Body: the JSON request body.
+	Body *ComplianceControlSettingInput
+}
+
+// Update: Set a control's applicability, owner and notes
+//
+// A full replace. Marking a control not applicable requires a justification. An
+// owner is either a member (`ownerUserId`) or a free-text label, not both.
+// Audited.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/compliance/controls/{frameworkId}/{controlId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ComplianceControlsNamespace) Update(ctx context.Context, params ComplianceControlsUpdateParams, opts ...RequestOption) (*ComplianceControlSetting, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/compliance/controls/{frameworkId}/{controlId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("frameworkId", params.FrameworkID)
+	r.setPath("controlId", params.ControlID)
+	r.setJSONBody(params.Body)
+	var out *ComplianceControlSetting
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ComplianceSchedulesNamespace is `client.compliance.schedules`.
+type ComplianceSchedulesNamespace struct {
+	t *transport
+}
+
+func newComplianceSchedulesNamespace(t *transport) *ComplianceSchedulesNamespace {
+	n := &ComplianceSchedulesNamespace{t: t}
+	return n
+}
+
+// ComplianceSchedulesCreateParams holds the parameters for
+// `client.compliance.schedules.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ComplianceSchedulesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *CompliancePackScheduleInput
+}
+
+// Create: Schedule an evidence pack
+//
+// Delivers the previous calendar month or quarter's pack: email attaches the
+// ZIP, Slack uploads it in the message thread, Teams gets the summary and a
+// link. Packs render with full access. Audited.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/compliance/schedules
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ComplianceSchedulesNamespace) Create(ctx context.Context, params *ComplianceSchedulesCreateParams, opts ...RequestOption) (*CompliancePackSchedule, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/compliance/schedules")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *CompliancePackSchedule
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ComplianceSchedulesDeleteParams holds the parameters for
+// `client.compliance.schedules.delete`.
+type ComplianceSchedulesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete an evidence-pack schedule
+//
+// _Requires permission: `org:settings:write`._
+//
+// DELETE /api/org/{orgId}/compliance/schedules/{id}
+//
+// Raises on 404: Not found
+func (n *ComplianceSchedulesNamespace) Delete(ctx context.Context, params ComplianceSchedulesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/compliance/schedules/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// ComplianceSchedulesGetParams holds the parameters for
+// `client.compliance.schedules.get`.
+type ComplianceSchedulesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get an evidence-pack schedule
+//
+// _Requires permission: `audit:read`._
+//
+// GET /api/org/{orgId}/compliance/schedules/{id}
+//
+// Raises on 404: Not found
+func (n *ComplianceSchedulesNamespace) Get(ctx context.Context, params ComplianceSchedulesGetParams, opts ...RequestOption) (*CompliancePackSchedule, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/compliance/schedules/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CompliancePackSchedule
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ComplianceSchedulesListParams holds the parameters for
+// `client.compliance.schedules.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ComplianceSchedulesListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Framework: Framework registry id: `soc2` or `iso27001`.
+	Framework *string
+}
+
+// List: List evidence-pack schedules
+//
+// _Requires permission: `audit:read`._
+//
+// GET /api/org/{orgId}/compliance/schedules
+func (n *ComplianceSchedulesNamespace) List(ctx context.Context, params *ComplianceSchedulesListParams, opts ...RequestOption) ([]CompliancePackSchedule, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/compliance/schedules")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("framework", params.Framework)
+	}
+	var out []CompliancePackSchedule
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ComplianceSchedulesSendParams holds the parameters for
+// `client.compliance.schedules.send`.
+type ComplianceSchedulesSendParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Send: Send an evidence-pack schedule now
+//
+// Builds the pack the next delivery would cover and sends it immediately.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/compliance/schedules/{id}/send
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ComplianceSchedulesNamespace) Send(ctx context.Context, params ComplianceSchedulesSendParams, opts ...RequestOption) (*CompliancePackSendResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/compliance/schedules/{id}/send")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CompliancePackSendResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ComplianceSchedulesTargetsParams holds the parameters for
+// `client.compliance.schedules.targets`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ComplianceSchedulesTargetsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Targets: Destinations a pack schedule can use
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/compliance/schedules/targets
+func (n *ComplianceSchedulesNamespace) Targets(ctx context.Context, params *ComplianceSchedulesTargetsParams, opts ...RequestOption) (*CompliancePackDeliveryTargets, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/compliance/schedules/targets")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CompliancePackDeliveryTargets
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ComplianceSchedulesUpdateParams holds the parameters for
+// `client.compliance.schedules.update`.
+type ComplianceSchedulesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *CompliancePackScheduleInput
+}
+
+// Update: Replace an evidence-pack schedule
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/compliance/schedules/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ComplianceSchedulesNamespace) Update(ctx context.Context, params ComplianceSchedulesUpdateParams, opts ...RequestOption) (*CompliancePackSchedule, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/compliance/schedules/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CompliancePackSchedule
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -12416,6 +12939,279 @@ func (n *DockerNamespace) Command(ctx context.Context, params DockerCommandParam
 	return out, nil
 }
 
+// DoraNamespace is `client.dora`.
+type DoraNamespace struct {
+	t *transport
+
+	// Settings: `client.dora.settings`.
+	Settings *DoraSettingsNamespace
+}
+
+func newDoraNamespace(t *transport) *DoraNamespace {
+	n := &DoraNamespace{t: t}
+	n.Settings = newDoraSettingsNamespace(t)
+	return n
+}
+
+// DoraChangesParams holds the parameters for `client.dora.changes`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DoraChangesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// From: Start (inclusive). Defaults to 30 days before `to`.
+	From *string
+	// To: End (exclusive). Defaults to now. At most 366 days after `from`.
+	To *string
+	// Dimension: Filter to one scope of this dimension.
+	Dimension *string
+	// Value: The scope key to filter to. Omit it with `dimension` for changes
+	// where it is not known.
+	Value *string
+	// FailedOnly: One of "true", "false".
+	FailedOnly *string
+}
+
+// Changes: List production changes
+//
+// The drill-down: every production change in the window with its lead time and,
+// when it failed, what it was blamed for. Newest first, at most 500.
+//
+// _Requires permission: `deployments:read`._
+//
+// GET /api/org/{orgId}/dora/changes
+//
+// Raises on 400: Bad request
+func (n *DoraNamespace) Changes(ctx context.Context, params *DoraChangesParams, opts ...RequestOption) (*DoraChangeList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/dora/changes")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("from", params.From)
+		r.addQuery("to", params.To)
+		r.addQuery("dimension", params.Dimension)
+		r.addQuery("value", params.Value)
+		r.addQuery("failedOnly", params.FailedOnly)
+	}
+	var out *DoraChangeList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DoraDeploymentsParams holds the parameters for `client.dora.deployments`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DoraDeploymentsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *DoraDeploymentInput
+}
+
+// Deployments: Record a deploy
+//
+// For a CI or deploy tool no plugin covers: one call per deploy, from the
+// pipeline's last step. Idempotent on `externalId`, so a retried step updates
+// rather than duplicates. Audit-logged.
+//
+// _Requires permission: `deployments:write`._
+//
+// POST /api/org/{orgId}/dora/deployments
+//
+// Raises on 400: Bad request
+func (n *DoraNamespace) Deployments(ctx context.Context, params *DoraDeploymentsParams, opts ...RequestOption) (*DoraDeploymentRecorded, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/dora/deployments")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *DoraDeploymentRecorded
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DoraGetParams holds the parameters for `client.dora.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DoraGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// From: Start (inclusive). Defaults to 30 days before `to`.
+	From *string
+	// To: End (exclusive). Defaults to now. At most 366 days after `from`.
+	To *string
+	// Dimension: Filter to one scope of this dimension.
+	Dimension *string
+	// Value: The scope key to filter to. Omit it with `dimension` for changes
+	// where it is not known.
+	Value *string
+	// Bucket: Trend bucket; weeks past 45 days.
+	//
+	// One of "day", "week".
+	Bucket *string
+	// GroupBy: Breakdown dimension; defaults to `environment`.
+	GroupBy *string
+}
+
+// Get: DORA metrics
+//
+// Deployment frequency, lead time for changes, change failure rate and time to
+// restore over production, from Infrafile runs, synced provider deploys, GitHub
+// deployments, recorded deploys and declared incidents. With the previous
+// period, a trend, and a breakdown.
+//
+// _Requires permission: `deployments:read`._
+//
+// GET /api/org/{orgId}/dora
+//
+// Raises on 400: Bad request
+func (n *DoraNamespace) Get(ctx context.Context, params *DoraGetParams, opts ...RequestOption) (*DoraReport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/dora")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("from", params.From)
+		r.addQuery("to", params.To)
+		r.addQuery("dimension", params.Dimension)
+		r.addQuery("value", params.Value)
+		r.addQuery("bucket", params.Bucket)
+		r.addQuery("groupBy", params.GroupBy)
+	}
+	var out *DoraReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DoraRestoresParams holds the parameters for `client.dora.restores`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DoraRestoresParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// From: Start (inclusive). Defaults to 30 days before `to`.
+	From *string
+	// To: End (exclusive). Defaults to now. At most 366 days after `from`.
+	To *string
+	// Dimension: Filter to one scope of this dimension.
+	Dimension *string
+	// Value: The scope key to filter to. Omit it with `dimension` for changes
+	// where it is not known.
+	Value *string
+}
+
+// Restores: List recoveries
+//
+// Declared incidents resolved and bad deploys rolled back in the window, newest
+// first, at most 500.
+//
+// _Requires permission: `deployments:read`._
+//
+// GET /api/org/{orgId}/dora/restores
+//
+// Raises on 400: Bad request
+func (n *DoraNamespace) Restores(ctx context.Context, params *DoraRestoresParams, opts ...RequestOption) (*DoraRestoreList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/dora/restores")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("from", params.From)
+		r.addQuery("to", params.To)
+		r.addQuery("dimension", params.Dimension)
+		r.addQuery("value", params.Value)
+	}
+	var out *DoraRestoreList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DoraSettingsNamespace is `client.dora.settings`.
+type DoraSettingsNamespace struct {
+	t *transport
+}
+
+func newDoraSettingsNamespace(t *transport) *DoraSettingsNamespace {
+	n := &DoraSettingsNamespace{t: t}
+	return n
+}
+
+// DoraSettingsGetParams holds the parameters for `client.dora.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DoraSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Read DORA settings
+//
+// The org singleton; the shipped defaults until first saved.
+//
+// _Requires permission: `deployments:read`._
+//
+// GET /api/org/{orgId}/dora/settings
+func (n *DoraSettingsNamespace) Get(ctx context.Context, params *DoraSettingsGetParams, opts ...RequestOption) (*DoraSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/dora/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *DoraSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// DoraSettingsUpdateParams holds the parameters for
+// `client.dora.settings.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type DoraSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *DoraSettingsUpdate
+}
+
+// Update: Update DORA settings
+//
+// Omitted fields keep their value. Patterns are trimmed and de-duplicated.
+// Out-of-range values are rejected, not clamped. Audit-logged.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/dora/settings
+//
+// Raises on 400: Bad request
+func (n *DoraSettingsNamespace) Update(ctx context.Context, params *DoraSettingsUpdateParams, opts ...RequestOption) (*DoraSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/dora/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *DoraSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // EnvironmentDiffNamespace is `client.environmentDiff`.
 type EnvironmentDiffNamespace struct {
 	t *transport
@@ -13013,6 +13809,406 @@ func (n *EnvironmentsTemplatesNamespace) Update(ctx context.Context, params Envi
 	r.setPath("templateId", params.TemplateID)
 	r.setJSONBody(params.Body)
 	var out *EnvironmentTemplate
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsNamespace is `client.eventSubscriptions`.
+type EventSubscriptionsNamespace struct {
+	t *transport
+
+	// Deliveries: `client.eventSubscriptions.deliveries`.
+	Deliveries *EventSubscriptionsDeliveriesNamespace
+	// Get: `client.eventSubscriptions.get`.
+	Get *EventSubscriptionsGetNamespace
+}
+
+func newEventSubscriptionsNamespace(t *transport) *EventSubscriptionsNamespace {
+	n := &EventSubscriptionsNamespace{t: t}
+	n.Deliveries = newEventSubscriptionsDeliveriesNamespace(t)
+	n.Get = newEventSubscriptionsGetNamespace(t)
+	return n
+}
+
+// EventSubscriptionsCatalogParams holds the parameters for
+// `client.eventSubscriptions.catalog`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EventSubscriptionsCatalogParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Catalog: List event types and their payload schemas
+//
+// Every event a subscription can receive, with the JSON Schema of its `data`.
+//
+// GET /api/org/{orgId}/event-subscriptions/catalog
+func (n *EventSubscriptionsNamespace) Catalog(ctx context.Context, params *EventSubscriptionsCatalogParams, opts ...RequestOption) (*EventSubscriptionsCatalogResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/event-subscriptions/catalog")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *EventSubscriptionsCatalogResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsCreateParams holds the parameters for
+// `client.eventSubscriptions.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EventSubscriptionsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *EventSubscriptionInput
+}
+
+// Create: Create an event subscription
+//
+// Returns the signing secret once. Responds 403 when the filters include cost
+// events and the caller lacks costs:read, 409 at the per-org limit.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/event-subscriptions
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 409: Conflict
+func (n *EventSubscriptionsNamespace) Create(ctx context.Context, params *EventSubscriptionsCreateParams, opts ...RequestOption) (*EventSubscriptionWithSecret, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/event-subscriptions")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *EventSubscriptionWithSecret
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsDeleteParams holds the parameters for
+// `client.eventSubscriptions.delete`.
+type EventSubscriptionsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete an event subscription
+//
+// Its delivery log goes with it.
+//
+// _Requires permission: `org:settings:write`._
+//
+// DELETE /api/org/{orgId}/event-subscriptions/{id}
+//
+// Raises on 404: Not found
+func (n *EventSubscriptionsNamespace) Delete(ctx context.Context, params EventSubscriptionsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/event-subscriptions/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsOptionsParams holds the parameters for
+// `client.eventSubscriptions.options`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EventSubscriptionsOptionsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Options: Picker options for the subscription form
+//
+// Connected accounts, environment values seen on resource tags, and every
+// resource that can receive events.
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/event-subscriptions/options
+func (n *EventSubscriptionsNamespace) Options(ctx context.Context, params *EventSubscriptionsOptionsParams, opts ...RequestOption) (*EventSubscriptionOptions, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/event-subscriptions/options")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *EventSubscriptionOptions
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsRerollSecretParams holds the parameters for
+// `client.eventSubscriptions.rerollSecret`.
+type EventSubscriptionsRerollSecretParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// RerollSecret: Reroll a webhook signing secret
+//
+// Returns the new secret once. The previous secret keeps signing (a second v1 in
+// the signature header) for 24 hours.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/event-subscriptions/{id}/reroll-secret
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *EventSubscriptionsNamespace) RerollSecret(ctx context.Context, params EventSubscriptionsRerollSecretParams, opts ...RequestOption) (*EventSubscriptionWithSecret, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/event-subscriptions/{id}/reroll-secret")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *EventSubscriptionWithSecret
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsTestParams holds the parameters for
+// `client.eventSubscriptions.test`.
+type EventSubscriptionsTestParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Test: Send a test event
+//
+// Sends an `infrawrench.test` event and returns the attempt. Tried once, never
+// retried, and not counted toward auto-disable. Works on a disabled
+// subscription.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/event-subscriptions/{id}/test
+//
+// Raises on 404: Not found
+func (n *EventSubscriptionsNamespace) Test(ctx context.Context, params EventSubscriptionsTestParams, opts ...RequestOption) (*EventSubscriptionsTestResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/event-subscriptions/{id}/test")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *EventSubscriptionsTestResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsUpdateParams holds the parameters for
+// `client.eventSubscriptions.update`.
+type EventSubscriptionsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *EventSubscriptionInput
+}
+
+// Update: Replace an event subscription
+//
+// Whole-object update. The destination kind cannot change. Re-enabling a
+// subscription that was turned off automatically clears its failure history.
+//
+// _Requires permission: `org:settings:write`._
+//
+// PUT /api/org/{orgId}/event-subscriptions/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *EventSubscriptionsNamespace) Update(ctx context.Context, params EventSubscriptionsUpdateParams, opts ...RequestOption) (*EventSubscription, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/event-subscriptions/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *EventSubscription
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsDeliveriesNamespace is
+// `client.eventSubscriptions.deliveries`.
+type EventSubscriptionsDeliveriesNamespace struct {
+	t *transport
+}
+
+func newEventSubscriptionsDeliveriesNamespace(t *transport) *EventSubscriptionsDeliveriesNamespace {
+	n := &EventSubscriptionsDeliveriesNamespace{t: t}
+	return n
+}
+
+// EventSubscriptionsDeliveriesGetParams holds the parameters for
+// `client.eventSubscriptions.deliveries.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EventSubscriptionsDeliveriesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	SubscriptionID *string
+	// State: One of "pending", "retrying", "succeeded", "dead", "skipped".
+	State     *string
+	EventType *string
+	Limit     *int64
+	// Before: Page backwards.
+	Before *string
+}
+
+// Get: List event deliveries
+//
+// The delivery log, newest first. Kept for 30 days.
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/event-subscriptions/deliveries
+func (n *EventSubscriptionsDeliveriesNamespace) Get(ctx context.Context, params *EventSubscriptionsDeliveriesGetParams, opts ...RequestOption) (*EventSubscriptionsDeliveriesGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/event-subscriptions/deliveries")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("subscriptionId", params.SubscriptionID)
+		r.addQuery("state", params.State)
+		r.addQuery("eventType", params.EventType)
+		r.addQuery("limit", params.Limit)
+		r.addQuery("before", params.Before)
+	}
+	var out *EventSubscriptionsDeliveriesGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsDeliveriesRedeliverParams holds the parameters for
+// `client.eventSubscriptions.deliveries.redeliver`.
+type EventSubscriptionsDeliveriesRedeliverParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Redeliver: Redeliver an event
+//
+// Queues a fresh delivery of the same envelope (same event id) with its own
+// retry ladder.
+//
+// _Requires permission: `org:settings:write`._
+//
+// POST /api/org/{orgId}/event-subscriptions/deliveries/{id}/redeliver
+//
+// Raises on 404: Not found
+func (n *EventSubscriptionsDeliveriesNamespace) Redeliver(ctx context.Context, params EventSubscriptionsDeliveriesRedeliverParams, opts ...RequestOption) (*EventSubscriptionsDeliveriesRedeliverResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/event-subscriptions/deliveries/{id}/redeliver")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *EventSubscriptionsDeliveriesRedeliverResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsGetNamespace is `client.eventSubscriptions.get`.
+type EventSubscriptionsGetNamespace struct {
+	t *transport
+}
+
+func newEventSubscriptionsGetNamespace(t *transport) *EventSubscriptionsGetNamespace {
+	n := &EventSubscriptionsGetNamespace{t: t}
+	return n
+}
+
+// EventSubscriptionsGetGetParams holds the parameters for
+// `client.eventSubscriptions.get.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EventSubscriptionsGetGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List event subscriptions
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/event-subscriptions
+func (n *EventSubscriptionsGetNamespace) Get(ctx context.Context, params *EventSubscriptionsGetGetParams, opts ...RequestOption) (*EventSubscriptionsGetGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/event-subscriptions")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *EventSubscriptionsGetGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EventSubscriptionsGetGetOrgOrgIDEventSubscriptionsIDParams holds the
+// parameters for
+// `client.eventSubscriptions.get.getOrgOrgIdEventSubscriptionsId`.
+type EventSubscriptionsGetGetOrgOrgIDEventSubscriptionsIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// GetOrgOrgIDEventSubscriptionsID: Get an event subscription
+//
+// _Requires permission: `org:settings:write`._
+//
+// GET /api/org/{orgId}/event-subscriptions/{id}
+//
+// Raises on 404: Not found
+func (n *EventSubscriptionsGetNamespace) GetOrgOrgIDEventSubscriptionsID(ctx context.Context, params EventSubscriptionsGetGetOrgOrgIDEventSubscriptionsIDParams, opts ...RequestOption) (*EventSubscription, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/event-subscriptions/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *EventSubscription
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -15626,6 +16822,242 @@ func (n *KVNamespace) Command(ctx context.Context, params KVCommandParams, opts 
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *KVCommandResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LeakedSecretsNamespace is `client.leakedSecrets`.
+type LeakedSecretsNamespace struct {
+	t *transport
+}
+
+func newLeakedSecretsNamespace(t *transport) *LeakedSecretsNamespace {
+	n := &LeakedSecretsNamespace{t: t}
+	return n
+}
+
+// LeakedSecretsDismissParams holds the parameters for
+// `client.leakedSecrets.dismiss`.
+type LeakedSecretsDismissParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *LeakedSecretDismiss
+}
+
+// Dismiss: Dismiss a leaked credential
+//
+// Accept the finding as not a risk. Closes it upstream with the matching reason
+// unless `resolveUpstream` is false.
+//
+// _Requires permission: `secrets:write`._
+//
+// POST /api/org/{orgId}/leaked-secrets/{id}/dismiss
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *LeakedSecretsNamespace) Dismiss(ctx context.Context, params LeakedSecretsDismissParams, opts ...RequestOption) (*LeakedSecretResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/leaked-secrets/{id}/dismiss")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *LeakedSecretResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LeakedSecretsGetParams holds the parameters for `client.leakedSecrets.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LeakedSecretsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Status: `open` needs rotating; `rotated` was rotated through Infrawrench
+	// or detected because the stored value changed; `dismissed` was accepted as
+	// not a risk; `resolved` was closed on the scanner by someone else before it
+	// was rotated here.
+	//
+	// One of "open", "rotated", "dismissed", "resolved".
+	Status *string
+	// AccountID: Only leaks matched to, or possibly belonging to, this account.
+	AccountID *string
+}
+
+// Get: List leaked credentials
+//
+// Secrets a scanner account (GitHub secret scanning, GitLab secret detection)
+// found committed to code, attributed to the account or stored secret they
+// belong to. Read from the last scan; no provider call is made.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/leaked-secrets
+func (n *LeakedSecretsNamespace) Get(ctx context.Context, params *LeakedSecretsGetParams, opts ...RequestOption) (*LeakedSecretList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/leaked-secrets")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("status", params.Status)
+		r.addQuery("accountId", params.AccountID)
+	}
+	var out *LeakedSecretList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LeakedSecretsMarkRotatedParams holds the parameters for
+// `client.leakedSecrets.markRotated`.
+type LeakedSecretsMarkRotatedParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *LeakedSecretMarkRotated
+}
+
+// MarkRotated: Record a rotation done at the provider
+//
+// For an account credential, the account must have been updated first: the
+// request is refused with 409 while the stored credential still equals the
+// leaked one.
+//
+// _Requires permission: `secrets:write`._
+//
+// POST /api/org/{orgId}/leaked-secrets/{id}/mark-rotated
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *LeakedSecretsNamespace) MarkRotated(ctx context.Context, params LeakedSecretsMarkRotatedParams, opts ...RequestOption) (*LeakedSecretResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/leaked-secrets/{id}/mark-rotated")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *LeakedSecretResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LeakedSecretsReopenParams holds the parameters for
+// `client.leakedSecrets.reopen`.
+type LeakedSecretsReopenParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Reopen: Reopen a leaked credential
+//
+// Undo a dismissal or a rotation recorded by mistake. Does not reopen the
+// finding on the scanner.
+//
+// _Requires permission: `secrets:write`._
+//
+// POST /api/org/{orgId}/leaked-secrets/{id}/reopen
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *LeakedSecretsNamespace) Reopen(ctx context.Context, params LeakedSecretsReopenParams, opts ...RequestOption) (*LeakedSecretResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/leaked-secrets/{id}/reopen")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *LeakedSecretResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LeakedSecretsRotateParams holds the parameters for
+// `client.leakedSecrets.rotate`.
+type LeakedSecretsRotateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *LeakedSecretRotate
+}
+
+// Rotate: Rotate a leaked credential
+//
+// For `reissue` leaks the provider mints a new value and every output reference
+// consuming it is updated at once; for `replace` leaks send the new `value`,
+// which the provider receives first when it can. Refused with 409 when the
+// stored value still equals the leaked one afterwards. Records the rotation,
+// raises `secret.rotated` and closes the finding upstream as revoked unless
+// `resolveUpstream` is false.
+//
+// _Requires permission: `secrets:write`._
+//
+// POST /api/org/{orgId}/leaked-secrets/{id}/rotate
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *LeakedSecretsNamespace) Rotate(ctx context.Context, params LeakedSecretsRotateParams, opts ...RequestOption) (*LeakedSecretResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/leaked-secrets/{id}/rotate")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *LeakedSecretResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LeakedSecretsScanParams holds the parameters for `client.leakedSecrets.scan`.
+//
+// Every field is optional; pass nil to take the defaults.
+type LeakedSecretsScanParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Scan: Scan every scanner account now
+//
+// Reads every scanner account's findings now instead of waiting for the next
+// 30-minute scan.
+//
+// _Requires permission: `secrets:write`._
+//
+// POST /api/org/{orgId}/leaked-secrets/scan
+func (n *LeakedSecretsNamespace) Scan(ctx context.Context, params *LeakedSecretsScanParams, opts ...RequestOption) (*LeakedSecretScanResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/leaked-secrets/scan")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *LeakedSecretScanResult
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -22285,6 +23717,332 @@ func (n *SchedulesNamespace) Update(ctx context.Context, params SchedulesUpdateP
 	return out, nil
 }
 
+// ScorecardsNamespace is `client.scorecards`.
+type ScorecardsNamespace struct {
+	t *transport
+
+	// Get: `client.scorecards.get`.
+	Get *ScorecardsGetNamespace
+	// Org: `client.scorecards.org`.
+	Org *ScorecardsOrgNamespace
+}
+
+func newScorecardsNamespace(t *transport) *ScorecardsNamespace {
+	n := &ScorecardsNamespace{t: t}
+	n.Get = newScorecardsGetNamespace(t)
+	n.Org = newScorecardsOrgNamespace(t)
+	return n
+}
+
+// ScorecardsCreateParams holds the parameters for `client.scorecards.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ScorecardsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *ScorecardCreate
+}
+
+// Create: Create a scorecard
+//
+// Omitted checks and levels default to every built-in check and
+// bronze/silver/gold. Out-of-range inputs are rejected. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/scorecards
+//
+// Raises on 400: Bad request
+//
+// Raises on 409: Conflict
+func (n *ScorecardsNamespace) Create(ctx context.Context, params *ScorecardsCreateParams, opts ...RequestOption) (*Scorecard, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/scorecards")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *Scorecard
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ScorecardsDeleteParams holds the parameters for `client.scorecards.delete`.
+type ScorecardsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	ScorecardID string
+}
+
+// Delete: Delete a scorecard
+//
+// Its results and history go with it. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/scorecards/{scorecardId}
+//
+// Raises on 404: Not found
+func (n *ScorecardsNamespace) Delete(ctx context.Context, params ScorecardsDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/scorecards/{scorecardId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("scorecardId", params.ScorecardID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// ScorecardsEvaluateParams holds the parameters for
+// `client.scorecards.evaluate`.
+type ScorecardsEvaluateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	ScorecardID string
+}
+
+// Evaluate: Score every service on a scorecard now
+//
+// Level drops found here are stored but not announced: the caller just changed
+// the bar.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/scorecards/{scorecardId}/evaluate
+//
+// Raises on 404: Not found
+func (n *ScorecardsNamespace) Evaluate(ctx context.Context, params ScorecardsEvaluateParams, opts ...RequestOption) (*ScorecardOverview, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/scorecards/{scorecardId}/evaluate")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("scorecardId", params.ScorecardID)
+	var out *ScorecardOverview
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ScorecardsOverviewParams holds the parameters for
+// `client.scorecards.overview`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ScorecardsOverviewParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Overview: Read the scorecard matrix
+//
+// Every service, every scorecard and the current result for each applicable
+// pair.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/scorecards/overview
+func (n *ScorecardsNamespace) Overview(ctx context.Context, params *ScorecardsOverviewParams, opts ...RequestOption) (*ScorecardOverview, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/scorecards/overview")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ScorecardOverview
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ScorecardsUpdateParams holds the parameters for `client.scorecards.update`.
+type ScorecardsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	ScorecardID string
+	// Body: the JSON request body.
+	Body *ScorecardUpdate
+}
+
+// Update: Update a scorecard
+//
+// Omitted fields keep their value; `checks` and `levels` replace the stored
+// lists. Services are re-scored within one poller tick. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// PATCH /api/org/{orgId}/scorecards/{scorecardId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *ScorecardsNamespace) Update(ctx context.Context, params ScorecardsUpdateParams, opts ...RequestOption) (*Scorecard, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/scorecards/{scorecardId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("scorecardId", params.ScorecardID)
+	r.setJSONBody(params.Body)
+	var out *Scorecard
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ScorecardsGetNamespace is `client.scorecards.get`.
+type ScorecardsGetNamespace struct {
+	t *transport
+}
+
+func newScorecardsGetNamespace(t *transport) *ScorecardsGetNamespace {
+	n := &ScorecardsGetNamespace{t: t}
+	return n
+}
+
+// ScorecardsGetGetParams holds the parameters for `client.scorecards.get.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ScorecardsGetGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List scorecards
+//
+// Seeds the default scorecard for organizations that have never had one (once; a
+// deleted default is not recreated).
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/scorecards
+func (n *ScorecardsGetNamespace) Get(ctx context.Context, params *ScorecardsGetGetParams, opts ...RequestOption) (*ScorecardList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/scorecards")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ScorecardList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ScorecardsGetGetOrgOrgIDScorecardsScorecardIDParams holds the parameters for
+// `client.scorecards.get.getOrgOrgIdScorecardsScorecardId`.
+type ScorecardsGetGetOrgOrgIDScorecardsScorecardIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	ScorecardID string
+}
+
+// GetOrgOrgIDScorecardsScorecardID: Read a scorecard
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/scorecards/{scorecardId}
+//
+// Raises on 404: Not found
+func (n *ScorecardsGetNamespace) GetOrgOrgIDScorecardsScorecardID(ctx context.Context, params ScorecardsGetGetOrgOrgIDScorecardsScorecardIDParams, opts ...RequestOption) (*Scorecard, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/scorecards/{scorecardId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("scorecardId", params.ScorecardID)
+	var out *Scorecard
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ScorecardsOrgNamespace is `client.scorecards.org`.
+type ScorecardsOrgNamespace struct {
+	t *transport
+}
+
+func newScorecardsOrgNamespace(t *transport) *ScorecardsOrgNamespace {
+	n := &ScorecardsOrgNamespace{t: t}
+	return n
+}
+
+// ScorecardsOrgGetParams holds the parameters for `client.scorecards.org.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ScorecardsOrgGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Grade the organization
+//
+// The org grade shown above the scorecard matrix: one weighted reading over
+// seven feeds the product already computes (security posture, backup coverage,
+// the service scorecard results, declared deadlines, the cross-cloud access
+// review, quota headroom and resource ownership). Nothing is re-derived.
+//
+// An unassessed pillar is excluded, never scored zero, and weights renormalize
+// over what was assessed. The trend comes from a daily snapshot the poller
+// records; days when nothing could be graded are absent rather than zero. Does
+// not seed the default scorecard.
+//
+// GET /api/org/{orgId}/scorecards/org
+func (n *ScorecardsOrgNamespace) Get(ctx context.Context, params *ScorecardsOrgGetParams, opts ...RequestOption) (*OrgScorecard, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/scorecards/org")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OrgScorecard
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ScorecardsOrgHistoryParams holds the parameters for
+// `client.scorecards.org.history`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ScorecardsOrgHistoryParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Days: How far back to read. Defaults to 90; readings are kept for 400
+	// days.
+	Days *int64
+}
+
+// History: List stored org grade readings
+//
+// The daily history alone, without computing the grade: the cheap read for a
+// sparkline.
+//
+// GET /api/org/{orgId}/scorecards/org/history
+//
+// Raises on 400: Bad request
+func (n *ScorecardsOrgNamespace) History(ctx context.Context, params *ScorecardsOrgHistoryParams, opts ...RequestOption) (*OrgScorecardHistory, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/scorecards/org/history")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("days", params.Days)
+	}
+	var out *OrgScorecardHistory
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // SearchNamespace is `client.search`.
 type SearchNamespace struct {
 	t *transport
@@ -22318,6 +24076,560 @@ func (n *SearchNamespace) List(ctx context.Context, params *SearchListParams, op
 		r.addQuery("q", params.Q)
 	}
 	var out []SearchHit
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SeatsNamespace is `client.seats`.
+type SeatsNamespace struct {
+	t *transport
+
+	// Settings: `client.seats.settings`.
+	Settings *SeatsSettingsNamespace
+}
+
+func newSeatsNamespace(t *transport) *SeatsNamespace {
+	n := &SeatsNamespace{t: t}
+	n.Settings = newSeatsSettingsNamespace(t)
+	return n
+}
+
+// SeatsGetParams holds the parameters for `client.seats.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SeatsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List paid SaaS seats and seat savings findings
+//
+// Every paid seat the organization's connected accounts report (Copilot, Cursor,
+// GitLab, Okta and others), collected daily, with three findings: inactive for
+// the organization's threshold, the same person (by email) paying for two tools
+// in one category, and a cheaper tier the member's usage fits. Each finding
+// carries remediation commands.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/seats
+func (n *SeatsNamespace) Get(ctx context.Context, params *SeatsGetParams, opts ...RequestOption) (*SeatListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/seats")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SeatListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SeatsRefreshParams holds the parameters for `client.seats.refresh`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SeatsRefreshParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Refresh: Re-collect seats now
+//
+// Makes every seat-capable account due; the poller collects within minutes.
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/seats/refresh
+func (n *SeatsNamespace) Refresh(ctx context.Context, params *SeatsRefreshParams, opts ...RequestOption) (*SeatsRefreshResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/seats/refresh")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SeatsRefreshResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SeatsRemoveParams holds the parameters for `client.seats.remove`.
+type SeatsRemoveParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID  *string
+	SeatID string
+}
+
+// Remove: Remove a flagged seat
+//
+// Removes a seat currently flagged inactive or duplicated through the provider's
+// API and records the realized saving. Refused (409) for a seat that is not a
+// finding. Blocked by an active change freeze (423).
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/seats/{seatId}/remove
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *SeatsNamespace) Remove(ctx context.Context, params SeatsRemoveParams, opts ...RequestOption) (*SeatRemovalResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/seats/{seatId}/remove")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("seatId", params.SeatID)
+	var out *SeatRemovalResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SeatsSettingsNamespace is `client.seats.settings`.
+type SeatsSettingsNamespace struct {
+	t *transport
+}
+
+func newSeatsSettingsNamespace(t *transport) *SeatsSettingsNamespace {
+	n := &SeatsSettingsNamespace{t: t}
+	return n
+}
+
+// SeatsSettingsGetParams holds the parameters for `client.seats.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SeatsSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the seat settings
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/seats/settings
+func (n *SeatsSettingsNamespace) Get(ctx context.Context, params *SeatsSettingsGetParams, opts ...RequestOption) (*SeatSettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/seats/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *SeatSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// SeatsSettingsUpdateParams holds the parameters for
+// `client.seats.settings.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type SeatsSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *SeatSettings
+}
+
+// Update: Update the seat settings
+//
+// `inactiveDays` must be a whole number from 7 to 365; it is rejected, not
+// clamped.
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/seats/settings
+//
+// Raises on 400: Bad request
+func (n *SeatsSettingsNamespace) Update(ctx context.Context, params *SeatsSettingsUpdateParams, opts ...RequestOption) (*SeatSettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/seats/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *SeatSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ServicesNamespace is `client.services`.
+type ServicesNamespace struct {
+	t *transport
+
+	// Get: `client.services.get`.
+	Get *ServicesGetNamespace
+	// Members: `client.services.members`.
+	Members *ServicesMembersNamespace
+}
+
+func newServicesNamespace(t *transport) *ServicesNamespace {
+	n := &ServicesNamespace{t: t}
+	n.Get = newServicesGetNamespace(t)
+	n.Members = newServicesMembersNamespace(t)
+	return n
+}
+
+// ServicesCreateParams holds the parameters for `client.services.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ServicesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *ServiceCreate
+}
+
+// Create: Create a service
+//
+// Owners, the on-call schedule, SLOs and runbooks must belong to the
+// organization. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/services
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *ServicesNamespace) Create(ctx context.Context, params *ServicesCreateParams, opts ...RequestOption) (*Service, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/services")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *Service
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ServicesDeleteParams holds the parameters for `client.services.delete`.
+type ServicesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ServiceID: Service id or slug.
+	ServiceID string
+}
+
+// Delete: Delete a service
+//
+// The member resources, SLOs, runbooks and schedule are untouched. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/services/{serviceId}
+//
+// Raises on 404: Not found
+func (n *ServicesNamespace) Delete(ctx context.Context, params ServicesDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/services/{serviceId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("serviceId", params.ServiceID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// ServicesForResourcesParams holds the parameters for
+// `client.services.forResources`.
+type ServicesForResourcesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// IDs: Comma-separated Infrawrench resource ids (at most 500).
+	IDs string
+}
+
+// ForResources: Look up the services resources belong to
+//
+// Membership is explicit members plus rules minus exclusions, resolved against
+// the current inventory. Resources in no service are absent from the map.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/services/for-resources
+//
+// Raises on 400: Bad request
+func (n *ServicesNamespace) ForResources(ctx context.Context, params ServicesForResourcesParams, opts ...RequestOption) (*ServicesForResources, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/services/for-resources")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("ids", params.IDs)
+	var out *ServicesForResources
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ServicesScorecardsParams holds the parameters for
+// `client.services.scorecards`.
+type ServicesScorecardsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ServiceID: Service id or slug.
+	ServiceID string
+}
+
+// Scorecards: Read a service's scorecard results and history
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/services/{serviceId}/scorecards
+//
+// Raises on 404: Not found
+func (n *ServicesNamespace) Scorecards(ctx context.Context, params ServicesScorecardsParams, opts ...RequestOption) (*ServiceScorecards, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/services/{serviceId}/scorecards")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("serviceId", params.ServiceID)
+	var out *ServiceScorecards
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ServicesSummaryParams holds the parameters for `client.services.summary`.
+type ServicesSummaryParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ServiceID: Service id or slug.
+	ServiceID string
+}
+
+// Summary: Summarize a service
+//
+// Trailing 30-day member spend (scoped to the caller's cost visibility), linked
+// SLO standing, open posture, orphan and backup findings on members, the current
+// on-call shift, the last week's changes and current scorecard results. Feeds
+// that fail are listed in `findings.unavailable` or `cost.available` rather than
+// failing the request.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/services/{serviceId}/summary
+//
+// Raises on 404: Not found
+func (n *ServicesNamespace) Summary(ctx context.Context, params ServicesSummaryParams, opts ...RequestOption) (*ServiceSummary, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/services/{serviceId}/summary")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("serviceId", params.ServiceID)
+	var out *ServiceSummary
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ServicesUpdateParams holds the parameters for `client.services.update`.
+type ServicesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ServiceID: Service id or slug.
+	ServiceID string
+	// Body: the JSON request body.
+	Body *ServiceUpdate
+}
+
+// Update: Update a service
+//
+// Omitted fields keep their value. List fields (owners, links, SLOs, runbooks,
+// rules) replace the stored list. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// PATCH /api/org/{orgId}/services/{serviceId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *ServicesNamespace) Update(ctx context.Context, params ServicesUpdateParams, opts ...RequestOption) (*Service, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/services/{serviceId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("serviceId", params.ServiceID)
+	r.setJSONBody(params.Body)
+	var out *Service
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ServicesGetNamespace is `client.services.get`.
+type ServicesGetNamespace struct {
+	t *transport
+}
+
+func newServicesGetNamespace(t *transport) *ServicesGetNamespace {
+	n := &ServicesGetNamespace{t: t}
+	return n
+}
+
+// ServicesGetGetParams holds the parameters for `client.services.get.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ServicesGetGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List services
+//
+// Every service with its owners, links, resolved member count and current
+// scorecard levels.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/services
+func (n *ServicesGetNamespace) Get(ctx context.Context, params *ServicesGetGetParams, opts ...RequestOption) (*ServiceList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/services")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ServiceList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ServicesGetGetOrgOrgIDServicesServiceIDParams holds the parameters for
+// `client.services.get.getOrgOrgIdServicesServiceId`.
+type ServicesGetGetOrgOrgIDServicesServiceIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ServiceID: Service id or slug.
+	ServiceID string
+}
+
+// GetOrgOrgIDServicesServiceID: Read a service with its members
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/services/{serviceId}
+//
+// Raises on 404: Not found
+func (n *ServicesGetNamespace) GetOrgOrgIDServicesServiceID(ctx context.Context, params ServicesGetGetOrgOrgIDServicesServiceIDParams, opts ...RequestOption) (*ServiceDetail, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/services/{serviceId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("serviceId", params.ServiceID)
+	var out *ServiceDetail
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ServicesMembersNamespace is `client.services.members`.
+type ServicesMembersNamespace struct {
+	t *transport
+}
+
+func newServicesMembersNamespace(t *transport) *ServicesMembersNamespace {
+	n := &ServicesMembersNamespace{t: t}
+	return n
+}
+
+// ServicesMembersCreateParams holds the parameters for
+// `client.services.members.create`.
+type ServicesMembersCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ServiceID: Service id or slug.
+	ServiceID string
+	// Body: the JSON request body.
+	Body *ServiceMembersRequest
+}
+
+// Create: Add members to a service
+//
+// Adds resources by hand. An excluded resource is put back. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/services/{serviceId}/members
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ServicesMembersNamespace) Create(ctx context.Context, params ServicesMembersCreateParams, opts ...RequestOption) (*ServiceDetail, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/services/{serviceId}/members")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("serviceId", params.ServiceID)
+	r.setJSONBody(params.Body)
+	var out *ServiceDetail
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ServicesMembersDeleteParams holds the parameters for
+// `client.services.members.delete`.
+type ServicesMembersDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ServiceID: Service id or slug.
+	ServiceID  string
+	ResourceID string
+	// Restore: Delete an exclusion instead.
+	//
+	// One of "1".
+	Restore *string
+}
+
+// Delete: Remove a member from a service
+//
+// A hand-added member is removed; a rule-matched one is excluded, since the rule
+// would otherwise put it back. With `restore=1`, deletes an exclusion instead.
+// Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/services/{serviceId}/members/{resourceId}
+//
+// Raises on 404: Not found
+func (n *ServicesMembersNamespace) Delete(ctx context.Context, params ServicesMembersDeleteParams, opts ...RequestOption) (*ServiceDetail, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/services/{serviceId}/members/{resourceId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("serviceId", params.ServiceID)
+	r.setPath("resourceId", params.ResourceID)
+	r.addQuery("restore", params.Restore)
+	var out *ServiceDetail
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -25753,6 +28065,213 @@ func (n *VirtualTagsNamespace) Update(ctx context.Context, params VirtualTagsUpd
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *VirtualTag
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VulnerabilitiesNamespace is `client.vulnerabilities`.
+type VulnerabilitiesNamespace struct {
+	t *transport
+
+	// Dismissals: `client.vulnerabilities.dismissals`.
+	Dismissals *VulnerabilitiesDismissalsNamespace
+	// Settings: `client.vulnerabilities.settings`.
+	Settings *VulnerabilitiesSettingsNamespace
+}
+
+func newVulnerabilitiesNamespace(t *transport) *VulnerabilitiesNamespace {
+	n := &VulnerabilitiesNamespace{t: t}
+	n.Dismissals = newVulnerabilitiesDismissalsNamespace(t)
+	n.Settings = newVulnerabilitiesSettingsNamespace(t)
+	return n
+}
+
+// VulnerabilitiesGetParams holds the parameters for
+// `client.vulnerabilities.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type VulnerabilitiesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ServiceID: Only findings running on a resource of this service.
+	ServiceID *string
+	// ResourceID: Only findings running on any of these Infrawrench resource
+	// ids. Repeat the parameter for several (at most 100).
+	ResourceID []string
+}
+
+// Get: List vulnerability findings joined to running resources
+//
+// Open findings from each connected provider's own scanner (Amazon Inspector,
+// Artifact Analysis, Defender for Cloud, Dependabot, GitLab, JFrog Xray), joined
+// to the synced resources that run the affected image or are the affected
+// resource, and marked when the advisory is in the CISA Known Exploited
+// Vulnerabilities catalog. Read from what the poller last collected; no provider
+// calls are made. Dismissed findings are reported under `dismissed` and excluded
+// from `findings`, the counts and the alerts. Each finding names the services
+// its running resources belong to. `serviceId` and `resourceId` narrow the
+// findings (and `dismissed`) to those running there and recompute the counts;
+// `sources` always describes every scanner.
+//
+// GET /api/org/{orgId}/vulnerabilities
+//
+// Raises on 400: Bad request
+func (n *VulnerabilitiesNamespace) Get(ctx context.Context, params *VulnerabilitiesGetParams, opts ...RequestOption) (*VulnerabilityListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/vulnerabilities")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("serviceId", params.ServiceID)
+		r.addQuery("resourceId", params.ResourceID)
+	}
+	var out *VulnerabilityListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VulnerabilitiesDismissalsNamespace is `client.vulnerabilities.dismissals`.
+type VulnerabilitiesDismissalsNamespace struct {
+	t *transport
+}
+
+func newVulnerabilitiesDismissalsNamespace(t *transport) *VulnerabilitiesDismissalsNamespace {
+	n := &VulnerabilitiesDismissalsNamespace{t: t}
+	return n
+}
+
+// VulnerabilitiesDismissalsCreateParams holds the parameters for
+// `client.vulnerabilities.dismissals.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type VulnerabilitiesDismissalsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *VulnerabilityDismissalCreate
+}
+
+// Create: Dismiss a vulnerability
+//
+// Accept an advisory as a known risk for one artifact (keyed on the image
+// repository, so it survives rebuilds) or, with `artifactKey: "*"`, everywhere.
+// Idempotent.
+//
+// POST /api/org/{orgId}/vulnerabilities/dismissals
+//
+// Raises on 400: Bad request
+func (n *VulnerabilitiesDismissalsNamespace) Create(ctx context.Context, params *VulnerabilitiesDismissalsCreateParams, opts ...RequestOption) (*VulnerabilityDismissal, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/vulnerabilities/dismissals")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *VulnerabilityDismissal
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VulnerabilitiesDismissalsDeleteParams holds the parameters for
+// `client.vulnerabilities.dismissals.delete`.
+type VulnerabilitiesDismissalsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	AdvisoryID  string
+	ArtifactKey string
+}
+
+// Delete: Restore a dismissed vulnerability
+//
+// The key is in the query string because artifact keys contain slashes.
+//
+// DELETE /api/org/{orgId}/vulnerabilities/dismissals
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *VulnerabilitiesDismissalsNamespace) Delete(ctx context.Context, params VulnerabilitiesDismissalsDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/vulnerabilities/dismissals")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("advisoryId", params.AdvisoryID)
+	r.addQuery("artifactKey", params.ArtifactKey)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// VulnerabilitiesSettingsNamespace is `client.vulnerabilities.settings`.
+type VulnerabilitiesSettingsNamespace struct {
+	t *transport
+}
+
+func newVulnerabilitiesSettingsNamespace(t *transport) *VulnerabilitiesSettingsNamespace {
+	n := &VulnerabilitiesSettingsNamespace{t: t}
+	return n
+}
+
+// VulnerabilitiesSettingsGetParams holds the parameters for
+// `client.vulnerabilities.settings.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type VulnerabilitiesSettingsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the vulnerability alert settings
+//
+// Defaults when never saved: alerts on, critical only, running only.
+//
+// GET /api/org/{orgId}/vulnerabilities/settings
+func (n *VulnerabilitiesSettingsNamespace) Get(ctx context.Context, params *VulnerabilitiesSettingsGetParams, opts ...RequestOption) (*VulnerabilitySettings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/vulnerabilities/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *VulnerabilitySettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// VulnerabilitiesSettingsUpdateParams holds the parameters for
+// `client.vulnerabilities.settings.update`.
+//
+// Every field is optional; pass nil to take the defaults.
+type VulnerabilitiesSettingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body *VulnerabilitySettingsUpdate
+}
+
+// Update: Update the vulnerability alert settings
+//
+// Saving never resets the alert cooldown.
+//
+// PUT /api/org/{orgId}/vulnerabilities/settings
+//
+// Raises on 400: Bad request
+func (n *VulnerabilitiesSettingsNamespace) Update(ctx context.Context, params *VulnerabilitiesSettingsUpdateParams, opts ...RequestOption) (*VulnerabilitySettings, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/vulnerabilities/settings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
+	}
+	var out *VulnerabilitySettings
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
