@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.82.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.84.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.82.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.84.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -41,6 +41,10 @@ type APIV1Client struct {
 	Accounts *AccountsNamespace
 	// Agent: `client.agent`.
 	Agent *AgentNamespace
+	// AgentLink: `client.agentLink`.
+	AgentLink *AgentLinkNamespace
+	// AgentLinks: `client.agentLinks`.
+	AgentLinks *AgentLinksNamespace
 	// AgentRegistrations: `client.agentRegistrations`.
 	AgentRegistrations *AgentRegistrationsNamespace
 	// Agents: `client.agents`.
@@ -314,6 +318,8 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.AccessReview = newAccessReviewNamespace(t)
 	c.Accounts = newAccountsNamespace(t)
 	c.Agent = newAgentNamespace(t)
+	c.AgentLink = newAgentLinkNamespace(t)
+	c.AgentLinks = newAgentLinksNamespace(t)
 	c.AgentRegistrations = newAgentRegistrationsNamespace(t)
 	c.Agents = newAgentsNamespace(t)
 	c.AiAttribution = newAiAttributionNamespace(t)
@@ -1688,6 +1694,450 @@ func (n *AgentIdentityNamespace) Get(ctx context.Context, opts ...RequestOption)
 	return out, nil
 }
 
+// AgentLinkNamespace is `client.agentLink`.
+type AgentLinkNamespace struct {
+	t *transport
+
+	// Agents: `client.agentLink.agents`.
+	Agents *AgentLinkAgentsNamespace
+}
+
+func newAgentLinkNamespace(t *transport) *AgentLinkNamespace {
+	n := &AgentLinkNamespace{t: t}
+	n.Agents = newAgentLinkAgentsNamespace(t)
+	return n
+}
+
+// Delete: Unlink, revoking every agent this link made
+//
+// DELETE /api/agent-link
+//
+// Raises on 401: Unknown or revoked link credential
+func (n *AgentLinkNamespace) Delete(ctx context.Context, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/agent-link")
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// Get: Describe this link
+//
+// GET /api/agent-link
+//
+// Raises on 401: Unknown or revoked link credential
+func (n *AgentLinkNamespace) Get(ctx context.Context, opts ...RequestOption) (*AgentLinkInfo, error) {
+	r := newRequest(http.MethodGet, "/api/agent-link")
+	var out *AgentLinkInfo
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinkAgentsNamespace is `client.agentLink.agents`.
+type AgentLinkAgentsNamespace struct {
+	t *transport
+}
+
+func newAgentLinkAgentsNamespace(t *transport) *AgentLinkAgentsNamespace {
+	n := &AgentLinkAgentsNamespace{t: t}
+	return n
+}
+
+// AgentLinkAgentsCreateParams holds the parameters for
+// `client.agentLink.agents.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentLinkAgentsCreateParams struct {
+	// Body: the JSON request body.
+	Body *CreatePlatformAgent
+}
+
+// Create: Create an agent with its own `iwa_` credential
+//
+// POST /api/agent-link/agents
+//
+// Raises on 400: `scope_not_allowed` (with `scopes`), `invalid_provider`, or
+// malformed
+//
+// Raises on 401: Unknown or revoked link credential
+//
+// Raises on 403: The approving person no longer exists
+//
+// Raises on 409: `exists`: a live agent with this `externalId` (with `agentId`)
+func (n *AgentLinkAgentsNamespace) Create(ctx context.Context, params *AgentLinkAgentsCreateParams, opts ...RequestOption) (*PlatformAgentWithCredential, error) {
+	r := newRequest(http.MethodPost, "/api/agent-link/agents")
+	if params != nil {
+		r.setJSONBody(params.Body)
+	}
+	var out *PlatformAgentWithCredential
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinkAgentsDeleteParams holds the parameters for
+// `client.agentLink.agents.delete`.
+type AgentLinkAgentsDeleteParams struct {
+	ID string
+}
+
+// Delete: Revoke an agent (idempotent; the row is kept for the audit log)
+//
+// DELETE /api/agent-link/agents/{id}
+//
+// Raises on 401: Unknown or revoked link credential
+//
+// Raises on 404: Not an agent of this link
+func (n *AgentLinkAgentsNamespace) Delete(ctx context.Context, params AgentLinkAgentsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/agent-link/agents/{id}")
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// List: List the agents this link made, newest first, revoked included
+//
+// GET /api/agent-link/agents
+//
+// Raises on 401: Unknown or revoked link credential
+func (n *AgentLinkAgentsNamespace) List(ctx context.Context, opts ...RequestOption) ([]PlatformAgent, error) {
+	r := newRequest(http.MethodGet, "/api/agent-link/agents")
+	var out []PlatformAgent
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinkAgentsRotateParams holds the parameters for
+// `client.agentLink.agents.rotate`.
+type AgentLinkAgentsRotateParams struct {
+	ID string
+}
+
+// Rotate: Replace an agent's credential; the old one stops working immediately
+//
+// POST /api/agent-link/agents/{id}/rotate
+//
+// Raises on 401: Unknown or revoked link credential
+//
+// Raises on 404: Not an agent of this link, or revoked
+func (n *AgentLinkAgentsNamespace) Rotate(ctx context.Context, params AgentLinkAgentsRotateParams, opts ...RequestOption) (*PlatformAgentWithCredential, error) {
+	r := newRequest(http.MethodPost, "/api/agent-link/agents/{id}/rotate")
+	r.setPath("id", params.ID)
+	var out *PlatformAgentWithCredential
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinkAgentsUpdateParams holds the parameters for
+// `client.agentLink.agents.update`.
+type AgentLinkAgentsUpdateParams struct {
+	ID string
+	// Body: the JSON request body.
+	Body *PatchPlatformAgent
+}
+
+// Update: Edit an agent's label, scopes or providers
+//
+// PATCH /api/agent-link/agents/{id}
+//
+// Raises on 400: `scope_not_allowed`, `invalid_provider`, or malformed
+//
+// Raises on 401: Unknown or revoked link credential
+//
+// Raises on 404: Not an agent of this link, or revoked
+func (n *AgentLinkAgentsNamespace) Update(ctx context.Context, params AgentLinkAgentsUpdateParams, opts ...RequestOption) (*PlatformAgentEnvelope, error) {
+	r := newRequest(http.MethodPatch, "/api/agent-link/agents/{id}")
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *PlatformAgentEnvelope
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinksNamespace is `client.agentLinks`.
+type AgentLinksNamespace struct {
+	t *transport
+
+	// Requests: `client.agentLinks.requests`.
+	Requests *AgentLinksRequestsNamespace
+}
+
+func newAgentLinksNamespace(t *transport) *AgentLinksNamespace {
+	n := &AgentLinksNamespace{t: t}
+	n.Requests = newAgentLinksRequestsNamespace(t)
+	return n
+}
+
+// AgentLinksDeleteParams holds the parameters for `client.agentLinks.delete`.
+type AgentLinksDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Revoke a platform link and every agent it made
+//
+// Closed to agent credentials.
+//
+// _Requires permission: `team:invite`._
+//
+// DELETE /api/org/{orgId}/agent-links/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *AgentLinksNamespace) Delete(ctx context.Context, params AgentLinksDeleteParams, opts ...RequestOption) (*AgentLinkRevoked, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/agent-links/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *AgentLinkRevoked
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinksListParams holds the parameters for `client.agentLinks.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentLinksListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List the platforms linked to this organization
+//
+// _Requires permission: `team:read`._
+//
+// GET /api/org/{orgId}/agent-links
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *AgentLinksNamespace) List(ctx context.Context, params *AgentLinksListParams, opts ...RequestOption) ([]AgentLinkSummary, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/agent-links")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []AgentLinkSummary
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinksRequestsNamespace is `client.agentLinks.requests`.
+type AgentLinksRequestsNamespace struct {
+	t *transport
+}
+
+func newAgentLinksRequestsNamespace(t *transport) *AgentLinksRequestsNamespace {
+	n := &AgentLinksRequestsNamespace{t: t}
+	return n
+}
+
+// AgentLinksRequestsApproveParams holds the parameters for
+// `client.agentLinks.requests.approve`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentLinksRequestsApproveParams struct {
+	// Body: the JSON request body.
+	Body *AgentLinkApprove
+}
+
+// Approve: Approve a link request into an organization
+//
+// Session only. Needs `team:invite` in the organization; `scopes` (the ceiling)
+// must be within what you hold there, break-glass elevation excluded, minus
+// permissions no agent may hold.
+//
+// POST /api/agent-links/requests/approve
+//
+// Raises on 400: Bad code, or `scope_not_allowed`
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: You lack `team:invite` there
+//
+// Raises on 409: Already decided or expired
+//
+// Raises on 429: Too many attempts
+func (n *AgentLinksRequestsNamespace) Approve(ctx context.Context, params *AgentLinksRequestsApproveParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodPost, "/api/agent-links/requests/approve")
+	if params != nil {
+		r.setJSONBody(params.Body)
+	}
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinksRequestsCreateParams holds the parameters for
+// `client.agentLinks.requests.create`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentLinksRequestsCreateParams struct {
+	// Body: the JSON request body.
+	Body *AgentLinkRequest
+}
+
+// Create: Start linking a platform (device flow)
+//
+// Unauthenticated, rate limited per source address.
+//
+// POST /api/agent-links/requests
+//
+// Raises on 400: Malformed platform, label or scopes
+//
+// Raises on 429: Too many requests from this address
+func (n *AgentLinksRequestsNamespace) Create(ctx context.Context, params *AgentLinksRequestsCreateParams, opts ...RequestOption) (*AgentLinkRequestStarted, error) {
+	r := newRequest(http.MethodPost, "/api/agent-links/requests")
+	if params != nil {
+		r.setJSONBody(params.Body)
+	}
+	var out *AgentLinkRequestStarted
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinksRequestsDenyParams holds the parameters for
+// `client.agentLinks.requests.deny`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentLinksRequestsDenyParams struct {
+	// Body: the JSON request body.
+	Body *AgentLinkCode
+}
+
+// Deny: Deny a link request
+//
+// POST /api/agent-links/requests/deny
+//
+// Raises on 400: Bad code
+//
+// Raises on 401: Unauthenticated
+func (n *AgentLinksRequestsNamespace) Deny(ctx context.Context, params *AgentLinksRequestsDenyParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodPost, "/api/agent-links/requests/deny")
+	if params != nil {
+		r.setJSONBody(params.Body)
+	}
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinksRequestsLookupParams holds the parameters for
+// `client.agentLinks.requests.lookup`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentLinksRequestsLookupParams struct {
+	// Body: the JSON request body.
+	Body *AgentLinkCode
+}
+
+// Lookup: Resolve a user code for the approval page
+//
+// Session only. A POST with the code in the body rather than a query string: the
+// code is a live bearer secret. Rate limited per user.
+//
+// POST /api/agent-links/requests/lookup
+//
+// Raises on 400: Malformed, unknown or expired code
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 429: Too many attempts
+func (n *AgentLinksRequestsNamespace) Lookup(ctx context.Context, params *AgentLinksRequestsLookupParams, opts ...RequestOption) (*AgentLinkLookup, error) {
+	r := newRequest(http.MethodPost, "/api/agent-links/requests/lookup")
+	if params != nil {
+		r.setJSONBody(params.Body)
+	}
+	var out *AgentLinkLookup
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentLinksRequestsTokenParams holds the parameters for
+// `client.agentLinks.requests.token`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentLinksRequestsTokenParams struct {
+	// Body: the JSON request body.
+	Body *AgentLinksRequestsTokenRequest
+}
+
+// Token: Poll a link request
+//
+// POST /api/agent-links/requests/token
+//
+// Raises on 429: Polling faster than `interval`: `{ error: "slow_down" }`
+func (n *AgentLinksRequestsNamespace) Token(ctx context.Context, params *AgentLinksRequestsTokenParams, opts ...RequestOption) (AgentLinkPoll, error) {
+	r := newRequest(http.MethodPost, "/api/agent-links/requests/token")
+	if params != nil {
+		r.setJSONBody(params.Body)
+	}
+	var out AgentLinkPoll
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // AgentRegistrationsNamespace is `client.agentRegistrations`.
 type AgentRegistrationsNamespace struct {
 	t *transport
@@ -1712,6 +2162,8 @@ type AgentRegistrationsDeleteParams struct {
 //
 // The row is kept so audit entries naming this agent stay legible; its
 // credential stops working on the next request. Closed to agent credentials.
+//
+// _Requires permission: `team:invite`._
 //
 // DELETE /api/org/{orgId}/agent-registrations/{id}
 //
@@ -1757,6 +2209,8 @@ type AgentRegistrationsListParams struct {
 
 // List: List the agent registrations acting in this organization
 //
+// _Requires permission: `team:read`._
+//
 // GET /api/org/{orgId}/agent-registrations
 //
 // Raises on 400: Bad request
@@ -1783,6 +2237,58 @@ func (n *AgentRegistrationsNamespace) List(ctx context.Context, params *AgentReg
 		r.setPath("orgId", params.OrgID)
 	}
 	var out []AgentRegistration
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentRegistrationsUpdateParams holds the parameters for
+// `client.agentRegistrations.update`.
+type AgentRegistrationsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body *PatchPlatformAgent
+}
+
+// Update: Edit a platform agent's label, scopes or providers
+//
+// Platform agents only (`kind: platform`). Scopes must be within the link's
+// current ceiling, and you may only add scopes you hold yourself. Closed to
+// agent credentials.
+//
+// _Requires permission: `team:invite`._
+//
+// PATCH /api/org/{orgId}/agent-registrations/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 402: Payment required: the organization's plan does not include this
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: The agent or its link has been revoked
+//
+// Raises on 500: Server error
+//
+// Raises on 503: A backing service this endpoint depends on is not available
+//
+// Raises on reauth: Recent sign-in required. Send the user through sign-in again
+// and retry; the request itself was well-formed.
+func (n *AgentRegistrationsNamespace) Update(ctx context.Context, params AgentRegistrationsUpdateParams, opts ...RequestOption) (*PlatformAgentEnvelope, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/agent-registrations/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *PlatformAgentEnvelope
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -1833,6 +2339,35 @@ func (n *AgentsNamespace) Accounts(ctx context.Context, params *AgentsAccountsPa
 	return out, nil
 }
 
+// AgentsLinkScopesParams holds the parameters for `client.agents.linkScopes`.
+//
+// Every field is optional; pass nil to take the defaults.
+type AgentsLinkScopesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// LinkScopes: What you could give a Nibblets session's agent link
+//
+// `scopes` is null when you cannot approve links here (no `team:invite`).
+//
+// _Requires permission: `resources:write`._
+//
+// GET /api/org/{orgId}/agents/link-scopes
+func (n *AgentsNamespace) LinkScopes(ctx context.Context, params *AgentsLinkScopesParams, opts ...RequestOption) (*AgentLinkableScopes, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/agents/link-scopes")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *AgentLinkableScopes
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // AgentsSessionsNamespace is `client.agents.sessions`.
 type AgentsSessionsNamespace struct {
 	t *transport
@@ -1861,6 +2396,8 @@ type AgentsSessionsCreateParams struct {
 // POST /api/org/{orgId}/agents/sessions
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *AgentsSessionsNamespace) Create(ctx context.Context, params AgentsSessionsCreateParams, opts ...RequestOption) (*AgentSession, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/agents/sessions")
 	r.setPath("orgId", params.OrgID)

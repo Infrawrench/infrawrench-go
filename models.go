@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.82.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.84.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.82.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.84.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -446,6 +446,156 @@ type AgentIdentity struct {
 	TrialExpiresInMs *int64 `json:"trial_expires_in_ms"`
 }
 
+// AgentLinkApprove is the `AgentLinkApprove` schema.
+type AgentLinkApprove struct {
+	Code           string `json:"code"`
+	OrganizationID string `json:"organizationId"`
+	// Scopes: The ceiling.
+	Scopes []string `json:"scopes"`
+}
+
+// AgentLinkCode is the `AgentLinkCode` schema.
+type AgentLinkCode struct {
+	Code string `json:"code"`
+}
+
+// AgentLinkError is the `AgentLinkError` schema.
+type AgentLinkError struct {
+	Error     string   `json:"error"`
+	Code      *string  `json:"code,omitempty"`
+	Scopes    []string `json:"scopes,omitempty"`
+	AgentID   *string  `json:"agentId,omitempty"`
+	Providers []string `json:"providers,omitempty"`
+}
+
+// AgentLinkInfo is the `AgentLinkInfo` schema.
+type AgentLinkInfo struct {
+	ID               string `json:"id"`
+	OrganizationID   string `json:"organizationId"`
+	OrganizationName string `json:"organizationName"`
+	Platform         string `json:"platform"`
+	Label            string `json:"label"`
+	// Scopes: The ceiling as approved.
+	Scopes []string `json:"scopes"`
+	// EffectiveScopes: The ceiling as it stands now: approved ∩ the approver's
+	// current role (no elevation) − permissions no agent may hold. Agents can
+	// only be granted scopes from here.
+	EffectiveScopes []string `json:"effectiveScopes"`
+	// NarrowableScopes: The scopes in `effectiveScopes` that `providers` can
+	// limit (resources, secrets, object storage). An agent given `providers` may
+	// hold only these; any other scope is a `scope_not_allowed`, because it
+	// would stay organization-wide.
+	NarrowableScopes []string `json:"narrowableScopes"`
+	// ScopeGroups: `effectiveScopes` grouped and labelled as the Infrawrench
+	// pickers show them.
+	ScopeGroups []AgentLinkScopeGroup `json:"scopeGroups"`
+	// Providers: Plugins the organization has at least one connected account
+	// for.
+	Providers  []AgentLinkProvider      `json:"providers"`
+	ApprovedBy *AgentLinkInfoApprovedBy `json:"approvedBy"`
+	CreatedAt  string                   `json:"createdAt"`
+}
+
+// AgentLinkLookup is the `AgentLinkLookup` schema.
+type AgentLinkLookup struct {
+	Platform        string                        `json:"platform"`
+	Label           string                        `json:"label"`
+	RequestedScopes []string                      `json:"requestedScopes"`
+	ExpiresAt       string                        `json:"expiresAt"`
+	Organizations   []AgentLinkLookupOrganization `json:"organizations"`
+}
+
+// AgentLinkLookupOrganization is the `AgentLinkLookupOrganization` schema.
+type AgentLinkLookupOrganization struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// CanApprove: You hold `team:invite` there.
+	CanApprove bool `json:"canApprove"`
+	// GrantableScopes: What you could put in the ceiling there; empty when
+	// `canApprove` is false.
+	GrantableScopes []string `json:"grantableScopes"`
+}
+
+// AgentLinkPoll is the `AgentLinkPoll` schema.
+type AgentLinkPoll = any
+
+// AgentLinkProvider is the `AgentLinkProvider` schema.
+type AgentLinkProvider struct {
+	ID          string `json:"id"`
+	DisplayName string `json:"displayName"`
+}
+
+// AgentLinkRequest is the `AgentLinkRequest` schema.
+type AgentLinkRequest struct {
+	Platform string `json:"platform"`
+	Label    string `json:"label"`
+	// RequestedScopes: Pre-ticks the ceiling on the approval page. Unknown
+	// strings are ignored.
+	RequestedScopes []string `json:"requestedScopes,omitempty"`
+}
+
+// AgentLinkRequestStarted is the `AgentLinkRequestStarted` schema.
+type AgentLinkRequestStarted struct {
+	// DeviceCode: Secret to the platform; poll with it.
+	DeviceCode string `json:"deviceCode"`
+	// UserCode: `XXXX-XXXX`, shown to the person.
+	UserCode                string `json:"userCode"`
+	VerificationURL         string `json:"verificationUrl"`
+	VerificationURLComplete string `json:"verificationUrlComplete"`
+	// ExpiresIn: Seconds.
+	ExpiresIn int64 `json:"expiresIn"`
+	// Interval: Minimum seconds between polls.
+	Interval int64 `json:"interval"`
+}
+
+// AgentLinkRevoked is the `AgentLinkRevoked` schema.
+type AgentLinkRevoked struct {
+	OK      bool `json:"ok"`
+	Revoked bool `json:"revoked"`
+}
+
+// AgentLinkScopeGroup is the `AgentLinkScopeGroup` schema.
+type AgentLinkScopeGroup struct {
+	Title  string                      `json:"title"`
+	Scopes []AgentLinkScopeGroupScopes `json:"scopes"`
+}
+
+// AgentLinkSummary is the `AgentLinkSummary` schema.
+type AgentLinkSummary struct {
+	ID               string `json:"id"`
+	OrganizationID   string `json:"organizationId"`
+	OrganizationName string `json:"organizationName"`
+	Platform         string `json:"platform"`
+	Label            string `json:"label"`
+	// Scopes: The ceiling as approved.
+	Scopes []string `json:"scopes"`
+	// EffectiveScopes: The ceiling as it stands now: approved ∩ the approver's
+	// current role (no elevation) − permissions no agent may hold. Agents can
+	// only be granted scopes from here.
+	EffectiveScopes []string `json:"effectiveScopes"`
+	// NarrowableScopes: The scopes in `effectiveScopes` that `providers` can
+	// limit (resources, secrets, object storage). An agent given `providers` may
+	// hold only these; any other scope is a `scope_not_allowed`, because it
+	// would stay organization-wide.
+	NarrowableScopes []string `json:"narrowableScopes"`
+	// ScopeGroups: `effectiveScopes` grouped and labelled as the Infrawrench
+	// pickers show them.
+	ScopeGroups []AgentLinkScopeGroup `json:"scopeGroups"`
+	// Providers: Plugins the organization has at least one connected account
+	// for.
+	Providers        []AgentLinkProvider         `json:"providers"`
+	ApprovedBy       *AgentLinkSummaryApprovedBy `json:"approvedBy"`
+	CreatedAt        string                      `json:"createdAt"`
+	CredentialPrefix *string                     `json:"credentialPrefix"`
+	LastSeenAt       *string                     `json:"lastSeenAt"`
+	RevokedAt        *string                     `json:"revokedAt"`
+}
+
+// AgentLinkableScopes is the `AgentLinkableScopes` schema.
+type AgentLinkableScopes struct {
+	Scopes []string `json:"scopes"`
+}
+
 // AgentRegisterRequest is the `AgentRegisterRequest` schema.
 type AgentRegisterRequest struct {
 	// Label: Short name for the workspace, shown to the user who claims it.
@@ -456,7 +606,7 @@ type AgentRegisterRequest struct {
 type AgentRegistration struct {
 	ID    string  `json:"id"`
 	Label *string `json:"label"`
-	// Kind: One of "anonymous", "service_auth".
+	// Kind: One of "anonymous", "service_auth", "platform".
 	Kind string `json:"kind"`
 	// Prefix: First 8 characters of the credential.
 	Prefix          *string `json:"prefix"`
@@ -466,6 +616,17 @@ type AgentRegistration struct {
 	LastSeenAt      *string `json:"lastSeenAt"`
 	RevokedAt       *string `json:"revokedAt"`
 	CreatedAt       string  `json:"createdAt"`
+	// LinkID: The platform link that made this agent (`kind: platform`), else
+	// null.
+	LinkID *string `json:"linkId"`
+	// ExternalID: The platform's own id for it.
+	ExternalID *string `json:"externalId"`
+	// Scopes: Platform agents only: the scopes granted, before provider
+	// narrowing.
+	Scopes []string `json:"scopes"`
+	// Providers: Platform agents only: plugin ids its scopes are narrowed to.
+	// Empty means all.
+	Providers []string `json:"providers"`
 }
 
 // AgentRevoked is the `AgentRevoked` schema.
@@ -495,7 +656,7 @@ type AgentSession struct {
 	ResourceTypeID string `json:"resourceTypeId"`
 	// Tool: One of "codex", "claude-code".
 	Tool string `json:"tool"`
-	// Surface: One of "terminal", "t3-code".
+	// Surface: One of "terminal", "t3-code", "nibblets".
 	Surface *string `json:"surface,omitempty"`
 	// ServiceAccountIDs: Accounts whose plugin installs a service on the VM over
 	// SSH after setup (e.g. Tailscale). See GET /resources/ssh-install/accounts.
@@ -503,7 +664,11 @@ type AgentSession struct {
 	// T3Access: One of "t3-connect", "tailscale".
 	T3Access        *string               `json:"t3Access,omitempty"`
 	ServiceInstalls []AgentServiceInstall `json:"serviceInstalls,omitempty"`
-	BranchName      string                `json:"branchName"`
+	// AgentLinkID: Nibblets sessions: the agent link that starts the server
+	// linked to this organization (see Agent links). Revoked, with its agents,
+	// when the session is deleted.
+	AgentLinkID *string `json:"agentLinkId,omitempty"`
+	BranchName  string  `json:"branchName"`
 	// Status: One of "pending", "provisioning", "setting-up", "up", "failed",
 	// "stopped".
 	Status       string   `json:"status"`
@@ -522,7 +687,7 @@ type AgentSettings struct {
 	ResourceTypeID string `json:"resourceTypeId"`
 	// Tool: One of "codex", "claude-code".
 	Tool string `json:"tool"`
-	// Surface: One of "terminal", "t3-code".
+	// Surface: One of "terminal", "t3-code", "nibblets".
 	Surface *string           `json:"surface,omitempty"`
 	Fields  map[string]string `json:"fields"`
 	// ServiceAccountIDs: Accounts whose plugin installs a service on the VM over
@@ -5274,6 +5439,12 @@ type CreateAgentSession struct {
 	ProjectName   *string        `json:"projectName,omitempty"`
 	WorkspaceName *string        `json:"workspaceName,omitempty"`
 	Settings      *AgentSettings `json:"settings"`
+	// NibbletsLink: Nibblets sessions only: start the server linked to this
+	// organization through an agent link you approve, as on the link approval
+	// page. Needs `team:invite`; `scopes` must be within what you hold (no
+	// break-glass elevation) minus permissions no agent may hold. Refused for
+	// API keys and agents.
+	NibbletsLink *CreateAgentSessionNibbletsLink `json:"nibbletsLink,omitempty"`
 }
 
 // CreateAPIKeyRequest is the `CreateApiKeyRequest` schema.
@@ -5358,6 +5529,18 @@ type CreateLinearIssueResult struct {
 // CreateOrgRequest is the `CreateOrgRequest` schema.
 type CreateOrgRequest struct {
 	DisplayName string `json:"displayName"`
+}
+
+// CreatePlatformAgent is the `CreatePlatformAgent` schema.
+type CreatePlatformAgent struct {
+	ExternalID string   `json:"externalId"`
+	Label      string   `json:"label"`
+	Scopes     []string `json:"scopes"`
+	// Providers: Plugin ids. Narrows every `resources:*`, `secrets:*` and
+	// `storage:*` scope to these providers (`resources:read` becomes
+	// `resources:<plugin>:read`). Omitted or empty means all. With providers,
+	// every scope must be one of those families (see `narrowableScopes`).
+	Providers []string `json:"providers,omitempty"`
 }
 
 // CreatePricingRequest is the `CreatePricingRequest` schema.
@@ -13635,6 +13818,13 @@ type PagingSyncResult struct {
 	Synced int64 `json:"synced"`
 }
 
+// PatchPlatformAgent is the `PatchPlatformAgent` schema.
+type PatchPlatformAgent struct {
+	Label     *string  `json:"label,omitempty"`
+	Scopes    []string `json:"scopes,omitempty"`
+	Providers []string `json:"providers,omitempty"`
+}
+
 // PeerPane is the `PeerPane` schema.
 type PeerPane struct {
 	TabLabel      string     `json:"tabLabel"`
@@ -13793,6 +13983,32 @@ type PinRequest struct {
 	ResourceID  ResourceID `json:"resourceId"`
 	GridX       *int64     `json:"gridX,omitempty"`
 	GridY       *int64     `json:"gridY,omitempty"`
+}
+
+// PlatformAgent is the `PlatformAgent` schema.
+type PlatformAgent struct {
+	ID         string   `json:"id"`
+	ExternalID string   `json:"externalId"`
+	Label      string   `json:"label"`
+	Scopes     []string `json:"scopes"`
+	// Providers: Empty means every provider.
+	Providers        []string `json:"providers"`
+	CredentialPrefix *string  `json:"credentialPrefix"`
+	LastSeenAt       *string  `json:"lastSeenAt"`
+	RevokedAt        *string  `json:"revokedAt"`
+	CreatedAt        string   `json:"createdAt"`
+}
+
+// PlatformAgentEnvelope is the `PlatformAgentEnvelope` schema.
+type PlatformAgentEnvelope struct {
+	Agent PlatformAgent `json:"agent"`
+}
+
+// PlatformAgentWithCredential is the `PlatformAgentWithCredential` schema.
+type PlatformAgentWithCredential struct {
+	Agent PlatformAgent `json:"agent"`
+	// Credential: `iwa_` credential, shown once.
+	Credential string `json:"credential"`
 }
 
 // PluginID: Manifest id of an installed plugin.
@@ -20636,6 +20852,22 @@ type AccountDetailAccount struct {
 	OAuthStatus *AccountOAuthStatus `json:"oauthStatus"`
 }
 
+// AgentLinkInfoApprovedBy is an object the spec declares inline.
+type AgentLinkInfoApprovedBy struct {
+	Email string `json:"email"`
+}
+
+// AgentLinkScopeGroupScopes is an object the spec declares inline.
+type AgentLinkScopeGroupScopes struct {
+	Value string `json:"value"`
+	Label string `json:"label"`
+}
+
+// AgentLinkSummaryApprovedBy is an object the spec declares inline.
+type AgentLinkSummaryApprovedBy struct {
+	Email string `json:"email"`
+}
+
 // AiRequestSourceKindOptionAccounts is an object the spec declares inline.
 type AiRequestSourceKindOptionAccounts struct {
 	ID   string `json:"id"`
@@ -21079,6 +21311,12 @@ type CostXaxisInfoValues struct {
 // CreateAccountResponseSyncError is an object the spec declares inline.
 type CreateAccountResponseSyncError struct {
 	Message string `json:"message"`
+}
+
+// CreateAgentSessionNibbletsLink is an object the spec declares inline.
+type CreateAgentSessionNibbletsLink struct {
+	// Scopes: The link's ceiling.
+	Scopes []string `json:"scopes"`
 }
 
 // CreateJiraIssueResultIssue is an object the spec declares inline.
@@ -22964,6 +23202,11 @@ type AccountsCredentialsUpdateRequest struct {
 // AccountsCredentialsUpdateResponse is an object the spec declares inline.
 type AccountsCredentialsUpdateResponse struct {
 	OK bool `json:"ok"`
+}
+
+// AgentLinksRequestsTokenRequest is an object the spec declares inline.
+type AgentLinksRequestsTokenRequest struct {
+	DeviceCode string `json:"deviceCode"`
 }
 
 // AgentsSessionsDeleteResponse is an object the spec declares inline.
