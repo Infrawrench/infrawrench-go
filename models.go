@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.84.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.85.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.84.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.85.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -20707,6 +20707,20 @@ type WallboardTile struct {
 	//
 	// One of "ok", "degraded", "down".
 	Status string `json:"status"`
+}
+
+// Whoami is the `Whoami` schema.
+type Whoami struct {
+	// UserID: The user the credential acts as. For an agent this is the agent's
+	// own user, not the person who claimed it.
+	UserID string `json:"userId"`
+	// OrganizationID: The organization the credential is pinned to.
+	OrganizationID string `json:"organizationId"`
+	// Principal: `user` for a person's WorkOS access token, `api_key` for an
+	// `iwk_` key, `agent` for an agent credential or agent token.
+	//
+	// One of "user", "api_key", "agent".
+	Principal string `json:"principal"`
 }
 
 // WorkflowApproval is the `WorkflowApproval` schema.

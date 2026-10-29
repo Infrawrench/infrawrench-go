@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.84.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.85.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.84.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.85.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -299,6 +299,8 @@ type APIV1Client struct {
 	Vulnerabilities *VulnerabilitiesNamespace
 	// Wallboard: `client.wallboard`.
 	Wallboard *WallboardNamespace
+	// Whoami: `client.whoami`.
+	Whoami *WhoamiNamespace
 	// WorkflowApprovals: `client.workflowApprovals`.
 	WorkflowApprovals *WorkflowApprovalsNamespace
 	// WorkflowSecrets: `client.workflowSecrets`.
@@ -447,6 +449,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.VirtualTags = newVirtualTagsNamespace(t)
 	c.Vulnerabilities = newVulnerabilitiesNamespace(t)
 	c.Wallboard = newWallboardNamespace(t)
+	c.Whoami = newWhoamiNamespace(t)
 	c.WorkflowApprovals = newWorkflowApprovalsNamespace(t)
 	c.WorkflowSecrets = newWorkflowSecretsNamespace(t)
 	c.Workflows = newWorkflowsNamespace(t)
@@ -32420,6 +32423,36 @@ func (n *WallboardNamespace) Get(ctx context.Context, params *WallboardGetParams
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *WallboardResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WhoamiNamespace is `client.whoami`.
+type WhoamiNamespace struct {
+	t *transport
+}
+
+func newWhoamiNamespace(t *transport) *WhoamiNamespace {
+	n := &WhoamiNamespace{t: t}
+	return n
+}
+
+// Get: Identify a bearer credential
+//
+// Reports who an `Authorization: Bearer` credential belongs to: an API key, an
+// agent credential, or a WorkOS access token. Needs no scope; a 401 means the
+// credential is unknown, revoked, expired or no longer backed by an organization
+// membership. Use it to check a key before relying on it, or to gate a service
+// of your own on Infrawrench sign-in.
+//
+// GET /api/v1/whoami
+//
+// Raises on 401: Unauthenticated
+func (n *WhoamiNamespace) Get(ctx context.Context, opts ...RequestOption) (*Whoami, error) {
+	r := newRequest(http.MethodGet, "/api/v1/whoami")
+	var out *Whoami
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
