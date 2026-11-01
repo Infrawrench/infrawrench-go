@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.85.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.86.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.85.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.86.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1207,6 +1207,95 @@ type AuthFactor struct {
 	UpdatedAt  string  `json:"updatedAt"`
 	TOTPIssuer *string `json:"totpIssuer"`
 	TOTPUser   *string `json:"totpUser"`
+}
+
+// AWSPricingCell: One value. Numbers (including ClickHouse's 64-bit integers and
+// decimals) are JSON numbers; DateTime is `YYYY-MM-DD hh:mm:ss` in UTC; arrays
+// and maps are JSON text.
+//
+// Spec schema: `AwsPricingCell`.
+//
+// The API may send null in its place.
+type AWSPricingCell = any
+
+// AWSPricingQueryRequest is the `AwsPricingQueryRequest` schema.
+//
+// Spec schema: `AwsPricingQueryRequest`.
+type AWSPricingQueryRequest struct {
+	// SQL: One read-only statement: SELECT or WITH (also DESCRIBE, SHOW,
+	// EXPLAIN). No FORMAT or SETTINGS clause, no trailing second statement.
+	SQL string `json:"sql"`
+	// MaxRows: Rows to return at most. Default 1,000; at most 10,000.
+	MaxRows *int64 `json:"maxRows,omitempty"`
+}
+
+// AWSPricingQueryResult is the `AwsPricingQueryResult` schema.
+//
+// Spec schema: `AwsPricingQueryResult`.
+type AWSPricingQueryResult struct {
+	Columns []AWSPricingResultColumn `json:"columns"`
+	// Rows: Each row's values, in `columns` order.
+	Rows [][]AWSPricingCell `json:"rows"`
+	// Truncated: More rows matched than `maxRows`; add a LIMIT or aggregate to
+	// see them all.
+	Truncated bool  `json:"truncated"`
+	ElapsedMs int64 `json:"elapsedMs"`
+}
+
+// AWSPricingResultColumn is the `AwsPricingResultColumn` schema.
+//
+// Spec schema: `AwsPricingResultColumn`.
+type AWSPricingResultColumn struct {
+	Name string `json:"name"`
+	// Type: The ClickHouse type.
+	Type string `json:"type"`
+}
+
+// AWSPricingSchema is the `AwsPricingSchema` schema.
+//
+// Spec schema: `AwsPricingSchema`.
+type AWSPricingSchema struct {
+	Tables []AWSPricingSchemaTable `json:"tables"`
+	// Notes: Conventions a correct query depends on.
+	Notes []string `json:"notes"`
+	// Sources: How fresh each bundle is; null when the warehouse could not be
+	// reached.
+	Sources []AWSPricingSource `json:"sources"`
+}
+
+// AWSPricingSchemaColumn is the `AwsPricingSchemaColumn` schema.
+//
+// Spec schema: `AwsPricingSchemaColumn`.
+type AWSPricingSchemaColumn struct {
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+}
+
+// AWSPricingSchemaTable is the `AwsPricingSchemaTable` schema.
+//
+// Spec schema: `AwsPricingSchemaTable`.
+type AWSPricingSchemaTable struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// SortingKey: Filtering on a prefix of these columns is what makes a query
+	// fast.
+	SortingKey []string                 `json:"sortingKey"`
+	Columns    []AWSPricingSchemaColumn `json:"columns"`
+}
+
+// AWSPricingSource is the `AwsPricingSource` schema.
+//
+// Spec schema: `AwsPricingSource`.
+type AWSPricingSource struct {
+	// Source: A platform name, or `spot` for EC2 spot prices.
+	Source  string `json:"source"`
+	Version string `json:"version"`
+	// PriceListTo: Newest AWS price list in the data (UTC).
+	PriceListTo *string `json:"priceListTo"`
+	// SyncedAt: When it was loaded (UTC).
+	SyncedAt  string `json:"syncedAt"`
+	PriceRows int64  `json:"priceRows"`
 }
 
 // BackupCoverageResponse is the `BackupCoverageResponse` schema.
