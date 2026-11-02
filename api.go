@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.89.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.90.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.89.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.90.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2312,12 +2312,15 @@ type AgentsNamespace struct {
 	Sessions *AgentsSessionsNamespace
 	// Settings: `client.agents.settings`.
 	Settings *AgentsSettingsNamespace
+	// T3Policy: `client.agents.t3Policy`.
+	T3Policy *AgentsT3PolicyNamespace
 }
 
 func newAgentsNamespace(t *transport) *AgentsNamespace {
 	n := &AgentsNamespace{t: t}
 	n.Sessions = newAgentsSessionsNamespace(t)
 	n.Settings = newAgentsSettingsNamespace(t)
+	n.T3Policy = newAgentsT3PolicyNamespace(t)
 	return n
 }
 
@@ -2590,6 +2593,54 @@ func (n *AgentsSettingsNamespace) Update(ctx context.Context, params AgentsSetti
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *AgentSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// AgentsT3PolicyNamespace is `client.agents.t3Policy`.
+type AgentsT3PolicyNamespace struct {
+	t *transport
+}
+
+func newAgentsT3PolicyNamespace(t *transport) *AgentsT3PolicyNamespace {
+	n := &AgentsT3PolicyNamespace{t: t}
+	return n
+}
+
+// AgentsT3PolicyApplyParams holds the parameters for
+// `client.agents.t3Policy.apply`.
+type AgentsT3PolicyApplyParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body AgentT3PolicyApplyRequest
+}
+
+// Apply: Roll the T3 Code policy out to existing servers
+//
+// Installs the organization's current T3 Code managed policy (or removes the one
+// Infrawrench installed, when there is none) on existing T3 Code servers. T3
+// Code reads its policy only at startup: `restart: true` restarts it so the
+// policy applies now, interrupting running agent turns, terminals and connected
+// clients; `restart: false` installs the file and marks the session
+// `t3PolicyRestartPending`. Servers that already have the policy, that the
+// policy does not fit, or that are still setting up are not dialled. Requires
+// `resources:execute`.
+//
+// POST /api/org/{orgId}/agents/t3-policy/apply
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *AgentsT3PolicyNamespace) Apply(ctx context.Context, params AgentsT3PolicyApplyParams, opts ...RequestOption) (*AgentT3PolicyApplyResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/agents/t3-policy/apply")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *AgentT3PolicyApplyResult
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.89.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.90.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.89.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.90.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -662,8 +662,13 @@ type AgentSession struct {
 	// SSH after setup (e.g. Tailscale). See GET /resources/ssh-install/accounts.
 	ServiceAccountIDs []string `json:"serviceAccountIds,omitempty"`
 	// T3Access: One of "t3-connect", "tailscale".
-	T3Access        *string               `json:"t3Access,omitempty"`
-	ServiceInstalls []AgentServiceInstall `json:"serviceInstalls,omitempty"`
+	T3Access *string       `json:"t3Access,omitempty"`
+	T3Policy *T3CodePolicy `json:"t3Policy,omitempty"`
+	// T3PolicyRestartPending: T3 Code sessions: `t3Policy` is installed but T3
+	// Code has not restarted since, so the server still enforces the policy it
+	// started with. Cleared by a restarting rollout or Authorize server.
+	T3PolicyRestartPending *bool                 `json:"t3PolicyRestartPending,omitempty"`
+	ServiceInstalls        []AgentServiceInstall `json:"serviceInstalls,omitempty"`
 	// AgentLinkID: Nibblets sessions: the agent link that starts the server
 	// linked to this organization (see Agent links). Revoked, with its agents,
 	// when the session is deleted.
@@ -694,7 +699,22 @@ type AgentSettings struct {
 	// SSH after setup (e.g. Tailscale). See GET /resources/ssh-install/accounts.
 	ServiceAccountIDs []string `json:"serviceAccountIds,omitempty"`
 	// T3Access: One of "t3-connect", "tailscale".
-	T3Access *string `json:"t3Access,omitempty"`
+	T3Access *string       `json:"t3Access,omitempty"`
+	T3Policy *T3CodePolicy `json:"t3Policy,omitempty"`
+}
+
+// AgentT3PolicyApplyRequest is the `AgentT3PolicyApplyRequest` schema.
+type AgentT3PolicyApplyRequest struct {
+	// Restart: Restart T3 Code so the policy applies now (interrupts running
+	// agent turns), or leave it for the next restart.
+	Restart bool `json:"restart"`
+	// SessionID: One server; omitted, every T3 Code server in the organization.
+	SessionID *string `json:"sessionId,omitempty"`
+}
+
+// AgentT3PolicyApplyResult is the `AgentT3PolicyApplyResult` schema.
+type AgentT3PolicyApplyResult struct {
+	Servers []AgentT3PolicyApplyResultServers `json:"servers"`
 }
 
 // AgentVMAccount is the `AgentVmAccount` schema.
@@ -20057,6 +20077,31 @@ type SyntheticProbeUpdate struct {
 	Enabled          *bool  `json:"enabled,omitempty"`
 }
 
+// T3CodePolicy: The organization's T3 Code managed policy, installed on every T3
+// Code server (`/etc/t3code/policy.json`). On save: omit to keep the stored
+// policy, `null` to remove it. A new T3 Code session is refused when the policy
+// does not allow its tool or turns off the T3 Connect it is reached through.
+//
+// The API may send null in its place.
+type T3CodePolicy struct {
+	SchemaVersion float64 `json:"schemaVersion"`
+	// Organization: Shown to users as "Managed by <organization>".
+	Organization string  `json:"organization"`
+	SupportURL   *string `json:"supportUrl,omitempty"`
+	// Settings: Keyed by the setting's dot path in T3 Code's settings.json.
+	// `locked: false` sets a default users can change; `locked: true` pins it.
+	Settings map[string]T3CodePolicySettingsValue `json:"settings,omitempty"`
+	Limits   *T3CodePolicyLimits                  `json:"limits,omitempty"`
+}
+
+// T3CodePolicyProviderInstance is the `T3CodePolicyProviderInstance` schema.
+type T3CodePolicyProviderInstance struct {
+	Locked      bool                                      `json:"locked"`
+	Environment []T3CodePolicyProviderInstanceEnvironment `json:"environment,omitempty"`
+	BinaryPath  *string                                   `json:"binaryPath,omitempty"`
+	LaunchArgs  *string                                   `json:"launchArgs,omitempty"`
+}
+
 // TabTarget is the `TabTarget` schema.
 type TabTarget struct {
 	// Kind: One of "dashboard", "account", "resource", "agents", "costs",
@@ -20969,6 +21014,22 @@ type AgentLinkScopeGroupScopes struct {
 // AgentLinkSummaryApprovedBy is an object the spec declares inline.
 type AgentLinkSummaryApprovedBy struct {
 	Email string `json:"email"`
+}
+
+// AgentT3PolicyApplyResultServers is an object the spec declares inline.
+type AgentT3PolicyApplyResultServers struct {
+	SessionID   string `json:"sessionId"`
+	ProjectName string `json:"projectName"`
+	// Outcome: `applied`: installed and T3 Code restarted onto it. `installed`:
+	// applies at the next restart. `unchanged`: already had it. `skipped`: the
+	// policy does not fit this server, which keeps its policy. `setting-up`:
+	// setup has not finished; the server starts on this policy. `failed`: see
+	// `message`.
+	//
+	// One of "applied", "installed", "unchanged", "skipped", "setting-up",
+	// "failed".
+	Outcome string  `json:"outcome"`
+	Message *string `json:"message,omitempty"`
 }
 
 // AiRequestSourceKindOptionAccounts is an object the spec declares inline.
@@ -22892,6 +22953,33 @@ type SshinstallRequestTarget struct {
 	ResourceID     ResourceID `json:"resourceId"`
 }
 
+// T3CodePolicySettingsValue is an object the spec declares inline.
+type T3CodePolicySettingsValue struct {
+	Value  any  `json:"value,omitempty"`
+	Locked bool `json:"locked"`
+}
+
+// T3CodePolicyLimits is an object the spec declares inline.
+type T3CodePolicyLimits struct {
+	// MaxRuntimeMode: One of "approval-required", "auto-accept-edits", "auto",
+	// "full-access".
+	MaxRuntimeMode *string `json:"maxRuntimeMode,omitempty"`
+	// Clients: Must include `remote`: agent VMs are only reachable remotely.
+	Clients             []string                     `json:"clients,omitempty"`
+	Connect             *bool                        `json:"connect,omitempty"`
+	WebhookTasks        *bool                        `json:"webhookTasks,omitempty"`
+	Telemetry           *bool                        `json:"telemetry,omitempty"`
+	BrowserCookieImport *bool                        `json:"browserCookieImport,omitempty"`
+	Providers           *T3CodePolicyLimitsProviders `json:"providers,omitempty"`
+	Updates             *T3CodePolicyLimitsUpdates   `json:"updates,omitempty"`
+}
+
+// T3CodePolicyProviderInstanceEnvironment is an object the spec declares inline.
+type T3CodePolicyProviderInstanceEnvironment struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 // TerraformExportExported is an object the spec declares inline.
 type TerraformExportExported struct {
 	ID             ResourceID `json:"id"`
@@ -23248,6 +23336,20 @@ type ServiceSummaryFindingsBackups struct {
 type SloSourcesMetricResourcesSeries struct {
 	Label string `json:"label"`
 	Unit  string `json:"unit"`
+}
+
+// T3CodePolicyLimitsProviders is an object the spec declares inline.
+type T3CodePolicyLimitsProviders struct {
+	AllowedDrivers []string                                `json:"allowedDrivers,omitempty"`
+	Instances      map[string]T3CodePolicyProviderInstance `json:"instances,omitempty"`
+}
+
+// T3CodePolicyLimitsUpdates is an object the spec declares inline.
+type T3CodePolicyLimitsUpdates struct {
+	// Mode: One of "auto", "off".
+	Mode         string  `json:"mode"`
+	FeedURL      *string `json:"feedUrl,omitempty"`
+	AllowNightly *bool   `json:"allowNightly,omitempty"`
 }
 
 // UnitCostQueryResponseConversionConverted is an object the spec declares
