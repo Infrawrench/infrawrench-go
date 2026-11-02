@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.88.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.89.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.88.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.89.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -17646,10 +17646,10 @@ type InstancePricingQueryParams struct {
 // for it (on demand, committed terms and EC2 spot), in every region, with
 // history. It covers AWS EC2, RDS, ElastiCache, OpenSearch, Redshift,
 // DocumentDB, Neptune, MemoryDB, DAX, SageMaker, EMR and GameLift, RunPod GPU
-// types and CPU pods, and Alibaba Cloud ECS. It is the data behind
-// instances.infrawrench.com. Needs no scope. Use `GET
-// /api/v1/instance-pricing/schema` for the columns, or the tables below; filter
-// `prices` on `platform` and `current`.
+// types and CPU pods, Alibaba Cloud ECS, Azure virtual machines and Google Cloud
+// Compute Engine. It is the data behind instances.infrawrench.com. Needs no
+// scope. Use `GET /api/v1/instance-pricing/schema` for the columns, or the
+// tables below; filter `prices` on `platform` and `current`.
 //
 // - `prices`: Every price the provider has listed for an instance type, one row
 // per period a price held. `current = true` (equivalently `valid_to IS NULL`) is
@@ -17661,12 +17661,16 @@ type InstancePricingQueryParams struct {
 // specs. EC2 spot prices use the `ec2` rows. Specs the provider does not list
 // are NULL or `''`; `attributes` has every attribute it publishes, as strings
 // (AWS's price list keys, Alibaba's DescribeInstanceTypes fields such as
-// `CpuCoreCount` and `CpuOptions.ThreadsPerCore`, RunPod's GraphQL fields such
-// as `maxGpuCountSecureCloud` and `dataCenters`). - `attribute_changes`: History of instance attributes: the values each type
+// `CpuCoreCount` and `CpuOptions.ThreadsPerCore`, Azure's pricing calculator
+// fields such as `cores`, `ram` and `series`, Google Cloud's Compute Engine
+// machine type fields such as `guestCpus`, `memoryMb` and `zones`, RunPod's
+// GraphQL fields such as `maxGpuCountSecureCloud` and `dataCenters`). - `attribute_changes`: History of instance attributes: the values each type
 // was first listed with, then every change. Use it for questions like when a
 // spec changed. - `regions`: Region codes and the names the provider gives them, per source.
 // Use it to turn a city or country into a region code. Codes repeat across
-// clouds (Alibaba also has `us-east-1`), so filter on source. - `sync_state`: When each bundle was loaded and which price lists it covers;
+// clouds (Alibaba also has `us-east-1`), so filter on source. Google Cloud's
+// names are the city, state or country from its regions page (`Council Bluffs,
+// Iowa` for us-central1). - `sync_state`: When each bundle was loaded and which price lists it covers;
 // `max(price_list_to)` is how fresh the data is. - `service_events`: Every incident AWS posted on its public Health Dashboard
 // (status page), 2008 to now: one row per event, with when it was posted, when
 // AWS says the impact began and ended, and every update AWS wrote. Only events
@@ -17714,12 +17718,16 @@ func (n *InstancePricingNamespace) Query(ctx context.Context, params InstancePri
 // specs. EC2 spot prices use the `ec2` rows. Specs the provider does not list
 // are NULL or `''`; `attributes` has every attribute it publishes, as strings
 // (AWS's price list keys, Alibaba's DescribeInstanceTypes fields such as
-// `CpuCoreCount` and `CpuOptions.ThreadsPerCore`, RunPod's GraphQL fields such
-// as `maxGpuCountSecureCloud` and `dataCenters`). - `attribute_changes`: History of instance attributes: the values each type
+// `CpuCoreCount` and `CpuOptions.ThreadsPerCore`, Azure's pricing calculator
+// fields such as `cores`, `ram` and `series`, Google Cloud's Compute Engine
+// machine type fields such as `guestCpus`, `memoryMb` and `zones`, RunPod's
+// GraphQL fields such as `maxGpuCountSecureCloud` and `dataCenters`). - `attribute_changes`: History of instance attributes: the values each type
 // was first listed with, then every change. Use it for questions like when a
 // spec changed. - `regions`: Region codes and the names the provider gives them, per source.
 // Use it to turn a city or country into a region code. Codes repeat across
-// clouds (Alibaba also has `us-east-1`), so filter on source. - `sync_state`: When each bundle was loaded and which price lists it covers;
+// clouds (Alibaba also has `us-east-1`), so filter on source. Google Cloud's
+// names are the city, state or country from its regions page (`Council Bluffs,
+// Iowa` for us-central1). - `sync_state`: When each bundle was loaded and which price lists it covers;
 // `max(price_list_to)` is how fresh the data is. - `service_events`: Every incident AWS posted on its public Health Dashboard
 // (status page), 2008 to now: one row per event, with when it was posted, when
 // AWS says the impact began and ended, and every update AWS wrote. Only events
@@ -17765,10 +17773,37 @@ func (n *InstancePricingNamespace) Query(ctx context.Context, params InstancePri
 // or '1yr' to '5yr', paid in full: hourly_usd = 0, upfront_usd the price);
 // reserved instances are offering_class = 'Reserved Instance' (lease '1yr' or
 // '3yr', with a purchase_option). Prices go back to May 2018; specs (attributes)
-// start in May 2023, so older retired types can have NULL vcpu and memory_gib. - Comparing clouds: region codes are each provider's own, so join regions on
+// start in May 2023, so older retired types can have NULL vcpu and memory_gib. - Azure virtual machines (platform = 'azure'): default to operating_system =
+// 'Linux', variant['priority'] = 'Regular' and region 'eastus'. Spot and Low
+// Priority prices are on_demand rows with variant['priority'] = 'Spot' or 'Low
+// Priority', so always fix priority. Reservations are offering_class = 'Reserved
+// Instance', All Upfront (hourly_usd = 0, upfront_usd the whole term), lease
+// '1yr', '3yr' and for some sizes '5yr' or '10yr'; Azure lists them under
+// operating_system = 'Linux' only, since a Windows license is billed on top.
+// Savings plans are offering_class = 'Savings Plan', No Upfront, '1yr' or '3yr',
+// hourly_usd the plan's rate. Specs come from Azure's pricing calculator
+// (attributes 'cores', 'ram', 'diskSize', 'gpu', 'series'); about a third of
+// sizes, mostly the newest and retired series, have none, so vcpu and memory_gib
+// are NULL there: match on instance_type or family (the series) for those.
+// Dedicated hosts are not included. valid_from is when Azure says a price took
+// effect (back to 2017), but changes are tracked from November 2026. - Google Cloud Compute Engine (platform = 'gcp'): default to
+// variant['provisioningModel'] = 'Standard' and region 'us-central1'; Spot
+// prices are on_demand rows with provisioningModel = 'Spot'. Google bills most
+// machine types per vCPU and per GiB of memory at their series' rates, plus
+// their GPUs, so each price is worked out from those rates and the machine
+// type's shape. Prices leave out bundled Local SSD, OS licenses and sustained
+// use discounts, and TPU, X4, X5 and A4X machine types are not included.
+// Committed use discounts are offering_class = 'Committed Use', No Upfront,
+// '1yr' or '3yr', hourly_usd the commitment's rate. Which zones of a region
+// offer a machine type is attributes['zones'] (comma separated), which differs
+// by region: read it from attribute_changes for the region (attribute =
+// 'zones'), as instance_types holds one region's value. History starts in
+// November 2026. - Comparing clouds: region codes are each provider's own, so join regions on
 // source as well as region and compare by location (Alibaba's us-east-1 is US
-// (Virginia), the same area as AWS's us-east-1). Compare on effective_hourly_usd
-// for similar vcpu and memory_gib, and say which cloud each row is from. - Use instance_types for specs and to list types; join prices on (platform,
+// (Virginia), the same area as AWS's us-east-1, Azure's eastus and Google
+// Cloud's us-east4). Compare on effective_hourly_usd for similar vcpu and
+// memory_gib, like for like (on demand against pay-as-you-go and Standard; spot
+// against Azure Spot and Google Spot), and say which cloud each row is from. - Use instance_types for specs and to list types; join prices on (platform,
 // instance_type) when you need specs it does not carry. - prices is large (millions of rows for ec2): always filter on platform and
 // current (or a time range), and aggregate or LIMIT. - service_events is AWS's public status page history, not a measured uptime:
 // AWS publishes no availability percentage. To estimate downtime, sum
