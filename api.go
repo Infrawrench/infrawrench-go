@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.86.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.87.0 | MIT | Copyright (c) 2026 Infrawrench LLC
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.86.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.87.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3901,7 +3901,12 @@ type AWSPricingQueryParams struct {
 // was first listed with, then every change. Use it for questions like when a
 // spec changed. - `regions`: Region codes and the names AWS gives them, per platform's price
 // list. Use it to turn a city or country into a region code. - `sync_state`: When each bundle was loaded and which AWS price lists it
-// covers; `max(price_list_to)` is how fresh the data is.
+// covers; `max(price_list_to)` is how fresh the data is. - `service_events`: Every incident AWS posted on its public Health Dashboard
+// (status page), 2008 to now: one row per event, with when it was posted, when
+// AWS says the impact began and ended, and every update AWS wrote. Only events
+// AWS chose to post publicly; account-specific issues never appear, so no event
+// does not prove no impact. Use it for questions about outages, incidents and
+// how reliable a service or region has been.
 //
 // POST /api/v1/aws-pricing/query
 //
@@ -3945,7 +3950,12 @@ func (n *AWSPricingNamespace) Query(ctx context.Context, params AWSPricingQueryP
 // was first listed with, then every change. Use it for questions like when a
 // spec changed. - `regions`: Region codes and the names AWS gives them, per platform's price
 // list. Use it to turn a city or country into a region code. - `sync_state`: When each bundle was loaded and which AWS price lists it
-// covers; `max(price_list_to)` is how fresh the data is.
+// covers; `max(price_list_to)` is how fresh the data is. - `service_events`: Every incident AWS posted on its public Health Dashboard
+// (status page), 2008 to now: one row per event, with when it was posted, when
+// AWS says the impact began and ended, and every update AWS wrote. Only events
+// AWS chose to post publicly; account-specific issues never appear, so no event
+// does not prove no impact. Use it for questions about outages, incidents and
+// how reliable a service or region has been.
 //
 // Notes:
 //
@@ -3955,12 +3965,29 @@ func (n *AWSPricingNamespace) Query(ctx context.Context, params AWSPricingQueryP
 // 'on_demand'; for rds, deployment_option = 'Single-AZ', one database_engine
 // (PostgreSQL if unsaid) and usage_type NOT LIKE '%Unused%' (those rows price
 // unused capacity reservations); for elasticache and memorydb, cache_engine =
-// 'Redis' (or 'Valkey') and usage_type = 'NodeUsage'; region us-east-1. - "Cheapest" means the lowest effective_hourly_usd among current rows. Hourly
+// 'Redis' (or 'Valkey') and usage_type = 'NodeUsage'; region us-east-1. - EC2 Windows: the price AWS quotes for Windows (license included) is
+// license_model = 'No License required'. The `License Included - Infrastructure`
+// and `Bring your own license` rows price only the compute, at the Linux rate,
+// so never quote them as the Windows price unless the question is about bringing
+// a license. Windows with SQL Server is pre_installed_sw = 'SQL Web', 'SQL Std'
+// or 'SQL Ent'. - "Cheapest" means the lowest effective_hourly_usd among current rows. Hourly
 // to monthly: x 730. - Spot rows (pricing = 'spot') only exist for ec2 with operating_system
-// 'Linux' or 'Windows'; spot prices move often, so their history is dense. - Reserved rows: an All Upfront term has hourly_usd = 0 and the whole cost in
+// 'Linux' or 'Windows', and leave tenancy, license_model, pre_installed_sw and
+// capacity_status as '': drop those ec2 defaults for spot (pricing = 'spot' OR
+// (tenancy = 'Shared' AND ...)). A spot price is the lowest across the region's
+// availability zones, as AWS's Spot pricing page shows it. Spot history starts
+// 2026-08-03 with a price every hour (for the 17 main regions; the others and
+// Local Zones start 2026-11-01), and has one every 6 hours since 2026-11-01, so
+// aggregate it (by day, say) rather than listing rows. - Reserved rows: an All Upfront term has hourly_usd = 0 and the whole cost in
 // upfront_usd; compare reserved and on-demand on effective_hourly_usd. - Use instance_types for specs and to list types; join prices on (platform,
 // instance_type) when you need specs it does not carry. - prices is large (millions of rows for ec2): always filter on platform and
-// current (or a time range), and aggregate or LIMIT.
+// current (or a time range), and aggregate or LIMIT. - service_events is AWS's public status page history, not a measured uptime:
+// AWS publishes no availability percentage. To estimate downtime, sum
+// dateDiff('minute', impact_started_at, impact_ended_at) (fall back to posted_at
+// and resolved_at when those are NULL) over events with severity 'degraded' or
+// 'disrupted', and say that it covers only events AWS posted publicly. An event
+// filed under `multipleservices` or another service can still have hit the one
+// asked about: also match mapContains(impacted_services, '<service>-<region>').
 //
 // GET /api/v1/aws-pricing/schema
 //
