@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.90.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.91.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.90.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.91.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -4426,6 +4426,8 @@ type BillingCheckoutParams struct {
 	//
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
+	// Body: the JSON request body.
+	Body *SubscriptionCheckoutRequest
 }
 
 // Checkout: Start a Stripe Checkout session
@@ -4443,8 +4445,43 @@ func (n *BillingNamespace) Checkout(ctx context.Context, params *BillingCheckout
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/billing/checkout")
 	if params != nil {
 		r.setPath("orgId", params.OrgID)
+		r.setJSONBody(params.Body)
 	}
 	var out *StripeRedirectURL
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// BillingMeasurementConsentParams holds the parameters for
+// `client.billing.measurementConsent`.
+type BillingMeasurementConsentParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body SubscriptionCheckoutRequest
+}
+
+// MeasurementConsent: Update consent on unpaid checkouts for this visitor
+//
+// Rewrites the saved analytics consent on this user's Checkout Sessions that are
+// not yet paid. A withdrawal reaches all of them; any other answer reaches the
+// matching visitor's sessions and any still pending with no visitor id. A paid
+// session is left as it was queued.
+//
+// _Requires permission: `billing:write`._
+//
+// POST /api/org/{orgId}/billing/measurement-consent
+//
+// Raises on 403: Forbidden
+func (n *BillingNamespace) MeasurementConsent(ctx context.Context, params BillingMeasurementConsentParams, opts ...RequestOption) (*RevnuConsentRefresh, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/billing/measurement-consent")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *RevnuConsentRefresh
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

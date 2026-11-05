@@ -2,7 +2,7 @@
 
 Generated Go client for the Infrawrench API.
 
-**API version `1.90.0`.** A Go module takes its version from a VCS
+**API version `1.91.0`.** A Go module takes its version from a VCS
 tag rather than from a manifest field, so the API version lives in this README
 and in the `APIVersion` constant — check that constant, not the module tag,
 when you need to know which API shape you have.
@@ -90,11 +90,11 @@ Topics: infrawrench, sdk, api-client, openapi, infrastructure, cloud, devops.
 
 ## License
 
-MIT — see [`LICENSE`](./LICENSE). Copyright (c) 2026 Infrawrench LLC.
+MIT — see [`LICENSE`](./LICENSE). Copyright (c) 2026 Infrawrench Services, Inc..
 
 Note that this client is more permissively licensed than the service it talks
 to: the Infrawrench source is BUSL-1.1, but the generated clients are MIT
 so you can link one into your own software without inheriting those terms.
 
-Maintained by Infrawrench LLC <astrid@infrawrench.com>. Documentation: <https://infrawrench.com/docs/team-and-billing/client-sdks>.
+Maintained by Infrawrench Services, Inc. <astrid@infrawrench.com>. Documentation: <https://infrawrench.com/docs/team-and-billing/client-sdks>.
 Issues: <https://github.com/Infrawrench/Infrawrench/issues>

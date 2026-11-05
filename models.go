@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.90.0 | MIT | Copyright (c) 2026 Infrawrench LLC
+// github.com/Infrawrench/infrawrench-go v1.91.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.90.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.91.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2704,7 +2704,8 @@ type CalendarSubscriptionList struct {
 type CapacityCheckoutRequest struct {
 	// Quantity: Slots to buy. Defaults to 1. The buyer can still adjust it in
 	// Checkout.
-	Quantity *int64 `json:"quantity,omitempty"`
+	Quantity    *int64                    `json:"quantity,omitempty"`
+	Measurement *RevnuCheckoutMeasurement `json:"measurement,omitempty"`
 }
 
 // CapacitySlot is the `CapacitySlot` schema.
@@ -17494,6 +17495,25 @@ type RevertPreviewResponse struct {
 	RevertedAt     *string    `json:"revertedAt"`
 }
 
+// RevnuCheckoutMeasurement is the `RevnuCheckoutMeasurement` schema.
+type RevnuCheckoutMeasurement struct {
+	// AnonymousID: Opaque Revnu visitor id captured in the browser at checkout.
+	// Invalid values are ignored.
+	AnonymousID *string `json:"anonymousId,omitempty"`
+	// ConsentState: Analytics consent for this checkout. A purchase with no
+	// saved answer is reported as unanswered, and one that was declined is not
+	// reported. Never copied into Stripe.
+	//
+	// One of "granted", "denied", "pending".
+	ConsentState *string `json:"consentState,omitempty"`
+}
+
+// RevnuConsentRefresh is the `RevnuConsentRefresh` schema.
+type RevnuConsentRefresh struct {
+	// Updated: Unpaid checkouts whose saved consent was updated.
+	Updated int64 `json:"updated"`
+}
+
 // RightsizingListResponse is the `RightsizingListResponse` schema.
 type RightsizingListResponse struct {
 	// Accounts: Groups sorted by account name.
@@ -19960,6 +19980,11 @@ type Subscription struct {
 	SeatCount        int64   `json:"seatCount"`
 	CurrentPeriodEnd *string `json:"currentPeriodEnd"`
 	StripeCustomerID string  `json:"stripeCustomerId"`
+}
+
+// SubscriptionCheckoutRequest is the `SubscriptionCheckoutRequest` schema.
+type SubscriptionCheckoutRequest struct {
+	Measurement *RevnuCheckoutMeasurement `json:"measurement,omitempty"`
 }
 
 // SwapAllocationRulesBody: Two allocation rule ids in the same org whose
