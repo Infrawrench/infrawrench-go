@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.92.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.93.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.92.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.93.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -17734,8 +17734,10 @@ type InstancePricingQueryParams struct {
 // for it (on demand, committed terms and EC2 spot), in every region, with
 // history. It covers AWS EC2, RDS, ElastiCache, OpenSearch, Redshift,
 // DocumentDB, Neptune, MemoryDB, DAX, SageMaker, EMR and GameLift, RunPod GPU
-// types and CPU pods, Alibaba Cloud ECS, Azure virtual machines and Google Cloud
-// Compute Engine. It is the data behind instances.infrawrench.com. Needs no
+// types and CPU pods, Alibaba Cloud ECS, Azure virtual machines, Google Cloud
+// Compute Engine, Hetzner cloud servers and Server Auction listings, OVHcloud
+// Public Cloud and eco servers, Oracle Cloud compute and IBM Cloud Virtual
+// Servers for VPC. It is the data behind instances.infrawrench.com. Needs no
 // scope. Use `GET /api/v1/instance-pricing/schema` for the columns, or the
 // tables below; filter `prices` on `platform` and `current`. The Infrawrench web
 // and desktop apps call this path with a key built into them; that key is
