@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.93.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.94.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.93.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.94.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3096,11 +3096,13 @@ type ChildResourceRef struct {
 
 // ChildTypeRef is the `ChildTypeRef` schema.
 type ChildTypeRef struct {
-	ID                string       `json:"id"`
-	DisplayName       string       `json:"displayName"`
-	PluralDisplayName *string      `json:"pluralDisplayName,omitempty"`
-	SupportsCreate    bool         `json:"supportsCreate"`
-	Fields            []JSONObject `json:"fields,omitempty"`
+	ID                string                 `json:"id"`
+	DisplayName       string                 `json:"displayName"`
+	PluralDisplayName *string                `json:"pluralDisplayName,omitempty"`
+	IconKey           *string                `json:"iconKey,omitempty"`
+	Showcase          []ChildTypeRefShowcase `json:"showcase,omitempty"`
+	SupportsCreate    bool                   `json:"supportsCreate"`
+	Fields            []JSONObject           `json:"fields,omitempty"`
 }
 
 // CommitmentCoverage is the `CommitmentCoverage` schema.
@@ -14058,21 +14060,23 @@ type PickerResourcesRequest struct {
 
 // PinFull is the `PinFull` schema.
 type PinFull struct {
-	PinID             string      `json:"pinId"`
-	ResourceID        ResourceID  `json:"resourceId"`
-	GridX             int64       `json:"gridX"`
-	GridY             int64       `json:"gridY"`
-	GridW             int64       `json:"gridW"`
-	GridH             int64       `json:"gridH"`
-	DisplayName       string      `json:"displayName"`
-	PluginID          string      `json:"pluginId"`
-	ResourceTypeID    string      `json:"resourceTypeId"`
-	AccountID         string      `json:"accountId"`
-	FieldsJSON        JSONObject  `json:"fieldsJson"`
-	OutputsJSON       JSONObject  `json:"outputsJson"`
-	PluginLogoSvg     string      `json:"pluginLogoSvg"`
-	PluginDisplayName string      `json:"pluginDisplayName"`
-	Status            ProbeStatus `json:"status"`
+	PinID             string            `json:"pinId"`
+	ResourceID        ResourceID        `json:"resourceId"`
+	GridX             int64             `json:"gridX"`
+	GridY             int64             `json:"gridY"`
+	GridW             int64             `json:"gridW"`
+	GridH             int64             `json:"gridH"`
+	DisplayName       string            `json:"displayName"`
+	PluginID          string            `json:"pluginId"`
+	ResourceTypeID    string            `json:"resourceTypeId"`
+	AccountID         string            `json:"accountId"`
+	FieldsJSON        JSONObject        `json:"fieldsJson"`
+	OutputsJSON       JSONObject        `json:"outputsJson"`
+	PluginLogoSvg     string            `json:"pluginLogoSvg"`
+	IconKey           *string           `json:"iconKey,omitempty"`
+	Showcase          []PinFullShowcase `json:"showcase,omitempty"`
+	PluginDisplayName string            `json:"pluginDisplayName"`
+	Status            ProbeStatus       `json:"status"`
 }
 
 // PinRangeMetricSeries is the `PinRangeMetricSeries` schema.
@@ -17354,9 +17358,15 @@ const (
 
 // ResourceTypeSummary is the `ResourceTypeSummary` schema.
 type ResourceTypeSummary struct {
-	ID                    string                             `json:"id"`
-	DisplayName           string                             `json:"displayName"`
-	PluralDisplayName     *string                            `json:"pluralDisplayName,omitempty"`
+	ID                string  `json:"id"`
+	DisplayName       string  `json:"displayName"`
+	PluralDisplayName *string `json:"pluralDisplayName,omitempty"`
+	// IconKey: What this type of resource is, in a shared vocabulary (`cpu`,
+	// `database`, ...).
+	IconKey *string `json:"iconKey,omitempty"`
+	// Showcase: The fields this type marked to show on its tile, read from each
+	// resource's synced fields.
+	Showcase              []ResourceTypeSummaryShowcase      `json:"showcase,omitempty"`
 	ParentTypeID          *string                            `json:"parentTypeId,omitempty"`
 	SupportsCreate        bool                               `json:"supportsCreate"`
 	AttachTargets         []ResourceTypeSummaryAttachTargets `json:"attachTargets,omitempty"`
@@ -21234,6 +21244,12 @@ type ChangeFreezeBlockedFreeze struct {
 	EndsAt   *string `json:"endsAt"`
 }
 
+// ChildTypeRefShowcase is an object the spec declares inline.
+type ChildTypeRefShowcase struct {
+	Key   string `json:"key"`
+	Label string `json:"label"`
+}
+
 // CompliancePackDeliveryTargetsSlackChannels is an object the spec declares
 // inline.
 type CompliancePackDeliveryTargetsSlackChannels struct {
@@ -22459,6 +22475,12 @@ type PickerResourcesRequestSources struct {
 	OutputKey      string `json:"outputKey"`
 }
 
+// PinFullShowcase is an object the spec declares inline.
+type PinFullShowcase struct {
+	Key   string `json:"key"`
+	Label string `json:"label"`
+}
+
 // PinRangeMetricSeriesPoints is an object the spec declares inline.
 type PinRangeMetricSeriesPoints struct {
 	Timestamp float64 `json:"timestamp"`
@@ -22734,6 +22756,12 @@ type ResourceReportRowsCost struct {
 	Reason    *string                         `json:"reason"`
 	Basis     CostBasis                       `json:"basis"`
 	Windows   []ResourceReportRowsCostWindows `json:"windows"`
+}
+
+// ResourceTypeSummaryShowcase is an object the spec declares inline.
+type ResourceTypeSummaryShowcase struct {
+	Key   string `json:"key"`
+	Label string `json:"label"`
 }
 
 // ResourceTypeSummaryAttachTargets is an object the spec declares inline.
