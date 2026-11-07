@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.95.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.96.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.95.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.96.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -17131,7 +17131,6 @@ const (
 	ResourceTypeIDServerlessContainer            ResourceTypeID = "serverless-container"
 	ResourceTypeIDServerlessEndpoint             ResourceTypeID = "serverless-endpoint"
 	ResourceTypeIDServerlessFunction             ResourceTypeID = "serverless-function"
-	ResourceTypeIDServerlessInstance             ResourceTypeID = "serverless-instance"
 	ResourceTypeIDServerlessTrafficFilter        ResourceTypeID = "serverless-traffic-filter"
 	ResourceTypeIDService                        ResourceTypeID = "service"
 	ResourceTypeIDServiceAccount                 ResourceTypeID = "service-account"
@@ -20019,6 +20018,11 @@ type SwapAllocationRulesBody struct {
 // SyncResponse is the `SyncResponse` schema.
 type SyncResponse struct {
 	Synced int64 `json:"synced"`
+	// IncompleteLists: Resource types left as they were because their list could
+	// not be read whole: too long to read, or a page from the provider that was
+	// not a list. The stored rows are kept rather than pruned against part of a
+	// list.
+	IncompleteLists []SyncResponseIncompleteLists `json:"incompleteLists,omitempty"`
 }
 
 // SyncedResource is the `SyncedResource` schema.
@@ -23025,6 +23029,12 @@ type SshinstallRequestTarget struct {
 	AccountID      string     `json:"accountId"`
 	ResourceTypeID string     `json:"resourceTypeId"`
 	ResourceID     ResourceID `json:"resourceId"`
+}
+
+// SyncResponseIncompleteLists is an object the spec declares inline.
+type SyncResponseIncompleteLists struct {
+	ResourceTypeID string `json:"resourceTypeId"`
+	Message        string `json:"message"`
 }
 
 // T3CodePolicySettingsValue is an object the spec declares inline.
