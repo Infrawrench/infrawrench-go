@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.94.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.95.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.94.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.95.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -14318,6 +14318,18 @@ type PluginSummary struct {
 	CredentialFields []CredentialField     `json:"credentialFields"`
 	Preflight        *PreflightDeclaration `json:"preflight"`
 	OAuth            *PluginOAuthSummary   `json:"oauth,omitempty"`
+	// SSHTunnel: Present when the plugin can be reached through an SSH tunnel to
+	// a remote host.
+	SSHTunnel *PluginSummarySshtunnel `json:"sshTunnel,omitempty"`
+	// JumpHost: This plugin's accounts are SSH hosts that other accounts can
+	// connect through.
+	JumpHost *bool `json:"jumpHost,omitempty"`
+	// KVBrowser: Which browser the plugin's connections open: `documents` for
+	// collections of JSON documents, `keys` for the key-value console. Absent
+	// means `keys`, or that the plugin has no key-value driver.
+	//
+	// One of "keys", "documents".
+	KVBrowser *string `json:"kvBrowser,omitempty"`
 }
 
 // PolicyTemplate is the `PolicyTemplate` schema.
@@ -22485,6 +22497,15 @@ type PinFullShowcase struct {
 type PinRangeMetricSeriesPoints struct {
 	Timestamp float64 `json:"timestamp"`
 	Value     float64 `json:"value"`
+}
+
+// PluginSummarySshtunnel is an object the spec declares inline.
+type PluginSummarySshtunnel struct {
+	Label       string `json:"label"`
+	DefaultPort int64  `json:"defaultPort"`
+	// Credentials: What an account tunneled to this service stores; `{port}`
+	// stands for the local end of the tunnel.
+	Credentials map[string]string `json:"credentials"`
 }
 
 // PolicyTemplateHelpLink is an object the spec declares inline.
