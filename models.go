@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.97.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.98.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.97.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.98.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -16930,7 +16930,6 @@ const (
 	ResourceTypeIDParsingRuleGroup               ResourceTypeID = "parsing-rule-group"
 	ResourceTypeIDPermission                     ResourceTypeID = "permission"
 	ResourceTypeIDPerplexityAgentModel           ResourceTypeID = "perplexity-agent-model"
-	ResourceTypeIDPerplexityAsyncRequest         ResourceTypeID = "perplexity-async-request"
 	ResourceTypeIDPerplexityRouterModel          ResourceTypeID = "perplexity-router-model"
 	ResourceTypeIDPerplexitySkill                ResourceTypeID = "perplexity-skill"
 	ResourceTypeIDPerplexitySonarModel           ResourceTypeID = "perplexity-sonar-model"
