@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.98.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.99.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.98.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.99.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -163,6 +163,8 @@ type APIV1Client struct {
 	Expiring *ExpiringNamespace
 	// ExtendedSupport: `client.extendedSupport`.
 	ExtendedSupport *ExtendedSupportNamespace
+	// Github: `client.github`.
+	Github *GithubNamespace
 	// GithubIssues: `client.githubIssues`.
 	GithubIssues *GithubIssuesNamespace
 	// Iac: `client.iac`.
@@ -385,6 +387,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.EventSubscriptions = newEventSubscriptionsNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
 	c.ExtendedSupport = newExtendedSupportNamespace(t)
+	c.Github = newGithubNamespace(t)
 	c.GithubIssues = newGithubIssuesNamespace(t)
 	c.Iac = newIacNamespace(t)
 	c.IdleFindings = newIdleFindingsNamespace(t)
@@ -505,12 +508,13 @@ type AccessRequestsApproveParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 403: Self-approval, or granting beyond the approver's own
-// permissions
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: AccessDecisionForbidden
 //
 // Raises on 404: Not found
 //
-// Raises on 409: Already decided, or the request timed out
+// Raises on 409: AccessDecisionConflict
 func (n *AccessRequestsNamespace) Approve(ctx context.Context, params AccessRequestsApproveParams, opts ...RequestOption) (*AccessRequest, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/access-requests/{requestId}/approve")
 	r.setPath("orgId", params.OrgID)
@@ -581,6 +585,8 @@ type AccessRequestsCreateParams struct {
 // POST /api/org/{orgId}/access-requests
 //
 // Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
 func (n *AccessRequestsNamespace) Create(ctx context.Context, params *AccessRequestsCreateParams, opts ...RequestOption) (*AccessRequest, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/access-requests")
 	if params != nil {
@@ -620,12 +626,13 @@ type AccessRequestsDenyParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 403: Self-approval, or granting beyond the approver's own
-// permissions
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: AccessDecisionForbidden
 //
 // Raises on 404: Not found
 //
-// Raises on 409: Already decided, or the request timed out
+// Raises on 409: AccessDecisionConflict
 func (n *AccessRequestsNamespace) Deny(ctx context.Context, params AccessRequestsDenyParams, opts ...RequestOption) (*AccessRequest, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/access-requests/{requestId}/deny")
 	r.setPath("orgId", params.OrgID)
@@ -707,9 +714,13 @@ type AccessRequestsRevokeParams struct {
 //
 // POST /api/org/{orgId}/access-requests/{requestId}/revoke
 //
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
 //
-// Raises on 409: The grant is not active
+// Raises on 409: AccessRevokeConflict
 func (n *AccessRequestsNamespace) Revoke(ctx context.Context, params AccessRequestsRevokeParams, opts ...RequestOption) (*AccessRequest, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/access-requests/{requestId}/revoke")
 	r.setPath("orgId", params.OrgID)
@@ -741,9 +752,11 @@ type AccessRequestsWithdrawParams struct {
 //
 // POST /api/org/{orgId}/access-requests/{requestId}/withdraw
 //
+// Raises on 401: Unauthenticated
+//
 // Raises on 404: Not found
 //
-// Raises on 409: Already decided or expired
+// Raises on 409: AccessWithdrawConflict
 func (n *AccessRequestsNamespace) Withdraw(ctx context.Context, params AccessRequestsWithdrawParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/access-requests/{requestId}/withdraw")
 	r.setPath("orgId", params.OrgID)
@@ -986,7 +999,7 @@ type AccountsCreateParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body AccountsCreateRequest
+	Body CreateAccountRequest
 }
 
 // Create: Create an account
@@ -1922,9 +1935,6 @@ type AgentLinksDeleteParams struct {
 // Raises on 500: Server error
 //
 // Raises on 503: A backing service this endpoint depends on is not available
-//
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
 func (n *AgentLinksNamespace) Delete(ctx context.Context, params AgentLinksDeleteParams, opts ...RequestOption) (*AgentLinkRevoked, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/agent-links/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -1967,9 +1977,6 @@ type AgentLinksListParams struct {
 // Raises on 500: Server error
 //
 // Raises on 503: A backing service this endpoint depends on is not available
-//
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
 func (n *AgentLinksNamespace) List(ctx context.Context, params *AgentLinksListParams, opts ...RequestOption) ([]AgentLinkSummary, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/agent-links")
 	if params != nil {
@@ -2191,9 +2198,6 @@ type AgentRegistrationsDeleteParams struct {
 // Raises on 500: Server error
 //
 // Raises on 503: A backing service this endpoint depends on is not available
-//
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
 func (n *AgentRegistrationsNamespace) Delete(ctx context.Context, params AgentRegistrationsDeleteParams, opts ...RequestOption) (*AgentRevoked, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/agent-registrations/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -2237,9 +2241,6 @@ type AgentRegistrationsListParams struct {
 // Raises on 500: Server error
 //
 // Raises on 503: A backing service this endpoint depends on is not available
-//
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
 func (n *AgentRegistrationsNamespace) List(ctx context.Context, params *AgentRegistrationsListParams, opts ...RequestOption) ([]AgentRegistration, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/agent-registrations")
 	if params != nil {
@@ -2289,9 +2290,6 @@ type AgentRegistrationsUpdateParams struct {
 // Raises on 500: Server error
 //
 // Raises on 503: A backing service this endpoint depends on is not available
-//
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
 func (n *AgentRegistrationsNamespace) Update(ctx context.Context, params AgentRegistrationsUpdateParams, opts ...RequestOption) (*PlatformAgentEnvelope, error) {
 	r := newRequest(http.MethodPatch, "/api/org/{orgId}/agent-registrations/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -2580,7 +2578,7 @@ type AgentsSettingsUpdateParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body *AgentSettings
+	Body AgentSettings
 }
 
 // Update: Save Agents defaults
@@ -2631,6 +2629,8 @@ type AgentsT3PolicyApplyParams struct {
 // policy does not fit, or that are still setting up are not dialled. Requires
 // `resources:execute`.
 //
+// _Requires permission: `resources:execute`._
+//
 // POST /api/org/{orgId}/agents/t3-policy/apply
 //
 // Raises on 400: Bad request
@@ -2678,6 +2678,8 @@ type AiAttributionLocationsParams struct {
 // Locations: Discover locations (buckets, log groups, gateways) for a source
 // kind
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/ai-attribution/locations
 //
 // Raises on 400: Bad request
@@ -2685,6 +2687,8 @@ type AiAttributionLocationsParams struct {
 // Raises on 403: Forbidden
 //
 // Raises on 404: Not found
+//
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *AiAttributionNamespace) Locations(ctx context.Context, params AiAttributionLocationsParams, opts ...RequestOption) (*AiAttributionLocationsResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/ai-attribution/locations")
 	r.setPath("orgId", params.OrgID)
@@ -2709,6 +2713,8 @@ type AiAttributionReattributeParams struct {
 }
 
 // Reattribute: Re-split a range of days now
+//
+// _Requires permission: `costs:write`._
 //
 // POST /api/org/{orgId}/ai-attribution/reattribute
 //
@@ -2738,6 +2744,8 @@ type AiAttributionSourceKindsParams struct {
 }
 
 // SourceKinds: List the request-log source kinds the org can add
+//
+// _Requires permission: `costs:read`._
 //
 // GET /api/org/{orgId}/ai-attribution/source-kinds
 func (n *AiAttributionNamespace) SourceKinds(ctx context.Context, params *AiAttributionSourceKindsParams, opts ...RequestOption) (*AiAttributionSourceKindsResponse, error) {
@@ -2772,6 +2780,8 @@ type AiAttributionSpendParams struct {
 // that lacked every mapped key. For time series, group a cost report by the tag
 // key `caller:<dimension>`.
 //
+// _Requires permission: `costs:read`._
+//
 // GET /api/org/{orgId}/ai-attribution/spend
 //
 // Raises on 400: Bad request
@@ -2804,6 +2814,8 @@ type AiAttributionStatsParams struct {
 }
 
 // Stats: Match-rate statistics per source and coverage per provider
+//
+// _Requires permission: `costs:read`._
 //
 // GET /api/org/{orgId}/ai-attribution/stats
 //
@@ -2845,6 +2857,8 @@ type AiAttributionDimensionsCreateParams struct {
 
 // Create: Map request-metadata keys to a caller dimension
 //
+// _Requires permission: `costs:write`._
+//
 // POST /api/org/{orgId}/ai-attribution/dimensions
 //
 // Raises on 400: Bad request
@@ -2872,6 +2886,8 @@ type AiAttributionDimensionsDeleteParams struct {
 }
 
 // Delete: Delete a caller dimension
+//
+// _Requires permission: `costs:write`._
 //
 // DELETE /api/org/{orgId}/ai-attribution/dimensions/{id}
 //
@@ -2902,6 +2918,8 @@ type AiAttributionDimensionsGetParams struct {
 
 // Get: List caller dimensions
 //
+// _Requires permission: `costs:read`._
+//
 // GET /api/org/{orgId}/ai-attribution/dimensions
 func (n *AiAttributionDimensionsNamespace) Get(ctx context.Context, params *AiAttributionDimensionsGetParams, opts ...RequestOption) (*AiAttributionDimensionsGetResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/ai-attribution/dimensions")
@@ -2928,6 +2946,8 @@ type AiAttributionDimensionsUpdateParams struct {
 }
 
 // Update: Update a caller dimension
+//
+// _Requires permission: `costs:write`._
 //
 // PUT /api/org/{orgId}/ai-attribution/dimensions/{id}
 //
@@ -2975,6 +2995,8 @@ type AiAttributionSourcesCreateParams struct {
 // org's request logs, and the Bedrock CloudWatch kind runs a Logs Insights query
 // billed to the org's own AWS account per GB scanned. Audit-logged.
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/ai-attribution/sources
 //
 // Raises on 400: Bad request
@@ -3005,6 +3027,8 @@ type AiAttributionSourcesDeleteParams struct {
 
 // Delete: Delete a request-log source
 //
+// _Requires permission: `org:settings:write`._
+//
 // DELETE /api/org/{orgId}/ai-attribution/sources/{id}
 //
 // Raises on 403: Forbidden
@@ -3034,6 +3058,8 @@ type AiAttributionSourcesGetParams struct {
 
 // Get: List request-log sources
 //
+// _Requires permission: `costs:read`._
+//
 // GET /api/org/{orgId}/ai-attribution/sources
 func (n *AiAttributionSourcesNamespace) Get(ctx context.Context, params *AiAttributionSourcesGetParams, opts ...RequestOption) (*AiAttributionSourcesGetResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/ai-attribution/sources")
@@ -3059,6 +3085,8 @@ type AiAttributionSourcesGetOrgOrgIDAiAttributionSourcesIDParams struct {
 }
 
 // GetOrgOrgIDAiAttributionSourcesID: Read one request-log source
+//
+// _Requires permission: `costs:read`._
 //
 // GET /api/org/{orgId}/ai-attribution/sources/{id}
 //
@@ -3090,6 +3118,8 @@ type AiAttributionSourcesRecollectParams struct {
 //
 // Aggregates keep only mapped metadata keys, so a newly mapped dimension reaches
 // history only by re-reading it. Clamped to the source kind's history limit.
+//
+// _Requires permission: `org:settings:write`._
 //
 // POST /api/org/{orgId}/ai-attribution/sources/{id}/recollect
 //
@@ -3123,6 +3153,8 @@ type AiAttributionSourcesUpdateParams struct {
 // Update: Update a request-log source
 //
 // Pointing a source at a different location restarts its collection history.
+//
+// _Requires permission: `org:settings:write`._
 //
 // PUT /api/org/{orgId}/ai-attribution/sources/{id}
 //
@@ -3178,6 +3210,8 @@ type AlertEmailGetParams struct {
 // efficiency alert settings, or an email destination on an alert routing rule.
 // Requires `costs:read`.
 //
+// _Requires permission: `costs:read`._
+//
 // GET /api/org/{orgId}/alert-email
 func (n *AlertEmailNamespace) Get(ctx context.Context, params *AlertEmailGetParams, opts ...RequestOption) (*AlertEmailOptions, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/alert-email")
@@ -3214,6 +3248,8 @@ type AlertEmailSettingsGetParams struct {
 
 // Get: Get the alert email policy and suppression list
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/alert-email/settings
 func (n *AlertEmailSettingsNamespace) Get(ctx context.Context, params *AlertEmailSettingsGetParams, opts ...RequestOption) (*AlertEmailSettingsView, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/alert-email/settings")
@@ -3245,6 +3281,8 @@ type AlertEmailSettingsUpdateParams struct {
 // Whole object. Tightening the policy does not edit any stored recipient list:
 // an address that no longer passes is skipped at send time, and loosening the
 // policy again brings it back.
+//
+// _Requires permission: `org:settings:write`._
 //
 // PUT /api/org/{orgId}/alert-email/settings
 //
@@ -3283,6 +3321,8 @@ type AlertEmailSuppressionsDeleteParams struct {
 }
 
 // Delete: Resume alert email to an unsubscribed address
+//
+// _Requires permission: `org:settings:write`._
 //
 // DELETE /api/org/{orgId}/alert-email/suppressions/{id}
 //
@@ -3327,6 +3367,8 @@ type AlertRulesAdoptDefaultsParams struct {
 //
 // A no-op when the organization already has rules.
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/alert-rules/adopt-defaults
 //
 // Raises on 403: Forbidden
@@ -3357,6 +3399,8 @@ type AlertRulesGetParams struct {
 // Returns the rules in evaluation order, plus the channels and accounts a rule
 // can name so a client can render destinations by name. An organization that has
 // saved no rules gets the synthesized default with `usingDefaults: true`.
+//
+// _Requires permission: `org:settings:write`._
 //
 // GET /api/org/{orgId}/alert-rules
 //
@@ -3391,6 +3435,8 @@ type AlertRulesUpdateParams struct {
 // rule is only correct relative to the ones above it) so a reorder applied as
 // several requests would leave a window in which alerts route somewhere nobody
 // asked for. Positions are re-derived from array order.
+//
+// _Requires permission: `org:settings:write`._
 //
 // PUT /api/org/{orgId}/alert-rules
 //
@@ -3436,6 +3482,8 @@ type AlertRulesDeliveriesAckParams struct {
 // people pressing at once produce one acknowledgement and an alert that already
 // escalated cannot be retroactively silenced.
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/alert-rules/deliveries/{id}/ack
 //
 // Raises on 401: Unauthenticated
@@ -3468,6 +3516,8 @@ type AlertRulesDeliveriesCancelParams struct {
 }
 
 // Cancel: Drop held or awaiting-acknowledgement deliveries
+//
+// _Requires permission: `org:settings:write`._
 //
 // POST /api/org/{orgId}/alert-rules/deliveries/cancel
 //
@@ -3504,6 +3554,8 @@ type AlertRulesDeliveriesListParams struct {
 // Only alerts a rule created follow-up work for appear here: one held by quiet
 // hours, or one waiting on an acknowledgement. An alert that went straight out
 // leaves no row.
+//
+// _Requires permission: `org:settings:write`._
 //
 // GET /api/org/{orgId}/alert-rules/deliveries
 //
@@ -3543,7 +3595,11 @@ type APIKeysCreateParams struct {
 
 // Create: Create an API key (plaintext returned once)
 //
+// _Requires permission: `apikeys:write`._
+//
 // POST /api/org/{orgId}/api-keys
+//
+// Raises on 400: Bad request
 func (n *APIKeysNamespace) Create(ctx context.Context, params APIKeysCreateParams, opts ...RequestOption) (*CreatedAPIKey, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/api-keys")
 	r.setPath("orgId", params.OrgID)
@@ -3566,6 +3622,8 @@ type APIKeysListParams struct {
 }
 
 // List: List API keys (no plaintext)
+//
+// _Requires permission: `apikeys:read`._
 //
 // GET /api/org/{orgId}/api-keys
 func (n *APIKeysNamespace) List(ctx context.Context, params *APIKeysListParams, opts ...RequestOption) ([]APIKey, error) {
@@ -3591,6 +3649,8 @@ type APIKeysRevokeParams struct {
 
 // Revoke: Revoke an API key
 //
+// _Requires permission: `apikeys:write`._
+//
 // POST /api/org/{orgId}/api-keys/{id}/revoke
 func (n *APIKeysNamespace) Revoke(ctx context.Context, params APIKeysRevokeParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/api-keys/{id}/revoke")
@@ -3613,6 +3673,8 @@ type APIKeysRotateParams struct {
 }
 
 // Rotate: Rotate an API key (revokes old, returns new)
+//
+// _Requires permission: `apikeys:write`._
 //
 // POST /api/org/{orgId}/api-keys/{id}/rotate
 //
@@ -3654,6 +3716,8 @@ type AppsCheckParams struct {
 // plus the packages and commands that would fix it. A POST because it opens a
 // connection to the named host and must never be cached; its whole value is
 // saying what the host is now.
+//
+// _Requires permission: `resources:execute`._
 //
 // POST /api/org/{orgId}/apps/check
 //
@@ -3698,18 +3762,22 @@ type AppsSetupParams struct {
 // `{"error":"…"}` inside the stream, because the status line has already been
 // sent by then.
 //
+// _Requires permission: `resources:execute`._
+//
 // POST /api/org/{orgId}/apps/setup
 //
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
 //
-// Raises on 409: A change freeze is in effect, or the host key needs trusting
-func (n *AppsNamespace) Setup(ctx context.Context, params AppsSetupParams, opts ...RequestOption) (*LinuxAppSetupEvent, error) {
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
+func (n *AppsNamespace) Setup(ctx context.Context, params AppsSetupParams, opts ...RequestOption) (LinuxAppSetupEvent, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/apps/setup")
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
-	var out *LinuxAppSetupEvent
+	var out LinuxAppSetupEvent
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -4019,6 +4087,8 @@ type BackupsGetParams struct {
 // Findings are recomputed on every read rather than stored. Orphaned backups
 // carry a trailing-30-day spend quote when billing data is available.
 //
+// _Requires permission: `resources:read`._
+//
 // GET /api/org/{orgId}/backups
 func (n *BackupsNamespace) Get(ctx context.Context, params *BackupsGetParams, opts ...RequestOption) (*BackupCoverageResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/backups")
@@ -4066,9 +4136,13 @@ type BackupsDrillsCreateParams struct {
 // reporting what you did, and the person who spent Saturday restoring a database
 // is rarely the person who set the recovery objective.
 //
+// _Requires permission: `resources:write`._
+//
 // POST /api/org/{orgId}/backups/drills
 //
 // Raises on 400: Bad request
+//
+// Raises on 404: Not found
 func (n *BackupsDrillsNamespace) Create(ctx context.Context, params *BackupsDrillsCreateParams, opts ...RequestOption) (*RestoreDrill, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/backups/drills")
 	if params != nil {
@@ -4097,6 +4171,8 @@ type BackupsDrillsDeleteParams struct {
 // For one recorded against the wrong resource or the wrong date. Audited:
 // deleting evidence that a restore failed is exactly the edit a reviewer would
 // want to know about.
+//
+// _Requires permission: `resources:write`._
 //
 // DELETE /api/org/{orgId}/backups/drills/{drillId}
 //
@@ -4131,6 +4207,8 @@ type BackupsDrillsGetParams struct {
 // production, and cannot be generically verified. What the product can do is
 // make the exercise scheduled, recorded and visible when it lapses.
 //
+// _Requires permission: `resources:read`._
+//
 // GET /api/org/{orgId}/backups/drills
 //
 // Raises on 400: Bad request
@@ -4159,6 +4237,8 @@ type BackupsDrillsLogParams struct {
 }
 
 // Log: List recorded restore drills
+//
+// _Requires permission: `resources:read`._
 //
 // GET /api/org/{orgId}/backups/drills/log
 func (n *BackupsDrillsNamespace) Log(ctx context.Context, params *BackupsDrillsLogParams, opts ...RequestOption) (*BackupsDrillsLogResponse, error) {
@@ -4204,9 +4284,13 @@ type BackupsPoliciesCreateParams struct {
 // protection while providing none. An empty `resourceTypeIds` selects every
 // stateful resource type.
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/backups/policies
 //
 // Raises on 400: Bad request
+//
+// Raises on 404: Not found
 //
 // Raises on 409: Conflict
 func (n *BackupsPoliciesNamespace) Create(ctx context.Context, params *BackupsPoliciesCreateParams, opts ...RequestOption) (*BackupPolicy, error) {
@@ -4237,6 +4321,8 @@ type BackupsPoliciesDeleteParams struct {
 // Removes the objective. To stop a policy judging without losing it, set
 // `enabled` to false instead.
 //
+// _Requires permission: `org:settings:write`._
+//
 // DELETE /api/org/{orgId}/backups/policies/{policyId}
 //
 // Raises on 404: Not found
@@ -4262,6 +4348,8 @@ type BackupsPoliciesGetParams struct {
 //
 // The recovery objectives coverage is judged against. A policy selects resources
 // by type and/or tag and demands a maximum RPO, a minimum retention, or both.
+//
+// _Requires permission: `resources:read`._
 //
 // GET /api/org/{orgId}/backups/policies
 func (n *BackupsPoliciesNamespace) Get(ctx context.Context, params *BackupsPoliciesGetParams, opts ...RequestOption) (*BackupPolicyList, error) {
@@ -4294,11 +4382,15 @@ type BackupsPoliciesUpdateParams struct {
 // `maxRpoHours` or `minRetentionDays`. The result is validated after merging, so
 // a patch that would leave the policy demanding nothing is rejected.
 //
+// _Requires permission: `org:settings:write`._
+//
 // PATCH /api/org/{orgId}/backups/policies/{policyId}
 //
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *BackupsPoliciesNamespace) Update(ctx context.Context, params BackupsPoliciesUpdateParams, opts ...RequestOption) (*BackupPolicy, error) {
 	r := newRequest(http.MethodPatch, "/api/org/{orgId}/backups/policies/{policyId}")
 	r.setPath("orgId", params.OrgID)
@@ -4576,6 +4668,8 @@ type BillingCapacityCheckoutParams struct {
 // once Stripe confirms the payment; a 200 here only means the buyer was sent to
 // a payment page. Rejected with 400 for complimentary organizations, and 503
 // when the deployment has no one-time capacity price configured.
+//
+// _Requires permission: `billing:write`._
 //
 // POST /api/org/{orgId}/billing/capacity/checkout
 //
@@ -4932,6 +5026,10 @@ type BillingRulesPreviewParams struct {
 // POST /api/org/{orgId}/billing-rules/preview
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 409: Conflict
 func (n *BillingRulesNamespace) Preview(ctx context.Context, params BillingRulesPreviewParams, opts ...RequestOption) (*PricingPreviewResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/billing-rules/preview")
 	r.setPath("orgId", params.OrgID)
@@ -5028,7 +5126,9 @@ type BlastRadiusGetParams struct {
 	// OrgID: Organization id
 	//
 	// Falls back to the client's `orgId` when omitted.
-	OrgID      *string
+	OrgID *string
+	// ResourceID: The resource to report on. A query parameter rather than a
+	// path segment because composite resource ids contain slashes and colons.
 	ResourceID ResourceID
 }
 
@@ -5047,7 +5147,7 @@ type BlastRadiusGetParams struct {
 //
 // GET /api/org/{orgId}/blast-radius
 //
-// Raises on 400: Missing resourceId
+// Raises on 400: Bad request
 func (n *BlastRadiusNamespace) Get(ctx context.Context, params BlastRadiusGetParams, opts ...RequestOption) (*BlastRadiusReport, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/blast-radius")
 	r.setPath("orgId", params.OrgID)
@@ -5085,6 +5185,8 @@ type BudgetsCreateParams struct {
 
 // Create: Create a budget
 //
+// _Requires permission: `budgets:write`._
+//
 // POST /api/org/{orgId}/budgets
 //
 // Raises on 400: Bad request
@@ -5110,6 +5212,8 @@ type BudgetsDeleteParams struct {
 
 // Delete: Delete a budget
 //
+// _Requires permission: `budgets:write`._
+//
 // DELETE /api/org/{orgId}/budgets/{id}
 //
 // Raises on 404: Not found
@@ -5134,6 +5238,8 @@ type BudgetsGetParams struct {
 }
 
 // Get: Get a budget with current-period status
+//
+// _Requires permission: `budgets:read`._
 //
 // GET /api/org/{orgId}/budgets/{id}
 //
@@ -5161,6 +5267,8 @@ type BudgetsListParams struct {
 
 // List: List budgets with current-period actuals and forecasts
 //
+// _Requires permission: `budgets:read`._
+//
 // GET /api/org/{orgId}/budgets
 func (n *BudgetsNamespace) List(ctx context.Context, params *BudgetsListParams, opts ...RequestOption) ([]BudgetWithStatus, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/budgets")
@@ -5186,6 +5294,8 @@ type BudgetsUpdateParams struct {
 }
 
 // Update: Update a budget
+//
+// _Requires permission: `budgets:write`._
 //
 // PUT /api/org/{orgId}/budgets/{id}
 //
@@ -5224,6 +5334,8 @@ type BudgetsEventsListParams struct {
 }
 
 // List: Alert event history for a budget
+//
+// _Requires permission: `budgets:read`._
 //
 // GET /api/org/{orgId}/budgets/{id}/events
 //
@@ -5267,6 +5379,8 @@ type BudgetsEventsNoteParams struct {
 // POST /api/org/{orgId}/budgets/{id}/events/{eventId}/note
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 //
 // Raises on 404: Not found
 func (n *BudgetsEventsNamespace) Note(ctx context.Context, params BudgetsEventsNoteParams, opts ...RequestOption) (*BudgetAlertNoteResult, error) {
@@ -5333,7 +5447,7 @@ type BusinessMetricsCreateParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 409: A live metric already uses this key.
+// Raises on 409: Conflict
 func (n *BusinessMetricsNamespace) Create(ctx context.Context, params BusinessMetricsCreateParams, opts ...RequestOption) (*BusinessMetric, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/business-metrics")
 	r.setPath("orgId", params.OrgID)
@@ -5402,6 +5516,8 @@ type BusinessMetricsImporterOptionsParams struct {
 //
 // Raises on 400: Bad request
 //
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
 func (n *BusinessMetricsNamespace) ImporterOptions(ctx context.Context, params BusinessMetricsImporterOptionsParams, opts ...RequestOption) (*BusinessMetricsImporterOptionsResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/business-metrics/importer-options")
@@ -5437,6 +5553,8 @@ type BusinessMetricsImporterPreviewParams struct {
 // POST /api/org/{orgId}/business-metrics/importer-preview
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 //
 // Raises on 404: Not found
 func (n *BusinessMetricsNamespace) ImporterPreview(ctx context.Context, params BusinessMetricsImporterPreviewParams, opts ...RequestOption) (*BusinessMetricImportPreview, error) {
@@ -5498,6 +5616,8 @@ type BusinessMetricsLabelsParams struct {
 // most 500) and its cost mapping. A mapped label nobody has reported yet is
 // listed with no values.
 //
+// _Requires permission: `costs:read`._
+//
 // GET /api/org/{orgId}/business-metrics/{id}/labels
 //
 // Raises on 404: Not found
@@ -5540,7 +5660,7 @@ type BusinessMetricsUpdateParams struct {
 //
 // Raises on 404: Not found
 //
-// Raises on 409: A live metric already uses this key.
+// Raises on 409: Conflict
 func (n *BusinessMetricsNamespace) Update(ctx context.Context, params BusinessMetricsUpdateParams, opts ...RequestOption) (*BusinessMetric, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/business-metrics/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -5569,6 +5689,8 @@ type BusinessMetricsUsageUnitsParams struct {
 // The provider usage units the organization's cost rows carry over the last 90
 // days, most spend first, with a few of the services reporting each. Backs the
 // per-usage-unit picker.
+//
+// _Requires permission: `costs:read`._
 //
 // GET /api/org/{orgId}/business-metrics/usage-units
 func (n *BusinessMetricsNamespace) UsageUnits(ctx context.Context, params *BusinessMetricsUsageUnitsParams, opts ...RequestOption) (*BusinessMetricsUsageUnitsResponse, error) {
@@ -5874,6 +5996,8 @@ type BusinessMetricsImporterRunParams struct {
 //
 // Raises on 400: Bad request
 //
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
 func (n *BusinessMetricsImporterNamespace) Run(ctx context.Context, params BusinessMetricsImporterRunParams, opts ...RequestOption) (*BusinessMetricImportRun, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/business-metrics/{id}/importer/run")
@@ -5949,6 +6073,8 @@ type BusinessMetricsImporterUpdateParams struct {
 // PUT /api/org/{orgId}/business-metrics/{id}/importer
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 //
 // Raises on 404: Not found
 func (n *BusinessMetricsImporterNamespace) Update(ctx context.Context, params BusinessMetricsImporterUpdateParams, opts ...RequestOption) (*BusinessMetricImporter, error) {
@@ -6096,6 +6222,8 @@ type BusinessMetricsUsageUnitCostsCreateParams struct {
 // reported in that unit), so the numerator is exactly the spend that bought the
 // denominator. A bucket with no usage is a gap (`no_usage`), never 0. Labels do
 // not apply.
+//
+// _Requires permission: `costs:read`._
 //
 // POST /api/org/{orgId}/business-metrics/usage-unit-costs
 //
@@ -6281,6 +6409,8 @@ type CalendarGetParams struct {
 // Recurring sources are expanded to at most 400 occurrences each, so one nightly
 // schedule cannot flood a year-long query.
 //
+// _Requires permission: `resources:read`._
+//
 // GET /api/org/{orgId}/calendar
 //
 // Raises on 400: Bad request
@@ -6331,6 +6461,8 @@ type CalendarSubscriptionsCreateParams struct {
 //
 // An organization may hold 25 live subscriptions; revoking makes room.
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/calendar/subscriptions
 //
 // Raises on 400: Bad request
@@ -6362,6 +6494,8 @@ type CalendarSubscriptionsDeleteParams struct {
 // The URL stops working immediately. The row is kept, and revoking twice is not
 // an error.
 //
+// _Requires permission: `org:settings:write`._
+//
 // DELETE /api/org/{orgId}/calendar/subscriptions/{subscriptionId}
 //
 // Raises on 404: Not found
@@ -6391,6 +6525,8 @@ type CalendarSubscriptionsGetParams struct {
 //
 // Feed URLs that have been minted, including revoked ones; a revoked row is kept
 // so the audit trail still resolves. The token itself is never returned.
+//
+// _Requires permission: `org:settings:write`._
 //
 // GET /api/org/{orgId}/calendar/subscriptions
 func (n *CalendarSubscriptionsNamespace) Get(ctx context.Context, params *CalendarSubscriptionsGetParams, opts ...RequestOption) (*CalendarSubscriptionList, error) {
@@ -6714,6 +6850,8 @@ type ChangesCostImpactsParams struct {
 // POST /api/org/{orgId}/changes/cost-impacts
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *ChangesNamespace) CostImpacts(ctx context.Context, params *ChangesCostImpactsParams, opts ...RequestOption) (*ChangeCostImpactsResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/changes/cost-impacts")
 	if params != nil {
@@ -6837,6 +6975,8 @@ type ChangesAlertSettingsGetParams struct {
 // receives it is the `resourceDrift` opt-in on push preferences, Slack channels
 // and Teams webhooks; off by default on all three.
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/changes/alert-settings
 func (n *ChangesAlertSettingsNamespace) Get(ctx context.Context, params *ChangesAlertSettingsGetParams, opts ...RequestOption) (*DriftAlertSettings, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/changes/alert-settings")
@@ -6869,6 +7009,8 @@ type ChangesAlertSettingsUpdateParams struct {
 // `cooldownMinutes` is floored at 5: below the poller's own cycle the
 // notification rate would follow the sync rate again, which is what the batching
 // exists to prevent.
+//
+// _Requires permission: `org:settings:write`._
 //
 // PUT /api/org/{orgId}/changes/alert-settings
 //
@@ -6962,27 +7104,23 @@ type ChangesRevertCreateParams struct {
 // The stored resource snapshot is deliberately left untouched, so the next poll
 // observes the reverted state and records it as an ordinary change event.
 //
+// _Requires permission: `resources:write`._
+//
 // POST /api/org/{orgId}/changes/{changeId}/revert
 //
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
 //
-// Raises on 409: Already reverted, another revert holds the event, nothing in
-// the plan is writable, or this attempt was superseded mid-write (its lease
-// lapsed). The body carries `code: change_revert_conflict` for all but the
-// writability case, and `appliedFields` when the provider write had already
-// landed.
+// Raises on 409: Conflict
 //
 // Raises on 423: Blocked by an active change freeze. Retry with the
 // `x-change-freeze-override: true` header if you hold `freezes:override`; both
 // blocks and overrides are audit-logged.
 //
-// Raises on 500: The provider accepted the write but it could not be recorded
-// against the event. The resource *has* been put back; `appliedFields` names
-// what changed. A later retry reconciles the timeline.
+// Raises on 500: Server error
 //
-// Raises on 502: The provider couldn't be read. Nothing was written.
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *ChangesRevertNamespace) Create(ctx context.Context, params ChangesRevertCreateParams, opts ...RequestOption) (*RevertApplyResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/changes/{changeId}/revert")
 	r.setPath("orgId", params.OrgID)
@@ -7019,12 +7157,13 @@ type ChangesRevertGetParams struct {
 // Gated on `resources:write` rather than `resources:read`: the plan names the
 // write it is offering to make.
 //
+// _Requires permission: `resources:write`._
+//
 // GET /api/org/{orgId}/changes/{changeId}/revert
 //
 // Raises on 404: Not found
 //
-// Raises on 502: The provider couldn't be read, so no plan can be made safely.
-// Nothing was written.
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *ChangesRevertNamespace) Get(ctx context.Context, params ChangesRevertGetParams, opts ...RequestOption) (*RevertPreviewResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/changes/{changeId}/revert")
 	r.setPath("orgId", params.OrgID)
@@ -7050,6 +7189,33 @@ func newChatNamespace(t *transport) *ChatNamespace {
 	return n
 }
 
+// ChatSpendParams holds the parameters for `client.chat.spend`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ChatSpendParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Spend: Month-to-date chat spend and cap
+//
+// _Requires permission: `chat:read`._
+//
+// GET /api/org/{orgId}/chat/spend
+func (n *ChatNamespace) Spend(ctx context.Context, params *ChatSpendParams, opts ...RequestOption) (*ChatSpendStatus, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/chat/spend")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ChatSpendStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // ChatConversationsNamespace is `client.chat.conversations`.
 type ChatConversationsNamespace struct {
 	t *transport
@@ -7065,6 +7231,163 @@ func newChatConversationsNamespace(t *transport) *ChatConversationsNamespace {
 	n.Pending = newChatConversationsPendingNamespace(t)
 	n.SecretRequests = newChatConversationsSecretRequestsNamespace(t)
 	return n
+}
+
+// ChatConversationsCreateParams holds the parameters for
+// `client.chat.conversations.create`.
+type ChatConversationsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body ChatConversationCreateInput
+}
+
+// Create: Start a chat conversation
+//
+// Creates an empty conversation owned by the caller. Send its first message with
+// `POST /conversations/{conversationId}/messages`.
+//
+// _Requires permission: `chat:write`._
+//
+// POST /api/org/{orgId}/chat/conversations
+//
+// Raises on 400: Bad request
+func (n *ChatConversationsNamespace) Create(ctx context.Context, params ChatConversationsCreateParams, opts ...RequestOption) (*ChatConversationCreated, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/chat/conversations")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *ChatConversationCreated
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChatConversationsDeleteParams holds the parameters for
+// `client.chat.conversations.delete`.
+type ChatConversationsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ConversationID: Chat conversation id
+	ConversationID string
+}
+
+// Delete: Archive a conversation
+//
+// Hides the conversation from the list; its history is kept. Answers `ok`
+// whether or not the conversation was the caller's.
+//
+// _Requires permission: `chat:write`._
+//
+// DELETE /api/org/{orgId}/chat/conversations/{conversationId}
+func (n *ChatConversationsNamespace) Delete(ctx context.Context, params ChatConversationsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/chat/conversations/{conversationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("conversationId", params.ConversationID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChatConversationsGetParams holds the parameters for
+// `client.chat.conversations.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ChatConversationsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List the caller's chat conversations
+//
+// _Requires permission: `chat:read`._
+//
+// GET /api/org/{orgId}/chat/conversations
+func (n *ChatConversationsNamespace) Get(ctx context.Context, params *ChatConversationsGetParams, opts ...RequestOption) (*ChatConversationList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/chat/conversations")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *ChatConversationList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChatConversationsGetOrgOrgIDChatConversationsConversationIDParams holds the
+// parameters for
+// `client.chat.conversations.getOrgOrgIdChatConversationsConversationId`.
+type ChatConversationsGetOrgOrgIDChatConversationsConversationIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ConversationID: Chat conversation id
+	ConversationID string
+}
+
+// GetOrgOrgIDChatConversationsConversationID: A conversation with its messages
+// and pending items
+//
+// _Requires permission: `chat:read`._
+//
+// GET /api/org/{orgId}/chat/conversations/{conversationId}
+//
+// Raises on 404: Not found
+func (n *ChatConversationsNamespace) GetOrgOrgIDChatConversationsConversationID(ctx context.Context, params ChatConversationsGetOrgOrgIDChatConversationsConversationIDParams, opts ...RequestOption) (*ChatConversationDetail, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/chat/conversations/{conversationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("conversationId", params.ConversationID)
+	var out *ChatConversationDetail
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChatConversationsUpdateParams holds the parameters for
+// `client.chat.conversations.update`.
+type ChatConversationsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ConversationID: Chat conversation id
+	ConversationID string
+	// Body: the JSON request body.
+	Body ChatConversationModelInput
+}
+
+// Update: Switch a conversation's model
+//
+// Takes effect on the conversation's next turn.
+//
+// _Requires permission: `chat:write`._
+//
+// PATCH /api/org/{orgId}/chat/conversations/{conversationId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *ChatConversationsNamespace) Update(ctx context.Context, params ChatConversationsUpdateParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/chat/conversations/{conversationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("conversationId", params.ConversationID)
+	r.setJSONBody(params.Body)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // ChatConversationsPendingNamespace is `client.chat.conversations.pending`.
@@ -7116,6 +7439,53 @@ func (n *ChatConversationsPendingNamespace) Answer(ctx context.Context, params C
 	r.setPath("pendingId", params.PendingID)
 	r.setJSONBody(params.Body)
 	var out *ChatAskQuestionResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ChatConversationsPendingCreateParams holds the parameters for
+// `client.chat.conversations.pending.create`.
+type ChatConversationsPendingCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ConversationID: Chat conversation id
+	ConversationID string
+	// PendingID: Pending ask_question action id
+	PendingID string
+	// Body: the JSON request body.
+	Body ChatPendingDecisionInput
+}
+
+// Create: Approve or reject a pending tool call
+//
+// Approving runs the tool now, before answering; a tool that fails answers 500
+// with its error and the action is recorded as `errored`. Not for `ask_question`
+// actions, which take answers instead.
+//
+// _Requires permission: `chat:write`._
+//
+// POST /api/org/{orgId}/chat/conversations/{conversationId}/pending/{pendingId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 500: Server error
+func (n *ChatConversationsPendingNamespace) Create(ctx context.Context, params ChatConversationsPendingCreateParams, opts ...RequestOption) (*ChatPendingDecisionResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/chat/conversations/{conversationId}/pending/{pendingId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("conversationId", params.ConversationID)
+	r.setPath("pendingId", params.PendingID)
+	r.setJSONBody(params.Body)
+	var out *ChatPendingDecisionResult
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -7290,10 +7660,8 @@ type ComplianceGetParams struct {
 	OrgID *string
 	// Framework: Framework registry id: `soc2` or `iso27001`.
 	Framework string
-	// From: First day of the period (UTC). Defaults to 90 days before `to`.
-	From *string
-	// To: Last day of the period, inclusive (UTC). Defaults to today.
-	To *string
+	From      any
+	To        any
 }
 
 // Get: Compliance status for a framework and period
@@ -7333,10 +7701,8 @@ type CompliancePackParams struct {
 	OrgID *string
 	// Framework: Framework registry id: `soc2` or `iso27001`.
 	Framework string
-	// From: First day of the period (UTC). Defaults to 90 days before `to`.
-	From *string
-	// To: Last day of the period, inclusive (UTC). Defaults to today.
-	To *string
+	From      any
+	To        any
 }
 
 // Pack: Download an evidence pack
@@ -7391,6 +7757,8 @@ type ComplianceControlsDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/compliance/controls/{frameworkId}/{controlId}
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
 func (n *ComplianceControlsNamespace) Delete(ctx context.Context, params ComplianceControlsDeleteParams, opts ...RequestOption) error {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/compliance/controls/{frameworkId}/{controlId}")
@@ -7421,6 +7789,8 @@ type ComplianceControlsGetParams struct {
 // _Requires permission: `audit:read`._
 //
 // GET /api/org/{orgId}/compliance/controls
+//
+// Raises on 400: Bad request
 //
 // Raises on 404: Not found
 func (n *ComplianceControlsNamespace) Get(ctx context.Context, params *ComplianceControlsGetParams, opts ...RequestOption) (*ComplianceControlsGetResponse, error) {
@@ -7454,6 +7824,8 @@ type ComplianceControlsGetOrgOrgIDComplianceControlsFrameworkIDControlIDParams s
 // _Requires permission: `audit:read`._
 //
 // GET /api/org/{orgId}/compliance/controls/{frameworkId}/{controlId}
+//
+// Raises on 400: Bad request
 //
 // Raises on 404: Not found
 func (n *ComplianceControlsNamespace) GetOrgOrgIDComplianceControlsFrameworkIDControlID(ctx context.Context, params ComplianceControlsGetOrgOrgIDComplianceControlsFrameworkIDControlIDParams, opts ...RequestOption) (*ComplianceControlSetting, error) {
@@ -7573,6 +7945,8 @@ type ComplianceSchedulesDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/compliance/schedules/{id}
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
 func (n *ComplianceSchedulesNamespace) Delete(ctx context.Context, params ComplianceSchedulesDeleteParams, opts ...RequestOption) error {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/compliance/schedules/{id}")
@@ -7596,6 +7970,8 @@ type ComplianceSchedulesGetParams struct {
 // _Requires permission: `audit:read`._
 //
 // GET /api/org/{orgId}/compliance/schedules/{id}
+//
+// Raises on 400: Bad request
 //
 // Raises on 404: Not found
 func (n *ComplianceSchedulesNamespace) Get(ctx context.Context, params ComplianceSchedulesGetParams, opts ...RequestOption) (*CompliancePackSchedule, error) {
@@ -7895,6 +8271,8 @@ type ConnectEnvDeployParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: The host key is new or has changed; trust it and retry
 func (n *ConnectNamespace) EnvDeploy(ctx context.Context, params ConnectEnvDeployParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/connect/env-deploy")
 	r.setPath("orgId", params.OrgID)
@@ -8389,6 +8767,10 @@ type CostCanvasesConversationParams struct {
 //
 // POST /api/org/{orgId}/cost-canvases/{id}/conversation
 //
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
 func (n *CostCanvasesNamespace) Conversation(ctx context.Context, params CostCanvasesConversationParams, opts ...RequestOption) (*CostCanvasesConversationResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-canvases/{id}/conversation")
@@ -8482,6 +8864,8 @@ type CostCanvasesDraftParams struct {
 // POST /api/org/{orgId}/cost-canvases/draft
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *CostCanvasesNamespace) Draft(ctx context.Context, params CostCanvasesDraftParams, opts ...RequestOption) (*CostCanvas, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/cost-canvases/draft")
 	r.setPath("orgId", params.OrgID)
@@ -10770,6 +11154,8 @@ type CostVisibilityDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/cost-visibility/{principalKind}/{principalId}
 //
+// Raises on 400: Bad request
+//
 // Raises on 403: Forbidden
 //
 // Raises on 404: Not found
@@ -11363,6 +11749,8 @@ type CostsAnomaliesAcknowledgeParams struct {
 // on a later day, that is a new anomaly and it is detected and alerted on as
 // normal.
 //
+// _Requires permission: `costs:write`._
+//
 // POST /api/org/{orgId}/costs/anomalies/{anomalyId}/acknowledge
 //
 // Raises on 400: Bad request
@@ -11624,6 +12012,8 @@ type CostsAnomalySuppressionsCreateParams struct {
 //
 // Raises on 400: Bad request
 //
+// Raises on 404: Not found
+//
 // Raises on 409: Conflict
 func (n *CostsAnomalySuppressionsNamespace) Create(ctx context.Context, params CostsAnomalySuppressionsCreateParams, opts ...RequestOption) (*CostAnomalySuppression, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/costs/anomaly-suppressions")
@@ -11747,6 +12137,8 @@ type CostsAnomalySuppressionsUpdateParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *CostsAnomalySuppressionsNamespace) Update(ctx context.Context, params CostsAnomalySuppressionsUpdateParams, opts ...RequestOption) (*CostAnomalySuppression, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/costs/anomaly-suppressions/{suppressionId}")
 	r.setPath("orgId", params.OrgID)
@@ -12174,6 +12566,8 @@ type CurrencyFeedParams struct {
 // currency, else EUR), plus the feed's state. Readable whether or not the
 // organization has automatic rates on.
 //
+// _Requires permission: `costs:read`._
+//
 // GET /api/org/{orgId}/currency/feed
 //
 // Raises on 400: Bad request
@@ -12243,6 +12637,8 @@ type CurrencyLookupParams struct {
 // the automatic feed when on, at the day or month-end rate per `rateBasis`) and
 // explains the outcome. `to` defaults to the display currency; `date` defaults
 // to today.
+//
+// _Requires permission: `costs:read`._
 //
 // GET /api/org/{orgId}/currency/lookup
 //
@@ -12637,7 +13033,7 @@ type CustomCostSourcesUploadsCompleteParams struct {
 //
 // POST /api/org/{orgId}/custom-cost-sources/{id}/uploads/{uploadId}/complete
 //
-// Raises on 400: Already complete
+// Raises on 400: Bad request
 //
 // Raises on 404: Not found
 func (n *CustomCostSourcesUploadsNamespace) Complete(ctx context.Context, params CustomCostSourcesUploadsCompleteParams, opts ...RequestOption) (*CustomCostUpload, error) {
@@ -13195,6 +13591,8 @@ type DashboardsKpiParams struct {
 // preview it. Needs `costs:read`, plus `budgets:read` for a budget source;
 // figures are measured inside the caller's cost visibility scope.
 //
+// _Requires permission: `dashboards:read`._
+//
 // POST /api/org/{orgId}/dashboards/kpi
 //
 // Raises on 400: Bad request
@@ -13316,6 +13714,8 @@ type DashboardsRenameParams struct {
 // _Requires permission: `dashboards:write`._
 //
 // POST /api/org/{orgId}/dashboards/{id}/rename
+//
+// Raises on 404: Not found
 func (n *DashboardsNamespace) Rename(ctx context.Context, params DashboardsRenameParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/dashboards/{id}/rename")
 	r.setPath("orgId", params.OrgID)
@@ -13348,6 +13748,8 @@ type DashboardsReorderParams struct {
 // _Requires permission: `dashboards:write`._
 //
 // POST /api/org/{orgId}/dashboards/{id}/reorder
+//
+// Raises on 400: Bad request
 //
 // Raises on 404: Not found
 func (n *DashboardsNamespace) Reorder(ctx context.Context, params DashboardsReorderParams, opts ...RequestOption) (*OK, error) {
@@ -13430,6 +13832,8 @@ type DashboardsWorkflowPinParams struct {
 
 // WorkflowPin: Pin a workflow's metrics to a dashboard
 //
+// _Requires permission: `dashboards:write`._
+//
 // POST /api/org/{orgId}/dashboards/workflow-pin
 //
 // Raises on 404: Not found
@@ -13456,6 +13860,8 @@ type DashboardsWorkflowUnpinParams struct {
 }
 
 // WorkflowUnpin: Unpin a workflow from a dashboard
+//
+// _Requires permission: `dashboards:write`._
 //
 // POST /api/org/{orgId}/dashboards/workflow-unpin
 //
@@ -13504,6 +13910,8 @@ type DashboardsDefaultFullParams struct {
 // _Requires permission: `dashboards:read`._
 //
 // GET /api/org/{orgId}/dashboards/default/full
+//
+// Raises on 404: Not found
 func (n *DashboardsDefaultNamespace) Full(ctx context.Context, params *DashboardsDefaultFullParams, opts ...RequestOption) (*DashboardWithPins, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/dashboards/default/full")
 	if params != nil {
@@ -13909,6 +14317,8 @@ type DashboardsPinRangeParams struct {
 // auto-routes between raw, 1-minute, and 1-hour rollups based on span: ≤2h raw,
 // ≤7d 1m, >7d 1h.
 //
+// _Requires permission: `dashboards:read`._
+//
 // GET /api/org/{orgId}/dashboards/pin/{pinId}/range
 //
 // Raises on 400: Bad request
@@ -14058,6 +14468,8 @@ type DashboardsWidgetsCreateParams struct {
 // Create: Add a widget (cost graph, report, budget, KPI, text, ...) to a
 // dashboard
 //
+// _Requires permission: `dashboards:write`._
+//
 // POST /api/org/{orgId}/dashboards/widgets
 //
 // Raises on 400: Bad request
@@ -14085,6 +14497,8 @@ type DashboardsWidgetsDeleteParams struct {
 }
 
 // Delete: Remove a widget from a dashboard
+//
+// _Requires permission: `dashboards:write`._
 //
 // DELETE /api/org/{orgId}/dashboards/widgets/{widgetId}
 //
@@ -14116,6 +14530,8 @@ type DashboardsWidgetsDuplicateParams struct {
 // original, moving every card behind it one slot along. A copy of a budget or
 // report card is a second view onto the same budget or report. Audit-logged.
 //
+// _Requires permission: `dashboards:write`._
+//
 // POST /api/org/{orgId}/dashboards/widgets/{widgetId}/duplicate
 //
 // Raises on 400: Bad request
@@ -14145,6 +14561,8 @@ type DashboardsWidgetsUpdateParams struct {
 }
 
 // Update: Update a widget's title, config, or layout
+//
+// _Requires permission: `dashboards:write`._
 //
 // PATCH /api/org/{orgId}/dashboards/widgets/{widgetId}
 //
@@ -14181,7 +14599,10 @@ type DependencyGraphGetParams struct {
 	// OrgID: Organization id
 	//
 	// Falls back to the client's `orgId` when omitted.
-	OrgID      *string
+	OrgID *string
+	// ResourceID: Narrow the graph to this resource's direct neighbourhood; only
+	// edges with it at one end, and only the nodes those edges touch. Omit for
+	// the whole org.
 	ResourceID *ResourceID
 }
 
@@ -14356,14 +14777,7 @@ type DeploymentsRunsCostImpactParams struct {
 	OrgID      *string
 	ID         string
 	WindowDays *int64
-	// CostBasis: Which charge-type basis both windows are read on. `cash` (the
-	// default) is what the provider charged on the day it charged it;
-	// `amortized` spreads a commitment's up-front fee across the term it buys;
-	// `blended` also spreads each commitment's discount evenly over the usage it
-	// could cover. It is echoed on every response because a delta whose basis is
-	// unstated is unreadable: an amortized 'after' against a cash 'before' looks
-	// exactly like a saving.
-	CostBasis *ChangeCostBasis
+	CostBasis  *ChangeCostBasis
 }
 
 // CostImpact: Cost impact of a deployment run
@@ -14376,6 +14790,8 @@ type DeploymentsRunsCostImpactParams struct {
 // GET /api/org/{orgId}/deployments/runs/{id}/cost-impact
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 //
 // Raises on 404: Not found
 func (n *DeploymentsRunsNamespace) CostImpact(ctx context.Context, params DeploymentsRunsCostImpactParams, opts ...RequestOption) (*DeploymentCostImpact, error) {
@@ -14687,6 +15103,8 @@ type DeploymentsTriggersUpdateParams struct {
 //
 // PATCH /api/org/{orgId}/deployments/triggers/{id}
 //
+// Raises on 400: Bad request
+//
 // Raises on 401: Unauthenticated
 //
 // Raises on 403: Forbidden
@@ -14737,6 +15155,8 @@ type DigestGetParams struct {
 // carries the outcome of the most recent delivery attempt so a silently failing
 // digest is visible.
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/digest
 func (n *DigestNamespace) Get(ctx context.Context, params *DigestGetParams, opts ...RequestOption) (*DigestSettings, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/digest")
@@ -14767,6 +15187,8 @@ type DigestSendParams struct {
 // is also the manual recovery for a partial delivery, which is never retried
 // automatically. Fails when nothing is routed to receive the digest, or when
 // every destination rejected it.
+//
+// _Requires permission: `org:settings:write`._
 //
 // POST /api/org/{orgId}/digest/send
 //
@@ -14803,6 +15225,8 @@ type DigestUpdateParams struct {
 // window is always the organization's own local Monday-to-Sunday week. Changing
 // the schedule clears any parked failure state but never replays a week that
 // already went out.
+//
+// _Requires permission: `org:settings:write`._
 //
 // PUT /api/org/{orgId}/digest
 //
@@ -14848,6 +15272,8 @@ type DigestRecipientsCreateParams struct {
 // Adding an address the organization already has is a no-op that returns the
 // existing entry, so a double submit cannot double-deliver.
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/digest/recipients
 //
 // Raises on 400: Bad request
@@ -14876,6 +15302,8 @@ type DigestRecipientsDeleteParams struct {
 }
 
 // Delete: Remove a digest email recipient
+//
+// _Requires permission: `org:settings:write`._
 //
 // DELETE /api/org/{orgId}/digest/recipients/{recipientId}
 //
@@ -14907,6 +15335,8 @@ type DigestRecipientsGetParams struct {
 // Email is a digest-only transport, so its destinations are an
 // organization-level address list rather than a per-channel trigger. Addresses
 // need not belong to Infrawrench users; a finance alias is a valid recipient.
+//
+// _Requires permission: `org:settings:write`._
 //
 // GET /api/org/{orgId}/digest/recipients
 func (n *DigestRecipientsNamespace) Get(ctx context.Context, params *DigestRecipientsGetParams, opts ...RequestOption) (*DigestEmailRecipientList, error) {
@@ -15604,7 +16034,7 @@ type EnvironmentsSettingsUpdateParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body *EnvironmentSettings
+	Body *EnvironmentsSettingsUpdateRequest
 }
 
 // Update: Set the organization's environment TTL rails
@@ -15617,6 +16047,8 @@ type EnvironmentsSettingsUpdateParams struct {
 // _Requires permission: `org:settings:write`._
 //
 // PUT /api/org/{orgId}/environments/settings
+//
+// Raises on 400: Bad request
 func (n *EnvironmentsSettingsNamespace) Update(ctx context.Context, params *EnvironmentsSettingsUpdateParams, opts ...RequestOption) (*EnvironmentSettings, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/environments/settings")
 	if params != nil {
@@ -15831,6 +16263,8 @@ type EnvironmentsTemplatesInstantiateParams struct {
 //
 // Raises on 400: Bad request
 //
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
 //
 // Raises on 409: The organization is at its live-environment limit
@@ -15956,6 +16390,8 @@ type EventSubscriptionsCreateParams struct {
 //
 // Raises on 403: Forbidden
 //
+// Raises on 404: Not found
+//
 // Raises on 409: Conflict
 func (n *EventSubscriptionsNamespace) Create(ctx context.Context, params *EventSubscriptionsCreateParams, opts ...RequestOption) (*EventSubscriptionWithSecret, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/event-subscriptions")
@@ -16052,7 +16488,11 @@ type EventSubscriptionsRerollSecretParams struct {
 //
 // Raises on 400: Bad request
 //
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *EventSubscriptionsNamespace) RerollSecret(ctx context.Context, params EventSubscriptionsRerollSecretParams, opts ...RequestOption) (*EventSubscriptionWithSecret, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/event-subscriptions/{id}/reroll-secret")
 	r.setPath("orgId", params.OrgID)
@@ -16084,7 +16524,13 @@ type EventSubscriptionsTestParams struct {
 //
 // POST /api/org/{orgId}/event-subscriptions/{id}/test
 //
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *EventSubscriptionsNamespace) Test(ctx context.Context, params EventSubscriptionsTestParams, opts ...RequestOption) (*EventSubscriptionsTestResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/event-subscriptions/{id}/test")
 	r.setPath("orgId", params.OrgID)
@@ -16122,6 +16568,8 @@ type EventSubscriptionsUpdateParams struct {
 // Raises on 403: Forbidden
 //
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *EventSubscriptionsNamespace) Update(ctx context.Context, params EventSubscriptionsUpdateParams, opts ...RequestOption) (*EventSubscription, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/event-subscriptions/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -16170,6 +16618,8 @@ type EventSubscriptionsDeliveriesGetParams struct {
 // _Requires permission: `org:settings:write`._
 //
 // GET /api/org/{orgId}/event-subscriptions/deliveries
+//
+// Raises on 400: Bad request
 func (n *EventSubscriptionsDeliveriesNamespace) Get(ctx context.Context, params *EventSubscriptionsDeliveriesGetParams, opts ...RequestOption) (*EventSubscriptionsDeliveriesGetResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/event-subscriptions/deliveries")
 	if params != nil {
@@ -16206,7 +16656,13 @@ type EventSubscriptionsDeliveriesRedeliverParams struct {
 //
 // POST /api/org/{orgId}/event-subscriptions/deliveries/{id}/redeliver
 //
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *EventSubscriptionsDeliveriesNamespace) Redeliver(ctx context.Context, params EventSubscriptionsDeliveriesRedeliverParams, opts ...RequestOption) (*EventSubscriptionsDeliveriesRedeliverResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/event-subscriptions/deliveries/{id}/redeliver")
 	r.setPath("orgId", params.OrgID)
@@ -16544,6 +17000,148 @@ func (n *ExtendedSupportSettingsNamespace) Update(ctx context.Context, params *E
 	return out, nil
 }
 
+// GithubNamespace is `client.github`.
+type GithubNamespace struct {
+	t *transport
+
+	// Installations: `client.github.installations`.
+	Installations *GithubInstallationsNamespace
+}
+
+func newGithubNamespace(t *transport) *GithubNamespace {
+	n := &GithubNamespace{t: t}
+	n.Installations = newGithubInstallationsNamespace(t)
+	return n
+}
+
+// GithubInstallURLParams holds the parameters for `client.github.installUrl`.
+//
+// Every field is optional; pass nil to take the defaults.
+type GithubInstallURLParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Return: The page (under the organization) the install flow returns to.
+	// Anything else: `agents`.
+	//
+	// One of "agents", "workflows", "settings/github-issues".
+	Return *string
+}
+
+// InstallURL: GitHub App install URL
+//
+// _Requires permission: `dashboards:write`._
+//
+// GET /api/org/{orgId}/github/install-url
+//
+// Raises on 400: Bad request
+func (n *GithubNamespace) InstallURL(ctx context.Context, params *GithubInstallURLParams, opts ...RequestOption) (*GithubInstallURL, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/github/install-url")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("return", params.Return)
+	}
+	var out *GithubInstallURL
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubReposParams holds the parameters for `client.github.repos`.
+//
+// Every field is optional; pass nil to take the defaults.
+type GithubReposParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Repos: Repositories the organization's installations can access
+//
+// _Requires permission: `dashboards:read`._
+//
+// GET /api/org/{orgId}/github/repos
+func (n *GithubNamespace) Repos(ctx context.Context, params *GithubReposParams, opts ...RequestOption) (*GithubAppRepos, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/github/repos")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *GithubAppRepos
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubStatusParams holds the parameters for `client.github.status`.
+//
+// Every field is optional; pass nil to take the defaults.
+type GithubStatusParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Status: GitHub App connection status
+//
+// _Requires permission: `dashboards:read`._
+//
+// GET /api/org/{orgId}/github/status
+func (n *GithubNamespace) Status(ctx context.Context, params *GithubStatusParams, opts ...RequestOption) (*GithubAppStatus, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/github/status")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *GithubAppStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GithubInstallationsNamespace is `client.github.installations`.
+type GithubInstallationsNamespace struct {
+	t *transport
+}
+
+func newGithubInstallationsNamespace(t *transport) *GithubInstallationsNamespace {
+	n := &GithubInstallationsNamespace{t: t}
+	return n
+}
+
+// GithubInstallationsDeleteParams holds the parameters for
+// `client.github.installations.delete`.
+type GithubInstallationsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	InstallationID string
+}
+
+// Delete: Disconnect a GitHub App installation
+//
+// Drops the connection here; the app stays installed on GitHub until uninstalled
+// there.
+//
+// _Requires permission: `dashboards:write`._
+//
+// DELETE /api/org/{orgId}/github/installations/{installationId}
+func (n *GithubInstallationsNamespace) Delete(ctx context.Context, params GithubInstallationsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/github/installations/{installationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("installationId", params.InstallationID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // GithubIssuesNamespace is `client.githubIssues`.
 type GithubIssuesNamespace struct {
 	t *transport
@@ -16582,10 +17180,10 @@ type GithubIssuesAssigneesParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 409: The GitHub App installation needs a permission an owner has not
-// approved yet
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
 //
-// Raises on 502: GitHub refused the request or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *GithubIssuesNamespace) Assignees(ctx context.Context, params GithubIssuesAssigneesParams, opts ...RequestOption) ([]GithubAssignee, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/github-issues/assignees")
 	r.setPath("orgId", params.OrgID)
@@ -16619,10 +17217,10 @@ type GithubIssuesBranchesParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 409: The GitHub App installation needs a permission an owner has not
-// approved yet
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
 //
-// Raises on 502: GitHub refused the request or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *GithubIssuesNamespace) Branches(ctx context.Context, params GithubIssuesBranchesParams, opts ...RequestOption) ([]string, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/github-issues/branches")
 	r.setPath("orgId", params.OrgID)
@@ -16685,10 +17283,10 @@ type GithubIssuesIssuesParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 409: The GitHub App installation needs a permission an owner has not
-// approved yet
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
 //
-// Raises on 502: GitHub refused the request or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *GithubIssuesNamespace) Issues(ctx context.Context, params GithubIssuesIssuesParams, opts ...RequestOption) (*FileGithubIssueResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/github-issues/issues")
 	r.setPath("orgId", params.OrgID)
@@ -16721,10 +17319,10 @@ type GithubIssuesLabelsParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 409: The GitHub App installation needs a permission an owner has not
-// approved yet
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
 //
-// Raises on 502: GitHub refused the request or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *GithubIssuesNamespace) Labels(ctx context.Context, params GithubIssuesLabelsParams, opts ...RequestOption) ([]GithubLabel, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/github-issues/labels")
 	r.setPath("orgId", params.OrgID)
@@ -16787,6 +17385,11 @@ type GithubIssuesSettingsParams struct {
 // PUT /api/org/{orgId}/github-issues/settings
 //
 // Raises on 400: Bad request
+//
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
+//
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *GithubIssuesNamespace) Settings(ctx context.Context, params GithubIssuesSettingsParams, opts ...RequestOption) (*GithubIssueSettings, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/github-issues/settings")
 	r.setPath("orgId", params.OrgID)
@@ -16868,10 +17471,10 @@ type GithubIssuesLinksRefreshParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 409: The GitHub App installation needs a permission an owner has not
-// approved yet
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
 //
-// Raises on 502: GitHub refused the request or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *GithubIssuesLinksNamespace) Refresh(ctx context.Context, params *GithubIssuesLinksRefreshParams, opts ...RequestOption) (*IssueStatusRefreshResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/github-issues/links/refresh")
 	if params != nil {
@@ -16916,10 +17519,10 @@ type GithubIssuesPullRequestsCreateParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 409: The GitHub App installation needs a permission an owner has not
-// approved yet
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
 //
-// Raises on 502: GitHub refused the request or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *GithubIssuesPullRequestsNamespace) Create(ctx context.Context, params GithubIssuesPullRequestsCreateParams, opts ...RequestOption) (*GithubPullRequestResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/github-issues/pull-requests")
 	r.setPath("orgId", params.OrgID)
@@ -16953,10 +17556,10 @@ type GithubIssuesPullRequestsPreviewParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 409: The GitHub App installation needs a permission an owner has not
-// approved yet
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
 //
-// Raises on 502: GitHub refused the request or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *GithubIssuesPullRequestsNamespace) Preview(ctx context.Context, params GithubIssuesPullRequestsPreviewParams, opts ...RequestOption) (GithubPullRequestPreview, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/github-issues/pull-requests/preview")
 	r.setPath("orgId", params.OrgID)
@@ -17001,6 +17604,8 @@ type IacImportPlanParams struct {
 // Terraform…". Resources no plugin can express are returned in `unsupported`
 // with a reason, never dropped.
 //
+// _Requires permission: `iac:read`._
+//
 // POST /api/org/{orgId}/iac/import-plan
 //
 // Raises on 400: Bad request
@@ -17035,6 +17640,8 @@ type IacReconciliationParams struct {
 // resources carry the ownership and first-seen join that answers "who made this
 // by hand, and when".
 //
+// _Requires permission: `iac:read`._
+//
 // GET /api/org/{orgId}/iac/reconciliation
 //
 // Raises on 400: Bad request
@@ -17066,6 +17673,8 @@ type IacResourceParams struct {
 // newest state document. `status` is null when the organization has uploaded
 // none; absence of a state is not evidence of ClickOps. A query parameter rather
 // than a path segment because composite resource ids contain slashes.
+//
+// _Requires permission: `iac:read`._
 //
 // GET /api/org/{orgId}/iac/resource
 //
@@ -17111,6 +17720,8 @@ type IacStatesCreateParams struct {
 // The format version is checked, not assumed: an unsupported version is a 400
 // rather than a partial read.
 //
+// _Requires permission: `iac:write`._
+//
 // POST /api/org/{orgId}/iac/states
 //
 // Raises on 400: Bad request
@@ -17140,6 +17751,8 @@ type IacStatesDeleteParams struct {
 
 // Delete: Delete an uploaded state document
 //
+// _Requires permission: `iac:write`._
+//
 // DELETE /api/org/{orgId}/iac/states/{stateId}
 //
 // Raises on 404: Not found
@@ -17164,6 +17777,8 @@ type IacStatesGetParams struct {
 //
 // Every state document the organization has uploaded, newest first. The
 // documents themselves are never stored; only the parsed, redacted projection.
+//
+// _Requires permission: `iac:read`._
 //
 // GET /api/org/{orgId}/iac/states
 func (n *IacStatesNamespace) Get(ctx context.Context, params *IacStatesGetParams, opts ...RequestOption) (*IacStateListResponse, error) {
@@ -17354,15 +17969,13 @@ func newIncidentsNamespace(t *transport) *IncidentsNamespace {
 }
 
 // IncidentsCreateParams holds the parameters for `client.incidents.create`.
-//
-// Every field is optional; pass nil to take the defaults.
 type IncidentsCreateParams struct {
 	// OrgID: Organization id
 	//
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body *IncidentDeclare
+	Body IncidentDeclare
 }
 
 // Create: Declare an incident
@@ -17379,12 +17992,14 @@ type IncidentsCreateParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 403: Forbidden
-func (n *IncidentsNamespace) Create(ctx context.Context, params *IncidentsCreateParams, opts ...RequestOption) (*Incident, error) {
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *IncidentsNamespace) Create(ctx context.Context, params IncidentsCreateParams, opts ...RequestOption) (*Incident, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/incidents")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.setJSONBody(params.Body)
-	}
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
 	var out *Incident
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
@@ -17440,7 +18055,11 @@ type IncidentsPostmortemParams struct {
 //
 // GET /api/org/{orgId}/incidents/{incidentId}/postmortem
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *IncidentsNamespace) Postmortem(ctx context.Context, params IncidentsPostmortemParams, opts ...RequestOption) (*IncidentPostmortem, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/incidents/{incidentId}/postmortem")
 	r.setPath("orgId", params.OrgID)
@@ -17477,7 +18096,11 @@ type IncidentsRetryArtifactsParams struct {
 //
 // POST /api/org/{orgId}/incidents/{incidentId}/retry-artifacts
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *IncidentsNamespace) RetryArtifacts(ctx context.Context, params IncidentsRetryArtifactsParams, opts ...RequestOption) (*Incident, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/incidents/{incidentId}/retry-artifacts")
 	r.setPath("orgId", params.OrgID)
@@ -17515,7 +18138,11 @@ type IncidentsTimelineParams struct {
 //
 // GET /api/org/{orgId}/incidents/{incidentId}/timeline
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *IncidentsNamespace) Timeline(ctx context.Context, params IncidentsTimelineParams, opts ...RequestOption) (*IncidentTimeline, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/incidents/{incidentId}/timeline")
 	r.setPath("orgId", params.OrgID)
@@ -17535,7 +18162,7 @@ type IncidentsUpdateParams struct {
 	OrgID      *string
 	IncidentID string
 	// Body: the JSON request body.
-	Body *IncidentPatch
+	Body IncidentPatch
 }
 
 // Update: Edit or transition an incident
@@ -17553,6 +18180,8 @@ type IncidentsUpdateParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *IncidentsNamespace) Update(ctx context.Context, params IncidentsUpdateParams, opts ...RequestOption) (*Incident, error) {
 	r := newRequest(http.MethodPatch, "/api/org/{orgId}/incidents/{incidentId}")
 	r.setPath("orgId", params.OrgID)
@@ -17595,6 +18224,12 @@ type IncidentsGetGetParams struct {
 // _Requires permission: `incidents:read`._
 //
 // GET /api/org/{orgId}/incidents
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *IncidentsGetNamespace) Get(ctx context.Context, params *IncidentsGetGetParams, opts ...RequestOption) (*IncidentList, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/incidents")
 	if params != nil {
@@ -17657,7 +18292,7 @@ type IncidentsNotesCreateParams struct {
 	OrgID      *string
 	IncidentID string
 	// Body: the JSON request body.
-	Body *IncidentNoteCreate
+	Body IncidentNoteCreate
 }
 
 // Create: Add an operator note
@@ -17672,6 +18307,8 @@ type IncidentsNotesCreateParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *IncidentsNotesNamespace) Create(ctx context.Context, params IncidentsNotesCreateParams, opts ...RequestOption) (*IncidentNote, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/incidents/{incidentId}/notes")
 	r.setPath("orgId", params.OrgID)
@@ -18177,7 +18814,7 @@ type InvoicesListParams struct {
 	//
 	// Falls back to the client's `orgId` when omitted.
 	OrgID            *string
-	ManagedAccountID *string
+	ManagedAccountID any
 	Status           *InvoiceStatus
 }
 
@@ -18394,9 +19031,13 @@ func newIssueWebhooksNamespace(t *transport) *IssueWebhooksNamespace {
 // server
 //
 // Raises on 500: Processing failed; the tracker retries
-func (n *IssueWebhooksNamespace) Github(ctx context.Context, opts ...RequestOption) error {
+func (n *IssueWebhooksNamespace) Github(ctx context.Context, opts ...RequestOption) (*IssueWebhooksGithubResponse, error) {
 	r := newRequest(http.MethodPost, "/api/issue-webhooks/github")
-	return n.t.do(ctx, r, nil, opts)
+	var out *IssueWebhooksGithubResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
 }
 
 // IssueWebhooksJiraNamespace is `client.issueWebhooks.jira`.
@@ -18575,7 +19216,7 @@ type JiraIssuesParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 502: Jira refused to create the issue, or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *JiraNamespace) Issues(ctx context.Context, params JiraIssuesParams, opts ...RequestOption) (*CreateJiraIssueResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/jira/issues")
 	r.setPath("orgId", params.OrgID)
@@ -18604,6 +19245,8 @@ type JiraUpdateParams struct {
 // PUT /api/org/{orgId}/jira
 //
 // Raises on 400: Bad request
+//
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *JiraNamespace) Update(ctx context.Context, params JiraUpdateParams, opts ...RequestOption) (*JiraIntegration, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/jira")
 	r.setPath("orgId", params.OrgID)
@@ -18639,7 +19282,7 @@ type JiraVerifyParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 502: Jira rejected the credentials or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *JiraNamespace) Verify(ctx context.Context, params *JiraVerifyParams, opts ...RequestOption) (*JiraVerifyResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/jira/verify")
 	if params != nil {
@@ -18720,7 +19363,7 @@ type JiraLinksRefreshParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 502: Jira refused or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *JiraLinksNamespace) Refresh(ctx context.Context, params *JiraLinksRefreshParams, opts ...RequestOption) (*IssueStatusRefreshResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/jira/links/refresh")
 	if params != nil {
@@ -18764,6 +19407,8 @@ type JiraProjectsIssueTypesParams struct {
 // GET /api/org/{orgId}/jira/projects/{key}/issue-types
 //
 // Raises on 400: Bad request
+//
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *JiraProjectsNamespace) IssueTypes(ctx context.Context, params JiraProjectsIssueTypesParams, opts ...RequestOption) ([]JiraIssueType, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/jira/projects/{key}/issue-types")
 	r.setPath("orgId", params.OrgID)
@@ -18794,6 +19439,8 @@ type JiraProjectsListParams struct {
 // GET /api/org/{orgId}/jira/projects
 //
 // Raises on 400: Bad request
+//
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *JiraProjectsNamespace) List(ctx context.Context, params *JiraProjectsListParams, opts ...RequestOption) ([]JiraProject, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/jira/projects")
 	if params != nil {
@@ -18843,7 +19490,7 @@ type JiraWebhookCreateParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 502: Jira refused or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *JiraWebhookNamespace) Create(ctx context.Context, params *JiraWebhookCreateParams, opts ...RequestOption) (*IssueWebhookSetupResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/jira/webhook")
 	if params != nil {
@@ -18876,9 +19523,11 @@ type JiraWebhookDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/jira/webhook
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
 //
-// Raises on 502: Jira refused or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *JiraWebhookNamespace) Delete(ctx context.Context, params *JiraWebhookDeleteParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/jira/webhook")
 	if params != nil {
@@ -18968,7 +19617,9 @@ type JitAccessAccountsRolesParams struct {
 //
 // GET /api/org/{orgId}/jit-access/accounts/{accountId}/roles
 //
-// Raises on 502: Provider error
+// Raises on 400: Bad request
+//
+// Raises on 502: JitError
 func (n *JitAccessAccountsNamespace) Roles(ctx context.Context, params JitAccessAccountsRolesParams, opts ...RequestOption) ([]JitPickerOption, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/accounts/{accountId}/roles")
 	r.setPath("orgId", params.OrgID)
@@ -19000,7 +19651,7 @@ type JitAccessAccountsScopesParams struct {
 //
 // GET /api/org/{orgId}/jit-access/accounts/{accountId}/scopes
 //
-// Raises on 502: Provider error
+// Raises on 502: JitError
 func (n *JitAccessAccountsNamespace) Scopes(ctx context.Context, params JitAccessAccountsScopesParams, opts ...RequestOption) ([]JitPickerOption, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/accounts/{accountId}/scopes")
 	r.setPath("orgId", params.OrgID)
@@ -19163,7 +19814,9 @@ type JitAccessPoliciesPrincipalParams struct {
 //
 // GET /api/org/{orgId}/jit-access/policies/{policyId}/principal
 //
-// Raises on 403: Not a requester
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: JitError
 func (n *JitAccessPoliciesNamespace) Principal(ctx context.Context, params JitAccessPoliciesPrincipalParams, opts ...RequestOption) (*JitPrincipalResolution, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/policies/{policyId}/principal")
 	r.setPath("orgId", params.OrgID)
@@ -19191,12 +19844,14 @@ type JitAccessPoliciesPrincipalsParams struct {
 // _Requires permission: `access:request`._
 //
 // GET /api/org/{orgId}/jit-access/policies/{policyId}/principals
-func (n *JitAccessPoliciesNamespace) Principals(ctx context.Context, params JitAccessPoliciesPrincipalsParams, opts ...RequestOption) ([]*JitPrincipalOption, error) {
+//
+// Raises on 401: Unauthenticated
+func (n *JitAccessPoliciesNamespace) Principals(ctx context.Context, params JitAccessPoliciesPrincipalsParams, opts ...RequestOption) ([]JitPrincipalOption, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/policies/{policyId}/principals")
 	r.setPath("orgId", params.OrgID)
 	r.setPath("policyId", params.PolicyID)
 	r.addQuery("q", params.Q)
-	var out []*JitPrincipalOption
+	var out []JitPrincipalOption
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -19271,11 +19926,15 @@ type JitAccessRequestsApproveParams struct {
 //
 // POST /api/org/{orgId}/jit-access/requests/{requestId}/approve
 //
-// Raises on 403: Not allowed
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: JitError
 //
 // Raises on 404: Not found
 //
-// Raises on 409: Already decided, timed out, or not in a state for this
+// Raises on 409: JitError
 func (n *JitAccessRequestsNamespace) Approve(ctx context.Context, params JitAccessRequestsApproveParams, opts ...RequestOption) (*JitAccessRequest, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests/{requestId}/approve")
 	r.setPath("orgId", params.OrgID)
@@ -19308,11 +19967,15 @@ type JitAccessRequestsCancelParams struct {
 //
 // POST /api/org/{orgId}/jit-access/requests/{requestId}/cancel
 //
-// Raises on 403: Not allowed
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: JitError
 //
 // Raises on 404: Not found
 //
-// Raises on 409: Already decided, timed out, or not in a state for this
+// Raises on 409: JitError
 func (n *JitAccessRequestsNamespace) Cancel(ctx context.Context, params JitAccessRequestsCancelParams, opts ...RequestOption) (*JitAccessRequest, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests/{requestId}/cancel")
 	r.setPath("orgId", params.OrgID)
@@ -19348,11 +20011,13 @@ type JitAccessRequestsCreateParams struct {
 //
 // POST /api/org/{orgId}/jit-access/requests
 //
-// Raises on 400: Invalid
+// Raises on 400: JitError
 //
-// Raises on 403: Not a requester under this policy
+// Raises on 401: Unauthenticated
 //
-// Raises on 409: A pending or active request already covers this
+// Raises on 403: JitError
+//
+// Raises on 409: JitError
 func (n *JitAccessRequestsNamespace) Create(ctx context.Context, params *JitAccessRequestsCreateParams, opts ...RequestOption) (*JitAccessRequest, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests")
 	if params != nil {
@@ -19387,11 +20052,15 @@ type JitAccessRequestsDenyParams struct {
 //
 // POST /api/org/{orgId}/jit-access/requests/{requestId}/deny
 //
-// Raises on 403: Not allowed
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: JitError
 //
 // Raises on 404: Not found
 //
-// Raises on 409: Already decided, timed out, or not in a state for this
+// Raises on 409: JitError
 func (n *JitAccessRequestsNamespace) Deny(ctx context.Context, params JitAccessRequestsDenyParams, opts ...RequestOption) (*JitAccessRequest, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests/{requestId}/deny")
 	r.setPath("orgId", params.OrgID)
@@ -19426,11 +20095,13 @@ type JitAccessRequestsExtendParams struct {
 //
 // POST /api/org/{orgId}/jit-access/requests/{requestId}/extend
 //
-// Raises on 400: Beyond the policy maximum
+// Raises on 400: JitError
 //
-// Raises on 403: Not an approver
+// Raises on 401: Unauthenticated
 //
-// Raises on 409: Not active
+// Raises on 403: JitError
+//
+// Raises on 409: JitError
 func (n *JitAccessRequestsNamespace) Extend(ctx context.Context, params JitAccessRequestsExtendParams, opts ...RequestOption) (*JitAccessRequest, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests/{requestId}/extend")
 	r.setPath("orgId", params.OrgID)
@@ -19458,6 +20129,8 @@ type JitAccessRequestsGetParams struct {
 // _Requires permission: `access:read`._
 //
 // GET /api/org/{orgId}/jit-access/requests/{requestId}
+//
+// Raises on 401: Unauthenticated
 //
 // Raises on 404: Not found
 func (n *JitAccessRequestsNamespace) Get(ctx context.Context, params JitAccessRequestsGetParams, opts ...RequestOption) (*JitAccessRequest, error) {
@@ -19498,6 +20171,8 @@ type JitAccessRequestsListParams struct {
 // GET /api/org/{orgId}/jit-access/requests
 //
 // Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
 func (n *JitAccessRequestsNamespace) List(ctx context.Context, params *JitAccessRequestsListParams, opts ...RequestOption) ([]JitAccessRequest, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/jit-access/requests")
 	if params != nil {
@@ -19532,11 +20207,15 @@ type JitAccessRequestsRevokeParams struct {
 //
 // POST /api/org/{orgId}/jit-access/requests/{requestId}/revoke
 //
-// Raises on 403: Not allowed
+// Raises on 400: Bad request
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 403: JitError
 //
 // Raises on 404: Not found
 //
-// Raises on 409: Already decided, timed out, or not in a state for this
+// Raises on 409: JitError
 func (n *JitAccessRequestsNamespace) Revoke(ctx context.Context, params JitAccessRequestsRevokeParams, opts ...RequestOption) (*JitAccessRequest, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/jit-access/requests/{requestId}/revoke")
 	r.setPath("orgId", params.OrgID)
@@ -19982,6 +20661,8 @@ type LeakedSecretsGetParams struct {
 // _Requires permission: `resources:read`._
 //
 // GET /api/org/{orgId}/leaked-secrets
+//
+// Raises on 400: Bad request
 func (n *LeakedSecretsNamespace) Get(ctx context.Context, params *LeakedSecretsGetParams, opts ...RequestOption) (*LeakedSecretList, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/leaked-secrets")
 	if params != nil {
@@ -20210,6 +20891,8 @@ type LeasesCreateParams struct {
 //
 // Raises on 400: Bad request
 //
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
 //
 // Raises on 409: The resource already has an active lease
@@ -20335,6 +21018,8 @@ type LeasesUpdateParams struct {
 //
 // Raises on 400: Bad request
 //
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
 func (n *LeasesNamespace) Update(ctx context.Context, params LeasesUpdateParams, opts ...RequestOption) (*ResourceLease, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/leases/{leaseId}")
@@ -20447,7 +21132,7 @@ type LinearIssuesParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 502: Linear refused to create the issue, or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *LinearNamespace) Issues(ctx context.Context, params LinearIssuesParams, opts ...RequestOption) (*CreateLinearIssueResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/linear/issues")
 	r.setPath("orgId", params.OrgID)
@@ -20479,6 +21164,8 @@ type LinearTeamsParams struct {
 // GET /api/org/{orgId}/linear/teams
 //
 // Raises on 400: Bad request
+//
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *LinearNamespace) Teams(ctx context.Context, params *LinearTeamsParams, opts ...RequestOption) ([]LinearTeam, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/linear/teams")
 	if params != nil {
@@ -20508,6 +21195,8 @@ type LinearUpdateParams struct {
 // PUT /api/org/{orgId}/linear
 //
 // Raises on 400: Bad request
+//
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *LinearNamespace) Update(ctx context.Context, params LinearUpdateParams, opts ...RequestOption) (*LinearIntegration, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/linear")
 	r.setPath("orgId", params.OrgID)
@@ -20543,7 +21232,7 @@ type LinearVerifyParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 502: Linear rejected the key or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *LinearNamespace) Verify(ctx context.Context, params *LinearVerifyParams, opts ...RequestOption) (*LinearVerifyResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/linear/verify")
 	if params != nil {
@@ -20625,7 +21314,7 @@ type LinearLinksRefreshParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 502: Linear refused or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *LinearLinksNamespace) Refresh(ctx context.Context, params *LinearLinksRefreshParams, opts ...RequestOption) (*IssueStatusRefreshResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/linear/links/refresh")
 	if params != nil {
@@ -20673,7 +21362,7 @@ type LinearWebhookCreateParams struct {
 //
 // Raises on 400: Bad request
 //
-// Raises on 502: Linear refused or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *LinearWebhookNamespace) Create(ctx context.Context, params LinearWebhookCreateParams, opts ...RequestOption) (*IssueWebhookSetupResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/linear/webhook")
 	r.setPath("orgId", params.OrgID)
@@ -20705,9 +21394,11 @@ type LinearWebhookDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/linear/webhook
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
 //
-// Raises on 502: Linear refused or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *LinearWebhookNamespace) Delete(ctx context.Context, params *LinearWebhookDeleteParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/linear/webhook")
 	if params != nil {
@@ -20741,6 +21432,8 @@ type LinearWebhookURLParams struct {
 // POST /api/org/{orgId}/linear/webhook/url
 //
 // Raises on 400: Bad request
+//
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *LinearWebhookNamespace) URL(ctx context.Context, params *LinearWebhookURLParams, opts ...RequestOption) (*LinearWebhookUrlresponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/linear/webhook/url")
 	if params != nil {
@@ -21103,6 +21796,8 @@ type ManagedAccountsUnassignedParams struct {
 // GET /api/org/{orgId}/managed-accounts/unassigned
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *ManagedAccountsNamespace) Unassigned(ctx context.Context, params *ManagedAccountsUnassignedParams, opts ...RequestOption) (*UnassignedSpendReport, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/managed-accounts/unassigned")
 	if params != nil {
@@ -21222,6 +21917,8 @@ type ManagedAccountsAssignmentsPreviewParams struct {
 // POST /api/org/{orgId}/managed-accounts/assignments/preview
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *ManagedAccountsAssignmentsNamespace) Preview(ctx context.Context, params ManagedAccountsAssignmentsPreviewParams, opts ...RequestOption) (*ManagedAccountAssignmentPreview, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/managed-accounts/assignments/preview")
 	r.setPath("orgId", params.OrgID)
@@ -21261,6 +21958,8 @@ type MetricAlertsCreateParams struct {
 // The poller evaluates enabled rules about once a minute and alerts when the
 // condition held for the whole trailing window.
 //
+// _Requires permission: `metric-alerts:write`._
+//
 // POST /api/org/{orgId}/metric-alerts
 //
 // Raises on 400: Bad request
@@ -21289,6 +21988,8 @@ type MetricAlertsDeleteParams struct {
 //
 // Soft delete. The rule's firing history stays readable via
 // /metric-alerts/events.
+//
+// _Requires permission: `metric-alerts:write`._
 //
 // DELETE /api/org/{orgId}/metric-alerts/{id}
 //
@@ -21319,6 +22020,8 @@ type MetricAlertsEventsParams struct {
 
 // Events: Recent metric alert firings
 //
+// _Requires permission: `metric-alerts:read`._
+//
 // GET /api/org/{orgId}/metric-alerts/events
 func (n *MetricAlertsNamespace) Events(ctx context.Context, params *MetricAlertsEventsParams, opts ...RequestOption) ([]MetricAlertEvent, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/metric-alerts/events")
@@ -21345,6 +22048,8 @@ type MetricAlertsGetParams struct {
 
 // Get: Get a metric alert rule
 //
+// _Requires permission: `metric-alerts:read`._
+//
 // GET /api/org/{orgId}/metric-alerts/{id}
 //
 // Raises on 404: Not found
@@ -21370,6 +22075,8 @@ type MetricAlertsListParams struct {
 }
 
 // List: List metric alert rules with live firing status
+//
+// _Requires permission: `metric-alerts:read`._
 //
 // GET /api/org/{orgId}/metric-alerts
 func (n *MetricAlertsNamespace) List(ctx context.Context, params *MetricAlertsListParams, opts ...RequestOption) ([]MetricAlertRuleWithStatus, error) {
@@ -21403,6 +22110,8 @@ type MetricAlertsMetricKeysParams struct {
 // to one plugin and resource type; what the rule builder's metric picker is fed
 // from.
 //
+// _Requires permission: `metric-alerts:read`._
+//
 // GET /api/org/{orgId}/metric-alerts/metric-keys
 func (n *MetricAlertsNamespace) MetricKeys(ctx context.Context, params *MetricAlertsMetricKeysParams, opts ...RequestOption) ([]MetricSeriesKey, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/metric-alerts/metric-keys")
@@ -21430,6 +22139,8 @@ type MetricAlertsSelectorOptionsParams struct {
 }
 
 // SelectorOptions: List what the organization's resources offer to select on
+//
+// _Requires permission: `metric-alerts:read`._
 //
 // GET /api/org/{orgId}/metric-alerts/selector-options
 func (n *MetricAlertsNamespace) SelectorOptions(ctx context.Context, params *MetricAlertsSelectorOptionsParams, opts ...RequestOption) (*MetricAlertSelectorOptions, error) {
@@ -21460,6 +22171,8 @@ type MetricAlertsSelectorPreviewParams struct {
 }
 
 // SelectorPreview: Preview which resources a selector matches right now
+//
+// _Requires permission: `metric-alerts:read`._
 //
 // GET /api/org/{orgId}/metric-alerts/selector-preview
 //
@@ -21493,6 +22206,8 @@ type MetricAlertsUpdateParams struct {
 }
 
 // Update: Update a metric alert rule
+//
+// _Requires permission: `metric-alerts:write`._
 //
 // PUT /api/org/{orgId}/metric-alerts/{id}
 //
@@ -21553,6 +22268,8 @@ type MomentGetParams struct {
 // GET /api/org/{orgId}/moment
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *MomentNamespace) Get(ctx context.Context, params *MomentGetParams, opts ...RequestOption) (*MomentResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/moment")
 	if params != nil {
@@ -21596,6 +22313,8 @@ type MsteamsStatusParams struct {
 // Returns the Teams channels alerts can be routed to. Which alerts reach each
 // one is decided by /alert-rules. Webhook URLs are never included.
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/msteams/status
 func (n *MsteamsNamespace) Status(ctx context.Context, params *MsteamsStatusParams, opts ...RequestOption) (*MsTeamsStatus, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/msteams/status")
@@ -21624,6 +22343,8 @@ type MsteamsTestParams struct {
 // Ignores routing rules; every channel gets the test. Fails with the error
 // Microsoft returned when nothing could be delivered (HTTP 404 usually means the
 // Workflow was deleted or turned off).
+//
+// _Requires permission: `org:settings:write`._
 //
 // POST /api/org/{orgId}/msteams/test
 //
@@ -21670,6 +22391,8 @@ type MsteamsWebhooksCreateParams struct {
 // nothing to it on its own. Responds 400 when the URL is not https or its host
 // is not Microsoft-operated.
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/msteams/webhooks
 //
 // Raises on 400: Bad request
@@ -21697,6 +22420,8 @@ type MsteamsWebhooksDeleteParams struct {
 }
 
 // Delete: Disconnect a Teams channel
+//
+// _Requires permission: `org:settings:write`._
 //
 // DELETE /api/org/{orgId}/msteams/webhooks/{id}
 //
@@ -21727,6 +22452,8 @@ type MsteamsWebhooksUpdateParams struct {
 // Update: Rename a Teams channel
 //
 // The webhook URL is immutable; remove the channel and re-add it to change it.
+//
+// _Requires permission: `org:settings:write`._
 //
 // PATCH /api/org/{orgId}/msteams/webhooks/{id}
 //
@@ -22258,7 +22985,7 @@ type NetworkFlowsSettingsUpdateParams struct {
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body NetworkFlowSettings
+	Body NetworkFlowSettingsInput
 }
 
 // Update: Turn network flow collection on or off
@@ -22320,6 +23047,8 @@ type OnCallNowParams struct {
 // rotation. Takes `team:read`: knowing who is on call is something every member
 // needs and nobody should have to ask an admin for.
 //
+// _Requires permission: `team:read`._
+//
 // GET /api/org/{orgId}/on-call/now
 func (n *OnCallNamespace) Now(ctx context.Context, params *OnCallNowParams, opts ...RequestOption) (*OnCallNowResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/on-call/now")
@@ -22345,15 +23074,13 @@ func newOnCallOverridesNamespace(t *transport) *OnCallOverridesNamespace {
 
 // OnCallOverridesCreateParams holds the parameters for
 // `client.onCall.overrides.create`.
-//
-// Every field is optional; pass nil to take the defaults.
 type OnCallOverridesCreateParams struct {
 	// OrgID: Organization id
 	//
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body *OnCallOverrideCreate
+	Body OnCallOverrideCreate
 }
 
 // Create: Arrange cover
@@ -22366,17 +23093,19 @@ type OnCallOverridesCreateParams struct {
 // Friday and the person handing over is rarely an org admin. Every cover is
 // audit-logged, which is the control that makes the looser permission safe.
 //
+// _Requires permission: `team:read`._
+//
 // POST /api/org/{orgId}/on-call/overrides
 //
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
-func (n *OnCallOverridesNamespace) Create(ctx context.Context, params *OnCallOverridesCreateParams, opts ...RequestOption) (*OnCallOverride, error) {
+//
+// Raises on 409: Conflict
+func (n *OnCallOverridesNamespace) Create(ctx context.Context, params OnCallOverridesCreateParams, opts ...RequestOption) (*OnCallOverride, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/on-call/overrides")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.setJSONBody(params.Body)
-	}
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
 	var out *OnCallOverride
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
@@ -22395,6 +23124,8 @@ type OnCallOverridesDeleteParams struct {
 }
 
 // Delete: Cancel a cover
+//
+// _Requires permission: `team:read`._
 //
 // DELETE /api/org/{orgId}/on-call/overrides/{overrideId}
 //
@@ -22419,6 +23150,8 @@ type OnCallOverridesGetParams struct {
 }
 
 // Get: List covers
+//
+// _Requires permission: `team:read`._
 //
 // GET /api/org/{orgId}/on-call/overrides
 func (n *OnCallOverridesNamespace) Get(ctx context.Context, params *OnCallOverridesGetParams, opts ...RequestOption) (*OnCallOverridesGetResponse, error) {
@@ -22446,15 +23179,13 @@ func newOnCallSchedulesNamespace(t *transport) *OnCallSchedulesNamespace {
 
 // OnCallSchedulesCreateParams holds the parameters for
 // `client.onCall.schedules.create`.
-//
-// Every field is optional; pass nil to take the defaults.
 type OnCallSchedulesCreateParams struct {
 	// OrgID: Organization id
 	//
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body *OnCallScheduleCreate
+	Body OnCallScheduleCreate
 }
 
 // Create: Create an on-call rotation
@@ -22466,17 +23197,19 @@ type OnCallSchedulesCreateParams struct {
 //
 // Writing takes `org:settings:write`: a rotation decides who gets woken up.
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/on-call/schedules
 //
 // Raises on 400: Bad request
 //
+// Raises on 404: Not found
+//
 // Raises on 409: Conflict
-func (n *OnCallSchedulesNamespace) Create(ctx context.Context, params *OnCallSchedulesCreateParams, opts ...RequestOption) (*OnCallSchedule, error) {
+func (n *OnCallSchedulesNamespace) Create(ctx context.Context, params OnCallSchedulesCreateParams, opts ...RequestOption) (*OnCallSchedule, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/on-call/schedules")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.setJSONBody(params.Body)
-	}
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
 	var out *OnCallSchedule
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
@@ -22498,6 +23231,8 @@ type OnCallSchedulesDeleteParams struct {
 //
 // Takes its covers with it. Routing rules naming it resolve to nobody
 // afterwards.
+//
+// _Requires permission: `org:settings:write`._
 //
 // DELETE /api/org/{orgId}/on-call/schedules/{scheduleId}
 //
@@ -22521,6 +23256,8 @@ type OnCallSchedulesGetParams struct {
 }
 
 // Get: List on-call rotations
+//
+// _Requires permission: `team:read`._
 //
 // GET /api/org/{orgId}/on-call/schedules
 func (n *OnCallSchedulesNamespace) Get(ctx context.Context, params *OnCallSchedulesGetParams, opts ...RequestOption) (*OnCallScheduleList, error) {
@@ -22551,6 +23288,8 @@ type OnCallSchedulesShiftsParams struct {
 // The same computation the alert path resolves with, so a preview can never
 // disagree with who actually gets woken up.
 //
+// _Requires permission: `team:read`._
+//
 // GET /api/org/{orgId}/on-call/schedules/{scheduleId}/shifts
 //
 // Raises on 400: Bad request
@@ -22577,7 +23316,7 @@ type OnCallSchedulesUpdateParams struct {
 	OrgID      *string
 	ScheduleID string
 	// Body: the JSON request body.
-	Body *OnCallScheduleUpdate
+	Body OnCallScheduleUpdate
 }
 
 // Update: Edit an on-call rotation
@@ -22585,6 +23324,8 @@ type OnCallSchedulesUpdateParams struct {
 // Omitted fields are left alone, and the result is validated after merging.
 // Sending `participantUserIds` replaces the list wholesale; position is rotation
 // order, so reordering re-plans the future.
+//
+// _Requires permission: `org:settings:write`._
 //
 // PATCH /api/org/{orgId}/on-call/schedules/{scheduleId}
 //
@@ -22845,13 +23586,13 @@ type OwnershipUpdateParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
-func (n *OwnershipNamespace) Update(ctx context.Context, params *OwnershipUpdateParams, opts ...RequestOption) (any, error) {
+func (n *OwnershipNamespace) Update(ctx context.Context, params *OwnershipUpdateParams, opts ...RequestOption) (*ResourceOwnership, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/ownership")
 	if params != nil {
 		r.setPath("orgId", params.OrgID)
 		r.setJSONBody(params.Body)
 	}
-	var out any
+	var out *ResourceOwnership
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -22972,6 +23713,8 @@ type PagingIncidentsAcknowledgeParams struct {
 // acted (PagerDuty's `From` header), falling back to the account's default user.
 // The returned state is the provider's answer, not an assumption.
 //
+// _Requires permission: `incidents:write`._
+//
 // POST /api/org/{orgId}/paging-incidents/{id}/acknowledge
 //
 // Raises on 400: Bad request
@@ -22988,10 +23731,9 @@ type PagingIncidentsAcknowledgeParams struct {
 //
 // Raises on 500: Server error
 //
-// Raises on 503: A backing service this endpoint depends on is not available
+// Raises on 502: Bad gateway: an upstream service failed
 //
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
+// Raises on 503: A backing service this endpoint depends on is not available
 func (n *PagingIncidentsNamespace) Acknowledge(ctx context.Context, params PagingIncidentsAcknowledgeParams, opts ...RequestOption) (*PagerIncident, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/paging-incidents/{id}/acknowledge")
 	r.setPath("orgId", params.OrgID)
@@ -23022,6 +23764,8 @@ type PagingIncidentsGetParams struct {
 // default; `status=all` includes resolved ones. These are a provider's pages,
 // distinct from incidents declared in Infrawrench (`/incidents`).
 //
+// _Requires permission: `incidents:read`._
+//
 // GET /api/org/{orgId}/paging-incidents
 //
 // Raises on 400: Bad request
@@ -23038,10 +23782,9 @@ type PagingIncidentsGetParams struct {
 //
 // Raises on 500: Server error
 //
-// Raises on 503: A backing service this endpoint depends on is not available
+// Raises on 502: Bad gateway: an upstream service failed
 //
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
+// Raises on 503: A backing service this endpoint depends on is not available
 func (n *PagingIncidentsNamespace) Get(ctx context.Context, params *PagingIncidentsGetParams, opts ...RequestOption) (*PagerIncidentsResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/paging-incidents")
 	if params != nil {
@@ -23069,6 +23812,8 @@ type PagingIncidentsResolveParams struct {
 // acted (PagerDuty's `From` header), falling back to the account's default user.
 // The returned state is the provider's answer, not an assumption.
 //
+// _Requires permission: `incidents:write`._
+//
 // POST /api/org/{orgId}/paging-incidents/{id}/resolve
 //
 // Raises on 400: Bad request
@@ -23085,10 +23830,9 @@ type PagingIncidentsResolveParams struct {
 //
 // Raises on 500: Server error
 //
-// Raises on 503: A backing service this endpoint depends on is not available
+// Raises on 502: Bad gateway: an upstream service failed
 //
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
+// Raises on 503: A backing service this endpoint depends on is not available
 func (n *PagingIncidentsNamespace) Resolve(ctx context.Context, params PagingIncidentsResolveParams, opts ...RequestOption) (*PagerIncident, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/paging-incidents/{id}/resolve")
 	r.setPath("orgId", params.OrgID)
@@ -23130,6 +23874,8 @@ type PagingProvidersDestinationsParams struct {
 // Listed live from each provider, so a destination is picked by name. A failure
 // is reported per account in `error` rather than failing the response.
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/paging-providers/destinations
 //
 // Raises on 400: Bad request
@@ -23146,10 +23892,9 @@ type PagingProvidersDestinationsParams struct {
 //
 // Raises on 500: Server error
 //
-// Raises on 503: A backing service this endpoint depends on is not available
+// Raises on 502: Bad gateway: an upstream service failed
 //
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
+// Raises on 503: A backing service this endpoint depends on is not available
 func (n *PagingProvidersNamespace) Destinations(ctx context.Context, params *PagingProvidersDestinationsParams, opts ...RequestOption) (*PagingDestinationsResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/paging-providers/destinations")
 	if params != nil {
@@ -23180,6 +23925,8 @@ type PagingProvidersEventsParams struct {
 // its resolution are one alert upstream. `pendingAction` is set while a send is
 // queued or being retried.
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/paging-providers/events
 //
 // Raises on 400: Bad request
@@ -23196,10 +23943,9 @@ type PagingProvidersEventsParams struct {
 //
 // Raises on 500: Server error
 //
-// Raises on 503: A backing service this endpoint depends on is not available
+// Raises on 502: Bad gateway: an upstream service failed
 //
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
+// Raises on 503: A backing service this endpoint depends on is not available
 func (n *PagingProvidersNamespace) Events(ctx context.Context, params *PagingProvidersEventsParams, opts ...RequestOption) (*PagingEventsResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/paging-providers/events")
 	if params != nil {
@@ -23226,6 +23972,8 @@ type PagingProvidersGetParams struct {
 
 // Get: List paging provider accounts and their settings
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/paging-providers
 //
 // Raises on 400: Bad request
@@ -23242,10 +23990,9 @@ type PagingProvidersGetParams struct {
 //
 // Raises on 500: Server error
 //
-// Raises on 503: A backing service this endpoint depends on is not available
+// Raises on 502: Bad gateway: an upstream service failed
 //
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
+// Raises on 503: A backing service this endpoint depends on is not available
 func (n *PagingProvidersNamespace) Get(ctx context.Context, params *PagingProvidersGetParams, opts ...RequestOption) (*PagingProvidersResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/paging-providers")
 	if params != nil {
@@ -23266,7 +24013,7 @@ type PagingProvidersSettingsParams struct {
 	// AccountID: A connected account whose plugin can page
 	AccountID string
 	// Body: the JSON request body.
-	Body *PagingProviderSettingsInput
+	Body PagingProviderSettingsInput
 }
 
 // Settings: Configure incident mirroring for a paging provider account
@@ -23275,6 +24022,8 @@ type PagingProvidersSettingsParams struct {
 // provider's API; turning it off removes the subscription and forgets the
 // mirrored incidents. A webhook that cannot be subscribed is reported in
 // `warning` and mirroring falls back to reconciling on a timer.
+//
+// _Requires permission: `org:settings:write`._
 //
 // PUT /api/org/{orgId}/paging-providers/{accountId}/settings
 //
@@ -23292,10 +24041,9 @@ type PagingProvidersSettingsParams struct {
 //
 // Raises on 500: Server error
 //
-// Raises on 503: A backing service this endpoint depends on is not available
+// Raises on 502: Bad gateway: an upstream service failed
 //
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
+// Raises on 503: A backing service this endpoint depends on is not available
 func (n *PagingProvidersNamespace) Settings(ctx context.Context, params PagingProvidersSettingsParams, opts ...RequestOption) (*PagingProviderSettingsResult, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/paging-providers/{accountId}/settings")
 	r.setPath("orgId", params.OrgID)
@@ -23319,6 +24067,8 @@ type PagingProvidersSyncParams struct {
 
 // Sync: Reconcile an account's incidents now
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/paging-providers/{accountId}/sync
 //
 // Raises on 400: Bad request
@@ -23335,10 +24085,9 @@ type PagingProvidersSyncParams struct {
 //
 // Raises on 500: Server error
 //
-// Raises on 503: A backing service this endpoint depends on is not available
+// Raises on 502: Bad gateway: an upstream service failed
 //
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
+// Raises on 503: A backing service this endpoint depends on is not available
 func (n *PagingProvidersNamespace) Sync(ctx context.Context, params PagingProvidersSyncParams, opts ...RequestOption) (*PagingSyncResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/paging-providers/{accountId}/sync")
 	r.setPath("orgId", params.OrgID)
@@ -23376,6 +24125,8 @@ type PagingProvidersOnCallGetParams struct {
 // organization member by email; `memberUserId` is null for somebody who is on
 // call upstream but not a member here.
 //
+// _Requires permission: `team:read`._
+//
 // GET /api/org/{orgId}/paging-providers/{accountId}/on-call/{sourceId}
 //
 // Raises on 400: Bad request
@@ -23392,10 +24143,9 @@ type PagingProvidersOnCallGetParams struct {
 //
 // Raises on 500: Server error
 //
-// Raises on 503: A backing service this endpoint depends on is not available
+// Raises on 502: Bad gateway: an upstream service failed
 //
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
+// Raises on 503: A backing service this endpoint depends on is not available
 func (n *PagingProvidersOnCallNamespace) Get(ctx context.Context, params PagingProvidersOnCallGetParams, opts ...RequestOption) (*PagingOnCallNowResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/paging-providers/{accountId}/on-call/{sourceId}")
 	r.setPath("orgId", params.OrgID)
@@ -23436,6 +24186,8 @@ type PagingWebhooksCreateParams struct {
 // Raises on 401: The signature did not verify
 //
 // Raises on 404: Unknown token
+//
+// Raises on 500: Processing failed; the provider retries
 func (n *PagingWebhooksNamespace) Create(ctx context.Context, params PagingWebhooksCreateParams, opts ...RequestOption) error {
 	r := newRequest(http.MethodPost, "/api/paging-webhooks/{token}")
 	r.setPath("token", params.Token)
@@ -23718,7 +24470,7 @@ type PrChecksPreviewParams struct {
 //
 // Raises on 404: Not found
 //
-// Raises on 502: GitHub refused the request or was unreachable
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *PrChecksNamespace) Preview(ctx context.Context, params PrChecksPreviewParams, opts ...RequestOption) (*PrCheckPreview, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/pr-checks/preview")
 	r.setPath("orgId", params.OrgID)
@@ -23747,6 +24499,8 @@ type PrChecksRunsParams struct {
 // _Requires permission: `iac:read`._
 //
 // GET /api/org/{orgId}/pr-checks/runs
+//
+// Raises on 400: Bad request
 func (n *PrChecksNamespace) Runs(ctx context.Context, params *PrChecksRunsParams, opts ...RequestOption) ([]PrCheckRun, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/pr-checks/runs")
 	if params != nil {
@@ -23984,9 +24738,6 @@ type PriceCatalogCompareParams struct {
 // Raises on 500: Server error
 //
 // Raises on 503: A backing service this endpoint depends on is not available
-//
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
 func (n *PriceCatalogNamespace) Compare(ctx context.Context, params *PriceCatalogCompareParams, opts ...RequestOption) (*PriceCatalogCompareResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/price-catalog/compare")
 	if params != nil {
@@ -24045,9 +24796,6 @@ type PriceCatalogProvidersParams struct {
 // Raises on 500: Server error
 //
 // Raises on 503: A backing service this endpoint depends on is not available
-//
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
 func (n *PriceCatalogNamespace) Providers(ctx context.Context, params *PriceCatalogProvidersParams, opts ...RequestOption) (*PriceCatalogProvidersResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/price-catalog/providers")
 	if params != nil {
@@ -24135,9 +24883,6 @@ type PriceCatalogSearchParams struct {
 // Raises on 500: Server error
 //
 // Raises on 503: A backing service this endpoint depends on is not available
-//
-// Raises on reauth: Recent sign-in required. Send the user through sign-in again
-// and retry; the request itself was well-formed.
 func (n *PriceCatalogNamespace) Search(ctx context.Context, params *PriceCatalogSearchParams, opts ...RequestOption) (*PriceCatalogSearchResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/price-catalog/search")
 	if params != nil {
@@ -24205,6 +24950,8 @@ type ProbesCreateParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *ProbesNamespace) Create(ctx context.Context, params *ProbesCreateParams, opts ...RequestOption) (*SyntheticProbe, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/probes")
 	if params != nil {
@@ -24235,7 +24982,11 @@ type ProbesDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/probes/{probeId}
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *ProbesNamespace) Delete(ctx context.Context, params ProbesDeleteParams, opts ...RequestOption) error {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/probes/{probeId}")
 	r.setPath("orgId", params.OrgID)
@@ -24371,6 +25122,8 @@ type ProbesUpdateParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *ProbesNamespace) Update(ctx context.Context, params ProbesUpdateParams, opts ...RequestOption) (*SyntheticProbe, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/probes/{probeId}")
 	r.setPath("orgId", params.OrgID)
@@ -24831,6 +25584,8 @@ type ProviderOAuthAuthorizeParams struct {
 // 30 minutes. Requires `accounts:write`. 400 when the plugin has no OAuth flow
 // or this server has no client configured for it.
 //
+// _Requires permission: `accounts:write`._
+//
 // POST /api/org/{orgId}/provider-oauth/{pluginId}/authorize
 //
 // Raises on 400: Bad request
@@ -24864,15 +25619,13 @@ func newQueryMonitorsNamespace(t *transport) *QueryMonitorsNamespace {
 
 // QueryMonitorsCreateParams holds the parameters for
 // `client.queryMonitors.create`.
-//
-// Every field is optional; pass nil to take the defaults.
 type QueryMonitorsCreateParams struct {
 	// OrgID: Organization id
 	//
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body *QueryMonitorCreate
+	Body QueryMonitorCreate
 }
 
 // Create: Create a query monitor
@@ -24889,6 +25642,8 @@ type QueryMonitorsCreateParams struct {
 // a query to run against a customer database on a schedule, forever, which is a
 // strictly larger act than running one while watching it.
 //
+// _Requires permission: `resources:execute`._
+//
 // POST /api/org/{orgId}/query-monitors
 //
 // Raises on 400: Bad request
@@ -24896,12 +25651,10 @@ type QueryMonitorsCreateParams struct {
 // Raises on 404: Not found
 //
 // Raises on 409: Conflict
-func (n *QueryMonitorsNamespace) Create(ctx context.Context, params *QueryMonitorsCreateParams, opts ...RequestOption) (*QueryMonitor, error) {
+func (n *QueryMonitorsNamespace) Create(ctx context.Context, params QueryMonitorsCreateParams, opts ...RequestOption) (*QueryMonitor, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/query-monitors")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.setJSONBody(params.Body)
-	}
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
 	var out *QueryMonitor
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
@@ -24920,6 +25673,8 @@ type QueryMonitorsDeleteParams struct {
 }
 
 // Delete: Delete a query monitor
+//
+// _Requires permission: `resources:execute`._
 //
 // DELETE /api/org/{orgId}/query-monitors/{monitorId}
 //
@@ -24953,6 +25708,8 @@ type QueryMonitorsTargetsParams struct {
 // the synced resource either way) when creating a monitor to scope the query to
 // that resource.
 //
+// _Requires permission: `resources:read`._
+//
 // GET /api/org/{orgId}/query-monitors/targets
 func (n *QueryMonitorsNamespace) Targets(ctx context.Context, params *QueryMonitorsTargetsParams, opts ...RequestOption) (*QueryMonitorTargets, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/query-monitors/targets")
@@ -24967,15 +25724,13 @@ func (n *QueryMonitorsNamespace) Targets(ctx context.Context, params *QueryMonit
 }
 
 // QueryMonitorsTestParams holds the parameters for `client.queryMonitors.test`.
-//
-// Every field is optional; pass nil to take the defaults.
 type QueryMonitorsTestParams struct {
 	// OrgID: Organization id
 	//
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body *QueryMonitorCreate
+	Body QueryMonitorsTestRequest
 }
 
 // Test: Run a query once without saving it
@@ -24986,15 +25741,15 @@ type QueryMonitorsTestParams struct {
 // answer says whether it *would* be breaching rather than leaving the reader to
 // compare two numbers.
 //
+// _Requires permission: `resources:execute`._
+//
 // POST /api/org/{orgId}/query-monitors/test
 //
 // Raises on 400: Bad request
-func (n *QueryMonitorsNamespace) Test(ctx context.Context, params *QueryMonitorsTestParams, opts ...RequestOption) (*QueryMonitorTestResult, error) {
+func (n *QueryMonitorsNamespace) Test(ctx context.Context, params QueryMonitorsTestParams, opts ...RequestOption) (*QueryMonitorTestResult, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/query-monitors/test")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.setJSONBody(params.Body)
-	}
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
 	var out *QueryMonitorTestResult
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
@@ -25011,7 +25766,7 @@ type QueryMonitorsUpdateParams struct {
 	OrgID     *string
 	MonitorID string
 	// Body: the JSON request body.
-	Body *QueryMonitorUpdate
+	Body QueryMonitorUpdate
 }
 
 // Update: Edit a query monitor
@@ -25021,6 +25776,8 @@ type QueryMonitorsUpdateParams struct {
 // monitor: the stored breach streak was accumulated against a different
 // question, and carrying it forward would fire an alert on the first run of a
 // rule nobody has tested.
+//
+// _Requires permission: `resources:execute`._
 //
 // PATCH /api/org/{orgId}/query-monitors/{monitorId}
 //
@@ -25064,6 +25821,8 @@ type QueryMonitorsGetGetParams struct {
 
 // Get: List query monitors
 //
+// _Requires permission: `resources:read`._
+//
 // GET /api/org/{orgId}/query-monitors
 func (n *QueryMonitorsGetNamespace) Get(ctx context.Context, params *QueryMonitorsGetGetParams, opts ...RequestOption) (*QueryMonitorList, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/query-monitors")
@@ -25088,6 +25847,8 @@ type QueryMonitorsGetGetOrgOrgIDQueryMonitorsMonitorIDParams struct {
 }
 
 // GetOrgOrgIDQueryMonitorsMonitorID: Get one query monitor
+//
+// _Requires permission: `resources:read`._
 //
 // GET /api/org/{orgId}/query-monitors/{monitorId}
 //
@@ -25771,6 +26532,8 @@ type ResourcesCreateParams struct {
 // are missing a required tag (or carry a disallowed value). Retry with the
 // `x-tag-policy-override: true` header if you hold `tag-policy:override`; both
 // blocks and overrides are audit-logged.
+//
+// Raises on 500: Server error
 func (n *ResourcesNamespace) Create(ctx context.Context, params ResourcesCreateParams, opts ...RequestOption) (*CreateResourceResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/resources/create")
 	r.setPath("orgId", params.OrgID)
@@ -25832,6 +26595,8 @@ type ResourcesCreatePricingParams struct {
 // _Requires permission: `resources:read`._
 //
 // POST /api/org/{orgId}/resources/create-pricing
+//
+// Raises on 404: Not found
 func (n *ResourcesNamespace) CreatePricing(ctx context.Context, params ResourcesCreatePricingParams, opts ...RequestOption) (map[string]JSONObject, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/resources/create-pricing")
 	r.setPath("orgId", params.OrgID)
@@ -26052,6 +26817,8 @@ type ResourcesFieldActionParams struct {
 // Calls the plugin's `executeFieldAction`. Returns `{ value }` to assign to the
 // field; for `select` fields the optional `option` should be spliced into the
 // options list so the new value can be displayed.
+//
+// _Requires permission: `resources:write`._
 //
 // POST /api/org/{orgId}/resources/field-action
 //
@@ -26303,6 +27070,41 @@ func (n *ResourcesNamespace) PickerResources(ctx context.Context, params Resourc
 	return out, nil
 }
 
+// ResourcesTunnelSSHAttachParams holds the parameters for
+// `client.resources.tunnelSshAttach`.
+type ResourcesTunnelSSHAttachParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body TunnelSSHAttachRequest
+}
+
+// TunnelSSHAttach: Serve a host over a Cloudflare Tunnel
+//
+// Points the tunnel's ingress at the host's service, creates the routing DNS
+// record in `zoneId`, then connects to the host over SSH and installs and runs
+// cloudflared. A DNS record that could not be created (one may already exist) is
+// reported and the setup carries on; any other failed step is the last of
+// `steps`, and `connectCommand` is only sent when every step ran.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/resources/tunnel-ssh-attach
+//
+// Raises on 400: Bad request
+func (n *ResourcesNamespace) TunnelSSHAttach(ctx context.Context, params ResourcesTunnelSSHAttachParams, opts ...RequestOption) (*TunnelSSHAttachResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/resources/tunnel-ssh-attach")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *TunnelSSHAttachResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // ResourcesUpdateParams holds the parameters for `client.resources.update`.
 type ResourcesUpdateParams struct {
 	// OrgID: Organization id
@@ -26320,6 +27122,8 @@ type ResourcesUpdateParams struct {
 // the caller actually changed. Blocked with `423` while an org change freeze is
 // in effect (this is also the path that applies right-sizing recommendations);
 // every applied update is audit-logged.
+//
+// _Requires permission: `resources:write`._
 //
 // POST /api/org/{orgId}/resources/update
 //
@@ -26731,15 +27535,13 @@ func newRunbooksNamespace(t *transport) *RunbooksNamespace {
 }
 
 // RunbooksCreateParams holds the parameters for `client.runbooks.create`.
-//
-// Every field is optional; pass nil to take the defaults.
 type RunbooksCreateParams struct {
 	// OrgID: Organization id
 	//
 	// Falls back to the client's `orgId` when omitted.
 	OrgID *string
 	// Body: the JSON request body.
-	Body *RunbookCreate
+	Body RunbookCreate
 }
 
 // Create: Write a runbook
@@ -26749,17 +27551,19 @@ type RunbooksCreateParams struct {
 // unique within an organization: two runbooks called "Failover" is how the wrong
 // one gets run.
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/runbooks
 //
 // Raises on 400: Bad request
 //
+// Raises on 404: Not found
+//
 // Raises on 409: Conflict
-func (n *RunbooksNamespace) Create(ctx context.Context, params *RunbooksCreateParams, opts ...RequestOption) (*Runbook, error) {
+func (n *RunbooksNamespace) Create(ctx context.Context, params RunbooksCreateParams, opts ...RequestOption) (*Runbook, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/runbooks")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.setJSONBody(params.Body)
-	}
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
 	var out *Runbook
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
@@ -26781,6 +27585,8 @@ type RunbooksDeleteParams struct {
 // Takes its run history with it. To retire a procedure without losing the record
 // of the runs performed against it, set `enabled` to false instead.
 //
+// _Requires permission: `org:settings:write`._
+//
 // DELETE /api/org/{orgId}/runbooks/{runbookId}
 //
 // Raises on 404: Not found
@@ -26799,7 +27605,7 @@ type RunbooksUpdateParams struct {
 	OrgID     *string
 	RunbookID string
 	// Body: the JSON request body.
-	Body *RunbookUpdate
+	Body RunbookUpdate
 }
 
 // Update: Edit a runbook
@@ -26808,6 +27614,8 @@ type RunbooksUpdateParams struct {
 // patch that only changes the steps still has to produce a runbook that is valid
 // as a whole. A step sent with its `id` keeps its identity, so a run in progress
 // still matches it.
+//
+// _Requires permission: `org:settings:write`._
 //
 // PATCH /api/org/{orgId}/runbooks/{runbookId}
 //
@@ -26854,6 +27662,8 @@ type RunbooksGetGetParams struct {
 // used. Reading takes `resources:read`: the person who can see the
 // infrastructure is the person who will be woken up about it.
 //
+// _Requires permission: `resources:read`._
+//
 // GET /api/org/{orgId}/runbooks
 func (n *RunbooksGetNamespace) Get(ctx context.Context, params *RunbooksGetGetParams, opts ...RequestOption) (*RunbookList, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/runbooks")
@@ -26878,6 +27688,8 @@ type RunbooksGetGetOrgOrgIDRunbooksRunbookIDParams struct {
 }
 
 // GetOrgOrgIDRunbooksRunbookID: Get one runbook
+//
+// _Requires permission: `resources:read`._
 //
 // GET /api/org/{orgId}/runbooks/{runbookId}
 //
@@ -26915,7 +27727,7 @@ type RunbooksRunsCloseParams struct {
 	OrgID *string
 	RunID string
 	// Body: the JSON request body.
-	Body *RunbookRunClose
+	Body RunbookRunClose
 }
 
 // Close: Close a run out
@@ -26924,6 +27736,8 @@ type RunbooksRunsCloseParams struct {
 // steps still pending is a true and useful record (it says the incident ended
 // before the checklist did) and quietly marking them done would erase the one
 // thing a postmortem wants to know.
+//
+// _Requires permission: `resources:read`._
 //
 // POST /api/org/{orgId}/runbooks/runs/{runId}/close
 //
@@ -26967,11 +27781,15 @@ type RunbooksRunsCreateParams struct {
 // performing the failover twice in one incident is a real thing, and refusing
 // the second would mean it goes unrecorded rather than not happening.
 //
+// _Requires permission: `resources:read`._
+//
 // POST /api/org/{orgId}/runbooks/{runbookId}/runs
 //
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *RunbooksRunsNamespace) Create(ctx context.Context, params RunbooksRunsCreateParams, opts ...RequestOption) (*RunbookRun, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/runbooks/{runbookId}/runs")
 	r.setPath("orgId", params.OrgID)
@@ -27000,6 +27818,8 @@ type RunbooksRunsGetParams struct {
 // Get: List runbook runs
 //
 // Newest first, optionally narrowed to one runbook or one incident.
+//
+// _Requires permission: `resources:read`._
 //
 // GET /api/org/{orgId}/runbooks/runs
 //
@@ -27030,6 +27850,8 @@ type RunbooksRunsGetOrgOrgIDRunbooksRunsRunIDParams struct {
 }
 
 // GetOrgOrgIDRunbooksRunsRunID: Get one runbook run
+//
+// _Requires permission: `resources:read`._
 //
 // GET /api/org/{orgId}/runbooks/runs/{runId}
 //
@@ -27065,7 +27887,7 @@ type RunbooksRunsStepsUpdateParams struct {
 	RunID  string
 	StepID string
 	// Body: the JSON request body.
-	Body *RunbookStepUpdate
+	Body RunbookStepUpdate
 }
 
 // Update: Tick a step
@@ -27077,11 +27899,15 @@ type RunbooksRunsStepsUpdateParams struct {
 // A closed run refuses updates, and reopening is not offered: a run is a record
 // of what happened. Start another run to record another attempt.
 //
+// _Requires permission: `resources:read`._
+//
 // PATCH /api/org/{orgId}/runbooks/runs/{runId}/steps/{stepId}
 //
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *RunbooksRunsStepsNamespace) Update(ctx context.Context, params RunbooksRunsStepsUpdateParams, opts ...RequestOption) (*RunbookRun, error) {
 	r := newRequest(http.MethodPatch, "/api/org/{orgId}/runbooks/runs/{runId}/steps/{stepId}")
 	r.setPath("orgId", params.OrgID)
@@ -27350,6 +28176,8 @@ type SavingsRealizedParams struct {
 // lands. Days collection has not covered are not accrued. Per-currency
 // throughout; never converted or merged.
 //
+// _Requires permission: `costs:read`._
+//
 // GET /api/org/{orgId}/savings/realized
 //
 // Raises on 400: Bad request
@@ -27397,6 +28225,8 @@ type SavingsEventsCreateParams struct {
 // Record a saving by hand, with the monthly amount and the day it began. Leaves
 // an org-wide cost annotation on that day. Requires `costs:write`.
 //
+// _Requires permission: `costs:write`._
+//
 // POST /api/org/{orgId}/savings/events
 //
 // Raises on 400: Bad request
@@ -27424,6 +28254,8 @@ type SavingsEventsDeleteParams struct {
 // Delete: Remove a saving
 //
 // Hard delete, together with the cost annotation the event left on the charts.
+//
+// _Requires permission: `costs:write`._
 //
 // DELETE /api/org/{orgId}/savings/events/{id}
 //
@@ -27467,6 +28299,8 @@ type SavingsEventsUpdatePatchOrgOrgIDSavingsEventsIDParams struct {
 // or an end date. The facts of an automatic event (what was done, when, the
 // projection) stay as observed.
 //
+// _Requires permission: `costs:write`._
+//
 // PATCH /api/org/{orgId}/savings/events/{id}
 //
 // Raises on 400: Bad request
@@ -27499,6 +28333,8 @@ type SavingsEventsUpdateUpdateParams struct {
 // Update: Rewrite a manual saving
 //
 // Full replace of a manual entry. Automatic events are a 400; use PATCH.
+//
+// _Requires permission: `costs:write`._
 //
 // PUT /api/org/{orgId}/savings/events/{id}
 //
@@ -27538,7 +28374,7 @@ type SavingsFindingsGetParams struct {
 	OrgID *string
 	// View: Apply a saved view, by id or name. Explicit params override it.
 	View *string
-	// Status: A status, `open` (Ready or In progress), or `all`.
+	// Status: Status tab. Defaults to `all` (or the view's).
 	Status *SavingsFindingStatusFilter
 	// Kind: Comma-separated finding kinds.
 	Kind *string
@@ -27549,7 +28385,7 @@ type SavingsFindingsGetParams struct {
 	// Region: Comma-separated regions.
 	Region *string
 	// Tag: `key` or `key=value`; repeat for more terms (all must match).
-	Tag *string
+	Tag []string
 	// MinSavings: Minimum monthly savings, in each finding's own currency.
 	// Unpriced findings never pass.
 	MinSavings *string
@@ -27669,6 +28505,8 @@ type SavingsSettingsGetParams struct {
 // The org's horizon, shortfall threshold and baseline window; defaults when
 // never saved.
 //
+// _Requires permission: `costs:read`._
+//
 // GET /api/org/{orgId}/savings/settings
 func (n *SavingsSettingsNamespace) Get(ctx context.Context, params *SavingsSettingsGetParams, opts ...RequestOption) (*RealizedSavingsSettings, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/savings/settings")
@@ -27696,6 +28534,8 @@ type SavingsSettingsUpdateParams struct {
 // Update: Update realized savings settings
 //
 // Requires `costs:write`. Changes every figure in the report, retroactively.
+//
+// _Requires permission: `costs:write`._
 //
 // PUT /api/org/{orgId}/savings/settings
 //
@@ -28106,6 +28946,8 @@ type ScorecardsCreateParams struct {
 //
 // Raises on 400: Bad request
 //
+// Raises on 404: Not found
+//
 // Raises on 409: Conflict
 func (n *ScorecardsNamespace) Create(ctx context.Context, params *ScorecardsCreateParams, opts ...RequestOption) (*Scorecard, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/scorecards")
@@ -28137,7 +28979,11 @@ type ScorecardsDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/scorecards/{scorecardId}
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *ScorecardsNamespace) Delete(ctx context.Context, params ScorecardsDeleteParams, opts ...RequestOption) error {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/scorecards/{scorecardId}")
 	r.setPath("orgId", params.OrgID)
@@ -28164,7 +29010,11 @@ type ScorecardsEvaluateParams struct {
 //
 // POST /api/org/{orgId}/scorecards/{scorecardId}/evaluate
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *ScorecardsNamespace) Evaluate(ctx context.Context, params ScorecardsEvaluateParams, opts ...RequestOption) (*ScorecardOverview, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/scorecards/{scorecardId}/evaluate")
 	r.setPath("orgId", params.OrgID)
@@ -28344,6 +29194,8 @@ type ScorecardsOrgGetParams struct {
 // records; days when nothing could be graded are absent rather than zero. Does
 // not seed the default scorecard.
 //
+// _Requires permission: `resources:read`._
+//
 // GET /api/org/{orgId}/scorecards/org
 func (n *ScorecardsOrgNamespace) Get(ctx context.Context, params *ScorecardsOrgGetParams, opts ...RequestOption) (*OrgScorecard, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/scorecards/org")
@@ -28375,6 +29227,8 @@ type ScorecardsOrgHistoryParams struct {
 //
 // The daily history alone, without computing the grade: the cheap read for a
 // sparkline.
+//
+// _Requires permission: `resources:read`._
 //
 // GET /api/org/{orgId}/scorecards/org/history
 //
@@ -28434,6 +29288,8 @@ type SearchListParams struct {
 // GET /api/org/{orgId}/search
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *SearchNamespace) List(ctx context.Context, params *SearchListParams, opts ...RequestOption) ([]SearchHit, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/search")
 	if params != nil {
@@ -28548,6 +29404,10 @@ type SeatsRemoveParams struct {
 // Raises on 404: Not found
 //
 // Raises on 409: Conflict
+//
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
 func (n *SeatsNamespace) Remove(ctx context.Context, params SeatsRemoveParams, opts ...RequestOption) (*SeatRemovalResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/seats/{seatId}/remove")
 	r.setPath("orgId", params.OrgID)
@@ -28706,7 +29566,11 @@ type ServicesDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/services/{serviceId}
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *ServicesNamespace) Delete(ctx context.Context, params ServicesDeleteParams, opts ...RequestOption) error {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/services/{serviceId}")
 	r.setPath("orgId", params.OrgID)
@@ -28950,6 +29814,8 @@ type ServicesMembersCreateParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *ServicesMembersNamespace) Create(ctx context.Context, params ServicesMembersCreateParams, opts ...RequestOption) (*ServiceDetail, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/services/{serviceId}/members")
 	r.setPath("orgId", params.OrgID)
@@ -28988,7 +29854,11 @@ type ServicesMembersDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/services/{serviceId}/members/{resourceId}
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *ServicesMembersNamespace) Delete(ctx context.Context, params ServicesMembersDeleteParams, opts ...RequestOption) (*ServiceDetail, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/services/{serviceId}/members/{resourceId}")
 	r.setPath("orgId", params.OrgID)
@@ -29313,6 +30183,8 @@ type SFTPDownloadParams struct {
 //
 // Raises on 404: Not found
 //
+// Raises on 409: The host key is new or has changed; trust it and retry
+//
 // Raises on 500: Server error
 func (n *SFTPNamespace) Download(ctx context.Context, params SFTPDownloadParams, opts ...RequestOption) (io.ReadCloser, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/v1/sftp/download")
@@ -29405,6 +30277,8 @@ type SFTPUploadParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: The host key is new or has changed; trust it and retry
 func (n *SFTPNamespace) Upload(ctx context.Context, params SFTPUploadParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/v1/sftp/upload")
 	r.setPath("orgId", params.OrgID)
@@ -29774,6 +30648,8 @@ type SharedConsolesInvitesCreateParams struct {
 //
 // POST /api/org/{orgId}/shared-consoles/{consoleId}/invites
 //
+// Raises on 400: Bad request
+//
 // Raises on 403: Forbidden
 //
 // Raises on 404: Not found
@@ -29929,6 +30805,8 @@ type SharingDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/sharing/{objectType}/{objectId}
 //
+// Raises on 400: Bad request
+//
 // Raises on 403: Forbidden
 //
 // Raises on 404: Not found
@@ -29961,6 +30839,10 @@ type SharingGetParams struct {
 // `dashboards:read`).
 //
 // GET /api/org/{orgId}/sharing/{objectType}/{objectId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 //
 // Raises on 404: Not found
 func (n *SharingNamespace) Get(ctx context.Context, params SharingGetParams, opts ...RequestOption) (*ObjectSharing, error) {
@@ -30048,6 +30930,8 @@ type SlackInstallURLParams struct {
 // redirects back to /api/slack/oauth/callback. The install only completes in the
 // browser that opened the link as that user.
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/slack/install-url
 //
 // Raises on 400: Bad request
@@ -30078,6 +30962,8 @@ type SlackStatusParams struct {
 // Reports whether the server has a Slack app registered, which workspaces this
 // organization has connected, and which channels alerts are routed to.
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/slack/status
 func (n *SlackNamespace) Status(ctx context.Context, params *SlackStatusParams, opts ...RequestOption) (*SlackStatus, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/slack/status")
@@ -30106,6 +30992,8 @@ type SlackTestParams struct {
 // Ignores routing rules; every channel gets the test. Fails with the Slack error
 // when nothing could be delivered (`not_in_channel` means the bot needs inviting
 // to a private channel).
+//
+// _Requires permission: `org:settings:write`._
 //
 // POST /api/org/{orgId}/slack/test
 //
@@ -30153,6 +31041,8 @@ type SlackChannelsCreateParams struct {
 // everywhere), so a freshly added channel starts receiving alerts without a
 // second step.
 //
+// _Requires permission: `org:settings:write`._
+//
 // POST /api/org/{orgId}/slack/channels
 //
 // Raises on 400: Bad request
@@ -30183,6 +31073,8 @@ type SlackChannelsDeleteParams struct {
 
 // Delete: Disconnect a channel
 //
+// _Requires permission: `org:settings:write`._
+//
 // DELETE /api/org/{orgId}/slack/channels/{id}
 //
 // Raises on 404: Not found
@@ -30211,7 +31103,11 @@ type SlackChannelsUpdateParams struct {
 
 // Update: Refresh a channel's cached name
 //
+// _Requires permission: `org:settings:write`._
+//
 // PATCH /api/org/{orgId}/slack/channels/{id}
+//
+// Raises on 400: Bad request
 //
 // Raises on 404: Not found
 func (n *SlackChannelsNamespace) Update(ctx context.Context, params SlackChannelsUpdateParams, opts ...RequestOption) (*SlackChannel, error) {
@@ -30251,6 +31147,8 @@ type SlackInstallationsAvailableChannelsParams struct {
 // Live call to Slack's conversations.list, for populating a channel picker.
 // Returns non-archived public and private channels visible to the bot.
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/slack/installations/{installationId}/available-channels
 //
 // Raises on 400: Bad request
@@ -30279,6 +31177,8 @@ type SlackInstallationsDeleteParams struct {
 //
 // Stops all delivery to this workspace. The channel routing is retained, so
 // re-installing restores it.
+//
+// _Requires permission: `org:settings:write`._
 //
 // DELETE /api/org/{orgId}/slack/installations/{installationId}
 //
@@ -30364,7 +31264,11 @@ type SlosDeleteParams struct {
 //
 // DELETE /api/org/{orgId}/slos/{sloId}
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
+//
+// Raises on 409: Conflict
 func (n *SlosNamespace) Delete(ctx context.Context, params SlosDeleteParams, opts ...RequestOption) error {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/slos/{sloId}")
 	r.setPath("orgId", params.OrgID)
@@ -30919,6 +31823,8 @@ type SSHKeysDeleteParams struct {
 // _Requires permission: `ssh-keys:write`._
 //
 // DELETE /api/org/{orgId}/ssh-keys/{id}
+//
+// Raises on 404: Not found
 func (n *SSHKeysNamespace) Delete(ctx context.Context, params SSHKeysDeleteParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/ssh-keys/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -31004,6 +31910,8 @@ type SSHKeysSignParams struct {
 // `resources:execute` permission: producing an auth signature is the same
 // authority as opening a shell. Imported keys cannot sign (only their public
 // half is stored). Every call is audited.
+//
+// _Requires permission: `resources:execute`._
 //
 // POST /api/org/{orgId}/ssh-keys/{id}/sign
 //
@@ -31107,6 +32015,8 @@ type SSHTunnelsCreateAccountParams struct {
 // Raises on 400: Bad request
 //
 // Raises on 404: Not found
+//
+// Raises on 409: The host key is new or has changed; trust it and retry
 func (n *SSHTunnelsNamespace) CreateAccount(ctx context.Context, params SSHTunnelsCreateAccountParams, opts ...RequestOption) (*SSHTunnelCreateAccountResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/ssh-tunnels/create-account")
 	r.setPath("orgId", params.OrgID)
@@ -31136,7 +32046,11 @@ type SSHTunnelsExecParams struct {
 //
 // Raises on 400: Bad request
 //
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
+//
+// Raises on 409: The host key is new or has changed; trust it and retry
 func (n *SSHTunnelsNamespace) Exec(ctx context.Context, params SSHTunnelsExecParams, opts ...RequestOption) (*SSHExecResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/ssh-tunnels/exec")
 	r.setPath("orgId", params.OrgID)
@@ -31164,7 +32078,11 @@ type SSHTunnelsOpenParams struct {
 //
 // POST /api/org/{orgId}/ssh-tunnels/open
 //
+// Raises on 400: Bad request
+//
 // Raises on 404: Not found
+//
+// Raises on 409: The host key is new or has changed; trust it and retry
 func (n *SSHTunnelsNamespace) Open(ctx context.Context, params SSHTunnelsOpenParams, opts ...RequestOption) (*SshtunnelsOpenResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/ssh-tunnels/open")
 	r.setPath("orgId", params.OrgID)
@@ -32015,14 +32933,17 @@ type TeamInvitationsCreateParams struct {
 //
 // POST /api/org/{orgId}/team/invitations
 //
+// Raises on 400: Bad request
+//
 // Raises on 402: Payment required: the organization's plan does not include this
 //
-// Raises on 403: The role would grant permissions the caller does not hold, or
-// the caller is not an owner and tried to invite an owner
+// Raises on 403: Forbidden
 //
-// Raises on 409: All seats are in use; retry with addSeat to buy one more
+// Raises on 404: Not found
 //
-// Raises on 502: Buying the extra seat failed; the invitation was not sent
+// Raises on 409: SeatLimitResponse
+//
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *TeamInvitationsNamespace) Create(ctx context.Context, params TeamInvitationsCreateParams, opts ...RequestOption) (*InviteResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/team/invitations")
 	r.setPath("orgId", params.OrgID)
@@ -32114,6 +33035,10 @@ type TeamMembersDeleteParams struct {
 // _Requires permission: `team:remove`._
 //
 // DELETE /api/org/{orgId}/team/members/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *TeamMembersNamespace) Delete(ctx context.Context, params TeamMembersDeleteParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/team/members/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -32168,6 +33093,12 @@ type TeamMembersRoleParams struct {
 // _Requires permission: `team:role:write`._
 //
 // PATCH /api/org/{orgId}/team/members/{id}/role
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
 func (n *TeamMembersNamespace) Role(ctx context.Context, params TeamMembersRoleParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodPatch, "/api/org/{orgId}/team/members/{id}/role")
 	r.setPath("orgId", params.OrgID)
@@ -32205,6 +33136,10 @@ type TeamRolesCreateParams struct {
 // _Requires permission: `team:role:write`._
 //
 // POST /api/org/{orgId}/team/roles
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 func (n *TeamRolesNamespace) Create(ctx context.Context, params TeamRolesCreateParams, opts ...RequestOption) (*Role, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/team/roles")
 	r.setPath("orgId", params.OrgID)
@@ -32235,7 +33170,8 @@ type TeamRolesDeleteParams struct {
 //
 // Raises on 409: Conflict
 //
-// Raises on 422: Bad request
+// Raises on 422: Unprocessable: the request is well formed but cannot be acted
+// on
 func (n *TeamRolesNamespace) Delete(ctx context.Context, params TeamRolesDeleteParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/team/roles/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -32291,9 +33227,14 @@ type TeamRolesUpdateParams struct {
 //
 // PATCH /api/org/{orgId}/team/roles/{id}
 //
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
 //
-// Raises on 422: Bad request
+// Raises on 422: Unprocessable: the request is well formed but cannot be acted
+// on
 func (n *TeamRolesNamespace) Update(ctx context.Context, params TeamRolesUpdateParams, opts ...RequestOption) (*Role, error) {
 	r := newRequest(http.MethodPatch, "/api/org/{orgId}/team/roles/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -32586,6 +33527,8 @@ type VulnerabilitiesGetParams struct {
 // findings (and `dismissed`) to those running there and recompute the counts;
 // `sources` always describes every scanner.
 //
+// _Requires permission: `resources:read`._
+//
 // GET /api/org/{orgId}/vulnerabilities
 //
 // Raises on 400: Bad request
@@ -32632,6 +33575,8 @@ type VulnerabilitiesDismissalsCreateParams struct {
 // repository, so it survives rebuilds) or, with `artifactKey: "*"`, everywhere.
 // Idempotent.
 //
+// _Requires permission: `resources:write`._
+//
 // POST /api/org/{orgId}/vulnerabilities/dismissals
 //
 // Raises on 400: Bad request
@@ -32662,6 +33607,8 @@ type VulnerabilitiesDismissalsDeleteParams struct {
 // Delete: Restore a dismissed vulnerability
 //
 // The key is in the query string because artifact keys contain slashes.
+//
+// _Requires permission: `resources:write`._
 //
 // DELETE /api/org/{orgId}/vulnerabilities/dismissals
 //
@@ -32701,6 +33648,8 @@ type VulnerabilitiesSettingsGetParams struct {
 //
 // Defaults when never saved: alerts on, critical only, running only.
 //
+// _Requires permission: `org:settings:write`._
+//
 // GET /api/org/{orgId}/vulnerabilities/settings
 func (n *VulnerabilitiesSettingsNamespace) Get(ctx context.Context, params *VulnerabilitiesSettingsGetParams, opts ...RequestOption) (*VulnerabilitySettings, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/vulnerabilities/settings")
@@ -32730,6 +33679,8 @@ type VulnerabilitiesSettingsUpdateParams struct {
 // Update: Update the vulnerability alert settings
 //
 // Saving never resets the alert cooldown.
+//
+// _Requires permission: `org:settings:write`._
 //
 // PUT /api/org/{orgId}/vulnerabilities/settings
 //
@@ -32782,6 +33733,8 @@ type WallboardGetParams struct {
 // page, this carries incident titles, probe names and account names, and a
 // screen in an office is exactly what a visitor photographs. The machine driving
 // the wall signs in once.
+//
+// _Requires permission: `resources:read`._
 //
 // GET /api/org/{orgId}/wallboard
 func (n *WallboardNamespace) Get(ctx context.Context, params *WallboardGetParams, opts ...RequestOption) (*WallboardResponse, error) {
@@ -33134,6 +34087,253 @@ func newWorkflowsNamespace(t *transport) *WorkflowsNamespace {
 	return n
 }
 
+// WorkflowsCheckParams holds the parameters for `client.workflows.check`.
+type WorkflowsCheckParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+	// Body: the JSON request body.
+	Body WorkflowCheckInput
+}
+
+// Check: Type-check workflow source
+//
+// Checks `source` (or the stored source) against the workflow's generated
+// typings, the same check the editor runs. Needs `secrets:read` as well, since
+// the typings name the assigned secrets.
+//
+// _Requires permission: `workflows:read`._
+//
+// POST /api/org/{orgId}/workflows/{id}/check
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *WorkflowsNamespace) Check(ctx context.Context, params WorkflowsCheckParams, opts ...RequestOption) (*WorkflowTypecheckResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/workflows/{id}/check")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *WorkflowTypecheckResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsCreateParams holds the parameters for `client.workflows.create`.
+type WorkflowsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body WorkflowInput
+}
+
+// Create: Create a workflow
+//
+// Every field is optional: an empty body creates an enabled, manually triggered
+// workflow with no source. Assigning secrets (`secretIds`) also needs
+// `secrets:read`.
+//
+// _Requires permission: `workflows:write`._
+//
+// POST /api/org/{orgId}/workflows
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *WorkflowsNamespace) Create(ctx context.Context, params WorkflowsCreateParams, opts ...RequestOption) (*Workflow, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/workflows")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *Workflow
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsDeleteParams holds the parameters for `client.workflows.delete`.
+type WorkflowsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+}
+
+// Delete: Delete a workflow
+//
+// _Requires permission: `workflows:write`._
+//
+// DELETE /api/org/{orgId}/workflows/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *WorkflowsNamespace) Delete(ctx context.Context, params WorkflowsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/workflows/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsGetParams holds the parameters for `client.workflows.get`.
+type WorkflowsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+}
+
+// Get: Get a workflow
+//
+// _Requires permission: `workflows:read`._
+//
+// GET /api/org/{orgId}/workflows/{id}
+//
+// Raises on 404: Not found
+func (n *WorkflowsNamespace) Get(ctx context.Context, params WorkflowsGetParams, opts ...RequestOption) (*Workflow, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/workflows/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *Workflow
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsListParams holds the parameters for `client.workflows.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type WorkflowsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List workflows
+//
+// _Requires permission: `workflows:read`._
+//
+// GET /api/org/{orgId}/workflows
+func (n *WorkflowsNamespace) List(ctx context.Context, params *WorkflowsListParams, opts ...RequestOption) ([]Workflow, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/workflows")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []Workflow
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsMetricsParams holds the parameters for `client.workflows.metrics`.
+type WorkflowsMetricsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+}
+
+// Metrics: A workflow's metric values
+//
+// _Requires permission: `workflows:read`._
+//
+// GET /api/org/{orgId}/workflows/{id}/metrics
+//
+// Raises on 404: Not found
+func (n *WorkflowsNamespace) Metrics(ctx context.Context, params WorkflowsMetricsParams, opts ...RequestOption) ([]WorkflowMetric, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/workflows/{id}/metrics")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out []WorkflowMetric
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsRunParams holds the parameters for `client.workflows.run`.
+type WorkflowsRunParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+}
+
+// Run: Run a workflow now
+//
+// Runs the workflow to completion with the caller's permissions and answers its
+// outcome. Non-interactive: an `infra.prompt` gets no answer.
+//
+// _Requires permission: `workflows:write`._
+//
+// POST /api/org/{orgId}/workflows/{id}/run
+//
+// Raises on 401: Unauthenticated
+//
+// Raises on 404: Not found
+func (n *WorkflowsNamespace) Run(ctx context.Context, params WorkflowsRunParams, opts ...RequestOption) (*WorkflowRunOutcome, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/workflows/{id}/run")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *WorkflowRunOutcome
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsRunsParams holds the parameters for `client.workflows.runs`.
+type WorkflowsRunsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+}
+
+// Runs: A workflow's recent runs
+//
+// _Requires permission: `workflows:read`._
+//
+// GET /api/org/{orgId}/workflows/{id}/runs
+//
+// Raises on 404: Not found
+func (n *WorkflowsNamespace) Runs(ctx context.Context, params WorkflowsRunsParams, opts ...RequestOption) ([]WorkflowRun, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/workflows/{id}/runs")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out []WorkflowRun
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // WorkflowsTypingsParams holds the parameters for `client.workflows.typings`.
 type WorkflowsTypingsParams struct {
 	// OrgID: Organization id
@@ -33163,6 +34363,8 @@ type WorkflowsTypingsParams struct {
 //
 // GET /api/org/{orgId}/workflows/{id}/typings
 //
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
 func (n *WorkflowsNamespace) Typings(ctx context.Context, params WorkflowsTypingsParams, opts ...RequestOption) (*WorkflowTypingsResponse, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/workflows/{id}/typings")
@@ -33170,6 +34372,46 @@ func (n *WorkflowsNamespace) Typings(ctx context.Context, params WorkflowsTyping
 	r.setPath("id", params.ID)
 	r.addQuery("enrich", params.Enrich)
 	var out *WorkflowTypingsResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// WorkflowsUpdateParams holds the parameters for `client.workflows.update`.
+type WorkflowsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ID: Workflow id
+	ID string
+	// Body: the JSON request body.
+	Body WorkflowInput
+}
+
+// Update: Update a workflow
+//
+// An omitted field keeps its stored value. Changing the source, trigger or
+// assigned secrets makes automated runs act with the caller's permissions from
+// then on; when the workflow has secrets assigned, any edit also needs
+// `secrets:read`.
+//
+// _Requires permission: `workflows:write`._
+//
+// PUT /api/org/{orgId}/workflows/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *WorkflowsNamespace) Update(ctx context.Context, params WorkflowsUpdateParams, opts ...RequestOption) (*Workflow, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/workflows/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *Workflow
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -33205,6 +34447,8 @@ type WorkflowsScheduleDeleteParams struct {
 // _Requires permission: `workflows:write`._
 //
 // DELETE /api/org/{orgId}/workflows/{id}/schedule
+//
+// Raises on 400: Bad request
 //
 // Raises on 404: Not found
 func (n *WorkflowsScheduleNamespace) Delete(ctx context.Context, params WorkflowsScheduleDeleteParams, opts ...RequestOption) (*OK, error) {
@@ -33280,6 +34524,8 @@ type WorkflowsScheduleUpdateParams struct {
 //
 // Raises on 400: Bad request
 //
+// Raises on 403: Forbidden
+//
 // Raises on 404: Not found
 func (n *WorkflowsScheduleNamespace) Update(ctx context.Context, params WorkflowsScheduleUpdateParams, opts ...RequestOption) (*WorkflowScheduleResponse, error) {
 	r := newRequest(http.MethodPut, "/api/org/{orgId}/workflows/{id}/schedule")
@@ -33354,6 +34600,8 @@ type WorkflowsSecretsUpdateParams struct {
 // PUT /api/org/{orgId}/workflows/{id}/secrets
 //
 // Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
 //
 // Raises on 404: Not found
 func (n *WorkflowsSecretsNamespace) Update(ctx context.Context, params WorkflowsSecretsUpdateParams, opts ...RequestOption) (*WorkflowSecretAssignment, error) {
