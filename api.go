@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.99.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.100.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.99.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.100.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -95,6 +95,8 @@ type APIV1Client struct {
 	Changes *ChangesNamespace
 	// Chat: `client.chat`.
 	Chat *ChatNamespace
+	// Ci: `client.ci`.
+	Ci *CiNamespace
 	// Commitments: `client.commitments`.
 	Commitments *CommitmentsNamespace
 	// Compliance: `client.compliance`.
@@ -163,6 +165,8 @@ type APIV1Client struct {
 	Expiring *ExpiringNamespace
 	// ExtendedSupport: `client.extendedSupport`.
 	ExtendedSupport *ExtendedSupportNamespace
+	// Features: `client.features`.
+	Features *FeaturesNamespace
 	// Github: `client.github`.
 	Github *GithubNamespace
 	// GithubIssues: `client.githubIssues`.
@@ -353,6 +357,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.ChangeFreezes = newChangeFreezesNamespace(t)
 	c.Changes = newChangesNamespace(t)
 	c.Chat = newChatNamespace(t)
+	c.Ci = newCiNamespace(t)
 	c.Commitments = newCommitmentsNamespace(t)
 	c.Compliance = newComplianceNamespace(t)
 	c.Config = newConfigNamespace(t)
@@ -387,6 +392,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.EventSubscriptions = newEventSubscriptionsNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
 	c.ExtendedSupport = newExtendedSupportNamespace(t)
+	c.Features = newFeaturesNamespace(t)
 	c.Github = newGithubNamespace(t)
 	c.GithubIssues = newGithubIssuesNamespace(t)
 	c.Iac = newIacNamespace(t)
@@ -7540,6 +7546,391 @@ func (n *ChatConversationsSecretRequestsNamespace) Create(ctx context.Context, p
 	r.setPath("requestId", params.RequestID)
 	r.setJSONBody(params.Body)
 	var out *ChatSecretRequestResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiNamespace is `client.ci`.
+type CiNamespace struct {
+	t *transport
+
+	// Accounts: `client.ci.accounts`.
+	Accounts *CiAccountsNamespace
+	// Runs: `client.ci.runs`.
+	Runs *CiRunsNamespace
+	// Values: `client.ci.values`.
+	Values *CiValuesNamespace
+}
+
+func newCiNamespace(t *transport) *CiNamespace {
+	n := &CiNamespace{t: t}
+	n.Accounts = newCiAccountsNamespace(t)
+	n.Runs = newCiRunsNamespace(t)
+	n.Values = newCiValuesNamespace(t)
+	return n
+}
+
+// CiGetParams holds the parameters for `client.ci.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CiGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: CI status and the GitHub accounts that run it
+//
+// _Requires permission: `ci:read`._
+//
+// GET /api/org/{orgId}/ci
+func (n *CiNamespace) Get(ctx context.Context, params *CiGetParams, opts ...RequestOption) (*CiStatus, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CiStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiUsageParams holds the parameters for `client.ci.usage`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CiUsageParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	Month *string
+}
+
+// Usage: CI usage in a month: runs, compute and cache storage
+//
+// _Requires permission: `ci:read`._
+//
+// GET /api/org/{orgId}/ci/usage
+//
+// Raises on 404: Not found
+func (n *CiNamespace) Usage(ctx context.Context, params *CiUsageParams, opts ...RequestOption) (*CiUsage, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci/usage")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("month", params.Month)
+	}
+	var out *CiUsage
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiAccountsNamespace is `client.ci.accounts`.
+type CiAccountsNamespace struct {
+	t *transport
+}
+
+func newCiAccountsNamespace(t *transport) *CiAccountsNamespace {
+	n := &CiAccountsNamespace{t: t}
+	return n
+}
+
+// CiAccountsUpdateParams holds the parameters for `client.ci.accounts.update`.
+type CiAccountsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	InstallationID string
+	// Body: the JSON request body.
+	Body CiAccountsUpdateRequest
+}
+
+// Update: Run CI, or stop running it, for a connected GitHub account
+//
+// _Requires permission: `ci:write`._
+//
+// PUT /api/org/{orgId}/ci/accounts/{installationId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CiAccountsNamespace) Update(ctx context.Context, params CiAccountsUpdateParams, opts ...RequestOption) (*CiAccount, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/ci/accounts/{installationId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("installationId", params.InstallationID)
+	r.setJSONBody(params.Body)
+	var out *CiAccount
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiRunsNamespace is `client.ci.runs`.
+type CiRunsNamespace struct {
+	t *transport
+}
+
+func newCiRunsNamespace(t *transport) *CiRunsNamespace {
+	n := &CiRunsNamespace{t: t}
+	return n
+}
+
+// CiRunsApproveParams holds the parameters for `client.ci.runs.approve`.
+type CiRunsApproveParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	RunID string
+}
+
+// Approve: Approve a fork's pull request commit
+//
+// Runs CI for this one commit of a pull request from a fork, without the
+// organization's or repository's secrets. A later commit needs approving again.
+//
+// _Requires permission: `ci:approve`._
+//
+// POST /api/org/{orgId}/ci/runs/{runId}/approve
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiRunsNamespace) Approve(ctx context.Context, params CiRunsApproveParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ci/runs/{runId}/approve")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runId", params.RunID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiRunsGetParams holds the parameters for `client.ci.runs.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CiRunsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID  *string
+	Status *CiRunStatus
+	Limit  *int64
+}
+
+// Get: List CI runs, newest first
+//
+// _Requires permission: `ci:read`._
+//
+// GET /api/org/{orgId}/ci/runs
+//
+// Raises on 404: Not found
+func (n *CiRunsNamespace) Get(ctx context.Context, params *CiRunsGetParams, opts ...RequestOption) (*CiRunsGetResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci/runs")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("status", params.Status)
+		r.addQuery("limit", params.Limit)
+	}
+	var out *CiRunsGetResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiRunsGetOrgOrgIDCiRunsRunIDParams holds the parameters for
+// `client.ci.runs.getOrgOrgIdCiRunsRunId`.
+type CiRunsGetOrgOrgIDCiRunsRunIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	RunID string
+}
+
+// GetOrgOrgIDCiRunsRunID: A CI run, with each job's output once it has finished
+//
+// _Requires permission: `ci:read`._
+//
+// GET /api/org/{orgId}/ci/runs/{runId}
+//
+// Raises on 404: Not found
+func (n *CiRunsNamespace) GetOrgOrgIDCiRunsRunID(ctx context.Context, params CiRunsGetOrgOrgIDCiRunsRunIDParams, opts ...RequestOption) (*CiRunDetail, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci/runs/{runId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runId", params.RunID)
+	var out *CiRunDetail
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiRunsRejectParams holds the parameters for `client.ci.runs.reject`.
+type CiRunsRejectParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	RunID string
+}
+
+// Reject: Decline to run a fork's pull request commit
+//
+// _Requires permission: `ci:approve`._
+//
+// POST /api/org/{orgId}/ci/runs/{runId}/reject
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiRunsNamespace) Reject(ctx context.Context, params CiRunsRejectParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ci/runs/{runId}/reject")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runId", params.RunID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiValuesNamespace is `client.ci.values`.
+type CiValuesNamespace struct {
+	t *transport
+}
+
+func newCiValuesNamespace(t *transport) *CiValuesNamespace {
+	n := &CiValuesNamespace{t: t}
+	return n
+}
+
+// CiValuesDeleteParams holds the parameters for `client.ci.values.delete`.
+type CiValuesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Kind: One of "secrets", "variables".
+	Kind string
+	Name string
+	// InstallationID: The GitHub App installation of an account that runs CI.
+	InstallationID int64
+	// Repo: A repository's name, for its own values. Omitted: the whole
+	// account's.
+	Repo *string
+}
+
+// Delete: Remove a CI secret or variable
+//
+// _Requires permission: `ci:write`._
+//
+// DELETE /api/org/{orgId}/ci/values/{kind}/{name}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiValuesNamespace) Delete(ctx context.Context, params CiValuesDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/ci/values/{kind}/{name}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("kind", params.Kind)
+	r.setPath("name", params.Name)
+	r.addQuery("installationId", params.InstallationID)
+	r.addQuery("repo", params.Repo)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiValuesGetParams holds the parameters for `client.ci.values.get`.
+type CiValuesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// InstallationID: The GitHub App installation of an account that runs CI.
+	InstallationID int64
+	// Repo: A repository's name, for its own values. Omitted: the whole
+	// account's.
+	Repo *string
+}
+
+// Get: List an account's or a repository's CI secrets and variables
+//
+// A repository's own value overrides the account's of the same name. Pipelines
+// read them as `${{ secrets.NAME }}` and `${{ vars.NAME }}`; a fork's pull
+// request gets variables but never secrets.
+//
+// _Requires permission: `ci:write`._
+//
+// GET /api/org/{orgId}/ci/values
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CiValuesNamespace) Get(ctx context.Context, params CiValuesGetParams, opts ...RequestOption) (*CiValues, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci/values")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("installationId", params.InstallationID)
+	r.addQuery("repo", params.Repo)
+	var out *CiValues
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiValuesUpdateParams holds the parameters for `client.ci.values.update`.
+type CiValuesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Kind: One of "secrets", "variables".
+	Kind string
+	Name string
+	// InstallationID: The GitHub App installation of an account that runs CI.
+	InstallationID int64
+	// Repo: A repository's name, for its own values. Omitted: the whole
+	// account's.
+	Repo *string
+	// Body: the JSON request body.
+	Body CiValuesUpdateRequest
+}
+
+// Update: Set a CI secret or variable
+//
+// _Requires permission: `ci:write`._
+//
+// PUT /api/org/{orgId}/ci/values/{kind}/{name}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiValuesNamespace) Update(ctx context.Context, params CiValuesUpdateParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/ci/values/{kind}/{name}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("kind", params.Kind)
+	r.setPath("name", params.Name)
+	r.addQuery("installationId", params.InstallationID)
+	r.addQuery("repo", params.Repo)
+	r.setJSONBody(params.Body)
+	var out *OK
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -17000,6 +17391,44 @@ func (n *ExtendedSupportSettingsNamespace) Update(ctx context.Context, params *E
 	return out, nil
 }
 
+// FeaturesNamespace is `client.features`.
+type FeaturesNamespace struct {
+	t *transport
+}
+
+func newFeaturesNamespace(t *transport) *FeaturesNamespace {
+	n := &FeaturesNamespace{t: t}
+	return n
+}
+
+// FeaturesGetParams holds the parameters for `client.features.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type FeaturesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List the organization's rolled-out features
+//
+// Features still being rolled out are turned on per organization by a platform
+// admin. A feature not listed here is refused by its own routes.
+//
+// GET /api/org/{orgId}/features
+func (n *FeaturesNamespace) Get(ctx context.Context, params *FeaturesGetParams, opts ...RequestOption) (*OrgFeatureList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/features")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OrgFeatureList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // GithubNamespace is `client.github`.
 type GithubNamespace struct {
 	t *transport
@@ -17025,7 +17454,8 @@ type GithubInstallURLParams struct {
 	// Return: The page (under the organization) the install flow returns to.
 	// Anything else: `agents`.
 	//
-	// One of "agents", "workflows", "settings/github-issues".
+	// One of "agents", "workflows", "settings/github-issues",
+	// "settings/pr-checks", "ci".
 	Return *string
 }
 

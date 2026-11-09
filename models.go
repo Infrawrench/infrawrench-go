@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.99.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.100.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.99.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.100.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3210,6 +3210,124 @@ type ChildTypeRef struct {
 	Showcase          []ChildTypeRefShowcase `json:"showcase,omitempty"`
 	SupportsCreate    bool                   `json:"supportsCreate"`
 	Fields            []JSONObject           `json:"fields,omitempty"`
+}
+
+// CiAccount is the `CiAccount` schema.
+type CiAccount struct {
+	InstallationID int64   `json:"installationId"`
+	AccountLogin   string  `json:"accountLogin"`
+	AccountType    *string `json:"accountType"`
+	CiEnabled      bool    `json:"ciEnabled"`
+}
+
+// CiJobOutput is the `CiJobOutput` schema.
+type CiJobOutput struct {
+	Pipeline string `json:"pipeline"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	// Status: One of "passed", "failed", "skipped", "error".
+	Status     string  `json:"status"`
+	Reason     *string `json:"reason"`
+	DurationMs any     `json:"durationMs"`
+	Stdout     string  `json:"stdout"`
+	Stderr     string  `json:"stderr"`
+}
+
+// CiJobSummary is the `CiJobSummary` schema.
+type CiJobSummary struct {
+	Pipeline string `json:"pipeline"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	// Status: One of "passed", "failed", "skipped", "error".
+	Status     string  `json:"status"`
+	Reason     *string `json:"reason"`
+	DurationMs any     `json:"durationMs"`
+}
+
+// CiRun is the `CiRun` schema.
+type CiRun struct {
+	ID           string `json:"id"`
+	RepoFullName string `json:"repoFullName"`
+	// Event: One of "push", "pull-request".
+	Event            string         `json:"event"`
+	HeadRef          string         `json:"headRef"`
+	Sha              string         `json:"sha"`
+	PullNumber       *int64         `json:"pullNumber"`
+	HeadRepoFullName *string        `json:"headRepoFullName"`
+	FromFork         bool           `json:"fromFork"`
+	ActorLogin       *string        `json:"actorLogin"`
+	Status           CiRunStatus    `json:"status"`
+	StatusReason     *string        `json:"statusReason"`
+	CreatedAt        string         `json:"createdAt"`
+	StartedAt        *string        `json:"startedAt"`
+	FinishedAt       *string        `json:"finishedAt"`
+	Jobs             []CiJobSummary `json:"jobs"`
+	VcpuSeconds      any            `json:"vcpuSeconds"`
+	MemoryGibSeconds any            `json:"memoryGibSeconds"`
+	GithubURL        string         `json:"githubUrl"`
+}
+
+// CiRunDetail is the `CiRunDetail` schema.
+type CiRunDetail struct {
+	Run  CiRun         `json:"run"`
+	Jobs []CiJobOutput `json:"jobs"`
+}
+
+// CiRunStatus is the `CiRunStatus` schema.
+type CiRunStatus = string
+
+// The values CiRunStatus takes.
+const (
+	CiRunStatusAwaitingApproval CiRunStatus = "awaiting_approval"
+	CiRunStatusQueued           CiRunStatus = "queued"
+	CiRunStatusRunning          CiRunStatus = "running"
+	CiRunStatusPassed           CiRunStatus = "passed"
+	CiRunStatusFailed           CiRunStatus = "failed"
+	CiRunStatusError            CiRunStatus = "error"
+	CiRunStatusRejected         CiRunStatus = "rejected"
+)
+
+// CiSecret is the `CiSecret` schema.
+type CiSecret struct {
+	Name      string `json:"name"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+// CiStatus is the `CiStatus` schema.
+type CiStatus struct {
+	// Enabled: CI is turned on for this organization
+	Enabled bool `json:"enabled"`
+	// Configured: The runner pool is configured on this server
+	Configured       bool        `json:"configured"`
+	GithubConfigured bool        `json:"githubConfigured"`
+	PlanIncludesCi   bool        `json:"planIncludesCi"`
+	Accounts         []CiAccount `json:"accounts"`
+}
+
+// CiUsage is the `CiUsage` schema.
+type CiUsage struct {
+	Month            string `json:"month"`
+	Runs             int64  `json:"runs"`
+	VcpuSeconds      any    `json:"vcpuSeconds"`
+	MemoryGibSeconds any    `json:"memoryGibSeconds"`
+	StorageGibHours  any    `json:"storageGibHours"`
+	StorageBytes     any    `json:"storageBytes"`
+}
+
+// CiValues is the `CiValues` schema.
+type CiValues struct {
+	InstallationID int64   `json:"installationId"`
+	Repo           *string `json:"repo"`
+	// Secrets: Secret names only: a secret's value is write-only.
+	Secrets   []CiSecret   `json:"secrets"`
+	Variables []CiVariable `json:"variables"`
+}
+
+// CiVariable is the `CiVariable` schema.
+type CiVariable struct {
+	Name      string `json:"name"`
+	Value     string `json:"value"`
+	UpdatedAt string `json:"updatedAt"`
 }
 
 // CommitmentCoverage is the `CommitmentCoverage` schema.
@@ -13458,6 +13576,19 @@ type OrgConfigWorkflow struct {
 // OrgConfigWorkflowTrigger is the `OrgConfigWorkflowTrigger` schema.
 type OrgConfigWorkflowTrigger = any
 
+// OrgFeatureList is the `OrgFeatureList` schema.
+type OrgFeatureList struct {
+	Features []OrgFeatureName `json:"features"`
+}
+
+// OrgFeatureName is the `OrgFeatureName` schema.
+type OrgFeatureName = string
+
+// The values OrgFeatureName takes.
+const (
+	OrgFeatureNameCi OrgFeatureName = "ci"
+)
+
 // OrgMember is the `OrgMember` schema.
 type OrgMember struct {
 	ID            string           `json:"id"`
@@ -14061,6 +14192,9 @@ const (
 	PermissionFreezesRead            Permission = "freezes:read"
 	PermissionFreezesWrite           Permission = "freezes:write"
 	PermissionFreezesOverride        Permission = "freezes:override"
+	PermissionCiRead                 Permission = "ci:read"
+	PermissionCiWrite                Permission = "ci:write"
+	PermissionCiApprove              Permission = "ci:approve"
 	PermissionIncidentsRead          Permission = "incidents:read"
 	PermissionIncidentsWrite         Permission = "incidents:write"
 	PermissionTagPolicyOverride      Permission = "tag-policy:override"
@@ -16966,7 +17100,6 @@ const (
 	ResourceTypeIDParsingRuleGroup               ResourceTypeID = "parsing-rule-group"
 	ResourceTypeIDPermission                     ResourceTypeID = "permission"
 	ResourceTypeIDPerplexityAgentModel           ResourceTypeID = "perplexity-agent-model"
-	ResourceTypeIDPerplexityAsyncRequest         ResourceTypeID = "perplexity-async-request"
 	ResourceTypeIDPerplexityRouterModel          ResourceTypeID = "perplexity-router-model"
 	ResourceTypeIDPerplexitySkill                ResourceTypeID = "perplexity-skill"
 	ResourceTypeIDPerplexitySonarModel           ResourceTypeID = "perplexity-sonar-model"
@@ -20165,8 +20298,8 @@ type TabTarget struct {
 	// "backups", "wallboard", "calendar", "runbooks", "query-monitors", "dns",
 	// "iac", "environment-diff", "environments", "ssh-fanout", "metric-alerts",
 	// "probes", "status-pages", "quotas", "price-catalog", "incidents", "slos",
-	// "services", "delivery", "workflows", "deployments", "settings", "chat",
-	// "linux-app".
+	// "services", "delivery", "ci", "workflows", "deployments", "settings",
+	// "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -20176,6 +20309,7 @@ type TabTarget struct {
 	InvoiceID      *string     `json:"invoiceId,omitempty"`
 	CanvasID       *string     `json:"canvasId,omitempty"`
 	SloID          *string     `json:"sloId,omitempty"`
+	RunID          *string     `json:"runId,omitempty"`
 	ServiceID      *string     `json:"serviceId,omitempty"`
 	// View: One of "details", "ssh", "sftp", "apps", "scorecards".
 	View      *string `json:"view,omitempty"`
@@ -23859,6 +23993,21 @@ type BusinessMetricsValuesCreateResponse struct {
 // BusinessMetricsValuesGetResponse is an object the spec declares inline.
 type BusinessMetricsValuesGetResponse struct {
 	Values []BusinessMetricValue `json:"values"`
+}
+
+// CiAccountsUpdateRequest is an object the spec declares inline.
+type CiAccountsUpdateRequest struct {
+	Enabled bool `json:"enabled"`
+}
+
+// CiRunsGetResponse is an object the spec declares inline.
+type CiRunsGetResponse struct {
+	Runs []CiRun `json:"runs"`
+}
+
+// CiValuesUpdateRequest is an object the spec declares inline.
+type CiValuesUpdateRequest struct {
+	Value string `json:"value"`
 }
 
 // ComplianceFrameworksResponse is an object the spec declares inline.
