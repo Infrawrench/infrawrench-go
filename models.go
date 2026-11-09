@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.100.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.101.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.100.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.101.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3229,8 +3229,11 @@ type CiJobOutput struct {
 	Status     string  `json:"status"`
 	Reason     *string `json:"reason"`
 	DurationMs any     `json:"durationMs"`
-	Stdout     string  `json:"stdout"`
-	Stderr     string  `json:"stderr"`
+	// Needs: The job keys it waited for, as the pipeline's `needs:` expanded
+	// them. Absent from runs before runner 0.3.1.
+	Needs  []string `json:"needs,omitempty"`
+	Stdout string   `json:"stdout"`
+	Stderr string   `json:"stderr"`
 }
 
 // CiJobSummary is the `CiJobSummary` schema.
@@ -3242,6 +3245,9 @@ type CiJobSummary struct {
 	Status     string  `json:"status"`
 	Reason     *string `json:"reason"`
 	DurationMs any     `json:"durationMs"`
+	// Needs: The job keys it waited for, as the pipeline's `needs:` expanded
+	// them. Absent from runs before runner 0.3.1.
+	Needs []string `json:"needs,omitempty"`
 }
 
 // CiRun is the `CiRun` schema.
