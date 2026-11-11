@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.101.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.102.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.101.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.102.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -302,7 +302,13 @@ type Account struct {
 	// `null` ⇒ direct egress.
 	BastionID   *string             `json:"bastionId"`
 	OAuthStatus *AccountOAuthStatus `json:"oauthStatus"`
-	CreatedAt   string              `json:"createdAt"`
+	// Products: The apps this connection is for, as product ids
+	// (`infrastructure`, `costs`, `observability`, `incidents`, `security`,
+	// `delivery`, `automation`). `null` means every app the plugin offers.
+	// Collection follows it: an account connected for `costs` alone is not
+	// resource-synced, and one without `costs` has no cost data collected.
+	Products  []string `json:"products,omitempty"`
+	CreatedAt string   `json:"createdAt"`
 }
 
 // AccountDeleted is the `AccountDeleted` schema.
@@ -5761,6 +5767,12 @@ type CreateAccountRequest struct {
 	// BastionID: Optional bastion id to route this account's cloud API traffic
 	// through.
 	BastionID *string `json:"bastionId,omitempty"`
+	// Products: The apps to use this connection for. Each must be one the plugin
+	// offers (the distinct `product`s of its `preflight.capabilities`, where a
+	// capability without one follows the convention for its id); an empty list
+	// is rejected, as is any list for a plugin without preflight. `null`, or the
+	// plugin's whole offer, means every app and is stored as `null`.
+	Products []ProductID `json:"products,omitempty"`
 }
 
 // CreateAccountResponse is the `CreateAccountResponse` schema.
@@ -13614,6 +13626,36 @@ type OrgMembership struct {
 	Role        OrganizationRole `json:"role"`
 }
 
+// OrgProductID: An app the application is presented as.
+//
+// Spec schema: `OrgProductId`.
+type OrgProductID = string
+
+// The values OrgProductID takes.
+const (
+	OrgProductIDInfrastructure OrgProductID = "infrastructure"
+	OrgProductIDCosts          OrgProductID = "costs"
+	OrgProductIDObservability  OrgProductID = "observability"
+	OrgProductIDIncidents      OrgProductID = "incidents"
+	OrgProductIDSecurity       OrgProductID = "security"
+	OrgProductIDDelivery       OrgProductID = "delivery"
+	OrgProductIDAutomation     OrgProductID = "automation"
+)
+
+// OrgProductPolicy is the `OrgProductPolicy` schema.
+type OrgProductPolicy struct {
+	// Disabled: The apps the organization has turned off. Empty when every app
+	// is on.
+	Disabled []OrgProductID `json:"disabled"`
+}
+
+// OrgProductPolicyUpdate is the `OrgProductPolicyUpdate` schema.
+type OrgProductPolicyUpdate struct {
+	// Disabled: The apps to turn off, replacing the stored list.
+	// `infrastructure` cannot be turned off.
+	Disabled []string `json:"disabled"`
+}
+
 // OrgScorecard is the `OrgScorecard` schema.
 type OrgScorecard struct {
 	// Score: Weighted mean over the assessed pillars, or null when none could be
@@ -14239,6 +14281,7 @@ const (
 	PermissionInvoicesIssue          Permission = "invoices:issue"
 	PermissionPagesWrite             Permission = "pages:write"
 	PermissionSharingOverride        Permission = "sharing:override"
+	PermissionOrgAppsWrite           Permission = "org:apps:write"
 	PermissionOrgSettingsWrite       Permission = "org:settings:write"
 )
 
@@ -14839,6 +14882,7 @@ const (
 // PreflightCapability is the `PreflightCapability` schema.
 type PreflightCapability struct {
 	ID                  string                `json:"id"`
+	Product             *ProductID            `json:"product,omitempty"`
 	Label               string                `json:"label"`
 	Description         *string               `json:"description,omitempty"`
 	RequiredPermissions []PreflightPermission `json:"requiredPermissions"`
@@ -15180,6 +15224,22 @@ type ProbeSuggestion struct {
 type ProbeSuggestions struct {
 	Suggestions []ProbeSuggestion `json:"suggestions"`
 }
+
+// ProductID: One of the apps the product is presented as.
+//
+// Spec schema: `ProductId`.
+type ProductID = string
+
+// The values ProductID takes.
+const (
+	ProductIDInfrastructure ProductID = "infrastructure"
+	ProductIDCosts          ProductID = "costs"
+	ProductIDObservability  ProductID = "observability"
+	ProductIDIncidents      ProductID = "incidents"
+	ProductIDSecurity       ProductID = "security"
+	ProductIDDelivery       ProductID = "delivery"
+	ProductIDAutomation     ProductID = "automation"
+)
 
 // Profile is the `Profile` schema.
 type Profile struct {
@@ -20301,11 +20361,11 @@ type TabTarget struct {
 	// "savings", "cost-reports", "resource-reports", "cost-canvases",
 	// "k8s-efficiency", "invoices", "graph", "logs", "changes", "expiring",
 	// "posture", "vulnerabilities", "compliance", "access-review", "jit-access",
-	// "backups", "wallboard", "calendar", "runbooks", "query-monitors", "dns",
-	// "iac", "environment-diff", "environments", "ssh-fanout", "metric-alerts",
-	// "probes", "status-pages", "quotas", "price-catalog", "incidents", "slos",
-	// "services", "delivery", "ci", "workflows", "deployments", "settings",
-	// "chat", "linux-app".
+	// "backups", "home", "wallboard", "calendar", "runbooks", "query-monitors",
+	// "dns", "iac", "environment-diff", "environments", "ssh-fanout",
+	// "metric-alerts", "probes", "status-pages", "quotas", "price-catalog",
+	// "incidents", "slos", "services", "delivery", "ci", "workflows",
+	// "deployments", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -20320,6 +20380,7 @@ type TabTarget struct {
 	// View: One of "details", "ssh", "sftp", "apps", "scorecards".
 	View      *string `json:"view,omitempty"`
 	Framework *string `json:"framework,omitempty"`
+	ProductID *string `json:"productId,omitempty"`
 	SessionID *string `json:"sessionId,omitempty"`
 	WindowID  *int64  `json:"windowId,omitempty"`
 	AppID     *string `json:"appId,omitempty"`
@@ -20676,6 +20737,11 @@ type UpdateAccountRequest struct {
 	// BastionID: Pass `null` to unbind, a uuid to bind, or omit the field to
 	// leave the binding unchanged.
 	BastionID *string `json:"bastionId,omitempty"`
+	// Products: Change the apps this connection is for; omit the field to leave
+	// them unchanged. Same rules as on create. Adding an app makes its
+	// collection due now; the credential must already carry that app's
+	// permissions.
+	Products []ProductID `json:"products,omitempty"`
 }
 
 // UpdateResourceRequest is the `UpdateResourceRequest` schema.
@@ -20710,6 +20776,12 @@ type UpdatedAccount struct {
 	ID          string  `json:"id"`
 	DisplayName string  `json:"displayName"`
 	BastionID   *string `json:"bastionId"`
+	// Products: The apps this connection is for, as product ids
+	// (`infrastructure`, `costs`, `observability`, `incidents`, `security`,
+	// `delivery`, `automation`). `null` means every app the plugin offers.
+	// Collection follows it: an account connected for `costs` alone is not
+	// resource-synced, and one without `costs` has no cost data collected.
+	Products []string `json:"products,omitempty"`
 }
 
 // UserSession is the `UserSession` schema.
@@ -21379,6 +21451,12 @@ type AccountDetailAccount struct {
 	PluginID    string              `json:"pluginId"`
 	DisplayName string              `json:"displayName"`
 	OAuthStatus *AccountOAuthStatus `json:"oauthStatus"`
+	// Products: The apps this connection is for, as product ids
+	// (`infrastructure`, `costs`, `observability`, `incidents`, `security`,
+	// `delivery`, `automation`). `null` means every app the plugin offers.
+	// Collection follows it: an account connected for `costs` alone is not
+	// resource-synced, and one without `costs` has no cost data collected.
+	Products []string `json:"products,omitempty"`
 }
 
 // AgentLinkInfoApprovedBy is an object the spec declares inline.

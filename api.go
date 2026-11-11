@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.101.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.102.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.101.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.102.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -235,6 +235,8 @@ type APIV1Client struct {
 	PriceCatalog *PriceCatalogNamespace
 	// Probes: `client.probes`.
 	Probes *ProbesNamespace
+	// Products: `client.products`.
+	Products *ProductsNamespace
 	// Profile: `client.profile`.
 	Profile *ProfileNamespace
 	// ProviderOAuth: `client.providerOauth`.
@@ -427,6 +429,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.PrChecks = newPrChecksNamespace(t)
 	c.PriceCatalog = newPriceCatalogNamespace(t)
 	c.Probes = newProbesNamespace(t)
+	c.Products = newProductsNamespace(t)
 	c.Profile = newProfileNamespace(t)
 	c.ProviderOAuth = newProviderOAuthNamespace(t)
 	c.QueryMonitors = newQueryMonitorsNamespace(t)
@@ -1216,9 +1219,15 @@ type AccountsSyncParams struct {
 
 // Sync: Sync all resource types for an account
 //
+// 400 for an account connected for Costs alone: its resources are not synced.
+// Add another app to the connection (`PATCH /accounts/{id}` with `products`)
+// first.
+//
 // _Requires permission: `resources:read`._
 //
 // POST /api/org/{orgId}/accounts/{id}/sync
+//
+// Raises on 400: Bad request
 func (n *AccountsNamespace) Sync(ctx context.Context, params AccountsSyncParams, opts ...RequestOption) (*SyncResponse, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/accounts/{id}/sync")
 	r.setPath("orgId", params.OrgID)
@@ -1241,7 +1250,8 @@ type AccountsUpdateParams struct {
 	Body UpdateAccountRequest
 }
 
-// Update: Update an account (rename and/or change bastion binding)
+// Update: Update an account (rename, change bastion binding, change what it is
+// for)
 //
 // _Requires permission: `accounts:write`._
 //
@@ -1526,6 +1536,8 @@ type AccountsSyncTypeCreateParams struct {
 // _Requires permission: `resources:read`._
 //
 // POST /api/org/{orgId}/accounts/{id}/sync-type/{typeId}
+//
+// Raises on 400: Bad request
 //
 // Raises on 404: Not found
 //
@@ -25560,6 +25572,77 @@ func (n *ProbesNamespace) Update(ctx context.Context, params ProbesUpdateParams,
 	r.setPath("probeId", params.ProbeID)
 	r.setJSONBody(params.Body)
 	var out *SyntheticProbe
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ProductsNamespace is `client.products`.
+type ProductsNamespace struct {
+	t *transport
+}
+
+func newProductsNamespace(t *transport) *ProductsNamespace {
+	n := &ProductsNamespace{t: t}
+	return n
+}
+
+// ProductsGetParams holds the parameters for `client.products.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type ProductsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: Get the apps the organization has turned off
+//
+// A turned-off app is hidden from Home, the sidebar and the Tools launcher, and
+// its tools are not offered to, and are refused for, the chat agent and the MCP
+// server. It does not block this API: the routes behind an app keep answering
+// under their own permissions.
+//
+// GET /api/org/{orgId}/products
+func (n *ProductsNamespace) Get(ctx context.Context, params *ProductsGetParams, opts ...RequestOption) (*OrgProductPolicy, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/products")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OrgProductPolicy
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// ProductsUpdateParams holds the parameters for `client.products.update`.
+type ProductsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body OrgProductPolicyUpdate
+}
+
+// Update: Set the apps the organization has turned off
+//
+// Replaces the list. An unknown app id, or an app that cannot be turned off
+// (`infrastructure`), is refused with a 400 and nothing is saved.
+//
+// _Requires permission: `org:apps:write`._
+//
+// PUT /api/org/{orgId}/products
+//
+// Raises on 400: Bad request
+func (n *ProductsNamespace) Update(ctx context.Context, params ProductsUpdateParams, opts ...RequestOption) (*OrgProductPolicy, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/products")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *OrgProductPolicy
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
