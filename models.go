@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.103.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.104.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.103.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.104.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3251,6 +3251,29 @@ type CiCaches struct {
 	Accounts []CiAccountCaches `json:"accounts"`
 }
 
+// CiDownload is the `CiDownload` schema.
+type CiDownload struct {
+	// Path: Where the job left it: relative to the clone when it is under it,
+	// else absolute.
+	Path string `json:"path"`
+	Size any    `json:"size"`
+	// Sha256: Of the stored bytes; for a text file, after masking.
+	Sha256      string `json:"sha256"`
+	ContentType string `json:"contentType"`
+	// ExpiresAt: When it stops being served and is deleted.
+	ExpiresAt string `json:"expiresAt"`
+	// Masked: A text file, with the run's secrets masked. `false` for a binary
+	// file, which is stored as the job left it.
+	Masked bool `json:"masked"`
+}
+
+// CiDownloadLink is the `CiDownloadLink` schema.
+type CiDownloadLink struct {
+	// URL: Served by the CI proxy as an attachment; needs no other credential.
+	URL       string `json:"url"`
+	ExpiresAt string `json:"expiresAt"`
+}
+
 // CiJobOutput is the `CiJobOutput` schema.
 type CiJobOutput struct {
 	Pipeline string `json:"pipeline"`
@@ -3265,6 +3288,9 @@ type CiJobOutput struct {
 	Needs  []string `json:"needs,omitempty"`
 	Stdout string   `json:"stdout"`
 	Stderr string   `json:"stderr"`
+	// Downloads: The files the job kept with `downloads:`. Absent when it kept
+	// none.
+	Downloads []CiDownload `json:"downloads,omitempty"`
 }
 
 // CiJobSummary is the `CiJobSummary` schema.

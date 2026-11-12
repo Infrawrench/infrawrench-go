@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.103.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.104.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.103.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.104.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7625,7 +7625,7 @@ type CiUsageParams struct {
 	Month *string
 }
 
-// Usage: CI usage in a month: runs, compute and cache storage
+// Usage: CI usage in a month: runs, compute and storage (caches and downloads)
 //
 // _Requires permission: `ci:read`._
 //
@@ -7798,6 +7798,44 @@ func (n *CiRunsNamespace) Approve(ctx context.Context, params CiRunsApproveParam
 	r.setPath("orgId", params.OrgID)
 	r.setPath("runId", params.RunID)
 	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiRunsDownloadParams holds the parameters for `client.ci.runs.download`.
+type CiRunsDownloadParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	RunID string
+	// Job: The job's id, as the run's `jobs` list it.
+	Job string
+	// Path: The file's `path`, as the job's `downloads` list it.
+	Path string
+}
+
+// Download: A short-lived link to a file a job kept for download
+//
+// The link is signed for this one file for 15 minutes (less when the file
+// expires sooner) and is served by the CI proxy, not this API.
+//
+// _Requires permission: `ci:read`._
+//
+// GET /api/org/{orgId}/ci/runs/{runId}/download
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiRunsNamespace) Download(ctx context.Context, params CiRunsDownloadParams, opts ...RequestOption) (*CiDownloadLink, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci/runs/{runId}/download")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runId", params.RunID)
+	r.addQuery("job", params.Job)
+	r.addQuery("path", params.Path)
+	var out *CiDownloadLink
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
