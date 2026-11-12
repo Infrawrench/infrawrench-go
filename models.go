@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.104.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.105.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.104.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.105.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3279,7 +3279,7 @@ type CiJobOutput struct {
 	Pipeline string `json:"pipeline"`
 	ID       string `json:"id"`
 	Name     string `json:"name"`
-	// Status: One of "passed", "failed", "skipped", "error".
+	// Status: One of "passed", "failed", "skipped", "error", "cancelled".
 	Status     string  `json:"status"`
 	Reason     *string `json:"reason"`
 	DurationMs any     `json:"durationMs"`
@@ -3298,7 +3298,7 @@ type CiJobSummary struct {
 	Pipeline string `json:"pipeline"`
 	ID       string `json:"id"`
 	Name     string `json:"name"`
-	// Status: One of "passed", "failed", "skipped", "error".
+	// Status: One of "passed", "failed", "skipped", "error", "cancelled".
 	Status     string  `json:"status"`
 	Reason     *string `json:"reason"`
 	DurationMs any     `json:"durationMs"`
@@ -3344,6 +3344,12 @@ type CiRun struct {
 	// NoTaskCache: The run did not read the task cache: every `task-cache:` job
 	// ran, and saved its result again.
 	NoTaskCache *bool `json:"noTaskCache,omitempty"`
+	// ConcurrencyGroups: The `concurrency:` groups its pipelines hold or wait
+	// for, once the runners have read them.
+	ConcurrencyGroups []string `json:"concurrencyGroups,omitempty"`
+	// CancelRequested: Someone asked to cancel the run, and its runner is
+	// stopping it.
+	CancelRequested *bool `json:"cancelRequested,omitempty"`
 }
 
 // CiRunDetail is the `CiRunDetail` schema.
@@ -3359,11 +3365,13 @@ type CiRunStatus = string
 const (
 	CiRunStatusAwaitingApproval CiRunStatus = "awaiting_approval"
 	CiRunStatusQueued           CiRunStatus = "queued"
+	CiRunStatusPending          CiRunStatus = "pending"
 	CiRunStatusRunning          CiRunStatus = "running"
 	CiRunStatusPassed           CiRunStatus = "passed"
 	CiRunStatusFailed           CiRunStatus = "failed"
 	CiRunStatusError            CiRunStatus = "error"
 	CiRunStatusRejected         CiRunStatus = "rejected"
+	CiRunStatusCancelled        CiRunStatus = "cancelled"
 )
 
 // CiSecret is the `CiSecret` schema.

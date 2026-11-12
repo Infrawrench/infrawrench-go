@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.104.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.105.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.104.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.105.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7798,6 +7798,40 @@ func (n *CiRunsNamespace) Approve(ctx context.Context, params CiRunsApproveParam
 	r.setPath("orgId", params.OrgID)
 	r.setPath("runId", params.RunID)
 	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiRunsCancelParams holds the parameters for `client.ci.runs.cancel`.
+type CiRunsCancelParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	RunID string
+}
+
+// Cancel: Cancel a CI run
+//
+// A queued run, or one waiting for its concurrency group, ends as cancelled at
+// once. A running one is stopped by its runner, its running jobs as a timeout
+// would stop them, and ends as cancelled once the runner reports it. A run
+// waiting for approval is rejected instead.
+//
+// _Requires permission: `ci:approve`._
+//
+// POST /api/org/{orgId}/ci/runs/{runId}/cancel
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiRunsNamespace) Cancel(ctx context.Context, params CiRunsCancelParams, opts ...RequestOption) (*CiRun, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ci/runs/{runId}/cancel")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runId", params.RunID)
+	var out *CiRun
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
