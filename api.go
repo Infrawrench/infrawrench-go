@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.102.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.103.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.102.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.103.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7570,6 +7570,8 @@ type CiNamespace struct {
 
 	// Accounts: `client.ci.accounts`.
 	Accounts *CiAccountsNamespace
+	// Caches: `client.ci.caches`.
+	Caches *CiCachesNamespace
 	// Runs: `client.ci.runs`.
 	Runs *CiRunsNamespace
 	// Values: `client.ci.values`.
@@ -7579,6 +7581,7 @@ type CiNamespace struct {
 func newCiNamespace(t *transport) *CiNamespace {
 	n := &CiNamespace{t: t}
 	n.Accounts = newCiAccountsNamespace(t)
+	n.Caches = newCiCachesNamespace(t)
 	n.Runs = newCiRunsNamespace(t)
 	n.Values = newCiValuesNamespace(t)
 	return n
@@ -7678,6 +7681,81 @@ func (n *CiAccountsNamespace) Update(ctx context.Context, params CiAccountsUpdat
 	r.setPath("installationId", params.InstallationID)
 	r.setJSONBody(params.Body)
 	var out *CiAccount
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiCachesNamespace is `client.ci.caches`.
+type CiCachesNamespace struct {
+	t *transport
+}
+
+func newCiCachesNamespace(t *transport) *CiCachesNamespace {
+	n := &CiCachesNamespace{t: t}
+	return n
+}
+
+// CiCachesDeleteParams holds the parameters for `client.ci.caches.delete`.
+type CiCachesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	InstallationID string
+	Repo           string
+}
+
+// Delete: Clear a repository's CI caches
+//
+// Deletes every branch's and pull request's `cache:` and `task-cache:` entries
+// of one repository. The next run of each job starts cold and saves again.
+//
+// _Requires permission: `ci:write`._
+//
+// DELETE /api/org/{orgId}/ci/caches/{installationId}/{repo}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiCachesNamespace) Delete(ctx context.Context, params CiCachesDeleteParams, opts ...RequestOption) (*CiCacheCleared, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/ci/caches/{installationId}/{repo}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("installationId", params.InstallationID)
+	r.setPath("repo", params.Repo)
+	var out *CiCacheCleared
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiCachesGetParams holds the parameters for `client.ci.caches.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CiCachesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: The caches CI keeps for each repository
+//
+// _Requires permission: `ci:read`._
+//
+// GET /api/org/{orgId}/ci/caches
+//
+// Raises on 404: Not found
+func (n *CiCachesNamespace) Get(ctx context.Context, params *CiCachesGetParams, opts ...RequestOption) (*CiCaches, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci/caches")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CiCaches
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
@@ -7810,6 +7888,42 @@ func (n *CiRunsNamespace) Reject(ctx context.Context, params CiRunsRejectParams,
 	r.setPath("orgId", params.OrgID)
 	r.setPath("runId", params.RunID)
 	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiRunsRetryParams holds the parameters for `client.ci.runs.retry`.
+type CiRunsRetryParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	RunID string
+	// Body: the JSON request body.
+	Body CiRunsRetryRequest
+}
+
+// Retry: Run a finished CI run again
+//
+// Queues a new run of the same repository, commit, branch and event, linked to
+// this one. A run waiting for approval is approved instead, and a fork's pull
+// request still runs without secrets.
+//
+// _Requires permission: `ci:approve`._
+//
+// POST /api/org/{orgId}/ci/runs/{runId}/retry
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiRunsNamespace) Retry(ctx context.Context, params CiRunsRetryParams, opts ...RequestOption) (*CiRun, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ci/runs/{runId}/retry")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("runId", params.RunID)
+	r.setJSONBody(params.Body)
+	var out *CiRun
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

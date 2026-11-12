@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.102.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.103.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.102.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.103.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3226,6 +3226,31 @@ type CiAccount struct {
 	CiEnabled      bool    `json:"ciEnabled"`
 }
 
+// CiAccountCaches is the `CiAccountCaches` schema.
+type CiAccountCaches struct {
+	InstallationID int64         `json:"installationId"`
+	AccountLogin   string        `json:"accountLogin"`
+	UsedBytes      any           `json:"usedBytes"`
+	QuotaBytes     any           `json:"quotaBytes"`
+	Repos          []CiRepoCache `json:"repos"`
+	// Error: Why the runners could not say what this account stores, when they
+	// could not.
+	Error *string `json:"error"`
+}
+
+// CiCacheCleared is the `CiCacheCleared` schema.
+type CiCacheCleared struct {
+	InstallationID int64  `json:"installationId"`
+	Repo           string `json:"repo"`
+	DeletedEntries int64  `json:"deletedEntries"`
+	DeletedBytes   any    `json:"deletedBytes"`
+}
+
+// CiCaches is the `CiCaches` schema.
+type CiCaches struct {
+	Accounts []CiAccountCaches `json:"accounts"`
+}
+
 // CiJobOutput is the `CiJobOutput` schema.
 type CiJobOutput struct {
 	Pipeline string `json:"pipeline"`
@@ -3256,6 +3281,14 @@ type CiJobSummary struct {
 	Needs []string `json:"needs,omitempty"`
 }
 
+// CiRepoCache is the `CiRepoCache` schema.
+type CiRepoCache struct {
+	// Repo: The repository's name, lowercased.
+	Repo    string `json:"repo"`
+	Bytes   any    `json:"bytes"`
+	Entries int64  `json:"entries"`
+}
+
 // CiRun is the `CiRun` schema.
 type CiRun struct {
 	ID           string `json:"id"`
@@ -3277,6 +3310,14 @@ type CiRun struct {
 	VcpuSeconds      any            `json:"vcpuSeconds"`
 	MemoryGibSeconds any            `json:"memoryGibSeconds"`
 	GithubURL        string         `json:"githubUrl"`
+	// RetryOfRunID: The run this one retries: the same repository, commit,
+	// branch and event.
+	RetryOfRunID *string `json:"retryOfRunId,omitempty"`
+	// RetriedAsRunID: The newest retry of this run.
+	RetriedAsRunID *string `json:"retriedAsRunId,omitempty"`
+	// NoTaskCache: The run did not read the task cache: every `task-cache:` job
+	// ran, and saved its result again.
+	NoTaskCache *bool `json:"noTaskCache,omitempty"`
 }
 
 // CiRunDetail is the `CiRunDetail` schema.
@@ -24087,6 +24128,13 @@ type CiAccountsUpdateRequest struct {
 // CiRunsGetResponse is an object the spec declares inline.
 type CiRunsGetResponse struct {
 	Runs []CiRun `json:"runs"`
+}
+
+// CiRunsRetryRequest is an object the spec declares inline.
+type CiRunsRetryRequest struct {
+	// NoTaskCache: Run every `task-cache:` job instead of replaying a passing
+	// run's result. Results are saved again either way.
+	NoTaskCache *bool `json:"noTaskCache,omitempty"`
 }
 
 // CiValuesUpdateRequest is an object the spec declares inline.
