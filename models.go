@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.105.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.106.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.105.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.106.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -14472,6 +14472,7 @@ const (
 	PluginIDBaseten             PluginID = "baseten"
 	PluginIDBetterStack         PluginID = "better-stack"
 	PluginIDBitbucket           PluginID = "bitbucket"
+	PluginIDBoat                PluginID = "boat"
 	PluginIDBuildkite           PluginID = "buildkite"
 	PluginIDBunny               PluginID = "bunny"
 	PluginIDCartesia            PluginID = "cartesia"
@@ -17412,7 +17413,9 @@ const (
 	ResourceTypeIDS3Bucket                       ResourceTypeID = "s3-bucket"
 	ResourceTypeIDSagemakerEndpoint              ResourceTypeID = "sagemaker-endpoint"
 	ResourceTypeIDSambanovaModel                 ResourceTypeID = "sambanova-model"
+	ResourceTypeIDSandbox                        ResourceTypeID = "sandbox"
 	ResourceTypeIDSavedQuery                     ResourceTypeID = "saved-query"
+	ResourceTypeIDSavedSnapshot                  ResourceTypeID = "saved-snapshot"
 	ResourceTypeIDSchedule                       ResourceTypeID = "schedule"
 	ResourceTypeIDScheduledFunction              ResourceTypeID = "scheduled-function"
 	ResourceTypeIDSchemaRegistry                 ResourceTypeID = "schema-registry"
