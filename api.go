@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.106.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.107.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.106.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.107.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1084,6 +1084,8 @@ type AccountsDeleteParams struct {
 // _Requires permission: `accounts:delete`._
 //
 // DELETE /api/org/{orgId}/accounts/{id}
+//
+// Raises on 409: Conflict
 func (n *AccountsNamespace) Delete(ctx context.Context, params AccountsDeleteParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodDelete, "/api/org/{orgId}/accounts/{id}")
 	r.setPath("orgId", params.OrgID)
@@ -7568,6 +7570,8 @@ func (n *ChatConversationsSecretRequestsNamespace) Create(ctx context.Context, p
 type CiNamespace struct {
 	t *transport
 
+	// Access: `client.ci.access`.
+	Access *CiAccessNamespace
 	// Accounts: `client.ci.accounts`.
 	Accounts *CiAccountsNamespace
 	// Caches: `client.ci.caches`.
@@ -7580,6 +7584,7 @@ type CiNamespace struct {
 
 func newCiNamespace(t *transport) *CiNamespace {
 	n := &CiNamespace{t: t}
+	n.Access = newCiAccessNamespace(t)
 	n.Accounts = newCiAccountsNamespace(t)
 	n.Caches = newCiCachesNamespace(t)
 	n.Runs = newCiRunsNamespace(t)
@@ -7639,6 +7644,364 @@ func (n *CiNamespace) Usage(ctx context.Context, params *CiUsageParams, opts ...
 		r.addQuery("month", params.Month)
 	}
 	var out *CiUsage
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiAccessNamespace is `client.ci.access`.
+type CiAccessNamespace struct {
+	t *transport
+
+	// Connections: `client.ci.access.connections`.
+	Connections *CiAccessConnectionsNamespace
+	// Grants: `client.ci.access.grants`.
+	Grants *CiAccessGrantsNamespace
+	// SSHKeys: `client.ci.access.sshKeys`.
+	SSHKeys *CiAccessSSHKeysNamespace
+}
+
+func newCiAccessNamespace(t *transport) *CiAccessNamespace {
+	n := &CiAccessNamespace{t: t}
+	n.Connections = newCiAccessConnectionsNamespace(t)
+	n.Grants = newCiAccessGrantsNamespace(t)
+	n.SSHKeys = newCiAccessSSHKeysNamespace(t)
+	return n
+}
+
+// CiAccessGetParams holds the parameters for `client.ci.access.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CiAccessGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: What CI jobs may use: connections, resources and SSH keys
+//
+// Every connection whose provider can run CI jobs or lend its credentials, with
+// what it is allowed; the resources granted to CI; and the SSH keys their owners
+// lend. Nothing secret.
+//
+// _Requires permission: `ci:read`._
+//
+// GET /api/org/{orgId}/ci/access
+//
+// Raises on 404: Not found
+func (n *CiAccessNamespace) Get(ctx context.Context, params *CiAccessGetParams, opts ...RequestOption) (*CiAccessOverview, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci/access")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CiAccessOverview
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiAccessResourceOutputsParams holds the parameters for
+// `client.ci.access.resourceOutputs`.
+type CiAccessResourceOutputsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ResourceID: The resource's id.
+	ResourceID string
+}
+
+// ResourceOutputs: What a resource can be granted to CI
+//
+// _Requires permission: `ci-access:write`._
+//
+// GET /api/org/{orgId}/ci/access/resource-outputs
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *CiAccessNamespace) ResourceOutputs(ctx context.Context, params CiAccessResourceOutputsParams, opts ...RequestOption) (*CiResourceOutputs, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci/access/resource-outputs")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("resourceId", params.ResourceID)
+	var out *CiResourceOutputs
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiAccessConnectionsNamespace is `client.ci.access.connections`.
+type CiAccessConnectionsNamespace struct {
+	t *transport
+}
+
+func newCiAccessConnectionsNamespace(t *transport) *CiAccessConnectionsNamespace {
+	n := &CiAccessConnectionsNamespace{t: t}
+	return n
+}
+
+// CiAccessConnectionsPreflightParams holds the parameters for
+// `client.ci.access.connections.preflight`.
+type CiAccessConnectionsPreflightParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	AccountID string
+	// Body: the JSON request body.
+	Body CiAccessConnectionsPreflightRequest
+}
+
+// Preflight: Check whether a connection can run cloud jobs of a kind
+//
+// Asks the provider without starting anything (a dry run or a permission test)
+// and keeps the answer: what is missing and how to grant it. A failing check
+// turns that kind off.
+//
+// _Requires permission: `ci-access:write`._
+//
+// POST /api/org/{orgId}/ci/access/connections/{accountId}/preflight
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiAccessConnectionsNamespace) Preflight(ctx context.Context, params CiAccessConnectionsPreflightParams, opts ...RequestOption) (*CiConnectionAccess, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ci/access/connections/{accountId}/preflight")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("accountId", params.AccountID)
+	r.setJSONBody(params.Body)
+	var out *CiConnectionAccess
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiAccessConnectionsUpdateParams holds the parameters for
+// `client.ci.access.connections.update`.
+type CiAccessConnectionsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID     *string
+	AccountID string
+	// Body: the JSON request body.
+	Body CiConnectionAccessSettings
+}
+
+// Update: Set what CI may do with a connection
+//
+// Run cloud jobs on it (kinds, limits, repositories, branches) and lend its
+// credentials to jobs (repositories, branches). Turning cloud jobs on needs a
+// passing permission check for every kind.
+//
+// _Requires permission: `ci-access:write`._
+//
+// PUT /api/org/{orgId}/ci/access/connections/{accountId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiAccessConnectionsNamespace) Update(ctx context.Context, params CiAccessConnectionsUpdateParams, opts ...RequestOption) (*CiConnectionAccess, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/ci/access/connections/{accountId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("accountId", params.AccountID)
+	r.setJSONBody(params.Body)
+	var out *CiConnectionAccess
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiAccessGrantsNamespace is `client.ci.access.grants`.
+type CiAccessGrantsNamespace struct {
+	t *transport
+}
+
+func newCiAccessGrantsNamespace(t *transport) *CiAccessGrantsNamespace {
+	n := &CiAccessGrantsNamespace{t: t}
+	return n
+}
+
+// CiAccessGrantsCreateParams holds the parameters for
+// `client.ci.access.grants.create`.
+type CiAccessGrantsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CiResourceGrantInput
+}
+
+// Create: Grant CI jobs a resource's outputs
+//
+// Pipelines read them as `${{ resources.<ciName>.<output> }}` in `env:`, or all
+// at once with `env-from: [<ciName>]`, read fresh for every run. Only for the
+// listed repositories and branches, and never for a fork's pull request.
+//
+// _Requires permission: `ci-access:write`._
+//
+// POST /api/org/{orgId}/ci/access/grants
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiAccessGrantsNamespace) Create(ctx context.Context, params CiAccessGrantsCreateParams, opts ...RequestOption) (*CiResourceGrant, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ci/access/grants")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CiResourceGrant
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiAccessGrantsDeleteParams holds the parameters for
+// `client.ci.access.grants.delete`.
+type CiAccessGrantsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	GrantID string
+}
+
+// Delete: Remove a resource grant
+//
+// _Requires permission: `ci:write`._
+//
+// DELETE /api/org/{orgId}/ci/access/grants/{grantId}
+//
+// Raises on 404: Not found
+func (n *CiAccessGrantsNamespace) Delete(ctx context.Context, params CiAccessGrantsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/ci/access/grants/{grantId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("grantId", params.GrantID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiAccessGrantsUpdateParams holds the parameters for
+// `client.ci.access.grants.update`.
+type CiAccessGrantsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID   *string
+	GrantID string
+	// Body: the JSON request body.
+	Body CiResourceGrantInput
+}
+
+// Update: Change a resource grant
+//
+// _Requires permission: `ci-access:write`._
+//
+// PUT /api/org/{orgId}/ci/access/grants/{grantId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiAccessGrantsNamespace) Update(ctx context.Context, params CiAccessGrantsUpdateParams, opts ...RequestOption) (*CiResourceGrant, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/ci/access/grants/{grantId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("grantId", params.GrantID)
+	r.setJSONBody(params.Body)
+	var out *CiResourceGrant
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiAccessSSHKeysNamespace is `client.ci.access.sshKeys`.
+type CiAccessSSHKeysNamespace struct {
+	t *transport
+}
+
+func newCiAccessSSHKeysNamespace(t *transport) *CiAccessSSHKeysNamespace {
+	n := &CiAccessSSHKeysNamespace{t: t}
+	return n
+}
+
+// CiAccessSSHKeysDeleteParams holds the parameters for
+// `client.ci.access.sshKeys.delete`.
+type CiAccessSSHKeysDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	SSHKeyID string
+}
+
+// Delete: Stop CI jobs using someone's SSH key
+//
+// _Requires permission: `ci:write`._
+//
+// DELETE /api/org/{orgId}/ci/access/ssh-keys/{sshKeyId}
+//
+// Raises on 404: Not found
+func (n *CiAccessSSHKeysNamespace) Delete(ctx context.Context, params CiAccessSSHKeysDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/ci/access/ssh-keys/{sshKeyId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("sshKeyId", params.SSHKeyID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiAccessSSHKeysUpdateParams holds the parameters for
+// `client.ci.access.sshKeys.update`.
+type CiAccessSSHKeysUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID    *string
+	SSHKeyID string
+	// Body: the JSON request body.
+	Body CiAccessSshkeysUpdateRequest
+}
+
+// Update: Lend one of your SSH keys to CI jobs, or stop
+//
+// Only the key's owner can, and only for a key whose private half Infrawrench
+// holds. Jobs name it in `ssh-keys:`.
+//
+// _Requires permission: `ssh-keys:write`._
+//
+// PUT /api/org/{orgId}/ci/access/ssh-keys/{sshKeyId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiAccessSSHKeysNamespace) Update(ctx context.Context, params CiAccessSSHKeysUpdateParams, opts ...RequestOption) (*CiAccessSshkeysUpdateResponse, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/ci/access/ssh-keys/{sshKeyId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("sshKeyId", params.SSHKeyID)
+	r.setJSONBody(params.Body)
+	var out *CiAccessSshkeysUpdateResponse
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

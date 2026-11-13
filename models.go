@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.106.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.107.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.106.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.107.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3218,6 +3218,14 @@ type ChildTypeRef struct {
 	Fields            []JSONObject           `json:"fields,omitempty"`
 }
 
+// CiAccessOverview is the `CiAccessOverview` schema.
+type CiAccessOverview struct {
+	ViewerUserID *string              `json:"viewerUserId"`
+	Connections  []CiConnectionAccess `json:"connections"`
+	Grants       []CiResourceGrant    `json:"grants"`
+	SSHKeys      []CiSSHKeyLending    `json:"sshKeys"`
+}
+
 // CiAccount is the `CiAccount` schema.
 type CiAccount struct {
 	InstallationID int64   `json:"installationId"`
@@ -3251,6 +3259,71 @@ type CiCaches struct {
 	Accounts []CiAccountCaches `json:"accounts"`
 }
 
+// CiCloudJob is the `CiCloudJob` schema.
+type CiCloudJob struct {
+	JobID       string  `json:"jobId"`
+	JobName     string  `json:"jobName"`
+	Pipeline    string  `json:"pipeline"`
+	AccountID   *string `json:"accountId"`
+	AccountName *string `json:"accountName"`
+	PluginID    string  `json:"pluginId"`
+	Kind        string  `json:"kind"`
+	Machine     *string `json:"machine"`
+	Region      *string `json:"region"`
+	// State: `claiming`: Infrawrench is claiming it from the runner (retried
+	// when the runner pool is busy). `starting`: the machine is coming up.
+	// `running`: it called back. `tearing_down`: the job ended and its compute
+	// is being removed. `done`: removed.
+	//
+	// One of "claiming", "starting", "running", "tearing_down", "done".
+	State      string  `json:"state"`
+	Outcome    *string `json:"outcome"`
+	Reason     *string `json:"reason"`
+	Label      *string `json:"label"`
+	ClaimedAt  string  `json:"claimedAt"`
+	FinishedAt *string `json:"finishedAt"`
+}
+
+// CiConnectionAccess is the `CiConnectionAccess` schema.
+type CiConnectionAccess struct {
+	AccountID   string                        `json:"accountId"`
+	AccountName string                        `json:"accountName"`
+	PluginID    string                        `json:"pluginId"`
+	PluginName  string                        `json:"pluginName"`
+	Executor    *CiConnectionAccessExecutor   `json:"executor"`
+	Credential  *CiConnectionAccessCredential `json:"credential"`
+	Settings    CiConnectionAccessSettings    `json:"settings"`
+	Preflight   map[string]CiPreflightRecord  `json:"preflight"`
+	UpdatedAt   *string                       `json:"updatedAt"`
+}
+
+// CiConnectionAccessSettings is the `CiConnectionAccessSettings` schema.
+type CiConnectionAccessSettings struct {
+	// JobsEnabled: Cloud jobs may run on this connection. Needs a passing check
+	// for every kind.
+	JobsEnabled       bool     `json:"jobsEnabled"`
+	JobKinds          []string `json:"jobKinds"`
+	MaxConcurrentJobs int64    `json:"maxConcurrentJobs"`
+	MaxJobMinutes     int64    `json:"maxJobMinutes"`
+	// JobRepos: Repositories (`owner/name`). Null: every repository the
+	// organization runs CI for.
+	JobRepos []string `json:"jobRepos"`
+	// JobBranchPattern: Branches it holds for: globs separated by commas, where
+	// `*` stops at `/` and `**` does not (`main, release/*`). Null: every
+	// branch.
+	JobBranchPattern *string `json:"jobBranchPattern"`
+	// LendEnabled: Jobs may be lent this connection's credentials
+	// (`connections:`).
+	LendEnabled bool `json:"lendEnabled"`
+	// LendRepos: Repositories (`owner/name`). Null: every repository the
+	// organization runs CI for.
+	LendRepos []string `json:"lendRepos"`
+	// LendBranchPattern: Branches it holds for: globs separated by commas, where
+	// `*` stops at `/` and `**` does not (`main, release/*`). Null: every
+	// branch.
+	LendBranchPattern *string `json:"lendBranchPattern"`
+}
+
 // CiDownload is the `CiDownload` schema.
 type CiDownload struct {
 	// Path: Where the job left it: relative to the clone when it is under it,
@@ -3274,6 +3347,25 @@ type CiDownloadLink struct {
 	ExpiresAt string `json:"expiresAt"`
 }
 
+// CiJobAccessNames: What the job was lent, by name only: connections, SSH keys,
+// resources and `env-from:` grants.
+type CiJobAccessNames struct {
+	Connections []string `json:"connections,omitempty"`
+	SSHKeys     []string `json:"sshKeys,omitempty"`
+	Resources   []string `json:"resources,omitempty"`
+	EnvFrom     []string `json:"envFrom,omitempty"`
+}
+
+// CiJobCloud: A cloud job's `cloud:` block and what ran it.
+type CiJobCloud struct {
+	Provider string  `json:"provider"`
+	Kind     string  `json:"kind"`
+	Machine  *string `json:"machine,omitempty"`
+	Region   *string `json:"region,omitempty"`
+	// Executor: What ran it, e.g. `aws ec2 i-0abc (eu-west-1)`.
+	Executor *string `json:"executor,omitempty"`
+}
+
 // CiJobOutput is the `CiJobOutput` schema.
 type CiJobOutput struct {
 	Pipeline string `json:"pipeline"`
@@ -3285,9 +3377,11 @@ type CiJobOutput struct {
 	DurationMs any     `json:"durationMs"`
 	// Needs: The job keys it waited for, as the pipeline's `needs:` expanded
 	// them. Absent from runs before runner 0.3.1.
-	Needs  []string `json:"needs,omitempty"`
-	Stdout string   `json:"stdout"`
-	Stderr string   `json:"stderr"`
+	Needs  []string          `json:"needs,omitempty"`
+	Access *CiJobAccessNames `json:"access,omitempty"`
+	Cloud  *CiJobCloud       `json:"cloud,omitempty"`
+	Stdout string            `json:"stdout"`
+	Stderr string            `json:"stderr"`
 	// Downloads: The files the job kept with `downloads:`. Absent when it kept
 	// none.
 	Downloads []CiDownload `json:"downloads,omitempty"`
@@ -3304,7 +3398,18 @@ type CiJobSummary struct {
 	DurationMs any     `json:"durationMs"`
 	// Needs: The job keys it waited for, as the pipeline's `needs:` expanded
 	// them. Absent from runs before runner 0.3.1.
-	Needs []string `json:"needs,omitempty"`
+	Needs  []string          `json:"needs,omitempty"`
+	Access *CiJobAccessNames `json:"access,omitempty"`
+	Cloud  *CiJobCloud       `json:"cloud,omitempty"`
+}
+
+// CiPreflightRecord is the `CiPreflightRecord` schema.
+type CiPreflightRecord struct {
+	OK        bool                       `json:"ok"`
+	Missing   []CiPreflightRecordMissing `json:"missing"`
+	Problems  []string                   `json:"problems"`
+	Region    *string                    `json:"region,omitempty"`
+	CheckedAt string                     `json:"checkedAt"`
 }
 
 // CiRepoCache is the `CiRepoCache` schema.
@@ -3313,6 +3418,49 @@ type CiRepoCache struct {
 	Repo    string `json:"repo"`
 	Bytes   any    `json:"bytes"`
 	Entries int64  `json:"entries"`
+}
+
+// CiResourceGrant is the `CiResourceGrant` schema.
+type CiResourceGrant struct {
+	ID             string   `json:"id"`
+	AccountID      string   `json:"accountId"`
+	AccountName    string   `json:"accountName"`
+	PluginID       string   `json:"pluginId"`
+	ResourceID     string   `json:"resourceId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	ResourceName   string   `json:"resourceName"`
+	CiName         string   `json:"ciName"`
+	Outputs        []string `json:"outputs"`
+	SecretVersion  *string  `json:"secretVersion"`
+	// Repos: Repositories (`owner/name`). Null: every repository the
+	// organization runs CI for.
+	Repos []string `json:"repos"`
+	// BranchPattern: Branches it holds for: globs separated by commas, where `*`
+	// stops at `/` and `**` does not (`main, release/*`). Null: every branch.
+	BranchPattern *string `json:"branchPattern"`
+	CreatedAt     string  `json:"createdAt"`
+}
+
+// CiResourceGrantInput is the `CiResourceGrantInput` schema.
+type CiResourceGrantInput struct {
+	ResourceID string `json:"resourceId"`
+	// CiName: The name pipelines use: `[A-Za-z0-9][A-Za-z0-9_-]{0,63}`, unique
+	// in the organization.
+	CiName        string   `json:"ciName"`
+	Outputs       []string `json:"outputs"`
+	SecretVersion *string  `json:"secretVersion"`
+	// Repos: Repositories (`owner/name`). Null: every repository the
+	// organization runs CI for.
+	Repos []string `json:"repos"`
+	// BranchPattern: Branches it holds for: globs separated by commas, where `*`
+	// stops at `/` and `**` does not (`main, release/*`). Null: every branch.
+	BranchPattern *string `json:"branchPattern"`
+}
+
+// CiResourceOutputs is the `CiResourceOutputs` schema.
+type CiResourceOutputs struct {
+	Outputs        []CiResourceOutputsOutputs        `json:"outputs"`
+	SecretVersions []CiResourceOutputsSecretVersions `json:"secretVersions"`
 }
 
 // CiRun is the `CiRun` schema.
@@ -3356,6 +3504,8 @@ type CiRun struct {
 type CiRunDetail struct {
 	Run  CiRun         `json:"run"`
 	Jobs []CiJobOutput `json:"jobs"`
+	// CloudJobs: Where each of its cloud jobs ran. Absent when it has none.
+	CloudJobs []CiCloudJob `json:"cloudJobs,omitempty"`
 }
 
 // CiRunStatus is the `CiRunStatus` schema.
@@ -3378,6 +3528,25 @@ const (
 type CiSecret struct {
 	Name      string `json:"name"`
 	UpdatedAt string `json:"updatedAt"`
+}
+
+// CiSSHKeyLending is the `CiSshKeyLending` schema.
+//
+// Spec schema: `CiSshKeyLending`.
+type CiSSHKeyLending struct {
+	SSHKeyID    string  `json:"sshKeyId"`
+	KeyName     string  `json:"keyName"`
+	OwnerUserID string  `json:"ownerUserId"`
+	OwnerName   *string `json:"ownerName"`
+	CiName      string  `json:"ciName"`
+	// Repos: Repositories (`owner/name`). Null: every repository the
+	// organization runs CI for.
+	Repos []string `json:"repos"`
+	// BranchPattern: Branches it holds for: globs separated by commas, where `*`
+	// stops at `/` and `**` does not (`main, release/*`). Null: every branch.
+	BranchPattern *string `json:"branchPattern"`
+	Mine          bool    `json:"mine"`
+	CreatedAt     string  `json:"createdAt"`
 }
 
 // CiStatus is the `CiStatus` schema.
@@ -14318,6 +14487,7 @@ const (
 	PermissionCiRead                 Permission = "ci:read"
 	PermissionCiWrite                Permission = "ci:write"
 	PermissionCiApprove              Permission = "ci:approve"
+	PermissionCiAccessWrite          Permission = "ci-access:write"
 	PermissionIncidentsRead          Permission = "incidents:read"
 	PermissionIncidentsWrite         Permission = "incidents:write"
 	PermissionTagPolicyOverride      Permission = "tag-policy:override"
@@ -21752,6 +21922,39 @@ type ChildTypeRefShowcase struct {
 	Label string `json:"label"`
 }
 
+// CiConnectionAccessExecutor is an object the spec declares inline.
+type CiConnectionAccessExecutor struct {
+	Kinds    []CiConnectionAccessExecutorKinds   `json:"kinds"`
+	HelpLink *CiConnectionAccessExecutorHelpLink `json:"helpLink"`
+}
+
+// CiConnectionAccessCredential is an object the spec declares inline.
+type CiConnectionAccessCredential struct {
+	Description string `json:"description"`
+	ShortLived  bool   `json:"shortLived"`
+	Namespaces  bool   `json:"namespaces"`
+}
+
+// CiPreflightRecordMissing is an object the spec declares inline.
+type CiPreflightRecordMissing struct {
+	Permission string `json:"permission"`
+	Label      string `json:"label"`
+}
+
+// CiResourceOutputsOutputs is an object the spec declares inline.
+type CiResourceOutputsOutputs struct {
+	Key       string `json:"key"`
+	Label     string `json:"label"`
+	Sensitive bool   `json:"sensitive"`
+}
+
+// CiResourceOutputsSecretVersions is an object the spec declares inline.
+type CiResourceOutputsSecretVersions struct {
+	ID        string  `json:"id"`
+	State     string  `json:"state"`
+	CreatedAt *string `json:"createdAt"`
+}
+
 // CompliancePackDeliveryTargetsSlackChannels is an object the spec declares
 // inline.
 type CompliancePackDeliveryTargetsSlackChannels struct {
@@ -23677,6 +23880,27 @@ type VulnerabilityFindingServices struct {
 	Tier *float64 `json:"tier"`
 }
 
+// CiConnectionAccessExecutorKinds is an object the spec declares inline.
+type CiConnectionAccessExecutorKinds struct {
+	// Kind: One of "vm", "container", "build", "host", "cluster".
+	Kind                  string                                  `json:"kind"`
+	Label                 string                                  `json:"label"`
+	Defaults              CiConnectionAccessExecutorKindsDefaults `json:"defaults"`
+	TypicalStartSeconds   any                                     `json:"typicalStartSeconds,omitempty"`
+	MinimumBillingSeconds any                                     `json:"minimumBillingSeconds,omitempty"`
+	Gpus                  *bool                                   `json:"gpus,omitempty"`
+	MachineSuggestions    []string                                `json:"machineSuggestions,omitempty"`
+	// RegionLabel: What `cloud.region` means for this kind, when it is not a
+	// region.
+	RegionLabel *string `json:"regionLabel,omitempty"`
+}
+
+// CiConnectionAccessExecutorHelpLink is an object the spec declares inline.
+type CiConnectionAccessExecutorHelpLink struct {
+	Label string `json:"label"`
+	URL   string `json:"url"`
+}
+
 // CostAccountStatusCostPollErrorHelpLink is an object the spec declares inline.
 type CostAccountStatusCostPollErrorHelpLink struct {
 	Label string `json:"label"`
@@ -23921,6 +24145,13 @@ type UnitCostQueryResponseConversionConverted struct {
 	Rates    []UnitCostQueryResponseConversionConvertedRates `json:"rates"`
 }
 
+// CiConnectionAccessExecutorKindsDefaults is an object the spec declares inline.
+type CiConnectionAccessExecutorKindsDefaults struct {
+	Machine *string `json:"machine,omitempty"`
+	Image   *string `json:"image,omitempty"`
+	Region  *string `json:"region,omitempty"`
+}
+
 // ServiceSummaryFindingsPostureCounts is an object the spec declares inline.
 type ServiceSummaryFindingsPostureCounts struct {
 	Critical int64 `json:"critical"`
@@ -24155,6 +24386,31 @@ type BusinessMetricsValuesCreateResponse struct {
 // BusinessMetricsValuesGetResponse is an object the spec declares inline.
 type BusinessMetricsValuesGetResponse struct {
 	Values []BusinessMetricValue `json:"values"`
+}
+
+// CiAccessConnectionsPreflightRequest is an object the spec declares inline.
+type CiAccessConnectionsPreflightRequest struct {
+	// Kind: One of "vm", "container", "build", "host", "cluster".
+	Kind   string  `json:"kind"`
+	Region *string `json:"region,omitempty"`
+}
+
+// CiAccessSshkeysUpdateRequest is an object the spec declares inline.
+type CiAccessSshkeysUpdateRequest struct {
+	Enabled bool `json:"enabled"`
+	// CiName: The name pipelines use in `ssh-keys:`; unique in the organization.
+	CiName string `json:"ciName"`
+	// Repos: Repositories (`owner/name`). Null: every repository the
+	// organization runs CI for.
+	Repos []string `json:"repos"`
+	// BranchPattern: Branches it holds for: globs separated by commas, where `*`
+	// stops at `/` and `**` does not (`main, release/*`). Null: every branch.
+	BranchPattern *string `json:"branchPattern"`
+}
+
+// CiAccessSshkeysUpdateResponse is an object the spec declares inline.
+type CiAccessSshkeysUpdateResponse struct {
+	Lending *CiSSHKeyLending `json:"lending"`
 }
 
 // CiAccountsUpdateRequest is an object the spec declares inline.
