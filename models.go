@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.107.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.108.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.107.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.108.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3420,6 +3420,22 @@ type CiRepoCache struct {
 	Entries int64  `json:"entries"`
 }
 
+// CiRepoSchedule is the `CiRepoSchedule` schema.
+type CiRepoSchedule struct {
+	InstallationID int64  `json:"installationId"`
+	RepoFullName   string `json:"repoFullName"`
+	DefaultBranch  string `json:"defaultBranch"`
+	// Sha: The default branch's commit the pipelines were read from, which
+	// scheduled runs check out.
+	Sha       *string               `json:"sha"`
+	Pipelines []CiScheduledPipeline `json:"pipelines"`
+	// RefreshedAt: When the default branch was last read; null until the first
+	// read.
+	RefreshedAt *string `json:"refreshedAt"`
+	// Error: Why the last read failed, or which pipeline files did not parse.
+	Error *string `json:"error"`
+}
+
 // CiResourceGrant is the `CiResourceGrant` schema.
 type CiResourceGrant struct {
 	ID             string   `json:"id"`
@@ -3467,7 +3483,10 @@ type CiResourceOutputs struct {
 type CiRun struct {
 	ID           string `json:"id"`
 	RepoFullName string `json:"repoFullName"`
-	// Event: One of "push", "pull-request".
+	// Event: What started the run. `schedule`: a pipeline's `on.schedule` cron,
+	// on the default branch's head.
+	//
+	// One of "push", "pull-request", "schedule".
 	Event            string         `json:"event"`
 	HeadRef          string         `json:"headRef"`
 	Sha              string         `json:"sha"`
@@ -3492,6 +3511,9 @@ type CiRun struct {
 	// NoTaskCache: The run did not read the task cache: every `task-cache:` job
 	// ran, and saved its result again.
 	NoTaskCache *bool `json:"noTaskCache,omitempty"`
+	// PipelineFile: A scheduled run's pipeline file, whose `on.schedule` cron
+	// started it.
+	PipelineFile *string `json:"pipelineFile,omitempty"`
 	// ConcurrencyGroups: The `concurrency:` groups its pipelines hold or wait
 	// for, once the runners have read them.
 	ConcurrencyGroups []string `json:"concurrencyGroups,omitempty"`
@@ -3523,6 +3545,22 @@ const (
 	CiRunStatusRejected         CiRunStatus = "rejected"
 	CiRunStatusCancelled        CiRunStatus = "cancelled"
 )
+
+// CiScheduledPipeline is the `CiScheduledPipeline` schema.
+type CiScheduledPipeline struct {
+	// File: The pipeline file, under `.infrawrench/ci/`.
+	File string `json:"file"`
+	Name string `json:"name"`
+	// Cron: Its `on.schedule` cron expressions, in UTC.
+	Cron []string `json:"cron"`
+	// NextRunAt: The next minute one of them fires on; null when none ever does.
+	NextRunAt *string `json:"nextRunAt"`
+}
+
+// CiSchedules is the `CiSchedules` schema.
+type CiSchedules struct {
+	Schedules []CiRepoSchedule `json:"schedules"`
+}
 
 // CiSecret is the `CiSecret` schema.
 type CiSecret struct {

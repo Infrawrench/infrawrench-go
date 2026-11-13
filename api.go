@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.107.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.108.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.107.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.108.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7613,6 +7613,41 @@ func (n *CiNamespace) Get(ctx context.Context, params *CiGetParams, opts ...Requ
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *CiStatus
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiSchedulesParams holds the parameters for `client.ci.schedules`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CiSchedulesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Schedules: Repositories' scheduled pipelines
+//
+// Each repository's pipelines with `on.schedule` on its default branch, as last
+// read, with each pipeline's next run. They are read again on every push to the
+// default branch, which is also how a schedule is added, changed or removed.
+// Repositories with no scheduled pipeline are left out unless their last read
+// failed.
+//
+// _Requires permission: `ci:read`._
+//
+// GET /api/org/{orgId}/ci/schedules
+//
+// Raises on 404: Not found
+func (n *CiNamespace) Schedules(ctx context.Context, params *CiSchedulesParams, opts ...RequestOption) (*CiSchedules, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci/schedules")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CiSchedules
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
