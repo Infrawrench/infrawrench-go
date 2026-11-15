@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.108.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.109.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.108.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.109.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3347,6 +3347,20 @@ type CiDownloadLink struct {
 	ExpiresAt string `json:"expiresAt"`
 }
 
+// CiInput is the `CiInput` schema.
+type CiInput struct {
+	Name string `json:"name"`
+	// Type: One of "string", "boolean", "choice", "number".
+	Type        string  `json:"type"`
+	Description *string `json:"description,omitempty"`
+	// Required: A run cannot start without a value; an empty one counts as none.
+	Required bool `json:"required"`
+	// Default: As text: `true` or `false` for a boolean, the number as written.
+	Default *string `json:"default,omitempty"`
+	// Options: A `choice` input's values.
+	Options []string `json:"options,omitempty"`
+}
+
 // CiJobAccessNames: What the job was lent, by name only: connections, SSH keys,
 // resources and `env-from:` grants.
 type CiJobAccessNames struct {
@@ -3403,6 +3417,19 @@ type CiJobSummary struct {
 	Cloud  *CiJobCloud       `json:"cloud,omitempty"`
 }
 
+// CiManualPipeline is the `CiManualPipeline` schema.
+type CiManualPipeline struct {
+	// File: The pipeline file, under `.infrawrench/ci/`.
+	File   string    `json:"file"`
+	Name   string    `json:"name"`
+	Inputs []CiInput `json:"inputs"`
+}
+
+// CiManualPipelines is the `CiManualPipelines` schema.
+type CiManualPipelines struct {
+	Repositories []CiRepoManual `json:"repositories"`
+}
+
 // CiPreflightRecord is the `CiPreflightRecord` schema.
 type CiPreflightRecord struct {
 	OK        bool                       `json:"ok"`
@@ -3418,6 +3445,17 @@ type CiRepoCache struct {
 	Repo    string `json:"repo"`
 	Bytes   any    `json:"bytes"`
 	Entries int64  `json:"entries"`
+}
+
+// CiRepoManual is the `CiRepoManual` schema.
+type CiRepoManual struct {
+	InstallationID int64  `json:"installationId"`
+	RepoFullName   string `json:"repoFullName"`
+	DefaultBranch  string `json:"defaultBranch"`
+	// Sha: The default branch's commit the pipelines were read from.
+	Sha         *string            `json:"sha"`
+	Pipelines   []CiManualPipeline `json:"pipelines"`
+	RefreshedAt *string            `json:"refreshedAt"`
 }
 
 // CiRepoSchedule is the `CiRepoSchedule` schema.
@@ -3484,9 +3522,10 @@ type CiRun struct {
 	ID           string `json:"id"`
 	RepoFullName string `json:"repoFullName"`
 	// Event: What started the run. `schedule`: a pipeline's `on.schedule` cron,
-	// on the default branch's head.
+	// on the default branch's head. `manual`: a person, for a pipeline with
+	// `on.manual`, on a branch they chose.
 	//
-	// One of "push", "pull-request", "schedule".
+	// One of "push", "pull-request", "schedule", "manual".
 	Event            string         `json:"event"`
 	HeadRef          string         `json:"headRef"`
 	Sha              string         `json:"sha"`
@@ -3511,9 +3550,12 @@ type CiRun struct {
 	// NoTaskCache: The run did not read the task cache: every `task-cache:` job
 	// ran, and saved its result again.
 	NoTaskCache *bool `json:"noTaskCache,omitempty"`
-	// PipelineFile: A scheduled run's pipeline file, whose `on.schedule` cron
-	// started it.
+	// PipelineFile: A scheduled or manual run's pipeline file: the one it runs.
 	PipelineFile *string `json:"pipelineFile,omitempty"`
+	// Inputs: A manual run's inputs as it was started with them, by name, as
+	// text (`true`, `4`, `staging`). Inputs left out read as the pipeline's
+	// defaults.
+	Inputs map[string]string `json:"inputs,omitempty"`
 	// ConcurrencyGroups: The `concurrency:` groups its pipelines hold or wait
 	// for, once the runners have read them.
 	ConcurrencyGroups []string `json:"concurrencyGroups,omitempty"`
@@ -3585,6 +3627,24 @@ type CiSSHKeyLending struct {
 	BranchPattern *string `json:"branchPattern"`
 	Mine          bool    `json:"mine"`
 	CreatedAt     string  `json:"createdAt"`
+}
+
+// CiStartRun is the `CiStartRun` schema.
+type CiStartRun struct {
+	// InstallationID: The GitHub App installation of the account that runs CI
+	// for the repository.
+	InstallationID int64 `json:"installationId"`
+	// RepoFullName: `owner/name`.
+	RepoFullName string `json:"repoFullName"`
+	// PipelineFile: The pipeline to run, as `GET /ci/manual` lists it
+	// (`.infrawrench/ci/deploy.yml`).
+	PipelineFile string `json:"pipelineFile"`
+	// Branch: A branch of the repository itself, whose head runs. The default
+	// branch when omitted.
+	Branch *string `json:"branch,omitempty"`
+	// Inputs: Values for the pipeline's `on.manual.inputs`, by name: a string, a
+	// boolean or a number each. Inputs left out read as their defaults.
+	Inputs map[string]any `json:"inputs,omitempty"`
 }
 
 // CiStatus is the `CiStatus` schema.

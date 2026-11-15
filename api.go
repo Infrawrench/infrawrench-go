@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.108.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.109.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.108.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.109.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7619,6 +7619,39 @@ func (n *CiNamespace) Get(ctx context.Context, params *CiGetParams, opts ...Requ
 	return out, nil
 }
 
+// CiManualParams holds the parameters for `client.ci.manual`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CiManualParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Manual: Pipelines that can be started by hand
+//
+// Each repository's pipelines with `on.manual` on its default branch, as last
+// read, with their inputs. They are read again on every push to the default
+// branch.
+//
+// _Requires permission: `ci:read`._
+//
+// GET /api/org/{orgId}/ci/manual
+//
+// Raises on 404: Not found
+func (n *CiNamespace) Manual(ctx context.Context, params *CiManualParams, opts ...RequestOption) (*CiManualPipelines, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/ci/manual")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CiManualPipelines
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // CiSchedulesParams holds the parameters for `client.ci.schedules`.
 //
 // Every field is optional; pass nil to take the defaults.
@@ -8229,6 +8262,45 @@ func (n *CiRunsNamespace) Cancel(ctx context.Context, params CiRunsCancelParams,
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/ci/runs/{runId}/cancel")
 	r.setPath("orgId", params.OrgID)
 	r.setPath("runId", params.RunID)
+	var out *CiRun
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CiRunsCreateParams holds the parameters for `client.ci.runs.create`.
+type CiRunsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CiStartRun
+}
+
+// Create: Start a pipeline by hand
+//
+// Queues a run of one pipeline with `on.manual`, at the head of a branch of the
+// repository itself, with the inputs given. The pipeline must be listed by `GET
+// /ci/manual`, and the inputs are checked against its declaration there; the
+// runner checks them again against the branch's own file. The run is trusted
+// like a push to that branch: it gets the repository's secrets and only what is
+// lent to that branch.
+//
+// _Requires permission: `ci:approve`._
+//
+// POST /api/org/{orgId}/ci/runs
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *CiRunsNamespace) Create(ctx context.Context, params CiRunsCreateParams, opts ...RequestOption) (*CiRun, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/ci/runs")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
 	var out *CiRun
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
