@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.109.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.110.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.109.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.110.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -17145,8 +17145,6 @@ const (
 	ResourceTypeIDEscalationPolicy               ResourceTypeID = "escalation-policy"
 	ResourceTypeIDEval                           ResourceTypeID = "eval"
 	ResourceTypeIDEvaluation                     ResourceTypeID = "evaluation"
-	ResourceTypeIDEvaluationJob                  ResourceTypeID = "evaluation-job"
-	ResourceTypeIDEvaluator                      ResourceTypeID = "evaluator"
 	ResourceTypeIDEventHook                      ResourceTypeID = "event-hook"
 	ResourceTypeIDEventbridgeRule                ResourceTypeID = "eventbridge-rule"
 	ResourceTypeIDEvents2metrics                 ResourceTypeID = "events2metrics"
@@ -17640,7 +17638,6 @@ const (
 	ResourceTypeIDRegistryModule                 ResourceTypeID = "registry-module"
 	ResourceTypeIDRegistryNamespace              ResourceTypeID = "registry-namespace"
 	ResourceTypeIDRegistryProvider               ResourceTypeID = "registry-provider"
-	ResourceTypeIDReinforcementFineTuningJob     ResourceTypeID = "reinforcement-fine-tuning-job"
 	ResourceTypeIDRelease                        ResourceTypeID = "release"
 	ResourceTypeIDReplicationRule                ResourceTypeID = "replication-rule"
 	ResourceTypeIDRepoBlocklist                  ResourceTypeID = "repo-blocklist"
