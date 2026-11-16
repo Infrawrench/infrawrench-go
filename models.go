@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.114.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.115.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.114.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.115.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3715,7 +3715,8 @@ type CiStartRun struct {
 
 // CiStatus is the `CiStatus` schema.
 type CiStatus struct {
-	// Enabled: CI is turned on for this organization
+	// Enabled: Always true: CI is on for every organization. Kept for clients
+	// that predate that, which hide CI when it is false
 	Enabled bool `json:"enabled"`
 	// Configured: The runner pool is configured on this server
 	Configured       bool        `json:"configured"`
@@ -13817,19 +13818,6 @@ type OrgConfigWorkflow struct {
 
 // OrgConfigWorkflowTrigger is the `OrgConfigWorkflowTrigger` schema.
 type OrgConfigWorkflowTrigger = any
-
-// OrgFeatureList is the `OrgFeatureList` schema.
-type OrgFeatureList struct {
-	Features []OrgFeatureName `json:"features"`
-}
-
-// OrgFeatureName is the `OrgFeatureName` schema.
-type OrgFeatureName = string
-
-// The values OrgFeatureName takes.
-const (
-	OrgFeatureNameCi OrgFeatureName = "ci"
-)
 
 // OrgMember is the `OrgMember` schema.
 type OrgMember struct {

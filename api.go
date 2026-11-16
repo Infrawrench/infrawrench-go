@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.114.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.115.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.114.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.115.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -163,8 +163,6 @@ type APIV1Client struct {
 	Expiring *ExpiringNamespace
 	// ExtendedSupport: `client.extendedSupport`.
 	ExtendedSupport *ExtendedSupportNamespace
-	// Features: `client.features`.
-	Features *FeaturesNamespace
 	// Github: `client.github`.
 	Github *GithubNamespace
 	// GithubIssues: `client.githubIssues`.
@@ -391,7 +389,6 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.EventSubscriptions = newEventSubscriptionsNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
 	c.ExtendedSupport = newExtendedSupportNamespace(t)
-	c.Features = newFeaturesNamespace(t)
 	c.Github = newGithubNamespace(t)
 	c.GithubIssues = newGithubIssuesNamespace(t)
 	c.Iac = newIacNamespace(t)
@@ -3928,8 +3925,10 @@ type AuditLogsGetParams struct {
 	// OrgID: Organization id
 	//
 	// Falls back to the client's `orgId` when omitted.
-	OrgID      *string
-	Page       *int64
+	OrgID *string
+	// Page: The page to read, from 1 (the default).
+	Page *int64
+	// PageSize: Entries per page, 25 by default. A value above 200 reads as 200.
 	PageSize   *int64
 	Action     *string
 	EntityType *string
@@ -17564,44 +17563,6 @@ func (n *ExtendedSupportSettingsNamespace) Update(ctx context.Context, params *E
 		r.setJSONBody(params.Body)
 	}
 	var out *ExtendedSupportSettings
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// FeaturesNamespace is `client.features`.
-type FeaturesNamespace struct {
-	t *transport
-}
-
-func newFeaturesNamespace(t *transport) *FeaturesNamespace {
-	n := &FeaturesNamespace{t: t}
-	return n
-}
-
-// FeaturesGetParams holds the parameters for `client.features.get`.
-//
-// Every field is optional; pass nil to take the defaults.
-type FeaturesGetParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-}
-
-// Get: List the organization's rolled-out features
-//
-// Features still being rolled out are turned on per organization by a platform
-// admin. A feature not listed here is refused by its own routes.
-//
-// GET /api/org/{orgId}/features
-func (n *FeaturesNamespace) Get(ctx context.Context, params *FeaturesGetParams, opts ...RequestOption) (*OrgFeatureList, error) {
-	r := newRequest(http.MethodGet, "/api/org/{orgId}/features")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-	}
-	var out *OrgFeatureList
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
