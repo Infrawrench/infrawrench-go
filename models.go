@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.113.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.114.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.113.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.114.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -23161,7 +23161,7 @@ type PrCheckChangeWarnings struct {
 // PrCheckReportFiles is an object the spec declares inline.
 type PrCheckReportFiles struct {
 	Path string `json:"path"`
-	// Kind: One of "terraform", "infrafile", "kubernetes".
+	// Kind: One of "terraform", "kubernetes".
 	Kind string `json:"kind"`
 	// Status: One of "added", "modified", "removed", "renamed".
 	Status   string  `json:"status"`
