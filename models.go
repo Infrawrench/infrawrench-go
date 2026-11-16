@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.112.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.113.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.112.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.113.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -2854,7 +2854,7 @@ type ChangeCostImpact struct {
 // ChangeCostImpactAnnotationRequest is the `ChangeCostImpactAnnotationRequest`
 // schema.
 type ChangeCostImpactAnnotationRequest struct {
-	// SubjectKind: One of "change", "deployment".
+	// SubjectKind: One of "change".
 	SubjectKind string           `json:"subjectKind"`
 	SubjectID   string           `json:"subjectId"`
 	WindowDays  *int64           `json:"windowDays,omitempty"`
@@ -7040,186 +7040,6 @@ type DependencyGraphResponse struct {
 	Truncated bool `json:"truncated"`
 }
 
-// DeployCreatedResource is the `DeployCreatedResource` schema.
-type DeployCreatedResource struct {
-	PluginID       string                        `json:"pluginId"`
-	AccountID      string                        `json:"accountId"`
-	ResourceTypeID string                        `json:"resourceTypeId"`
-	ResourceID     string                        `json:"resourceId"`
-	ExternalID     *string                       `json:"externalId,omitempty"`
-	DisplayName    string                        `json:"displayName"`
-	Sidecar        *DeployCreatedResourceSidecar `json:"sidecar,omitempty"`
-}
-
-// DeployEnvs is the `DeployEnvs` schema.
-type DeployEnvs struct {
-	Envs   []string `json:"envs"`
-	Sha    string   `json:"sha"`
-	Repo   string   `json:"repo"`
-	Branch string   `json:"branch"`
-}
-
-// DeployEnvsInput is the `DeployEnvsInput` schema.
-type DeployEnvsInput struct {
-	Repo   string  `json:"repo"`
-	Branch *string `json:"branch,omitempty"`
-}
-
-// DeployPlanInput is the `DeployPlanInput` schema.
-type DeployPlanInput struct {
-	Repo    string            `json:"repo"`
-	Branch  *string           `json:"branch,omitempty"`
-	Env     *string           `json:"env,omitempty"`
-	Answers map[string]string `json:"answers,omitempty"`
-}
-
-// DeployPlanResult is the `DeployPlanResult` schema.
-type DeployPlanResult struct {
-	RunID  string                 `json:"runId"`
-	Result DeployPlanResultResult `json:"result"`
-}
-
-// DeployPlannedChange is the `DeployPlannedChange` schema.
-type DeployPlannedChange struct {
-	// Action: One of "create", "update", "delete".
-	Action         string                      `json:"action"`
-	AccountID      string                      `json:"accountId"`
-	ResourceTypeID string                      `json:"resourceTypeId"`
-	ResourceID     *string                     `json:"resourceId,omitempty"`
-	DisplayName    string                      `json:"displayName"`
-	Fields         map[string]string           `json:"fields,omitempty"`
-	Sidecar        *DeployPlannedChangeSidecar `json:"sidecar,omitempty"`
-}
-
-// DeployRepo is the `DeployRepo` schema.
-type DeployRepo struct {
-	FullName      string `json:"fullName"`
-	DefaultBranch string `json:"defaultBranch"`
-}
-
-// DeployRollbackInput is the `DeployRollbackInput` schema.
-type DeployRollbackInput struct {
-	DeleteCreated *bool `json:"deleteCreated,omitempty"`
-}
-
-// DeployRunLog is the `DeployRunLog` schema.
-type DeployRunLog struct {
-	At int64 `json:"at"`
-	// Level: One of "debug", "info", "warn", "error".
-	Level   string `json:"level"`
-	Message string `json:"message"`
-}
-
-// DeployStage is the `DeployStage` schema.
-type DeployStage = string
-
-// The values DeployStage takes.
-const (
-	DeployStagePlan       DeployStage = "plan"
-	DeployStageDockerfile DeployStage = "dockerfile"
-	DeployStageBuild      DeployStage = "build"
-	DeployStageDeploy     DeployStage = "deploy"
-	DeployStageDestroy    DeployStage = "destroy"
-)
-
-// DeployStatus is the `DeployStatus` schema.
-type DeployStatus = string
-
-// The values DeployStatus takes.
-const (
-	DeployStatusPending  DeployStatus = "pending"
-	DeployStatusRunning  DeployStatus = "running"
-	DeployStatusSuccess  DeployStatus = "success"
-	DeployStatusFailure  DeployStatus = "failure"
-	DeployStatusCanceled DeployStatus = "canceled"
-)
-
-// DeployTrigger is the `DeployTrigger` schema.
-type DeployTrigger struct {
-	ID        string  `json:"id"`
-	Repo      string  `json:"repo"`
-	Branch    string  `json:"branch"`
-	Env       string  `json:"env"`
-	Enabled   bool    `json:"enabled"`
-	LastSha   *string `json:"lastSha"`
-	LastRunAt *string `json:"lastRunAt"`
-}
-
-// DeployTriggerInput is the `DeployTriggerInput` schema.
-type DeployTriggerInput struct {
-	Repo    string            `json:"repo"`
-	Branch  string            `json:"branch"`
-	Env     string            `json:"env"`
-	Answers map[string]string `json:"answers,omitempty"`
-}
-
-// DeploymentCostImpact is the `DeploymentCostImpact` schema.
-type DeploymentCostImpact struct {
-	RunID      string          `json:"runId"`
-	CostBasis  ChangeCostBasis `json:"costBasis"`
-	WindowDays int64           `json:"windowDays"`
-	// EventDay: The run's start day, UTC; what both windows hang off.
-	EventDay string `json:"eventDay"`
-	// Resources: One row per resource the run provisioned through
-	// `infra.accounts.*.create(...)`. That is the only set attributable to a run
-	// with certainty: a deploy that merely re-shipped an image links to nothing
-	// and honestly reports an empty breakdown.
-	Resources []DeploymentCostImpactResource `json:"resources"`
-	// Total: Summed `deltaPerDay` per currency across the **measured** rows
-	// only, so the breakdown always adds up to it. An unmeasurable resource
-	// contributes nothing rather than zero.
-	Total []DeploymentCostImpactTotal `json:"total"`
-	// UnknownResources: Rows excluded from `total` because their impact could
-	// not be measured.
-	UnknownResources int64                      `json:"unknownResources"`
-	Confidence       ChangeCostImpactConfidence `json:"confidence"`
-}
-
-// DeploymentCostImpactResource is the `DeploymentCostImpactResource` schema.
-type DeploymentCostImpactResource struct {
-	ResourceID     ResourceID       `json:"resourceId"`
-	DisplayName    string           `json:"displayName"`
-	PluginID       string           `json:"pluginId"`
-	ResourceTypeID string           `json:"resourceTypeId"`
-	Impact         ChangeCostImpact `json:"impact"`
-}
-
-// DeploymentRun is the `DeploymentRun` schema.
-type DeploymentRun struct {
-	ID     string       `json:"id"`
-	Env    string       `json:"env"`
-	Repo   *string      `json:"repo"`
-	Branch *string      `json:"branch"`
-	GitSha *string      `json:"gitSha"`
-	Image  *string      `json:"image"`
-	Status DeployStatus `json:"status"`
-	// Origin: One of "web", "cli", "trigger".
-	Origin       string       `json:"origin"`
-	Stage        *DeployStage `json:"stage"`
-	DurationMs   *int64       `json:"durationMs"`
-	BuildSeconds *int64       `json:"buildSeconds"`
-	// BuildRunner: One of "cloud-build", "ssh".
-	BuildRunner *string `json:"buildRunner"`
-	StartedAt   string  `json:"startedAt"`
-}
-
-// DeploymentRunInput is the `DeploymentRunInput` schema.
-type DeploymentRunInput struct {
-	Env              string                   `json:"env"`
-	Status           DeployStatus             `json:"status"`
-	Repo             *string                  `json:"repo,omitempty"`
-	Branch           *string                  `json:"branch,omitempty"`
-	GitSha           *string                  `json:"gitSha,omitempty"`
-	Image            *string                  `json:"image,omitempty"`
-	Stage            *DeployStage             `json:"stage,omitempty"`
-	Notes            []string                 `json:"notes,omitempty"`
-	Output           any                      `json:"output,omitempty"`
-	Plan             any                      `json:"plan,omitempty"`
-	CreatedResources []DeployCreatedResource  `json:"createdResources,omitempty"`
-	DurationMs       *int64                   `json:"durationMs,omitempty"`
-	Error            *DeploymentRunInputError `json:"error,omitempty"`
-}
-
 // DescribeRequest is the `DescribeRequest` schema.
 type DescribeRequest struct {
 	AccountID        string      `json:"accountId"`
@@ -7796,14 +7616,12 @@ type DoraSettingsUpdate struct {
 	DigestEnabled          *bool    `json:"digestEnabled,omitempty"`
 }
 
-// DoraSource: Where the change was learned from: an Infrafile run, a synced
-// provider deploy, a GitHub deployment, one recorded over this API, or the
-// change timeline.
+// DoraSource: Where the change was learned from: a synced provider deploy, a
+// GitHub deployment, one recorded over this API, or the change timeline.
 type DoraSource = string
 
 // The values DoraSource takes.
 const (
-	DoraSourceInfrafile      DoraSource = "infrafile"
 	DoraSourcePlugin         DoraSource = "plugin"
 	DoraSourceGithub         DoraSource = "github"
 	DoraSourceAPI            DoraSource = "api"
@@ -11199,10 +11017,10 @@ type IncidentTimeline struct {
 type IncidentTimelineEntry struct {
 	ID string `json:"id"`
 	// Source: `moment` covers everything the moment union already indexes;
-	// resource changes, deployments, cost anomalies, provider status incidents,
-	// audit entries, change freezes and workflow runs. Nothing is copied into
-	// the incident's own tables; the timeline is a join, so re-reading it
-	// reflects the record as it stands today.
+	// resource changes, cost anomalies, provider status incidents, audit
+	// entries, change freezes and workflow runs. Nothing is copied into the
+	// incident's own tables; the timeline is a join, so re-reading it reflects
+	// the record as it stands today.
 	//
 	// One of "incident", "note", "artifact", "moment", "probe", "metric-alert".
 	Source string `json:"source"`
@@ -12927,9 +12745,8 @@ type MomentEvent struct {
 	ID   string       `json:"id"`
 	Feed MomentFeedID `json:"feed"`
 	// Kind: Fine-grained `<noun>.<verb>` kind, e.g. `change.created`,
-	// `incident.started`, `workflow-run.failed`, `deployment.finished`,
-	// `freeze.started`, `drift-alert.sent`. Open set: render unknown kinds
-	// generically.
+	// `incident.started`, `workflow-run.failed`, `freeze.started`,
+	// `drift-alert.sent`. Open set: render unknown kinds generically.
 	Kind      string `json:"kind"`
 	Timestamp string `json:"timestamp"`
 	// Title: One-line headline.
@@ -12951,7 +12768,7 @@ type MomentEventLink struct {
 	// Kind: Which native screen the event deep-links to.
 	//
 	// One of "resource", "changes", "incident", "costs", "workflow-run",
-	// "deployment", "audit", "freeze", "expiring".
+	// "audit", "freeze", "expiring".
 	Kind string `json:"kind"`
 	// ID: Target id where the kind needs one (resource id, run id, freeze id…).
 	ID *string `json:"id,omitempty"`
@@ -12972,7 +12789,6 @@ const (
 	MomentFeedIDStatusIncidents MomentFeedID = "statusIncidents"
 	MomentFeedIDCostAnomalies   MomentFeedID = "costAnomalies"
 	MomentFeedIDWorkflowRuns    MomentFeedID = "workflowRuns"
-	MomentFeedIDDeployments     MomentFeedID = "deployments"
 	MomentFeedIDAudit           MomentFeedID = "audit"
 	MomentFeedIDFreezes         MomentFeedID = "freezes"
 	MomentFeedIDDriftAlerts     MomentFeedID = "driftAlerts"
@@ -14637,7 +14453,6 @@ const (
 	PermissionWorkflowsWrite         Permission = "workflows:write"
 	PermissionWorkflowsApprove       Permission = "workflows:approve"
 	PermissionDeploymentsRead        Permission = "deployments:read"
-	PermissionDeploymentsPlan        Permission = "deployments:plan"
 	PermissionDeploymentsWrite       Permission = "deployments:write"
 	PermissionCostsRead              Permission = "costs:read"
 	PermissionCostsWrite             Permission = "costs:write"
@@ -20774,7 +20589,7 @@ type TabTarget struct {
 	// "dns", "iac", "environment-diff", "environments", "ssh-fanout",
 	// "metric-alerts", "probes", "status-pages", "quotas", "price-catalog",
 	// "incidents", "slos", "services", "delivery", "ci", "workflows",
-	// "deployments", "settings", "chat", "linux-app".
+	// "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -22495,45 +22310,6 @@ type DefaultDashboardResolutionRoleDefault struct {
 	DashboardID string `json:"dashboardId"`
 }
 
-// DeployCreatedResourceSidecar is an object the spec declares inline.
-type DeployCreatedResourceSidecar struct {
-	PluginID         string `json:"pluginId"`
-	ParentResourceID string `json:"parentResourceId"`
-}
-
-// DeployPlanResultResult is an object the spec declares inline.
-type DeployPlanResultResult struct {
-	Status           DeployStatus                 `json:"status"`
-	Env              string                       `json:"env"`
-	Plan             any                          `json:"plan,omitempty"`
-	Dockerfile       *string                      `json:"dockerfile,omitempty"`
-	Image            *string                      `json:"image,omitempty"`
-	Notes            []string                     `json:"notes"`
-	CreatedResources []DeployCreatedResource      `json:"createdResources"`
-	PlannedChanges   []DeployPlannedChange        `json:"plannedChanges"`
-	Logs             []DeployRunLog               `json:"logs"`
-	ReachedStage     *DeployStage                 `json:"reachedStage,omitempty"`
-	Error            *DeployPlanResultResultError `json:"error,omitempty"`
-	DurationMs       int64                        `json:"durationMs"`
-}
-
-// DeployPlannedChangeSidecar is an object the spec declares inline.
-type DeployPlannedChangeSidecar struct {
-	PluginID         string `json:"pluginId"`
-	ParentResourceID string `json:"parentResourceId"`
-}
-
-// DeploymentCostImpactTotal is an object the spec declares inline.
-type DeploymentCostImpactTotal struct {
-	Currency    string  `json:"currency"`
-	DeltaPerDay float64 `json:"deltaPerDay"`
-}
-
-// DeploymentRunInputError is an object the spec declares inline.
-type DeploymentRunInputError struct {
-	Message string `json:"message"`
-}
-
 // DismissedVulnerabilityFindingArtifact is an object the spec declares inline.
 type DismissedVulnerabilityFindingArtifact struct {
 	// Kind: What the finding is about: a container image, a serverless function,
@@ -22871,8 +22647,8 @@ type IncidentTimelineFeeds struct {
 // IncidentTimelineEntryLink is an object the spec declares inline.
 type IncidentTimelineEntryLink struct {
 	// Kind: One of "resource", "changes", "provider-incident", "costs",
-	// "workflow-run", "deployment", "audit", "freeze", "expiring", "probe",
-	// "metric-alert", "incident".
+	// "workflow-run", "audit", "freeze", "expiring", "probe", "metric-alert",
+	// "incident".
 	Kind     string  `json:"kind"`
 	ID       *string `json:"id,omitempty"`
 	ParentID *string `json:"parentId,omitempty"`
@@ -24112,12 +23888,6 @@ type CostForecastSeriesScenariosContributions struct {
 	Amount float64 `json:"amount"`
 }
 
-// DeployPlanResultResultError is an object the spec declares inline.
-type DeployPlanResultResultError struct {
-	Message string  `json:"message"`
-	Stack   *string `json:"stack,omitempty"`
-}
-
 // EnvironmentCaptureDraftMemberFieldMetaValueOptions is an object the spec
 // declares inline.
 type EnvironmentCaptureDraftMemberFieldMetaValueOptions struct {
@@ -24795,16 +24565,6 @@ type DashboardsCreateRequest struct {
 // DashboardsRenameRequest is an object the spec declares inline.
 type DashboardsRenameRequest struct {
 	Name string `json:"name"`
-}
-
-// DeploymentsRunsCreateResponse is an object the spec declares inline.
-type DeploymentsRunsCreateResponse struct {
-	ID string `json:"id"`
-}
-
-// DeploymentsTriggersUpdateRequest is an object the spec declares inline.
-type DeploymentsTriggersUpdateRequest struct {
-	Enabled bool `json:"enabled"`
 }
 
 // DigestRecipientsDeleteResponse is an object the spec declares inline.

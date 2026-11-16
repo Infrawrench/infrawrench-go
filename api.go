@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.112.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.113.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.112.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.113.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -145,8 +145,6 @@ type APIV1Client struct {
 	Dashboards *DashboardsNamespace
 	// DependencyGraph: `client.dependencyGraph`.
 	DependencyGraph *DependencyGraphNamespace
-	// Deployments: `client.deployments`.
-	Deployments *DeploymentsNamespace
 	// Digest: `client.digest`.
 	Digest *DigestNamespace
 	// DNS: `client.dns`.
@@ -384,7 +382,6 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.DashboardNotifications = newDashboardNotificationsNamespace(t)
 	c.Dashboards = newDashboardsNamespace(t)
 	c.DependencyGraph = newDependencyGraphNamespace(t)
-	c.Deployments = newDeploymentsNamespace(t)
 	c.Digest = newDigestNamespace(t)
 	c.DNS = newDNSNamespace(t)
 	c.Docker = newDockerNamespace(t)
@@ -6655,8 +6652,8 @@ type ChangeFreezesCreateParams struct {
 // Create: Declare a change freeze window
 //
 // While the freeze is in effect, destructive actions (resource deletion,
-// destructive plugin actions, secret-version destroys, deployment rollbacks)
-// return `423` unless explicitly overridden by a caller with `freezes:override`.
+// destructive plugin actions, secret-version destroys) return `423` unless
+// explicitly overridden by a caller with `freezes:override`.
 //
 // _Requires permission: `freezes:write`._
 //
@@ -9642,7 +9639,7 @@ type CostAnnotationsChangeImpactParams struct {
 	Body *ChangeCostImpactAnnotationRequest
 }
 
-// ChangeImpact: Pin a change's or deploy's cost impact onto the cost charts
+// ChangeImpact: Pin a change's cost impact onto the cost charts
 //
 // Writes the finding as a cost annotation, so the step in the run rate is
 // explained on the graph where it shows. Re-posting the same subject **rewords
@@ -15695,503 +15692,6 @@ func (n *DependencyGraphNamespace) Get(ctx context.Context, params *DependencyGr
 	return out, nil
 }
 
-// DeploymentsNamespace is `client.deployments`.
-type DeploymentsNamespace struct {
-	t *transport
-
-	// Runs: `client.deployments.runs`.
-	Runs *DeploymentsRunsNamespace
-	// Triggers: `client.deployments.triggers`.
-	Triggers *DeploymentsTriggersNamespace
-}
-
-func newDeploymentsNamespace(t *transport) *DeploymentsNamespace {
-	n := &DeploymentsNamespace{t: t}
-	n.Runs = newDeploymentsRunsNamespace(t)
-	n.Triggers = newDeploymentsTriggersNamespace(t)
-	return n
-}
-
-// DeploymentsEnvsParams holds the parameters for `client.deployments.envs`.
-//
-// Every field is optional; pass nil to take the defaults.
-type DeploymentsEnvsParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	// Body: the JSON request body.
-	Body *DeployEnvsInput
-}
-
-// Envs: List the environments a repository's Infrafile declares
-//
-// Reads `Infrafile` at the branch head and returns its declared environments.
-// The file is parsed, not executed.
-//
-// _Requires permission: `deployments:read`._
-//
-// POST /api/org/{orgId}/deployments/envs
-//
-// Raises on 400: Bad request
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 403: Forbidden
-//
-// Raises on 404: Not found
-func (n *DeploymentsNamespace) Envs(ctx context.Context, params *DeploymentsEnvsParams, opts ...RequestOption) (*DeployEnvs, error) {
-	r := newRequest(http.MethodPost, "/api/org/{orgId}/deployments/envs")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.setJSONBody(params.Body)
-	}
-	var out *DeployEnvs
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsPlanParams holds the parameters for `client.deployments.plan`.
-//
-// Every field is optional; pass nil to take the defaults.
-type DeploymentsPlanParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	// Body: the JSON request body.
-	Body *DeployPlanInput
-}
-
-// Plan: Preview a deploy without building
-//
-// Runs the Infrafile's `plan()` and renders its Dockerfile, then stops. Nothing
-// is built or deployed.
-//
-// _Requires permission: `deployments:plan`._
-//
-// POST /api/org/{orgId}/deployments/plan
-//
-// Raises on 400: Bad request
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 403: Forbidden
-//
-// Raises on 404: Not found
-func (n *DeploymentsNamespace) Plan(ctx context.Context, params *DeploymentsPlanParams, opts ...RequestOption) (*DeployPlanResult, error) {
-	r := newRequest(http.MethodPost, "/api/org/{orgId}/deployments/plan")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.setJSONBody(params.Body)
-	}
-	var out *DeployPlanResult
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsReposParams holds the parameters for `client.deployments.repos`.
-//
-// Every field is optional; pass nil to take the defaults.
-type DeploymentsReposParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-}
-
-// Repos: List repositories this organization can deploy from
-//
-// Repositories visible to the organization's GitHub App installations. Empty
-// when the app is not configured.
-//
-// _Requires permission: `deployments:read`._
-//
-// GET /api/org/{orgId}/deployments/repos
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 403: Forbidden
-func (n *DeploymentsNamespace) Repos(ctx context.Context, params *DeploymentsReposParams, opts ...RequestOption) ([]DeployRepo, error) {
-	r := newRequest(http.MethodGet, "/api/org/{orgId}/deployments/repos")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-	}
-	var out []DeployRepo
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsRunsNamespace is `client.deployments.runs`.
-type DeploymentsRunsNamespace struct {
-	t *transport
-}
-
-func newDeploymentsRunsNamespace(t *transport) *DeploymentsRunsNamespace {
-	n := &DeploymentsRunsNamespace{t: t}
-	return n
-}
-
-// DeploymentsRunsCostImpactParams holds the parameters for
-// `client.deployments.runs.costImpact`.
-type DeploymentsRunsCostImpactParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID      *string
-	ID         string
-	WindowDays *int64
-	CostBasis  *ChangeCostBasis
-}
-
-// CostImpact: Cost impact of a deployment run
-//
-// The same comparison as `POST /changes/cost-impacts`, run over the resources
-// this deploy provisioned, with a per-resource breakdown that sums to the total.
-//
-// _Requires permission: `costs:read`._
-//
-// GET /api/org/{orgId}/deployments/runs/{id}/cost-impact
-//
-// Raises on 400: Bad request
-//
-// Raises on 403: Forbidden
-//
-// Raises on 404: Not found
-func (n *DeploymentsRunsNamespace) CostImpact(ctx context.Context, params DeploymentsRunsCostImpactParams, opts ...RequestOption) (*DeploymentCostImpact, error) {
-	r := newRequest(http.MethodGet, "/api/org/{orgId}/deployments/runs/{id}/cost-impact")
-	r.setPath("orgId", params.OrgID)
-	r.setPath("id", params.ID)
-	r.addQuery("windowDays", params.WindowDays)
-	r.addQuery("costBasis", params.CostBasis)
-	var out *DeploymentCostImpact
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsRunsCreateParams holds the parameters for
-// `client.deployments.runs.create`.
-//
-// Every field is optional; pass nil to take the defaults.
-type DeploymentsRunsCreateParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	// Body: the JSON request body.
-	Body *DeploymentRunInput
-}
-
-// Create: Record a deployment that ran elsewhere
-//
-// The CLI builds on the operator's own machine, so the server never sees that
-// run. Reporting it here keeps one history across both origins.
-//
-// _Requires permission: `deployments:write`._
-//
-// POST /api/org/{orgId}/deployments/runs
-//
-// Raises on 400: Bad request
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 403: Forbidden
-func (n *DeploymentsRunsNamespace) Create(ctx context.Context, params *DeploymentsRunsCreateParams, opts ...RequestOption) (*DeploymentsRunsCreateResponse, error) {
-	r := newRequest(http.MethodPost, "/api/org/{orgId}/deployments/runs")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.setJSONBody(params.Body)
-	}
-	var out *DeploymentsRunsCreateResponse
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsRunsGetParams holds the parameters for
-// `client.deployments.runs.get`.
-type DeploymentsRunsGetParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	ID    string
-}
-
-// Get: Get one deployment run, with its logs and rendered Dockerfile
-//
-// _Requires permission: `deployments:read`._
-//
-// GET /api/org/{orgId}/deployments/runs/{id}
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 403: Forbidden
-//
-// Raises on 404: Not found
-func (n *DeploymentsRunsNamespace) Get(ctx context.Context, params DeploymentsRunsGetParams, opts ...RequestOption) (*DeploymentRun, error) {
-	r := newRequest(http.MethodGet, "/api/org/{orgId}/deployments/runs/{id}")
-	r.setPath("orgId", params.OrgID)
-	r.setPath("id", params.ID)
-	var out *DeploymentRun
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsRunsListParams holds the parameters for
-// `client.deployments.runs.list`.
-//
-// Every field is optional; pass nil to take the defaults.
-type DeploymentsRunsListParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	Env   *string
-	Limit *int64
-}
-
-// List: List deployment runs
-//
-// _Requires permission: `deployments:read`._
-//
-// GET /api/org/{orgId}/deployments/runs
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 403: Forbidden
-func (n *DeploymentsRunsNamespace) List(ctx context.Context, params *DeploymentsRunsListParams, opts ...RequestOption) ([]DeploymentRun, error) {
-	r := newRequest(http.MethodGet, "/api/org/{orgId}/deployments/runs")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.addQuery("env", params.Env)
-		r.addQuery("limit", params.Limit)
-	}
-	var out []DeploymentRun
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsRunsRollbackParams holds the parameters for
-// `client.deployments.runs.rollback`.
-type DeploymentsRunsRollbackParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	ID    string
-	// Body: the JSON request body.
-	Body *DeployRollbackInput
-}
-
-// Rollback: Roll back to a previous deployment
-//
-// Re-runs that run's `deploy()` with the image and plan it recorded, building
-// nothing; the exact artifact that was known good ships again. The Infrafile is
-// read at the commit that run deployed, not at the branch head. Only a
-// successful run that produced an image can be rolled back to. With
-// `deleteCreated`, resources that runs after the target created through
-// `infra.accounts` are deleted once the rollback has succeeded; undoing the
-// provisioning, not just the shipping. Deletions are best-effort and reported in
-// the result's notes.
-//
-// _Requires permission: `deployments:write`._
-//
-// POST /api/org/{orgId}/deployments/runs/{id}/rollback
-//
-// Raises on 400: Bad request
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 402: Payment required: the organization's plan does not include this
-//
-// Raises on 403: Forbidden
-//
-// Raises on 404: Not found
-//
-// Raises on 409: Conflict
-//
-// Raises on 423: Blocked by an active change freeze. Retry with the
-// `x-change-freeze-override: true` header if you hold `freezes:override`; both
-// blocks and overrides are audit-logged.
-func (n *DeploymentsRunsNamespace) Rollback(ctx context.Context, params DeploymentsRunsRollbackParams, opts ...RequestOption) (*DeployPlanResult, error) {
-	r := newRequest(http.MethodPost, "/api/org/{orgId}/deployments/runs/{id}/rollback")
-	r.setPath("orgId", params.OrgID)
-	r.setPath("id", params.ID)
-	r.setJSONBody(params.Body)
-	var out *DeployPlanResult
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsTriggersNamespace is `client.deployments.triggers`.
-type DeploymentsTriggersNamespace struct {
-	t *transport
-}
-
-func newDeploymentsTriggersNamespace(t *transport) *DeploymentsTriggersNamespace {
-	n := &DeploymentsTriggersNamespace{t: t}
-	return n
-}
-
-// DeploymentsTriggersCreateParams holds the parameters for
-// `client.deployments.triggers.create`.
-//
-// Every field is optional; pass nil to take the defaults.
-type DeploymentsTriggersCreateParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	// Body: the JSON request body.
-	Body *DeployTriggerInput
-}
-
-// Create: Deploy an environment whenever a branch moves
-//
-// Arming a trigger records the branch's current commit WITHOUT deploying it; the
-// trigger fires on the next push, not on the state at the moment it was created.
-// The environment is validated against the Infrafile at that branch head, so a
-// typo fails here rather than silently never firing.
-//
-// _Requires permission: `deployments:write`._
-//
-// POST /api/org/{orgId}/deployments/triggers
-//
-// Raises on 400: Bad request
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 403: Forbidden
-//
-// Raises on 404: Not found
-func (n *DeploymentsTriggersNamespace) Create(ctx context.Context, params *DeploymentsTriggersCreateParams, opts ...RequestOption) (*DeployTrigger, error) {
-	r := newRequest(http.MethodPost, "/api/org/{orgId}/deployments/triggers")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-		r.setJSONBody(params.Body)
-	}
-	var out *DeployTrigger
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsTriggersDeleteParams holds the parameters for
-// `client.deployments.triggers.delete`.
-type DeploymentsTriggersDeleteParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	ID    string
-}
-
-// Delete: Delete a deploy trigger
-//
-// _Requires permission: `deployments:write`._
-//
-// DELETE /api/org/{orgId}/deployments/triggers/{id}
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 403: Forbidden
-func (n *DeploymentsTriggersNamespace) Delete(ctx context.Context, params DeploymentsTriggersDeleteParams, opts ...RequestOption) (*OK, error) {
-	r := newRequest(http.MethodDelete, "/api/org/{orgId}/deployments/triggers/{id}")
-	r.setPath("orgId", params.OrgID)
-	r.setPath("id", params.ID)
-	var out *OK
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsTriggersListParams holds the parameters for
-// `client.deployments.triggers.list`.
-//
-// Every field is optional; pass nil to take the defaults.
-type DeploymentsTriggersListParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-}
-
-// List: List deploy-on-push triggers
-//
-// _Requires permission: `deployments:read`._
-//
-// GET /api/org/{orgId}/deployments/triggers
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 403: Forbidden
-func (n *DeploymentsTriggersNamespace) List(ctx context.Context, params *DeploymentsTriggersListParams, opts ...RequestOption) ([]DeployTrigger, error) {
-	r := newRequest(http.MethodGet, "/api/org/{orgId}/deployments/triggers")
-	if params != nil {
-		r.setPath("orgId", params.OrgID)
-	}
-	var out []DeployTrigger
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
-// DeploymentsTriggersUpdateParams holds the parameters for
-// `client.deployments.triggers.update`.
-type DeploymentsTriggersUpdateParams struct {
-	// OrgID: Organization id
-	//
-	// Falls back to the client's `orgId` when omitted.
-	OrgID *string
-	ID    string
-	// Body: the JSON request body.
-	Body *DeploymentsTriggersUpdateRequest
-}
-
-// Update: Enable or disable a deploy trigger
-//
-// _Requires permission: `deployments:write`._
-//
-// PATCH /api/org/{orgId}/deployments/triggers/{id}
-//
-// Raises on 400: Bad request
-//
-// Raises on 401: Unauthenticated
-//
-// Raises on 403: Forbidden
-//
-// Raises on 404: Not found
-func (n *DeploymentsTriggersNamespace) Update(ctx context.Context, params DeploymentsTriggersUpdateParams, opts ...RequestOption) (*DeployTrigger, error) {
-	r := newRequest(http.MethodPatch, "/api/org/{orgId}/deployments/triggers/{id}")
-	r.setPath("orgId", params.OrgID)
-	r.setPath("id", params.ID)
-	r.setJSONBody(params.Body)
-	var out *DeployTrigger
-	if err := n.t.do(ctx, r, &out, opts); err != nil {
-		return out, err
-	}
-	return out, nil
-}
-
 // DigestNamespace is `client.digest`.
 type DigestNamespace struct {
 	t *transport
@@ -16635,9 +16135,9 @@ type DoraGetParams struct {
 // Get: DORA metrics
 //
 // Deployment frequency, lead time for changes, change failure rate and time to
-// restore over production, from Infrafile runs, synced provider deploys, GitHub
-// deployments, recorded deploys and declared incidents. With the previous
-// period, a trend, and a breakdown.
+// restore over production, from synced provider deploys, GitHub deployments,
+// recorded deploys and declared incidents. With the previous period, a trend,
+// and a breakdown.
 //
 // _Requires permission: `deployments:read`._
 //
@@ -19233,11 +18733,11 @@ type IncidentsTimelineParams struct {
 // Timeline: Assemble the incident's timeline
 //
 // Merged on read from what is already recorded between the incident's start and
-// its resolution: resource changes, deployments, cost anomalies, provider status
-// incidents, audit entries, change freezes and workflow runs (all via the same
-// union the Moment screen uses), plus probe state transitions, metric-alert
-// firings, the incident's own life events, its artefacts and its operator notes.
-// Nothing is copied; a correction upstream shows up here on the next read.
+// its resolution: resource changes, cost anomalies, provider status incidents,
+// audit entries, change freezes and workflow runs (all via the same union the
+// Moment screen uses), plus probe state transitions, metric-alert firings, the
+// incident's own life events, its artefacts and its operator notes. Nothing is
+// copied; a correction upstream shows up here on the next read.
 //
 // Probe transitions are an approximation: `synthetic_probes` keeps only a single
 // `lastStateChangeAt`, so a probe that flapped twice inside the window
@@ -23366,11 +22866,10 @@ type MomentGetParams struct {
 // everything the platform knows happened in a window: resource changes
 // (including sleep/wake schedule attribution), provider status incidents that
 // started/resolved in or overlap the window, cost anomalies, workflow runs,
-// deployments, audit-log entries, change freezes, and the drift/expiry alert
-// deliveries. Each feed is gated on the same permission its own endpoint
-// requires; feeds the caller cannot read are reported as `omitted`, and a feed
-// whose query fails is reported as `error` without blanking the rest of the
-// response.
+// audit-log entries, change freezes, and the drift/expiry alert deliveries. Each
+// feed is gated on the same permission its own endpoint requires; feeds the
+// caller cannot read are reported as `omitted`, and a feed whose query fails is
+// reported as `error` without blanking the rest of the response.
 //
 // _Requires permission: `resources:read`._
 //
