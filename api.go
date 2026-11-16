@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.110.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.111.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.110.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.111.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -7914,8 +7914,12 @@ type CiAccessGrantsCreateParams struct {
 // Create: Grant CI jobs a resource's outputs
 //
 // Pipelines read them as `${{ resources.<ciName>.<output> }}` in `env:`, or all
-// at once with `env-from: [<ciName>]`, read fresh for every run. Only for the
-// listed repositories and branches, and never for a fork's pull request.
+// at once with `env-from: [<ciName>]`, read fresh for every run. With `peer`,
+// the resource is also lent as a connection of a plugin its type has a peer
+// integration with (a managed cluster as `kubernetes`, a managed database as
+// `postgres`): `connections: [<ciName>]`, and `cloud:` jobs of the chosen kinds.
+// Only for the listed repositories and branches, and never for a fork's pull
+// request.
 //
 // _Requires permission: `ci-access:write`._
 //
@@ -7978,6 +7982,10 @@ type CiAccessGrantsUpdateParams struct {
 }
 
 // Update: Change a resource grant
+//
+// Replaces the grant. `peer` must be sent when the grant has one (409
+// otherwise); a cloud job kind or region newly turned on is checked through the
+// peer first.
 //
 // _Requires permission: `ci-access:write`._
 //

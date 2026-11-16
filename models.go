@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.110.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.111.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.110.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.111.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3430,6 +3430,23 @@ type CiManualPipelines struct {
 	Repositories []CiRepoManual `json:"repositories"`
 }
 
+// CiPeerOption is the `CiPeerOption` schema.
+type CiPeerOption struct {
+	PluginID   string                  `json:"pluginId"`
+	PluginName string                  `json:"pluginName"`
+	Credential *CiPeerOptionCredential `json:"credential"`
+	Executor   *CiPeerOptionExecutor   `json:"executor"`
+	// Lends: The credential a job is lent, as the resource's provider declares
+	// it.
+	Lends string `json:"lends"`
+	// Reach: What that credential reaches beyond the resource.
+	Reach string `json:"reach"`
+	// Lifetime: How long it lasts once lent.
+	Lifetime    string  `json:"lifetime"`
+	Unavailable *string `json:"unavailable"`
+	Unreachable *string `json:"unreachable"`
+}
+
 // CiPreflightRecord is the `CiPreflightRecord` schema.
 type CiPreflightRecord struct {
 	OK        bool                       `json:"ok"`
@@ -3492,7 +3509,10 @@ type CiResourceGrant struct {
 	// BranchPattern: Branches it holds for: globs separated by commas, where `*`
 	// stops at `/` and `**` does not (`main, release/*`). Null: every branch.
 	BranchPattern *string `json:"branchPattern"`
-	CreatedAt     string  `json:"createdAt"`
+	// Peer: What the resource is lent as, or null when only its outputs are
+	// granted.
+	Peer      *CiResourceGrantPeer `json:"peer,omitempty"`
+	CreatedAt string               `json:"createdAt"`
 }
 
 // CiResourceGrantInput is the `CiResourceGrantInput` schema.
@@ -3509,12 +3529,57 @@ type CiResourceGrantInput struct {
 	// BranchPattern: Branches it holds for: globs separated by commas, where `*`
 	// stops at `/` and `**` does not (`main, release/*`). Null: every branch.
 	BranchPattern *string `json:"branchPattern"`
+	// Peer: Use the resource as a peer plugin's connection: lend it
+	// (`connections: [<ciName>]`), run cloud jobs on it, or both. Null: neither.
+	// An update must send it when the grant has one: a client that cannot show
+	// it is refused (409) rather than changing a grant whose lending it cannot
+	// see.
+	Peer *CiResourceGrantPeerInput `json:"peer,omitempty"`
+}
+
+// CiResourceGrantPeer is the `CiResourceGrantPeer` schema.
+type CiResourceGrantPeer struct {
+	// PluginID: The plugin the resource is lent as, one its type has a peer
+	// integration with (a managed cluster as `kubernetes`). Pipelines name it in
+	// `connections:` by the grant's CI name.
+	PluginID   string `json:"pluginId"`
+	PluginName string `json:"pluginName"`
+	// Lend: `connections: [<ciName>]` lends it. Separate from running jobs on
+	// it, which lends nothing.
+	Lend bool `json:"lend"`
+	// JobKinds: Cloud jobs (`cloud: <pluginId>/<kind>`) that may run on it.
+	// Empty for none.
+	JobKinds          []string `json:"jobKinds"`
+	MaxConcurrentJobs int64    `json:"maxConcurrentJobs"`
+	MaxJobMinutes     int64    `json:"maxJobMinutes"`
+	// JobRegions: Where else a job may run with `cloud.region` (a cluster's
+	// namespaces), besides where each kind was checked. Empty: only there.
+	JobRegions []string                     `json:"jobRegions"`
+	Preflight  map[string]CiPreflightRecord `json:"preflight"`
+}
+
+// CiResourceGrantPeerInput is the `CiResourceGrantPeerInput` schema.
+type CiResourceGrantPeerInput struct {
+	PluginID string `json:"pluginId"`
+	// Lend: Lend it to jobs that name it in `connections:`.
+	Lend bool `json:"lend"`
+	// JobKinds: Cloud jobs that may run on it. A kind turned on is checked
+	// first, through the peer, and refused when the check fails.
+	JobKinds          []string `json:"jobKinds"`
+	MaxConcurrentJobs int64    `json:"maxConcurrentJobs"`
+	MaxJobMinutes     int64    `json:"maxJobMinutes"`
+	// JobRegions: Where else jobs may run with `cloud.region`, each checked
+	// through the peer when added. Empty: only where each kind was checked.
+	JobRegions []string `json:"jobRegions"`
 }
 
 // CiResourceOutputs is the `CiResourceOutputs` schema.
 type CiResourceOutputs struct {
 	Outputs        []CiResourceOutputsOutputs        `json:"outputs"`
 	SecretVersions []CiResourceOutputsSecretVersions `json:"secretVersions"`
+	// Peers: The plugins it can be lent to CI as, through its type's peer
+	// integrations: those that lend a connection or run cloud jobs.
+	Peers []CiPeerOption `json:"peers,omitempty"`
 }
 
 // CiRun is the `CiRun` schema.
@@ -22030,6 +22095,19 @@ type CiConnectionAccessCredential struct {
 	Namespaces  bool   `json:"namespaces"`
 }
 
+// CiPeerOptionCredential is an object the spec declares inline.
+type CiPeerOptionCredential struct {
+	Description string `json:"description"`
+	ShortLived  bool   `json:"shortLived"`
+	Namespaces  bool   `json:"namespaces"`
+}
+
+// CiPeerOptionExecutor is an object the spec declares inline.
+type CiPeerOptionExecutor struct {
+	Kinds    []CiPeerOptionExecutorKinds   `json:"kinds"`
+	HelpLink *CiPeerOptionExecutorHelpLink `json:"helpLink"`
+}
+
 // CiPreflightRecordMissing is an object the spec declares inline.
 type CiPreflightRecordMissing struct {
 	Permission string `json:"permission"`
@@ -23996,6 +24074,27 @@ type CiConnectionAccessExecutorHelpLink struct {
 	URL   string `json:"url"`
 }
 
+// CiPeerOptionExecutorKinds is an object the spec declares inline.
+type CiPeerOptionExecutorKinds struct {
+	// Kind: One of "vm", "container", "build", "host", "cluster".
+	Kind                  string                            `json:"kind"`
+	Label                 string                            `json:"label"`
+	Defaults              CiPeerOptionExecutorKindsDefaults `json:"defaults"`
+	TypicalStartSeconds   any                               `json:"typicalStartSeconds,omitempty"`
+	MinimumBillingSeconds any                               `json:"minimumBillingSeconds,omitempty"`
+	Gpus                  *bool                             `json:"gpus,omitempty"`
+	MachineSuggestions    []string                          `json:"machineSuggestions,omitempty"`
+	// RegionLabel: What `cloud.region` means for this kind, when it is not a
+	// region.
+	RegionLabel *string `json:"regionLabel,omitempty"`
+}
+
+// CiPeerOptionExecutorHelpLink is an object the spec declares inline.
+type CiPeerOptionExecutorHelpLink struct {
+	Label string `json:"label"`
+	URL   string `json:"url"`
+}
+
 // CostAccountStatusCostPollErrorHelpLink is an object the spec declares inline.
 type CostAccountStatusCostPollErrorHelpLink struct {
 	Label string `json:"label"`
@@ -24242,6 +24341,13 @@ type UnitCostQueryResponseConversionConverted struct {
 
 // CiConnectionAccessExecutorKindsDefaults is an object the spec declares inline.
 type CiConnectionAccessExecutorKindsDefaults struct {
+	Machine *string `json:"machine,omitempty"`
+	Image   *string `json:"image,omitempty"`
+	Region  *string `json:"region,omitempty"`
+}
+
+// CiPeerOptionExecutorKindsDefaults is an object the spec declares inline.
+type CiPeerOptionExecutorKindsDefaults struct {
 	Machine *string `json:"machine,omitempty"`
 	Image   *string `json:"image,omitempty"`
 	Region  *string `json:"region,omitempty"`
