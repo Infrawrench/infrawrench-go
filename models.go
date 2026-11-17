@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.116.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.117.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.116.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.117.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3901,6 +3901,278 @@ type CommitmentRejectedCell struct {
 	//
 	// One of "presence", "not_in_decline", "floor", "materiality".
 	Gate string `json:"gate"`
+}
+
+// CommitmentReport is the `CommitmentReport` schema.
+type CommitmentReport struct {
+	ID              string                 `json:"id"`
+	Name            string                 `json:"name"`
+	Description     *string                `json:"description"`
+	Config          CommitmentReportConfig `json:"config"`
+	FolderID        *string                `json:"folderId"`
+	CreatedByUserID *string                `json:"createdByUserId"`
+	CreatedAt       string                 `json:"createdAt"`
+	UpdatedAt       string                 `json:"updatedAt"`
+}
+
+// CommitmentReportConfig: An absolute range covers at most 1096 days, and at
+// most 367 at daily granularity. Every relative preset fits every granularity.
+type CommitmentReportConfig struct {
+	Version     float64                     `json:"version"`
+	DateRange   CostDateRange               `json:"dateRange"`
+	Granularity CommitmentReportGranularity `json:"granularity"`
+	GroupBy     CommitmentReportGroupBy     `json:"groupBy"`
+	Filters     CommitmentReportFilters     `json:"filters"`
+	Metric      CommitmentReportMetric      `json:"metric"`
+}
+
+// CommitmentReportFilters: Lists AND-compose; values within a list OR. An absent
+// list does not filter. `commitmentTypes` and `commitmentIds` narrow the
+// commitment side (covered usage and unused fees) only: uncovered usage stays
+// in, because it is the rest of the coverage denominator.
+type CommitmentReportFilters struct {
+	// Providers: Plugin ids, as `report-options` lists them (`aws`, `azure`).
+	Providers []string `json:"providers,omitempty"`
+	// CommitmentTypes: Narrows the commitment side to holdings of these kinds.
+	CommitmentTypes []CommitmentReportKind `json:"commitmentTypes,omitempty"`
+	// Services: Provider service names, as `report-options` lists them.
+	Services []string `json:"services,omitempty"`
+	// AccountIDs: Connected account ids.
+	AccountIDs []string `json:"accountIds,omitempty"`
+	// Regions: Provider regions, as `report-options` lists them.
+	Regions []string `json:"regions,omitempty"`
+	// CommitmentIDs: Provider-native commitment ids, as `report-options` lists
+	// them. Narrows the commitment side to those holdings.
+	CommitmentIDs []string `json:"commitmentIds,omitempty"`
+}
+
+// CommitmentReportGranularity: Bucket size. There is no hourly: spend is
+// collected one row per UTC day, so an hourly bucket would put each day's spend
+// at midnight. Weeks start on Monday.
+type CommitmentReportGranularity = string
+
+// The values CommitmentReportGranularity takes.
+const (
+	CommitmentReportGranularityDaily     CommitmentReportGranularity = "daily"
+	CommitmentReportGranularityWeekly    CommitmentReportGranularity = "weekly"
+	CommitmentReportGranularityMonthly   CommitmentReportGranularity = "monthly"
+	CommitmentReportGranularityQuarterly CommitmentReportGranularity = "quarterly"
+)
+
+// CommitmentReportGroupBy: `commitment_type` and `commitment` split the
+// commitment side by holding and put uncovered usage in its own `__on_demand__`
+// group; covered usage the provider did not tie to a commitment (all of AWS,
+// whose Cost Explorer cannot group by commitment) is `__unattributed__`, and a
+// commitment the inventory no longer holds is `__unknown_kind__` under
+// `commitment_type`. Under those two, each group's coverage is its share of the
+// bucket's whole usage, so the groups add up. Instance family is not offered: no
+// collector stores it on cost rows.
+type CommitmentReportGroupBy = string
+
+// The values CommitmentReportGroupBy takes.
+const (
+	CommitmentReportGroupByNone           CommitmentReportGroupBy = "none"
+	CommitmentReportGroupByProvider       CommitmentReportGroupBy = "provider"
+	CommitmentReportGroupByCommitmentType CommitmentReportGroupBy = "commitment_type"
+	CommitmentReportGroupByCommitment     CommitmentReportGroupBy = "commitment"
+	CommitmentReportGroupByService        CommitmentReportGroupBy = "service"
+	CommitmentReportGroupByAccount        CommitmentReportGroupBy = "account"
+	CommitmentReportGroupByRegion         CommitmentReportGroupBy = "region"
+)
+
+// CommitmentReportInput is the `CommitmentReportInput` schema.
+type CommitmentReportInput struct {
+	Name string `json:"name"`
+	// Description: Stored as sent; absent is null.
+	Description *string                `json:"description,omitempty"`
+	Config      CommitmentReportConfig `json:"config"`
+	// FolderID: A report folder (`/cost-report-folders`, shared with cost
+	// reports); absent or null is the top level.
+	FolderID *string `json:"folderId,omitempty"`
+}
+
+// CommitmentReportKind is the `CommitmentReportKind` schema.
+type CommitmentReportKind = string
+
+// The values CommitmentReportKind takes.
+const (
+	CommitmentReportKindReservation  CommitmentReportKind = "reservation"
+	CommitmentReportKindSavingsPlan  CommitmentReportKind = "savings_plan"
+	CommitmentReportKindCommittedUse CommitmentReportKind = "committed_use"
+)
+
+// CommitmentReportMetric: The metric the chart draws. A result always carries
+// every metric.
+type CommitmentReportMetric = string
+
+// The values CommitmentReportMetric takes.
+const (
+	CommitmentReportMetricCoverage             CommitmentReportMetric = "coverage"
+	CommitmentReportMetricEligibleCoverage     CommitmentReportMetric = "eligibleCoverage"
+	CommitmentReportMetricUtilization          CommitmentReportMetric = "utilization"
+	CommitmentReportMetricEffectiveSavingsRate CommitmentReportMetric = "effectiveSavingsRate"
+	CommitmentReportMetricNetSavings           CommitmentReportMetric = "netSavings"
+	CommitmentReportMetricOnDemandRemainder    CommitmentReportMetric = "onDemandRemainder"
+	CommitmentReportMetricCommitmentCost       CommitmentReportMetric = "commitmentCost"
+	CommitmentReportMetricUsedCommitmentCost   CommitmentReportMetric = "usedCommitmentCost"
+	CommitmentReportMetricUnusedCommitmentCost CommitmentReportMetric = "unusedCommitmentCost"
+)
+
+// CommitmentReportMetricValues is the `CommitmentReportMetricValues` schema.
+type CommitmentReportMetricValues struct {
+	// Coverage: covered ÷ (coveredAll + uncovered), or the bucket's usage under
+	// a commitment grouping. Null when the denominator is zero, never 0.
+	Coverage *float64 `json:"coverage"`
+	// EligibleCoverage: covered ÷ (coveredAll + uncoveredEligible): the upper
+	// bound of coverage. Null when the denominator is zero, never 0.
+	EligibleCoverage *float64 `json:"eligibleCoverage"`
+	// Utilization: covered ÷ (covered + unused). Null when the denominator is
+	// zero, never 0.
+	Utilization *float64 `json:"utilization"`
+	// EffectiveSavingsRate: netSavings ÷ (onDemandEquivalent + uncovered). Null
+	// also when netSavings is null. Null when the denominator is zero, never 0.
+	EffectiveSavingsRate *float64 `json:"effectiveSavingsRate"`
+	// NetSavings: (coveredOnDemand − coveredMeasured) − unused. Null when there
+	// was covered usage and none of it had a reported on-demand equivalent;
+	// covered usage without one counts as saving nothing.
+	NetSavings *float64 `json:"netSavings"`
+	// OnDemandRemainder: uncovered.
+	OnDemandRemainder float64 `json:"onDemandRemainder"`
+	// CommitmentCost: covered + unused.
+	CommitmentCost float64 `json:"commitmentCost"`
+	// UsedCommitmentCost: covered.
+	UsedCommitmentCost float64 `json:"usedCommitmentCost"`
+	// UnusedCommitmentCost: unused.
+	UnusedCommitmentCost float64 `json:"unusedCommitmentCost"`
+	// OnDemandEquivalent: coveredOnDemand + (covered − coveredMeasured).
+	OnDemandEquivalent float64 `json:"onDemandEquivalent"`
+	// SavingsMeasuredShare: coveredMeasured ÷ covered: how much of the covered
+	// spend the savings figure measured. Null without covered spend.
+	SavingsMeasuredShare *float64 `json:"savingsMeasuredShare"`
+}
+
+// CommitmentReportNotice: `unused_lumped_monthly`: a provider in scope books a
+// month's unused commitment fee on one day of its daily data, so a daily or
+// weekly utilization dips on that day. `unattributed_commitment_usage`: some
+// covered usage could not be tied to a commitment and is grouped as
+// `__unattributed__`. `partial_savings_measurement`: some covered usage had no
+// reported on-demand equivalent and counts as saving nothing.
+// `no_measurable_accounts`: no account in scope can measure coverage.
+type CommitmentReportNotice = string
+
+// The values CommitmentReportNotice takes.
+const (
+	CommitmentReportNoticeUnusedLumpedMonthly         CommitmentReportNotice = "unused_lumped_monthly"
+	CommitmentReportNoticeUnattributedCommitmentUsage CommitmentReportNotice = "unattributed_commitment_usage"
+	CommitmentReportNoticePartialSavingsMeasurement   CommitmentReportNotice = "partial_savings_measurement"
+	CommitmentReportNoticeNoMeasurableAccounts        CommitmentReportNotice = "no_measurable_accounts"
+)
+
+// CommitmentReportOptions is the `CommitmentReportOptions` schema.
+type CommitmentReportOptions struct {
+	Providers   []CommitmentReportOptionsProviders   `json:"providers"`
+	Accounts    []CommitmentReportOptionsAccounts    `json:"accounts"`
+	Services    []string                             `json:"services"`
+	Regions     []string                             `json:"regions"`
+	Commitments []CommitmentReportOptionsCommitments `json:"commitments"`
+}
+
+// CommitmentReportPoint is the `CommitmentReportPoint` schema.
+type CommitmentReportPoint struct {
+	// Bucket: The bucket's first day, `YYYY-MM-DD`.
+	Bucket  string                       `json:"bucket"`
+	Totals  CommitmentReportTotals       `json:"totals"`
+	Metrics CommitmentReportMetricValues `json:"metrics"`
+}
+
+// CommitmentReportProvider is the `CommitmentReportProvider` schema.
+type CommitmentReportProvider struct {
+	PluginID    PluginID `json:"pluginId"`
+	DisplayName string   `json:"displayName"`
+	// Status: `inventory_only`: the provider's holdings are collected but its
+	// cost rows do not distinguish covered usage (GCP today), so it is left out
+	// of every metric rather than read as 0% covered.
+	//
+	// One of "measured", "inventory_only".
+	Status       string `json:"status"`
+	AccountCount int64  `json:"accountCount"`
+}
+
+// CommitmentReportResult is the `CommitmentReportResult` schema.
+type CommitmentReportResult struct {
+	// From: First day of the resolved window.
+	From string `json:"from"`
+	// To: Last day of the resolved window; never past today.
+	To          string                      `json:"to"`
+	Granularity CommitmentReportGranularity `json:"granularity"`
+	GroupBy     CommitmentReportGroupBy     `json:"groupBy"`
+	// Buckets: Every bucket start in the window, gaps included, ascending.
+	Buckets []string `json:"buckets"`
+	// Series: One per group and currency, largest commitment cost first.
+	Series []CommitmentReportSeries `json:"series"`
+	// Overall: All groups combined, one series per currency.
+	Overall   []CommitmentReportSeries   `json:"overall"`
+	Providers []CommitmentReportProvider `json:"providers"`
+	Notices   []CommitmentReportNotice   `json:"notices"`
+}
+
+// CommitmentReportRunResult is the `CommitmentReportRunResult` schema.
+type CommitmentReportRunResult struct {
+	// From: First day of the resolved window.
+	From string `json:"from"`
+	// To: Last day of the resolved window; never past today.
+	To          string                      `json:"to"`
+	Granularity CommitmentReportGranularity `json:"granularity"`
+	GroupBy     CommitmentReportGroupBy     `json:"groupBy"`
+	// Buckets: Every bucket start in the window, gaps included, ascending.
+	Buckets []string `json:"buckets"`
+	// Series: One per group and currency, largest commitment cost first.
+	Series []CommitmentReportSeries `json:"series"`
+	// Overall: All groups combined, one series per currency.
+	Overall   []CommitmentReportSeries   `json:"overall"`
+	Providers []CommitmentReportProvider `json:"providers"`
+	Notices   []CommitmentReportNotice   `json:"notices"`
+	ReportID  string                     `json:"reportId"`
+	Name      string                     `json:"name"`
+}
+
+// CommitmentReportSeries is the `CommitmentReportSeries` schema.
+type CommitmentReportSeries struct {
+	// ID: Group key and currency, joined by U+0000: unique within a result.
+	ID string `json:"id"`
+	// GroupKey: The group's key: empty without grouping; a sentinel
+	// (`__on_demand__`, `__unattributed__`, `__unknown_kind__`) or the value
+	// otherwise.
+	GroupKey string `json:"groupKey"`
+	// Label: An account's name, a provider's display name or a holding's
+	// description where the server can name the key; the key itself otherwise
+	// (clients name kinds and sentinels).
+	Label    string                      `json:"label"`
+	Currency string                      `json:"currency"`
+	Points   []CommitmentReportPoint     `json:"points"`
+	Total    CommitmentReportSeriesTotal `json:"total"`
+}
+
+// CommitmentReportTotals is the `CommitmentReportTotals` schema.
+type CommitmentReportTotals struct {
+	// Covered: Amortized usage the selected commitments covered: the used
+	// commitment cost.
+	Covered float64 `json:"covered"`
+	// CoveredAll: Amortized usage any commitment covered.
+	CoveredAll float64 `json:"coveredAll"`
+	// Unused: Amortized commitment fees no usage absorbed (only fee rows with a
+	// reported amortized amount).
+	Unused float64 `json:"unused"`
+	// Uncovered: Amortized usage no commitment covered: the on-demand remainder.
+	Uncovered float64 `json:"uncovered"`
+	// UncoveredEligible: Uncovered usage in (provider, service, region) cells
+	// with any covered usage in the window.
+	UncoveredEligible float64 `json:"uncoveredEligible"`
+	// CoveredOnDemand: On-demand equivalent of covered usage, summed over rows
+	// whose provider reported one.
+	CoveredOnDemand float64 `json:"coveredOnDemand"`
+	// CoveredMeasured: Amortized amount of those same rows.
+	CoveredMeasured float64 `json:"coveredMeasured"`
 }
 
 // CommitmentUnitAmount is the `CommitmentUnitAmount` schema.
@@ -19440,6 +19712,7 @@ const (
 	ShareableObjectTypeSavingsView                ShareableObjectType = "savings_view"
 	ShareableObjectTypeResourceReport             ShareableObjectType = "resource_report"
 	ShareableObjectTypeNetworkFlowReport          ShareableObjectType = "network_flow_report"
+	ShareableObjectTypeCommitmentReport           ShareableObjectType = "commitment_report"
 )
 
 // SharedConsole is the `SharedConsole` schema.
@@ -21928,6 +22201,41 @@ type CiResourceOutputsSecretVersions struct {
 	ID        string  `json:"id"`
 	State     string  `json:"state"`
 	CreatedAt *string `json:"createdAt"`
+}
+
+// CommitmentReportOptionsProviders is an object the spec declares inline.
+type CommitmentReportOptionsProviders struct {
+	PluginID    PluginID `json:"pluginId"`
+	DisplayName string   `json:"displayName"`
+	// Status: `inventory_only`: the provider's holdings are collected but its
+	// cost rows do not distinguish covered usage (GCP today), so it is left out
+	// of every metric rather than read as 0% covered.
+	//
+	// One of "measured", "inventory_only".
+	Status string `json:"status"`
+}
+
+// CommitmentReportOptionsAccounts is an object the spec declares inline.
+type CommitmentReportOptionsAccounts struct {
+	ID       string   `json:"id"`
+	Name     string   `json:"name"`
+	PluginID PluginID `json:"pluginId"`
+}
+
+// CommitmentReportOptionsCommitments is an object the spec declares inline.
+type CommitmentReportOptionsCommitments struct {
+	CommitmentID string               `json:"commitmentId"`
+	AccountID    string               `json:"accountId"`
+	PluginID     PluginID             `json:"pluginId"`
+	Kind         CommitmentReportKind `json:"kind"`
+	Description  string               `json:"description"`
+	State        string               `json:"state"`
+}
+
+// CommitmentReportSeriesTotal is an object the spec declares inline.
+type CommitmentReportSeriesTotal struct {
+	Totals  CommitmentReportTotals       `json:"totals"`
+	Metrics CommitmentReportMetricValues `json:"metrics"`
 }
 
 // CompliancePackDeliveryTargetsSlackChannels is an object the spec declares

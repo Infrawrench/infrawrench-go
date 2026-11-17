@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.116.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.117.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.116.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.117.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -8615,10 +8615,14 @@ func (n *CiValuesNamespace) Update(ctx context.Context, params CiValuesUpdatePar
 // CommitmentsNamespace is `client.commitments`.
 type CommitmentsNamespace struct {
 	t *transport
+
+	// Reports: `client.commitments.reports`.
+	Reports *CommitmentsReportsNamespace
 }
 
 func newCommitmentsNamespace(t *transport) *CommitmentsNamespace {
 	n := &CommitmentsNamespace{t: t}
+	n.Reports = newCommitmentsReportsNamespace(t)
 	return n
 }
 
@@ -8664,6 +8668,275 @@ func (n *CommitmentsNamespace) Get(ctx context.Context, params *CommitmentsGetPa
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *CommitmentsFeed
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CommitmentsReportOptionsParams holds the parameters for
+// `client.commitments.reportOptions`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CommitmentsReportOptionsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// ReportOptions: Picker values for the commitment report editor
+//
+// Providers (with whether their cost rows can measure coverage), accounts, the
+// services and regions with usage in the last 180 days, and the commitment
+// inventory. Scoped to what the caller may see.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/commitments/report-options
+func (n *CommitmentsNamespace) ReportOptions(ctx context.Context, params *CommitmentsReportOptionsParams, opts ...RequestOption) (*CommitmentReportOptions, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/commitments/report-options")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *CommitmentReportOptions
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CommitmentsReportQueryParams holds the parameters for
+// `client.commitments.reportQuery`.
+type CommitmentsReportQueryParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CommitmentReportConfig
+}
+
+// ReportQuery: Run an unsaved commitment report config
+//
+// Coverage, utilization, savings and commitment cost over time, on the amortized
+// basis. See `CommitmentReportMetricValues` for each metric's formula. A read
+// despite the method.
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/commitments/report-query
+//
+// Raises on 400: Bad request
+func (n *CommitmentsNamespace) ReportQuery(ctx context.Context, params CommitmentsReportQueryParams, opts ...RequestOption) (*CommitmentReportResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/commitments/report-query")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CommitmentReportResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CommitmentsReportsNamespace is `client.commitments.reports`.
+type CommitmentsReportsNamespace struct {
+	t *transport
+}
+
+func newCommitmentsReportsNamespace(t *transport) *CommitmentsReportsNamespace {
+	n := &CommitmentsReportsNamespace{t: t}
+	return n
+}
+
+// CommitmentsReportsCreateParams holds the parameters for
+// `client.commitments.reports.create`.
+type CommitmentsReportsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body CommitmentReportInput
+}
+
+// Create: Create a commitment report
+//
+// Stored exactly as sent. The creator is the report's implicit owner for
+// sharing; filing it in a folder needs editor access to the folder.
+// Audit-logged.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/commitments/reports
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+func (n *CommitmentsReportsNamespace) Create(ctx context.Context, params CommitmentsReportsCreateParams, opts ...RequestOption) (*CommitmentReport, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/commitments/reports")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *CommitmentReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CommitmentsReportsDeleteParams holds the parameters for
+// `client.commitments.reports.delete`.
+type CommitmentsReportsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a commitment report
+//
+// Soft delete; its sharing goes with it. Audit-logged.
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/commitments/reports/{id}
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *CommitmentsReportsNamespace) Delete(ctx context.Context, params CommitmentsReportsDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/commitments/reports/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CommitmentsReportsGetParams holds the parameters for
+// `client.commitments.reports.get`.
+type CommitmentsReportsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get a commitment report
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/commitments/reports/{id}
+//
+// Raises on 404: Not found
+func (n *CommitmentsReportsNamespace) Get(ctx context.Context, params CommitmentsReportsGetParams, opts ...RequestOption) (*CommitmentReport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/commitments/reports/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CommitmentReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CommitmentsReportsListParams holds the parameters for
+// `client.commitments.reports.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type CommitmentsReportsListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List saved commitment reports
+//
+// The saved commitment reports the caller's sharing lets them open, by name.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/commitments/reports
+func (n *CommitmentsReportsNamespace) List(ctx context.Context, params *CommitmentsReportsListParams, opts ...RequestOption) ([]CommitmentReport, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/commitments/reports")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []CommitmentReport
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CommitmentsReportsRunParams holds the parameters for
+// `client.commitments.reports.run`.
+type CommitmentsReportsRunParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Run: Run a saved commitment report
+//
+// A relative date range resolves against today on every run, and a range
+// reaching past today ends today.
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/commitments/reports/{id}/run
+//
+// Raises on 404: Not found
+func (n *CommitmentsReportsNamespace) Run(ctx context.Context, params CommitmentsReportsRunParams, opts ...RequestOption) (*CommitmentReportRunResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/commitments/reports/{id}/run")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *CommitmentReportRunResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// CommitmentsReportsUpdateParams holds the parameters for
+// `client.commitments.reports.update`.
+type CommitmentsReportsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body CommitmentReportInput
+}
+
+// Update: Replace a commitment report
+//
+// Name, description, config and folder together. Needs editor. Moving it to
+// another folder needs editor access to that folder. Audit-logged.
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/commitments/reports/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *CommitmentsReportsNamespace) Update(ctx context.Context, params CommitmentsReportsUpdateParams, opts ...RequestOption) (*CommitmentReport, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/commitments/reports/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *CommitmentReport
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
