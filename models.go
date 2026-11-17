@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.115.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.116.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.115.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.116.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3049,8 +3049,7 @@ type ChatConversation struct {
 type ChatConversationCreateInput struct {
 	// Model: The model the conversation runs on. Omitted: the cheapest model.
 	//
-	// One of "gemini-3.7-flash", "claude-sonnet-5", "claude-opus-5",
-	// "claude-haiku-4-5".
+	// One of "claude-sonnet-5-5", "claude-opus-5-5".
 	Model *string `json:"model,omitempty"`
 	// Title: Initial title, cut to 200 characters. Omitted: `New chat`, renamed
 	// after the first message.
@@ -3088,8 +3087,7 @@ type ChatConversationList struct {
 type ChatConversationModelInput struct {
 	// Model: The model the next turn runs on. Required.
 	//
-	// One of "gemini-3.7-flash", "claude-sonnet-5", "claude-opus-5",
-	// "claude-haiku-4-5".
+	// One of "claude-sonnet-5-5", "claude-opus-5-5".
 	Model string `json:"model"`
 }
 
