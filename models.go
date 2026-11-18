@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.118.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.119.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.118.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.119.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1174,6 +1174,20 @@ type ArtifactsListRequest struct {
 	ResourceTypeID string     `json:"resourceTypeId"`
 	PageToken      *string    `json:"pageToken,omitempty"`
 	Prefix         *string    `json:"prefix,omitempty"`
+}
+
+// AssociationCandidate is the `AssociationCandidate` schema.
+type AssociationCandidate struct {
+	ResourceID     ResourceID `json:"resourceId"`
+	PluginID       string     `json:"pluginId"`
+	ResourceTypeID string     `json:"resourceTypeId"`
+	AccountID      string     `json:"accountId"`
+	DisplayName    string     `json:"displayName"`
+	// OutputKey: The output that would fill the field; send it as
+	// `providerOutputKey`.
+	OutputKey string `json:"outputKey"`
+	// PluginLogoSvg: Inline SVG markup; may be empty.
+	PluginLogoSvg string `json:"pluginLogoSvg"`
 }
 
 // AssociationRequest is the `AssociationRequest` schema.

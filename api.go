@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.118.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.119.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.118.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.119.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3850,6 +3850,43 @@ func newAssociationsNamespace(t *transport) *AssociationsNamespace {
 	return n
 }
 
+// AssociationsCandidatesParams holds the parameters for
+// `client.associations.candidates`.
+type AssociationsCandidatesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ResourceID: The resource holding the field.
+	ResourceID ResourceID
+	// FieldKey: The secret field to fill, e.g. `connectionString`.
+	FieldKey string
+}
+
+// Candidates: List the resources whose outputs can fill a secret field
+//
+// A candidate is a stored resource whose type hands one of its outputs to the
+// field's plugin under the field's key (a peer integration's credential mapping)
+// and whose fields pass that integration's visibility gates. Send one to `POST
+// /associations` to point the field at it.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/associations/candidates
+//
+// Raises on 404: Not found
+func (n *AssociationsNamespace) Candidates(ctx context.Context, params AssociationsCandidatesParams, opts ...RequestOption) ([]AssociationCandidate, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/associations/candidates")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("resourceId", params.ResourceID)
+	r.addQuery("fieldKey", params.FieldKey)
+	var out []AssociationCandidate
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // AssociationsCreateParams holds the parameters for
 // `client.associations.create`.
 type AssociationsCreateParams struct {
@@ -3892,11 +3929,17 @@ type AssociationsLiteralParams struct {
 
 // Literal: Set a secret field to a literal plaintext value
 //
+// When the resource's plugin applies a new value upstream (resetting a database
+// password, say), it does so first; a refusal there answers 502 and stores
+// nothing.
+//
 // _Requires permission: `secrets:write`._
 //
 // POST /api/org/{orgId}/associations/literal
 //
 // Raises on 404: Not found
+//
+// Raises on 502: Bad gateway: an upstream service failed
 func (n *AssociationsNamespace) Literal(ctx context.Context, params AssociationsLiteralParams, opts ...RequestOption) (*OK, error) {
 	r := newRequest(http.MethodPost, "/api/org/{orgId}/associations/literal")
 	r.setPath("orgId", params.OrgID)
