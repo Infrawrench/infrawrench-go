@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.117.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.118.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.117.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.118.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3214,6 +3214,10 @@ type ChildTypeRef struct {
 	Showcase          []ChildTypeRefShowcase `json:"showcase,omitempty"`
 	SupportsCreate    bool                   `json:"supportsCreate"`
 	Fields            []JSONObject           `json:"fields,omitempty"`
+	// TopLevel: A top-level type shown on the account root's detail view beside
+	// its children. Its resources have no parent: send no `parentResourceId`
+	// when creating, editing or deleting one.
+	TopLevel *bool `json:"topLevel,omitempty"`
 }
 
 // CiAccessOverview is the `CiAccessOverview` schema.
