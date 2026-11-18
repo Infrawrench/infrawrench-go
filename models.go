@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.119.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.120.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.119.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.120.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1192,13 +1192,19 @@ type AssociationCandidate struct {
 
 // AssociationRequest is the `AssociationRequest` schema.
 type AssociationRequest struct {
-	ConsumerResourceID     ResourceID `json:"consumerResourceId"`
-	ConsumerFieldKey       string     `json:"consumerFieldKey"`
-	ProviderResourceID     ResourceID `json:"providerResourceId"`
-	ProviderOutputKey      string     `json:"providerOutputKey"`
-	ProviderPluginID       string     `json:"providerPluginId"`
-	ProviderResourceTypeID string     `json:"providerResourceTypeId"`
-	ProviderAccountID      string     `json:"providerAccountId"`
+	ConsumerResourceID ResourceID `json:"consumerResourceId"`
+	ConsumerFieldKey   string     `json:"consumerFieldKey"`
+	ProviderResourceID ResourceID `json:"providerResourceId"`
+	ProviderOutputKey  string     `json:"providerOutputKey"`
+	// ProviderPluginID: Deprecated and ignored: read from the stored provider
+	// resource.
+	ProviderPluginID *string `json:"providerPluginId,omitempty"`
+	// ProviderResourceTypeID: Deprecated and ignored: read from the stored
+	// provider resource.
+	ProviderResourceTypeID *string `json:"providerResourceTypeId,omitempty"`
+	// ProviderAccountID: Deprecated and ignored: read from the stored provider
+	// resource.
+	ProviderAccountID *string `json:"providerAccountId,omitempty"`
 }
 
 // AttachRequest is the `AttachRequest` schema.
