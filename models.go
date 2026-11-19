@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.120.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.121.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.120.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.121.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -1096,6 +1096,7 @@ const (
 	AlertTriggerLeakedSecretAlerts       AlertTrigger = "leakedSecretAlerts"
 	AlertTriggerVulnerabilityAlerts      AlertTrigger = "vulnerabilityAlerts"
 	AlertTriggerProbeAlerts              AlertTrigger = "probeAlerts"
+	AlertTriggerHeartbeatAlerts          AlertTrigger = "heartbeatAlerts"
 	AlertTriggerSloAlerts                AlertTrigger = "sloAlerts"
 	AlertTriggerScorecardAlerts          AlertTrigger = "scorecardAlerts"
 	AlertTriggerQuotaAlerts              AlertTrigger = "quotaAlerts"
@@ -10793,6 +10794,157 @@ const (
 	GithubResolveActionNone    GithubResolveAction = "none"
 )
 
+// Heartbeat is the `Heartbeat` schema.
+type Heartbeat struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// ScheduleKind: A cron expression read in `timezone`, or a fixed interval in
+	// minutes.
+	//
+	// One of "cron", "interval".
+	ScheduleKind    string  `json:"scheduleKind"`
+	CronExpression  *string `json:"cronExpression"`
+	Timezone        string  `json:"timezone"`
+	IntervalMinutes *int64  `json:"intervalMinutes"`
+	GraceMinutes    int64   `json:"graceMinutes"`
+	// Enabled: False while paused.
+	Enabled bool `json:"enabled"`
+	// Status: `new` until the first ping (a heartbeat never alerts before its
+	// job has reported once), `up` after a success, `down` after a missed
+	// deadline or a `/fail` ping.
+	//
+	// One of "new", "up", "down".
+	Status string `json:"status"`
+	// DownReason: One of "missed", "failed".
+	DownReason *string `json:"downReason"`
+	// PingURL: The secret URL the job pings; append `/start` before a run and
+	// `/fail` on failure. Absolute when the server knows its public address,
+	// otherwise a path.
+	PingURL     string  `json:"pingUrl"`
+	LastPingAt  *string `json:"lastPingAt"`
+	LastStartAt *string `json:"lastStartAt"`
+	LastFailAt  *string `json:"lastFailAt"`
+	// LastDurationMs: The last run's duration, from its `/start` ping to the
+	// ping that closed it.
+	LastDurationMs *int64  `json:"lastDurationMs"`
+	NextExpectedAt *string `json:"nextExpectedAt"`
+	// DeadlineAt: `nextExpectedAt` plus the grace period; null while new, paused
+	// or down.
+	DeadlineAt        *string `json:"deadlineAt"`
+	LastStateChangeAt *string `json:"lastStateChangeAt"`
+	AccountID         *string `json:"accountId"`
+	// ResourceID: The scheduled resource this heartbeat watches; advisory, not a
+	// foreign key.
+	ResourceID     *string   `json:"resourceId"`
+	PluginID       *PluginID `json:"pluginId"`
+	ResourceTypeID *string   `json:"resourceTypeId"`
+	// FieldKey: The resource field the schedule was read from.
+	FieldKey  *string `json:"fieldKey"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt string  `json:"updatedAt"`
+}
+
+// HeartbeatCreate is the `HeartbeatCreate` schema.
+type HeartbeatCreate struct {
+	// Name: Up to 120 characters.
+	Name string `json:"name"`
+	// ScheduleKind: A cron expression read in `timezone`, or a fixed interval in
+	// minutes.
+	//
+	// One of "cron", "interval".
+	ScheduleKind string `json:"scheduleKind"`
+	// CronExpression: Five-field cron (minute hour day-of-month month
+	// day-of-week).
+	CronExpression *string `json:"cronExpression,omitempty"`
+	// Timezone: IANA time zone the cron expression is read in. Defaults to UTC.
+	Timezone *string `json:"timezone,omitempty"`
+	// IntervalMinutes: Minutes between expected pings. Clamped server-side to
+	// 1-44640 (31 days).
+	IntervalMinutes *int64 `json:"intervalMinutes,omitempty"`
+	// GraceMinutes: How late a ping may be before the heartbeat goes down.
+	// Clamped server-side to 1-10080.
+	GraceMinutes *int64 `json:"graceMinutes,omitempty"`
+	Enabled      *bool  `json:"enabled,omitempty"`
+	// ResourceID: Link to the scheduled resource being watched.
+	ResourceID *string `json:"resourceId,omitempty"`
+	FieldKey   *string `json:"fieldKey,omitempty"`
+}
+
+// HeartbeatList is the `HeartbeatList` schema.
+type HeartbeatList struct {
+	Heartbeats []Heartbeat `json:"heartbeats"`
+}
+
+// HeartbeatPing is the `HeartbeatPing` schema.
+type HeartbeatPing struct {
+	ID string `json:"id"`
+	// Kind: One of "success", "start", "fail".
+	Kind       string  `json:"kind"`
+	ReceivedAt string  `json:"receivedAt"`
+	DurationMs *int64  `json:"durationMs"`
+	Method     string  `json:"method"`
+	UserAgent  *string `json:"userAgent"`
+	// Body: The first 1000 characters of the request body, when the job sent
+	// one.
+	Body *string `json:"body"`
+}
+
+// HeartbeatPings is the `HeartbeatPings` schema.
+type HeartbeatPings struct {
+	Pings []HeartbeatPing `json:"pings"`
+}
+
+// HeartbeatSchedule is the `HeartbeatSchedule` schema.
+type HeartbeatSchedule = any
+
+// HeartbeatSuggestion is the `HeartbeatSuggestion` schema.
+type HeartbeatSuggestion struct {
+	ResourceID     string   `json:"resourceId"`
+	DisplayName    string   `json:"displayName"`
+	PluginID       PluginID `json:"pluginId"`
+	ResourceTypeID string   `json:"resourceTypeId"`
+	AccountID      string   `json:"accountId"`
+	// FieldKey: The field the plugin flags as the resource's schedule.
+	FieldKey string `json:"fieldKey"`
+	// RawSchedule: The value as the provider reported it.
+	RawSchedule string `json:"rawSchedule"`
+	// Schedule: The value read as a heartbeat schedule; null when its dialect is
+	// not readable.
+	Schedule HeartbeatSchedule `json:"schedule"`
+	// WatchedBy: Heartbeats already watching this resource.
+	WatchedBy []string `json:"watchedBy"`
+}
+
+// HeartbeatSuggestions is the `HeartbeatSuggestions` schema.
+type HeartbeatSuggestions struct {
+	Suggestions []HeartbeatSuggestion `json:"suggestions"`
+}
+
+// HeartbeatUpdate is the `HeartbeatUpdate` schema.
+type HeartbeatUpdate struct {
+	// Name: Up to 120 characters.
+	Name *string `json:"name,omitempty"`
+	// ScheduleKind: A cron expression read in `timezone`, or a fixed interval in
+	// minutes.
+	//
+	// One of "cron", "interval".
+	ScheduleKind *string `json:"scheduleKind,omitempty"`
+	// CronExpression: Five-field cron (minute hour day-of-month month
+	// day-of-week).
+	CronExpression *string `json:"cronExpression,omitempty"`
+	// Timezone: IANA time zone the cron expression is read in. Defaults to UTC.
+	Timezone *string `json:"timezone,omitempty"`
+	// IntervalMinutes: Minutes between expected pings. Clamped server-side to
+	// 1-44640 (31 days).
+	IntervalMinutes *int64 `json:"intervalMinutes,omitempty"`
+	// GraceMinutes: How late a ping may be before the heartbeat goes down.
+	// Clamped server-side to 1-10080.
+	GraceMinutes *int64 `json:"graceMinutes,omitempty"`
+	// Enabled: False pauses. Resuming returns the heartbeat to `new` until its
+	// next ping.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
 // HygieneFinding is the `HygieneFinding` schema.
 type HygieneFinding struct {
 	// ID: Stable across runs, so a client can remember what has been reviewed.
@@ -16542,6 +16694,9 @@ type ResourceDetail struct {
 	// Schedulable: The type declares lifecycle start/stop actions, so this
 	// resource can carry a sleep/wake schedule.
 	Schedulable bool `json:"schedulable"`
+	// HasSchedule: The type flags a field as the schedule it runs on, so a
+	// heartbeat can watch it.
+	HasSchedule *bool `json:"hasSchedule,omitempty"`
 }
 
 // ResourceFieldChange is the `ResourceFieldChange` schema.
@@ -20870,9 +21025,9 @@ type TabTarget struct {
 	// "posture", "vulnerabilities", "compliance", "access-review", "jit-access",
 	// "backups", "home", "wallboard", "calendar", "runbooks", "query-monitors",
 	// "dns", "iac", "environment-diff", "environments", "ssh-fanout",
-	// "metric-alerts", "probes", "status-pages", "quotas", "price-catalog",
-	// "incidents", "slos", "services", "delivery", "ci", "workflows",
-	// "settings", "chat", "linux-app".
+	// "metric-alerts", "probes", "heartbeats", "status-pages", "quotas",
+	// "price-catalog", "incidents", "slos", "services", "delivery", "ci",
+	// "workflows", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.120.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.121.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.120.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.121.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -167,6 +167,8 @@ type APIV1Client struct {
 	Github *GithubNamespace
 	// GithubIssues: `client.githubIssues`.
 	GithubIssues *GithubIssuesNamespace
+	// Heartbeats: `client.heartbeats`.
+	Heartbeats *HeartbeatsNamespace
 	// Iac: `client.iac`.
 	Iac *IacNamespace
 	// IdleFindings: `client.idleFindings`.
@@ -223,6 +225,8 @@ type APIV1Client struct {
 	PagingProviders *PagingProvidersNamespace
 	// PagingWebhooks: `client.pagingWebhooks`.
 	PagingWebhooks *PagingWebhooksNamespace
+	// Ping: `client.ping`.
+	Ping *PingNamespace
 	// Posture: `client.posture`.
 	Posture *PostureNamespace
 	// PrChecks: `client.prChecks`.
@@ -391,6 +395,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.ExtendedSupport = newExtendedSupportNamespace(t)
 	c.Github = newGithubNamespace(t)
 	c.GithubIssues = newGithubIssuesNamespace(t)
+	c.Heartbeats = newHeartbeatsNamespace(t)
 	c.Iac = newIacNamespace(t)
 	c.IdleFindings = newIdleFindingsNamespace(t)
 	c.Incidents = newIncidentsNamespace(t)
@@ -419,6 +424,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.PagingIncidents = newPagingIncidentsNamespace(t)
 	c.PagingProviders = newPagingProvidersNamespace(t)
 	c.PagingWebhooks = newPagingWebhooksNamespace(t)
+	c.Ping = newPingNamespace(t)
 	c.Posture = newPostureNamespace(t)
 	c.PrChecks = newPrChecksNamespace(t)
 	c.PriceCatalog = newPriceCatalogNamespace(t)
@@ -18457,6 +18463,242 @@ func (n *GithubIssuesPullRequestsNamespace) Preview(ctx context.Context, params 
 	return out, nil
 }
 
+// HeartbeatsNamespace is `client.heartbeats`.
+type HeartbeatsNamespace struct {
+	t *transport
+}
+
+func newHeartbeatsNamespace(t *transport) *HeartbeatsNamespace {
+	n := &HeartbeatsNamespace{t: t}
+	return n
+}
+
+// HeartbeatsCreateParams holds the parameters for `client.heartbeats.create`.
+type HeartbeatsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body HeartbeatCreate
+}
+
+// Create: Create a heartbeat
+//
+// Create a heartbeat with a schedule and grace period. It stays `new` until its
+// first ping, then goes down whenever a ping is later than the schedule plus
+// grace. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/heartbeats
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *HeartbeatsNamespace) Create(ctx context.Context, params HeartbeatsCreateParams, opts ...RequestOption) (*Heartbeat, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/heartbeats")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *Heartbeat
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// HeartbeatsDeleteParams holds the parameters for `client.heartbeats.delete`.
+type HeartbeatsDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	HeartbeatID string
+}
+
+// Delete: Delete a heartbeat
+//
+// Remove the heartbeat and its ping history. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// DELETE /api/org/{orgId}/heartbeats/{heartbeatId}
+//
+// Raises on 404: Not found
+func (n *HeartbeatsNamespace) Delete(ctx context.Context, params HeartbeatsDeleteParams, opts ...RequestOption) error {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/heartbeats/{heartbeatId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("heartbeatId", params.HeartbeatID)
+	return n.t.do(ctx, r, nil, opts)
+}
+
+// HeartbeatsGetParams holds the parameters for `client.heartbeats.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type HeartbeatsGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List heartbeat monitors
+//
+// Every heartbeat in the organization with its status, schedule, ping URL, last
+// ping and next deadline.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/heartbeats
+func (n *HeartbeatsNamespace) Get(ctx context.Context, params *HeartbeatsGetParams, opts ...RequestOption) (*HeartbeatList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/heartbeats")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *HeartbeatList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// HeartbeatsPingsParams holds the parameters for `client.heartbeats.pings`.
+type HeartbeatsPingsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	HeartbeatID string
+	Limit       *string
+}
+
+// Pings: Read a heartbeat's ping history
+//
+// Recent pings, newest first, with each run's duration where a `/start` opened
+// it. Kept for 30 days.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/heartbeats/{heartbeatId}/pings
+//
+// Raises on 404: Not found
+func (n *HeartbeatsNamespace) Pings(ctx context.Context, params HeartbeatsPingsParams, opts ...RequestOption) (*HeartbeatPings, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/heartbeats/{heartbeatId}/pings")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("heartbeatId", params.HeartbeatID)
+	r.addQuery("limit", params.Limit)
+	var out *HeartbeatPings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// HeartbeatsRotateTokenParams holds the parameters for
+// `client.heartbeats.rotateToken`.
+type HeartbeatsRotateTokenParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	HeartbeatID string
+}
+
+// RotateToken: Replace a heartbeat's ping URL
+//
+// Issue a new secret ping URL. The old one stops working at once. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// POST /api/org/{orgId}/heartbeats/{heartbeatId}/rotate-token
+//
+// Raises on 404: Not found
+func (n *HeartbeatsNamespace) RotateToken(ctx context.Context, params HeartbeatsRotateTokenParams, opts ...RequestOption) (*Heartbeat, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/heartbeats/{heartbeatId}/rotate-token")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("heartbeatId", params.HeartbeatID)
+	var out *Heartbeat
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// HeartbeatsSuggestionsParams holds the parameters for
+// `client.heartbeats.suggestions`.
+//
+// Every field is optional; pass nil to take the defaults.
+type HeartbeatsSuggestionsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// ResourceID: Only this resource's schedule.
+	ResourceID *string
+}
+
+// Suggestions: Suggest scheduled resources to watch
+//
+// Scheduled jobs, pipelines and functions from the organization's synced
+// resources (the fields their plugins flag as a schedule), with each schedule
+// read into cron or an interval. A read over stored state; no provider API
+// calls.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/heartbeats/suggestions
+func (n *HeartbeatsNamespace) Suggestions(ctx context.Context, params *HeartbeatsSuggestionsParams, opts ...RequestOption) (*HeartbeatSuggestions, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/heartbeats/suggestions")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("resourceId", params.ResourceID)
+	}
+	var out *HeartbeatSuggestions
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// HeartbeatsUpdateParams holds the parameters for `client.heartbeats.update`.
+type HeartbeatsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID       *string
+	HeartbeatID string
+	// Body: the JSON request body.
+	Body HeartbeatUpdate
+}
+
+// Update: Update, pause or resume a heartbeat
+//
+// Edit the name, schedule or grace period, or toggle `enabled`. A schedule
+// change recomputes the deadline from the last ping. Audit-logged.
+//
+// _Requires permission: `resources:write`._
+//
+// PUT /api/org/{orgId}/heartbeats/{heartbeatId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *HeartbeatsNamespace) Update(ctx context.Context, params HeartbeatsUpdateParams, opts ...RequestOption) (*Heartbeat, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/heartbeats/{heartbeatId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("heartbeatId", params.HeartbeatID)
+	r.setJSONBody(params.Body)
+	var out *Heartbeat
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // IacNamespace is `client.iac`.
 type IacNamespace struct {
 	t *transport
@@ -19907,7 +20149,9 @@ func newIssueWebhooksNamespace(t *transport) *IssueWebhooksNamespace {
 //
 // The GitHub App's webhook URL. `X-Hub-Signature-256` is verified with the
 // server's `GITHUB_APP_WEBHOOK_SECRET`; `issues` events update the status of
-// filed issues and `ping` is acknowledged. Every other event is ignored.
+// filed issues; `push` and `pull_request` events start CI runs; `check_suite`
+// and `check_run` `rerequested` events retry the CI runs behind Infrawrench's
+// own checks; and `ping` is acknowledged. Every other event is ignored.
 //
 // POST /api/issue-webhooks/github
 //
@@ -25077,6 +25321,187 @@ func (n *PagingWebhooksNamespace) Create(ctx context.Context, params PagingWebho
 	r := newRequest(http.MethodPost, "/api/paging-webhooks/{token}")
 	r.setPath("token", params.Token)
 	return n.t.do(ctx, r, nil, opts)
+}
+
+// PingNamespace is `client.ping`.
+type PingNamespace struct {
+	t *transport
+
+	// Fail: `client.ping.fail`.
+	Fail *PingFailNamespace
+	// Start: `client.ping.start`.
+	Start *PingStartNamespace
+}
+
+func newPingNamespace(t *transport) *PingNamespace {
+	n := &PingNamespace{t: t}
+	n.Fail = newPingFailNamespace(t)
+	n.Start = newPingStartNamespace(t)
+	return n
+}
+
+// PingCreateParams holds the parameters for `client.ping.create`.
+type PingCreateParams struct {
+	Token string
+}
+
+// Create: Ping a heartbeat
+//
+// **Unauthenticated**: the token in the path is the credential. The job ran: the
+// heartbeat is up and its next deadline is set from the schedule. Answers `OK`
+// in plain text; an unknown token answers 404, and more than 20 pings a minute
+// for one heartbeat answer 429 without being recorded. A POST body's first 1000
+// characters are kept with the ping.
+//
+// POST /api/ping/{token}
+//
+// Raises on 404: Not found
+//
+// Raises on 429: Error
+func (n *PingNamespace) Create(ctx context.Context, params PingCreateParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodPost, "/api/ping/{token}")
+	r.setPath("token", params.Token)
+	return n.t.stream(ctx, r, opts)
+}
+
+// PingGetParams holds the parameters for `client.ping.get`.
+type PingGetParams struct {
+	Token string
+}
+
+// Get: Ping a heartbeat (GET)
+//
+// **Unauthenticated**: the token in the path is the credential. The job ran: the
+// heartbeat is up and its next deadline is set from the schedule. Answers `OK`
+// in plain text; an unknown token answers 404, and more than 20 pings a minute
+// for one heartbeat answer 429 without being recorded. A POST body's first 1000
+// characters are kept with the ping.
+//
+// GET /api/ping/{token}
+//
+// Raises on 404: Not found
+//
+// Raises on 429: Error
+func (n *PingNamespace) Get(ctx context.Context, params PingGetParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodGet, "/api/ping/{token}")
+	r.setPath("token", params.Token)
+	return n.t.stream(ctx, r, opts)
+}
+
+// PingFailNamespace is `client.ping.fail`.
+type PingFailNamespace struct {
+	t *transport
+}
+
+func newPingFailNamespace(t *transport) *PingFailNamespace {
+	n := &PingFailNamespace{t: t}
+	return n
+}
+
+// PingFailCreateParams holds the parameters for `client.ping.fail.create`.
+type PingFailCreateParams struct {
+	Token string
+}
+
+// Create: Signal a run failed
+//
+// **Unauthenticated**: the token in the path is the credential. The heartbeat
+// goes down at once and alerts. Answers `OK` in plain text; an unknown token
+// answers 404, and more than 20 pings a minute for one heartbeat answer 429
+// without being recorded. A POST body's first 1000 characters are kept with the
+// ping.
+//
+// POST /api/ping/{token}/fail
+//
+// Raises on 404: Not found
+//
+// Raises on 429: Error
+func (n *PingFailNamespace) Create(ctx context.Context, params PingFailCreateParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodPost, "/api/ping/{token}/fail")
+	r.setPath("token", params.Token)
+	return n.t.stream(ctx, r, opts)
+}
+
+// PingFailGetParams holds the parameters for `client.ping.fail.get`.
+type PingFailGetParams struct {
+	Token string
+}
+
+// Get: Signal a run failed (GET)
+//
+// **Unauthenticated**: the token in the path is the credential. The heartbeat
+// goes down at once and alerts. Answers `OK` in plain text; an unknown token
+// answers 404, and more than 20 pings a minute for one heartbeat answer 429
+// without being recorded. A POST body's first 1000 characters are kept with the
+// ping.
+//
+// GET /api/ping/{token}/fail
+//
+// Raises on 404: Not found
+//
+// Raises on 429: Error
+func (n *PingFailNamespace) Get(ctx context.Context, params PingFailGetParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodGet, "/api/ping/{token}/fail")
+	r.setPath("token", params.Token)
+	return n.t.stream(ctx, r, opts)
+}
+
+// PingStartNamespace is `client.ping.start`.
+type PingStartNamespace struct {
+	t *transport
+}
+
+func newPingStartNamespace(t *transport) *PingStartNamespace {
+	n := &PingStartNamespace{t: t}
+	return n
+}
+
+// PingStartCreateParams holds the parameters for `client.ping.start.create`.
+type PingStartCreateParams struct {
+	Token string
+}
+
+// Create: Signal a run started
+//
+// **Unauthenticated**: the token in the path is the credential. Records the
+// start so the closing ping can report the run's duration. Answers `OK` in plain
+// text; an unknown token answers 404, and more than 20 pings a minute for one
+// heartbeat answer 429 without being recorded. A POST body's first 1000
+// characters are kept with the ping.
+//
+// POST /api/ping/{token}/start
+//
+// Raises on 404: Not found
+//
+// Raises on 429: Error
+func (n *PingStartNamespace) Create(ctx context.Context, params PingStartCreateParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodPost, "/api/ping/{token}/start")
+	r.setPath("token", params.Token)
+	return n.t.stream(ctx, r, opts)
+}
+
+// PingStartGetParams holds the parameters for `client.ping.start.get`.
+type PingStartGetParams struct {
+	Token string
+}
+
+// Get: Signal a run started (GET)
+//
+// **Unauthenticated**: the token in the path is the credential. Records the
+// start so the closing ping can report the run's duration. Answers `OK` in plain
+// text; an unknown token answers 404, and more than 20 pings a minute for one
+// heartbeat answer 429 without being recorded. A POST body's first 1000
+// characters are kept with the ping.
+//
+// GET /api/ping/{token}/start
+//
+// Raises on 404: Not found
+//
+// Raises on 429: Error
+func (n *PingStartNamespace) Get(ctx context.Context, params PingStartGetParams, opts ...RequestOption) (io.ReadCloser, error) {
+	r := newRequest(http.MethodGet, "/api/ping/{token}/start")
+	r.setPath("token", params.Token)
+	return n.t.stream(ctx, r, opts)
 }
 
 // PostureNamespace is `client.posture`.
