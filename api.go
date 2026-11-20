@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.122.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.123.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.122.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.123.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -205,6 +205,8 @@ type APIV1Client struct {
 	ManagedAccounts *ManagedAccountsNamespace
 	// MetricAlerts: `client.metricAlerts`.
 	MetricAlerts *MetricAlertsNamespace
+	// MigrationEstimates: `client.migrationEstimates`.
+	MigrationEstimates *MigrationEstimatesNamespace
 	// Moment: `client.moment`.
 	Moment *MomentNamespace
 	// Msteams: `client.msteams`.
@@ -416,6 +418,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.LogWorkspaces = newLogWorkspacesNamespace(t)
 	c.ManagedAccounts = newManagedAccountsNamespace(t)
 	c.MetricAlerts = newMetricAlertsNamespace(t)
+	c.MigrationEstimates = newMigrationEstimatesNamespace(t)
 	c.Moment = newMomentNamespace(t)
 	c.Msteams = newMsteamsNamespace(t)
 	c.NetworkFlows = newNetworkFlowsNamespace(t)
@@ -23398,6 +23401,339 @@ func (n *MetricAlertsNamespace) Update(ctx context.Context, params MetricAlertsU
 	r.setPath("id", params.ID)
 	r.setJSONBody(params.Body)
 	var out *MetricAlertRule
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MigrationEstimatesNamespace is `client.migrationEstimates`.
+type MigrationEstimatesNamespace struct {
+	t *transport
+}
+
+func newMigrationEstimatesNamespace(t *transport) *MigrationEstimatesNamespace {
+	n := &MigrationEstimatesNamespace{t: t}
+	return n
+}
+
+// MigrationEstimatesCreateParams holds the parameters for
+// `client.migrationEstimates.create`.
+type MigrationEstimatesCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body MigrationEstimateInput
+}
+
+// Create: Save a migration estimate
+//
+// Stores the inputs only; the figures are computed on every read. Audit-logged.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/migration-estimates
+//
+// Raises on 400: Bad request
+func (n *MigrationEstimatesNamespace) Create(ctx context.Context, params MigrationEstimatesCreateParams, opts ...RequestOption) (*MigrationEstimate, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/migration-estimates")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *MigrationEstimate
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MigrationEstimatesDeleteParams holds the parameters for
+// `client.migrationEstimates.delete`.
+type MigrationEstimatesDeleteParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Delete: Delete a migration estimate
+//
+// _Requires permission: `costs:write`._
+//
+// DELETE /api/org/{orgId}/migration-estimates/{id}
+//
+// Raises on 404: Not found
+func (n *MigrationEstimatesNamespace) Delete(ctx context.Context, params MigrationEstimatesDeleteParams, opts ...RequestOption) (*OK, error) {
+	r := newRequest(http.MethodDelete, "/api/org/{orgId}/migration-estimates/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *OK
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MigrationEstimatesGetParams holds the parameters for
+// `client.migrationEstimates.get`.
+type MigrationEstimatesGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Get: Get a saved migration estimate
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/migration-estimates/{id}
+//
+// Raises on 404: Not found
+func (n *MigrationEstimatesNamespace) Get(ctx context.Context, params MigrationEstimatesGetParams, opts ...RequestOption) (*MigrationEstimate, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/migration-estimates/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *MigrationEstimate
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MigrationEstimatesListParams holds the parameters for
+// `client.migrationEstimates.list`.
+//
+// Every field is optional; pass nil to take the defaults.
+type MigrationEstimatesListParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// List: List saved migration estimates
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/migration-estimates
+func (n *MigrationEstimatesNamespace) List(ctx context.Context, params *MigrationEstimatesListParams, opts ...RequestOption) ([]MigrationEstimate, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/migration-estimates")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out []MigrationEstimate
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MigrationEstimatesPreviewParams holds the parameters for
+// `client.migrationEstimates.preview`.
+type MigrationEstimatesPreviewParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body MigrationEstimateInput
+}
+
+// Preview: Compute an unsaved migration estimate
+//
+// Matches each resource to the target's type of the same category, picks the
+// cheapest size meeting or exceeding its vCPUs, memory and GPUs (or the
+// override), and prices it beside what the resource costs now. Resources with no
+// equivalent are listed apart with the reason. A figure nothing can price is
+// null, never 0. A read despite the method.
+//
+// _Requires permission: `costs:read`._
+//
+// POST /api/org/{orgId}/migration-estimates/preview
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *MigrationEstimatesNamespace) Preview(ctx context.Context, params MigrationEstimatesPreviewParams, opts ...RequestOption) (*MigrationEstimateResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/migration-estimates/preview")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *MigrationEstimateResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MigrationEstimatesResultParams holds the parameters for
+// `client.migrationEstimates.result`.
+type MigrationEstimatesResultParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Result: Compute a saved migration estimate
+//
+// The saved inputs priced now: current spend as the caller's cost visibility
+// scope sees it, and today's list prices.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/migration-estimates/{id}/result
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *MigrationEstimatesNamespace) Result(ctx context.Context, params MigrationEstimatesResultParams, opts ...RequestOption) (*MigrationEstimateResult, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/migration-estimates/{id}/result")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *MigrationEstimateResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MigrationEstimatesScenarioParams holds the parameters for
+// `client.migrationEstimates.scenario`.
+type MigrationEstimatesScenarioParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body MigrationScenarioInput
+}
+
+// Scenario: Turn an estimate into a scenario model
+//
+// Creates a scenario model with one recurring monthly amount, the estimate's
+// paired delta (target minus current over the rows priced on both sides), from
+// `startDate`. 400 when the estimate has no single-currency delta. Audit-logged.
+//
+// _Requires permission: `costs:write`._
+//
+// POST /api/org/{orgId}/migration-estimates/{id}/scenario
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *MigrationEstimatesNamespace) Scenario(ctx context.Context, params MigrationEstimatesScenarioParams, opts ...RequestOption) (*MigrationScenarioCreated, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/migration-estimates/{id}/scenario")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *MigrationScenarioCreated
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MigrationEstimatesTargetsParams holds the parameters for
+// `client.migrationEstimates.targets`.
+//
+// Every field is optional; pass nil to take the defaults.
+type MigrationEstimatesTargetsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Targets: Providers an estimate can target
+//
+// Every provider with at least one resource type that declares a cross-provider
+// category, with its categories, the regions it can be priced in (with their
+// area) and whether pricing it needs one of the org's accounts.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/migration-estimates/targets
+func (n *MigrationEstimatesNamespace) Targets(ctx context.Context, params *MigrationEstimatesTargetsParams, opts ...RequestOption) (*MigrationTargets, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/migration-estimates/targets")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *MigrationTargets
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MigrationEstimatesTerraformParams holds the parameters for
+// `client.migrationEstimates.terraform`.
+type MigrationEstimatesTerraformParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Terraform: Terraform for the target provider
+//
+// HCL for the matched rows through the target plugin's own Terraform export,
+// with each row's matched type, size and region. Rows the export cannot map are
+// listed with the reason. 400 when the target has no Terraform export.
+//
+// _Requires permission: `costs:read`._
+//
+// GET /api/org/{orgId}/migration-estimates/{id}/terraform
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *MigrationEstimatesNamespace) Terraform(ctx context.Context, params MigrationEstimatesTerraformParams, opts ...RequestOption) (*MigrationTerraformResult, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/migration-estimates/{id}/terraform")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *MigrationTerraformResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// MigrationEstimatesUpdateParams holds the parameters for
+// `client.migrationEstimates.update`.
+type MigrationEstimatesUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body MigrationEstimateInput
+}
+
+// Update: Replace a migration estimate
+//
+// Name, source, target, region and overrides together. Audit-logged.
+//
+// _Requires permission: `costs:write`._
+//
+// PUT /api/org/{orgId}/migration-estimates/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *MigrationEstimatesNamespace) Update(ctx context.Context, params MigrationEstimatesUpdateParams, opts ...RequestOption) (*MigrationEstimate, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/migration-estimates/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *MigrationEstimate
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}

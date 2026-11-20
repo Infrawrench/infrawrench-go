@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.122.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.123.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.122.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.123.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -13222,6 +13222,250 @@ type MetricsResponse struct {
 	Series []MetricSeries `json:"series"`
 }
 
+// MigrationArea is the `MigrationArea` schema.
+type MigrationArea = string
+
+// The values MigrationArea takes.
+const (
+	MigrationAreaNorthAmerica MigrationArea = "north-america"
+	MigrationAreaSouthAmerica MigrationArea = "south-america"
+	MigrationAreaEurope       MigrationArea = "europe"
+	MigrationAreaAsiaPacific  MigrationArea = "asia-pacific"
+	MigrationAreaMiddleEast   MigrationArea = "middle-east"
+	MigrationAreaAfrica       MigrationArea = "africa"
+	MigrationAreaOceania      MigrationArea = "oceania"
+)
+
+// MigrationCategory: What a resource is across providers, as its plugin declares
+// it. Resources are matched to the target's type of the same category.
+type MigrationCategory = string
+
+// The values MigrationCategory takes.
+const (
+	MigrationCategoryVM                 MigrationCategory = "vm"
+	MigrationCategoryKubernetesCluster  MigrationCategory = "kubernetes-cluster"
+	MigrationCategoryKubernetesNodePool MigrationCategory = "kubernetes-node-pool"
+	MigrationCategoryManagedPostgres    MigrationCategory = "managed-postgres"
+	MigrationCategoryManagedMysql       MigrationCategory = "managed-mysql"
+	MigrationCategoryManagedRedis       MigrationCategory = "managed-redis"
+	MigrationCategoryManagedMongodb     MigrationCategory = "managed-mongodb"
+	MigrationCategoryObjectStorage      MigrationCategory = "object-storage"
+	MigrationCategoryBlockVolume        MigrationCategory = "block-volume"
+	MigrationCategoryFileStorage        MigrationCategory = "file-storage"
+	MigrationCategoryLoadBalancer       MigrationCategory = "load-balancer"
+	MigrationCategoryContainerApp       MigrationCategory = "container-app"
+	MigrationCategoryServerlessFunction MigrationCategory = "serverless-function"
+	MigrationCategoryContainerRegistry  MigrationCategory = "container-registry"
+	MigrationCategoryStaticIP           MigrationCategory = "static-ip"
+	MigrationCategoryDNSZone            MigrationCategory = "dns-zone"
+)
+
+// MigrationCost is the `MigrationCost` schema.
+type MigrationCost struct {
+	// Amount: Per month (730 hours).
+	Amount   float64 `json:"amount"`
+	Currency string  `json:"currency"`
+	// Basis: `billed`: the resource's own spend in collected cost data over the
+	// last 30 days, scaled to 730 hours. `estimate`: the plugin's estimate for
+	// the configuration. `list-price`: the size's published list price times the
+	// count.
+	//
+	// One of "billed", "estimate", "list-price".
+	Basis string `json:"basis"`
+	// Partial: Only part of the resource could be priced; the true figure is
+	// higher.
+	Partial bool `json:"partial"`
+}
+
+// MigrationEstimate is the `MigrationEstimate` schema.
+type MigrationEstimate struct {
+	ID              string                          `json:"id"`
+	Name            string                          `json:"name"`
+	Source          MigrationEstimateSource         `json:"source"`
+	SourceName      *string                         `json:"sourceName"`
+	TargetPluginID  string                          `json:"targetPluginId"`
+	TargetRegion    *string                         `json:"targetRegion"`
+	Overrides       map[string]MigrationRowOverride `json:"overrides"`
+	CreatedByUserID *string                         `json:"createdByUserId"`
+	CreatedAt       string                          `json:"createdAt"`
+	UpdatedAt       string                          `json:"updatedAt"`
+}
+
+// MigrationEstimateInput is the `MigrationEstimateInput` schema.
+type MigrationEstimateInput struct {
+	Name   string                  `json:"name"`
+	Source MigrationEstimateSource `json:"source"`
+	// TargetPluginID: The provider to price on, as a plugin id (`hetzner`,
+	// `gcp`).
+	TargetPluginID string `json:"targetPluginId"`
+	// TargetRegion: A region of the target provider, or null for the one nearest
+	// the source resources.
+	TargetRegion *string `json:"targetRegion,omitempty"`
+	// Overrides: Per source resource id, the user's target type and size in
+	// place of the match.
+	Overrides map[string]MigrationRowOverride `json:"overrides,omitempty"`
+}
+
+// MigrationEstimateResult is the `MigrationEstimateResult` schema.
+type MigrationEstimateResult struct {
+	EstimateID      *string                       `json:"estimateId"`
+	Name            string                        `json:"name"`
+	Source          MigrationEstimateResultSource `json:"source"`
+	Target          MigrationEstimateResultTarget `json:"target"`
+	Region          MigrationRegionNote           `json:"region"`
+	Rows            []MigrationRow                `json:"rows"`
+	Unmatched       []MigrationUnmatchedRow       `json:"unmatched"`
+	Totals          MigrationTotals               `json:"totals"`
+	DisplayCurrency *string                       `json:"displayCurrency"`
+	// Terraform: The target plugin can write Terraform for at least one matched
+	// row.
+	Terraform   bool   `json:"terraform"`
+	Truncated   bool   `json:"truncated"`
+	GeneratedAt string `json:"generatedAt"`
+}
+
+// MigrationEstimateSource: What to price: a service's members (resolved on every
+// read, so the estimate follows the service) or a set of resource ids.
+type MigrationEstimateSource = any
+
+// MigrationMoney is the `MigrationMoney` schema.
+type MigrationMoney struct {
+	Amount   float64 `json:"amount"`
+	Currency string  `json:"currency"`
+}
+
+// MigrationRegionNote is the `MigrationRegionNote` schema.
+type MigrationRegionNote struct {
+	Region      *string         `json:"region"`
+	RegionLabel *string         `json:"regionLabel"`
+	Area        *MigrationArea  `json:"area"`
+	SourceAreas []MigrationArea `json:"sourceAreas"`
+	// Choice: One of "user", "nearest", "default", "none".
+	Choice string `json:"choice"`
+	// CrossesArea: Some sources are in another area than the target region; null
+	// if unknown.
+	CrossesArea *bool `json:"crossesArea"`
+}
+
+// MigrationRow is the `MigrationRow` schema.
+type MigrationRow struct {
+	ResourceID       string            `json:"resourceId"`
+	DisplayName      string            `json:"displayName"`
+	PluginID         PluginID          `json:"pluginId"`
+	PluginName       string            `json:"pluginName"`
+	ResourceTypeID   string            `json:"resourceTypeId"`
+	ResourceTypeName string            `json:"resourceTypeName"`
+	AccountID        string            `json:"accountId"`
+	Category         MigrationCategory `json:"category"`
+	SourceRegion     *string           `json:"sourceRegion"`
+	SourceArea       *MigrationArea    `json:"sourceArea"`
+	InstanceType     *string           `json:"instanceType"`
+	Specs            MigrationRowSpecs `json:"specs"`
+	// Current: What it costs now; null when nothing can price it (never 0).
+	Current *MigrationCost     `json:"current"`
+	Target  MigrationRowTarget `json:"target"`
+	// Note: Why the target has no figure, when it has none.
+	//
+	// One of "no-account", "source-size-unknown", "no-size-match", "no-price",
+	// "catalog-unavailable".
+	Note *string `json:"note"`
+	// Candidates: Target sizes for the picker: qualifying first, cheapest first.
+	Candidates  []MigrationSizeOption     `json:"candidates"`
+	TargetTypes []MigrationRowTargetTypes `json:"targetTypes"`
+}
+
+// MigrationRowOverride is the `MigrationRowOverride` schema.
+type MigrationRowOverride struct {
+	// ResourceTypeID: Target resource type, of the row's category.
+	ResourceTypeID *string `json:"resourceTypeId,omitempty"`
+	// SizeID: Target size: a catalog SKU or size-picker id.
+	SizeID *string `json:"sizeId,omitempty"`
+}
+
+// MigrationScenarioCreated is the `MigrationScenarioCreated` schema.
+type MigrationScenarioCreated struct {
+	ScenarioModelID string  `json:"scenarioModelId"`
+	Name            string  `json:"name"`
+	Currency        string  `json:"currency"`
+	MonthlyDelta    float64 `json:"monthlyDelta"`
+}
+
+// MigrationScenarioInput is the `MigrationScenarioInput` schema.
+type MigrationScenarioInput struct {
+	// StartDate: The day the migration lands: the scenario's recurring change
+	// starts here.
+	StartDate string `json:"startDate"`
+	// Name: The scenario model's name. Defaults to the estimate's name and
+	// target.
+	Name *string `json:"name,omitempty"`
+}
+
+// MigrationSizeOption is the `MigrationSizeOption` schema.
+type MigrationSizeOption struct {
+	ID       string   `json:"id"`
+	Label    string   `json:"label"`
+	Vcpus    *float64 `json:"vcpus"`
+	MemoryGb *float64 `json:"memoryGb"`
+	GpuCount *float64 `json:"gpuCount"`
+	GpuModel *string  `json:"gpuModel"`
+	// Monthly: One unit, per month; null if unpriced.
+	Monthly *MigrationMoney `json:"monthly"`
+	// MeetsSpec: Meets or exceeds the source's known vCPUs, memory and GPUs.
+	MeetsSpec bool `json:"meetsSpec"`
+}
+
+// MigrationTargetProvider is the `MigrationTargetProvider` schema.
+type MigrationTargetProvider struct {
+	PluginID     PluginID                         `json:"pluginId"`
+	PluginName   string                           `json:"pluginName"`
+	Categories   []MigrationCategory              `json:"categories"`
+	Regions      []MigrationTargetProviderRegions `json:"regions"`
+	PriceCatalog bool                             `json:"priceCatalog"`
+	// NeedsAccount: Pricing on this provider needs one of the org's accounts on
+	// it.
+	NeedsAccount bool `json:"needsAccount"`
+	HasAccount   bool `json:"hasAccount"`
+	Terraform    bool `json:"terraform"`
+}
+
+// MigrationTargets is the `MigrationTargets` schema.
+type MigrationTargets struct {
+	Providers []MigrationTargetProvider `json:"providers"`
+}
+
+// MigrationTerraformResult is the `MigrationTerraformResult` schema.
+type MigrationTerraformResult struct {
+	Hcl         string                                `json:"hcl"`
+	Exported    []MigrationTerraformResultExported    `json:"exported"`
+	Unsupported []MigrationTerraformResultUnsupported `json:"unsupported"`
+}
+
+// MigrationTotals is the `MigrationTotals` schema.
+type MigrationTotals struct {
+	Current          []MigrationMoney `json:"current"`
+	Target           []MigrationMoney `json:"target"`
+	CurrentUnknown   int64            `json:"currentUnknown"`
+	TargetUnknown    int64            `json:"targetUnknown"`
+	UnmatchedCurrent []MigrationMoney `json:"unmatchedCurrent"`
+	// Comparable: Every figure in one currency (the org's display currency, or
+	// the one currency all figures are in); null when they cannot be converted.
+	Comparable *MigrationTotalsComparable `json:"comparable"`
+}
+
+// MigrationUnmatchedRow is the `MigrationUnmatchedRow` schema.
+type MigrationUnmatchedRow struct {
+	ResourceID       string             `json:"resourceId"`
+	DisplayName      string             `json:"displayName"`
+	PluginID         PluginID           `json:"pluginId"`
+	PluginName       string             `json:"pluginName"`
+	ResourceTypeID   string             `json:"resourceTypeId"`
+	ResourceTypeName string             `json:"resourceTypeName"`
+	Category         *MigrationCategory `json:"category"`
+	// Reason: One of "no-category", "no-target-type".
+	Reason  string         `json:"reason"`
+	Current *MigrationCost `json:"current"`
+}
+
 // MomentEvent is the `MomentEvent` schema.
 type MomentEvent struct {
 	// ID: Stable synthetic id, unique within a response (`feed:rowId[:phase]`).
@@ -21062,8 +21306,8 @@ type TabTarget struct {
 	// "backups", "home", "wallboard", "calendar", "runbooks", "query-monitors",
 	// "dns", "iac", "environment-diff", "environments", "ssh-fanout",
 	// "metric-alerts", "probes", "heartbeats", "status-pages", "quotas",
-	// "price-catalog", "incidents", "slos", "services", "delivery", "ci",
-	// "workflows", "settings", "chat", "linux-app".
+	// "price-catalog", "migration-estimates", "incidents", "slos", "services",
+	// "delivery", "ci", "workflows", "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -21072,6 +21316,7 @@ type TabTarget struct {
 	ReportID       *string     `json:"reportId,omitempty"`
 	InvoiceID      *string     `json:"invoiceId,omitempty"`
 	CanvasID       *string     `json:"canvasId,omitempty"`
+	EstimateID     *string     `json:"estimateId,omitempty"`
 	SloID          *string     `json:"sloId,omitempty"`
 	RunID          *string     `json:"runId,omitempty"`
 	ServiceID      *string     `json:"serviceId,omitempty"`
@@ -23384,6 +23629,82 @@ type MetricSeriesPoints struct {
 	// Timestamp: Unix epoch milliseconds.
 	Timestamp float64 `json:"timestamp"`
 	Value     float64 `json:"value"`
+}
+
+// MigrationEstimateResultSource is an object the spec declares inline.
+type MigrationEstimateResultSource struct {
+	// Kind: One of "service", "resources".
+	Kind          string `json:"kind"`
+	Label         string `json:"label"`
+	ResourceCount int64  `json:"resourceCount"`
+}
+
+// MigrationEstimateResultTarget is an object the spec declares inline.
+type MigrationEstimateResultTarget struct {
+	PluginID   PluginID `json:"pluginId"`
+	PluginName string   `json:"pluginName"`
+}
+
+// MigrationRowSpecs is an object the spec declares inline.
+type MigrationRowSpecs struct {
+	Vcpus    *float64 `json:"vcpus"`
+	MemoryGb *float64 `json:"memoryGb"`
+	GpuCount *float64 `json:"gpuCount"`
+	GpuModel *string  `json:"gpuModel"`
+	DiskGb   *float64 `json:"diskGb"`
+	Count    float64  `json:"count"`
+}
+
+// MigrationRowTarget is an object the spec declares inline.
+type MigrationRowTarget struct {
+	ResourceTypeID   string         `json:"resourceTypeId"`
+	ResourceTypeName string         `json:"resourceTypeName"`
+	SizeID           *string        `json:"sizeId"`
+	SizeLabel        *string        `json:"sizeLabel"`
+	Vcpus            *float64       `json:"vcpus"`
+	MemoryGb         *float64       `json:"memoryGb"`
+	GpuCount         *float64       `json:"gpuCount"`
+	Region           *string        `json:"region"`
+	RegionLabel      *string        `json:"regionLabel"`
+	Cost             *MigrationCost `json:"cost"`
+	Overridden       bool           `json:"overridden"`
+}
+
+// MigrationRowTargetTypes is an object the spec declares inline.
+type MigrationRowTargetTypes struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// MigrationTargetProviderRegions is an object the spec declares inline.
+type MigrationTargetProviderRegions struct {
+	ID    string         `json:"id"`
+	Label string         `json:"label"`
+	Area  *MigrationArea `json:"area"`
+}
+
+// MigrationTerraformResultExported is an object the spec declares inline.
+type MigrationTerraformResultExported struct {
+	ResourceID string `json:"resourceId"`
+	Address    string `json:"address"`
+}
+
+// MigrationTerraformResultUnsupported is an object the spec declares inline.
+type MigrationTerraformResultUnsupported struct {
+	ResourceID  string `json:"resourceId"`
+	DisplayName string `json:"displayName"`
+	Reason      string `json:"reason"`
+}
+
+// MigrationTotalsComparable is an object the spec declares inline.
+type MigrationTotalsComparable struct {
+	Currency string  `json:"currency"`
+	Current  float64 `json:"current"`
+	Target   float64 `json:"target"`
+	// PairedDelta: Target minus current over the rows priced on both sides.
+	// Negative saves money.
+	PairedDelta float64 `json:"pairedDelta"`
+	PairedRows  int64   `json:"pairedRows"`
 }
 
 // NetworkFlowFeedRange is an object the spec declares inline.
