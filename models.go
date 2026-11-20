@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.121.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.122.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.121.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.122.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -12776,6 +12776,42 @@ type LiteralAssociationRequest struct {
 	ResourceID     ResourceID `json:"resourceId"`
 	FieldKey       string     `json:"fieldKey"`
 	PlaintextValue string     `json:"plaintextValue"`
+}
+
+// LiveSealedQuery is the `LiveSealedQuery` schema.
+type LiveSealedQuery struct {
+	// Capability: Opaque encrypted capability. A bearer credential: keep it out
+	// of URLs and logs.
+	Capability string `json:"capability"`
+	// QueryFingerprint: Stable identity of the query; a renewal carries the same
+	// one.
+	QueryFingerprint string `json:"queryFingerprint"`
+	// ExpiresAt: Unix milliseconds. Ask for a fresh ticket shortly before this
+	// to renew.
+	ExpiresAt float64 `json:"expiresAt"`
+}
+
+// LiveTicket: How to learn that a topic changed. Clients should treat an unknown
+// `driver` as `poll`.
+type LiveTicket = any
+
+// LiveTicketRequest is the `LiveTicketRequest` schema.
+type LiveTicketRequest struct {
+	// Topic: What to watch. `jit-requests` and `access-requests` need
+	// `access:read`, `workflow-approvals` `workflows:read`, `change-freezes`
+	// `freezes:read`, `account-resources` (with `accountId`) and `resource`
+	// (with `resourceId`) `resources:read`, and `ci-runs` `ci:read`.
+	//
+	// One of "jit-requests", "access-requests", "workflow-approvals",
+	// "change-freezes", "account-resources", "resource", "ci-runs".
+	Topic string `json:"topic"`
+	// AccountID: The account, for `account-resources`.
+	AccountID *string `json:"accountId,omitempty"`
+	// ResourceID: The resource, for `resource`.
+	ResourceID *string `json:"resourceId,omitempty"`
+	// WorkflowID: Narrow `workflow-approvals` to one workflow's pending
+	// approvals.
+	WorkflowID *string `json:"workflowId,omitempty"`
 }
 
 // LogCapableResource is the `LogCapableResource` schema.

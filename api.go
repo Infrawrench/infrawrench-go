@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.121.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.122.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.121.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.122.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -197,6 +197,8 @@ type APIV1Client struct {
 	Leases *LeasesNamespace
 	// Linear: `client.linear`.
 	Linear *LinearNamespace
+	// Live: `client.live`.
+	Live *LiveNamespace
 	// LogWorkspaces: `client.logWorkspaces`.
 	LogWorkspaces *LogWorkspacesNamespace
 	// ManagedAccounts: `client.managedAccounts`.
@@ -410,6 +412,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.LeakedSecrets = newLeakedSecretsNamespace(t)
 	c.Leases = newLeasesNamespace(t)
 	c.Linear = newLinearNamespace(t)
+	c.Live = newLiveNamespace(t)
 	c.LogWorkspaces = newLogWorkspacesNamespace(t)
 	c.ManagedAccounts = newManagedAccountsNamespace(t)
 	c.MetricAlerts = newMetricAlertsNamespace(t)
@@ -22570,6 +22573,51 @@ func (n *LinearWebhookNamespace) URL(ctx context.Context, params *LinearWebhookU
 		r.setPath("orgId", params.OrgID)
 	}
 	var out *LinearWebhookUrlresponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// LiveNamespace is `client.live`.
+type LiveNamespace struct {
+	t *transport
+}
+
+func newLiveNamespace(t *transport) *LiveNamespace {
+	n := &LiveNamespace{t: t}
+	return n
+}
+
+// LiveTicketsParams holds the parameters for `client.live.tickets`.
+type LiveTicketsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body LiveTicketRequest
+}
+
+// Tickets: Get a live-update ticket
+//
+// A ticket for watching one topic: either `poll` (no push channel on this
+// server) or a sealed Neon Realtime query scoped to the organization. Each topic
+// needs the read permission of the list it signals; a ticket expires after about
+// a minute and is renewed by asking again, which checks the permission again.
+//
+// POST /api/org/{orgId}/live/tickets
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+func (n *LiveNamespace) Tickets(ctx context.Context, params LiveTicketsParams, opts ...RequestOption) (LiveTicket, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/live/tickets")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out LiveTicket
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
