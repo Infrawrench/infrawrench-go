@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.123.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.124.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.123.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.124.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -11486,6 +11486,160 @@ type IncidentTimelineEntry struct {
 	Link         *IncidentTimelineEntryLink `json:"link,omitempty"`
 }
 
+// InfraenvCommitRequest is the `InfraenvCommitRequest` schema.
+type InfraenvCommitRequest struct {
+	InstallationID int64 `json:"installationId"`
+	// Repo: `owner/name`.
+	Repo string `json:"repo"`
+	// Path: Path of the file in the repository. Defaults to `.infraenv` in the
+	// editors.
+	Path string `json:"path"`
+	// Branch: The branch to commit to, or to open the pull request against. Null
+	// means the default branch.
+	Branch *string `json:"branch,omitempty"`
+	// Content: The `.infraenv` file's text.
+	Content string `json:"content"`
+	// Sha: The blob sha the file had when it was read, or null for a new file. A
+	// file changed since then answers 400 rather than being overwritten.
+	Sha *string `json:"sha"`
+	// Mode: Commit straight to the branch, or to a new branch with a pull
+	// request.
+	//
+	// One of "commit", "pull-request".
+	Mode    string  `json:"mode"`
+	Message *string `json:"message,omitempty"`
+}
+
+// InfraenvCommitResult is the `InfraenvCommitResult` schema.
+type InfraenvCommitResult struct {
+	// Mode: One of "commit", "pull-request".
+	Mode        string                           `json:"mode"`
+	Branch      string                           `json:"branch"`
+	CommitSha   string                           `json:"commitSha"`
+	CommitURL   string                           `json:"commitUrl"`
+	PullRequest *InfraenvCommitResultPullRequest `json:"pullRequest"`
+}
+
+// InfraenvDescribeRequest is the `InfraenvDescribeRequest` schema.
+type InfraenvDescribeRequest struct {
+	// Source: The `.infraenv` file's text.
+	Source string `json:"source"`
+}
+
+// InfraenvDescribeResponse is the `InfraenvDescribeResponse` schema.
+type InfraenvDescribeResponse struct {
+	// Problems: Syntax problems, then references that point at nothing.
+	Problems     []InfraenvProblem             `json:"problems"`
+	Environments []string                      `json:"environments"`
+	Resources    []InfraenvResourceDescription `json:"resources"`
+	Secrets      []InfraenvSecretDescription   `json:"secrets"`
+}
+
+// InfraenvProblem is the `InfraenvProblem` schema.
+type InfraenvProblem struct {
+	// Line: 1-based; 0 for the file as a whole.
+	Line    int64   `json:"line"`
+	Message string  `json:"message"`
+	Key     *string `json:"key,omitempty"`
+}
+
+// InfraenvRepo is the `InfraenvRepo` schema.
+type InfraenvRepo struct {
+	InstallationID int64   `json:"installationId"`
+	FullName       string  `json:"fullName"`
+	DefaultBranch  *string `json:"defaultBranch"`
+}
+
+// InfraenvRepoFile is the `InfraenvRepoFile` schema.
+type InfraenvRepoFile struct {
+	Path   string `json:"path"`
+	Branch string `json:"branch"`
+	// Content: Null when the file does not exist on that branch yet.
+	Content *string `json:"content"`
+	// Sha: Blob sha to send back with a commit that replaces the file.
+	Sha *string `json:"sha"`
+}
+
+// InfraenvRepoList is the `InfraenvRepoList` schema.
+type InfraenvRepoList struct {
+	AppConfigured bool           `json:"appConfigured"`
+	Repos         []InfraenvRepo `json:"repos"`
+}
+
+// InfraenvResolveRequest is the `InfraenvResolveRequest` schema.
+type InfraenvResolveRequest struct {
+	// Source: The `.infraenv` file's text.
+	Source      string  `json:"source"`
+	Environment *string `json:"environment,omitempty"`
+	// SourceName: The file's path, named in the generated `.env` header.
+	// Defaults to `.infraenv`.
+	SourceName *string `json:"sourceName,omitempty"`
+}
+
+// InfraenvResolveResponse is the `InfraenvResolveResponse` schema.
+type InfraenvResolveResponse struct {
+	Environment *string                         `json:"environment"`
+	Values      []InfraenvResolveResponseValues `json:"values"`
+	// Problems: Variables that did not resolve, with why. They are left out of
+	// `values` and `dotenv`.
+	Problems []InfraenvProblem `json:"problems"`
+	// Dotenv: The resolved `.env` text, starting with its auto-generated header.
+	Dotenv string `json:"dotenv"`
+}
+
+// InfraenvResourceDescription is the `InfraenvResourceDescription` schema.
+type InfraenvResourceDescription struct {
+	ResourceID string `json:"resourceId"`
+	Output     string `json:"output"`
+	// Found: False when the organization has no such resource (deleted, or a
+	// typo).
+	Found            bool    `json:"found"`
+	DisplayName      *string `json:"displayName,omitempty"`
+	PluginID         *string `json:"pluginId,omitempty"`
+	PluginName       *string `json:"pluginName,omitempty"`
+	ResourceTypeID   *string `json:"resourceTypeId,omitempty"`
+	ResourceTypeName *string `json:"resourceTypeName,omitempty"`
+	AccountID        *string `json:"accountId,omitempty"`
+	AccountName      *string `json:"accountName,omitempty"`
+	OutputLabel      *string `json:"outputLabel,omitempty"`
+	// OutputKnown: False when the resource's type does not declare this output.
+	OutputKnown bool `json:"outputKnown"`
+	Sensitive   bool `json:"sensitive"`
+}
+
+// InfraenvSecretDescription is the `InfraenvSecretDescription` schema.
+type InfraenvSecretDescription struct {
+	Name     string `json:"name"`
+	Found    bool   `json:"found"`
+	HasValue bool   `json:"hasValue"`
+}
+
+// InfraenvSource is the `InfraenvSource` schema.
+type InfraenvSource struct {
+	ResourceID       string                 `json:"resourceId"`
+	DisplayName      string                 `json:"displayName"`
+	PluginID         string                 `json:"pluginId"`
+	PluginName       string                 `json:"pluginName"`
+	ResourceTypeID   string                 `json:"resourceTypeId"`
+	ResourceTypeName string                 `json:"resourceTypeName"`
+	AccountID        string                 `json:"accountId"`
+	AccountName      string                 `json:"accountName"`
+	Outputs          []InfraenvSourceOutput `json:"outputs"`
+}
+
+// InfraenvSourceList is the `InfraenvSourceList` schema.
+type InfraenvSourceList struct {
+	Sources []InfraenvSource `json:"sources"`
+}
+
+// InfraenvSourceOutput is the `InfraenvSourceOutput` schema.
+type InfraenvSourceOutput struct {
+	Key          string  `json:"key"`
+	Label        string  `json:"label"`
+	Sensitive    bool    `json:"sensitive"`
+	SuggestedKey *string `json:"suggestedKey,omitempty"`
+}
+
 // Invitation is the `Invitation` schema.
 type Invitation struct {
 	ID         string           `json:"id"`
@@ -21304,10 +21458,11 @@ type TabTarget struct {
 	// "k8s-efficiency", "invoices", "graph", "logs", "changes", "expiring",
 	// "posture", "vulnerabilities", "compliance", "access-review", "jit-access",
 	// "backups", "home", "wallboard", "calendar", "runbooks", "query-monitors",
-	// "dns", "iac", "environment-diff", "environments", "ssh-fanout",
-	// "metric-alerts", "probes", "heartbeats", "status-pages", "quotas",
-	// "price-catalog", "migration-estimates", "incidents", "slos", "services",
-	// "delivery", "ci", "workflows", "settings", "chat", "linux-app".
+	// "dns", "iac", "environment-diff", "environments", "env-files",
+	// "ssh-fanout", "metric-alerts", "probes", "heartbeats", "status-pages",
+	// "quotas", "price-catalog", "migration-estimates", "incidents", "slos",
+	// "services", "delivery", "ci", "workflows", "settings", "chat",
+	// "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -23407,6 +23562,18 @@ type IncidentTimelineEntryLink struct {
 	ID       *string `json:"id,omitempty"`
 	ParentID *string `json:"parentId,omitempty"`
 	URL      *string `json:"url,omitempty"`
+}
+
+// InfraenvCommitResultPullRequest is an object the spec declares inline.
+type InfraenvCommitResultPullRequest struct {
+	Number int64  `json:"number"`
+	URL    string `json:"url"`
+}
+
+// InfraenvResolveResponseValues is an object the spec declares inline.
+type InfraenvResolveResponseValues struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 // InvoiceDerivationRates is an object the spec declares inline.

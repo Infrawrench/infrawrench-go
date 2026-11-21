@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.123.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.124.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.123.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.124.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -153,6 +153,8 @@ type APIV1Client struct {
 	Docker *DockerNamespace
 	// Dora: `client.dora`.
 	Dora *DoraNamespace
+	// EnvFiles: `client.envFiles`.
+	EnvFiles *EnvFilesNamespace
 	// EnvironmentDiff: `client.environmentDiff`.
 	EnvironmentDiff *EnvironmentDiffNamespace
 	// Environments: `client.environments`.
@@ -392,6 +394,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.DNS = newDNSNamespace(t)
 	c.Docker = newDockerNamespace(t)
 	c.Dora = newDoraNamespace(t)
+	c.EnvFiles = newEnvFilesNamespace(t)
 	c.EnvironmentDiff = newEnvironmentDiffNamespace(t)
 	c.Environments = newEnvironmentsNamespace(t)
 	c.EventSubscriptions = newEventSubscriptionsNamespace(t)
@@ -16603,6 +16606,241 @@ func (n *DoraSettingsNamespace) Update(ctx context.Context, params *DoraSettings
 		r.setJSONBody(params.Body)
 	}
 	var out *DoraSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvFilesNamespace is `client.envFiles`.
+type EnvFilesNamespace struct {
+	t *transport
+}
+
+func newEnvFilesNamespace(t *transport) *EnvFilesNamespace {
+	n := &EnvFilesNamespace{t: t}
+	return n
+}
+
+// EnvFilesCommitParams holds the parameters for `client.envFiles.commit`.
+type EnvFilesCommitParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body InfraenvCommitRequest
+}
+
+// Commit: Commit an .infraenv file to a repository
+//
+// Writes the file to the branch in one commit, or to a new branch with a pull
+// request. The text is checked first: a file with syntax errors is refused, so
+// nothing unparseable is committed. Values are never committed; the file only
+// holds references.
+//
+// _Requires permission: `github-issues:write`._
+//
+// POST /api/org/{orgId}/env-files/commit
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
+//
+// Raises on 502: Bad gateway: an upstream service failed
+func (n *EnvFilesNamespace) Commit(ctx context.Context, params EnvFilesCommitParams, opts ...RequestOption) (*InfraenvCommitResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/env-files/commit")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *InfraenvCommitResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvFilesDescribeParams holds the parameters for `client.envFiles.describe`.
+type EnvFilesDescribeParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body InfraenvDescribeRequest
+}
+
+// Describe: Check an .infraenv file
+//
+// Parses the file and looks up every reference it makes: which resource, account
+// and output each `resource()` names, and whether each `secret()` exists.
+// Returns no values and calls no provider.
+//
+// _Requires permission: `resources:read`._
+//
+// POST /api/org/{orgId}/env-files/describe
+func (n *EnvFilesNamespace) Describe(ctx context.Context, params EnvFilesDescribeParams, opts ...RequestOption) (*InfraenvDescribeResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/env-files/describe")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *InfraenvDescribeResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvFilesRepoFileParams holds the parameters for `client.envFiles.repoFile`.
+type EnvFilesRepoFileParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID          *string
+	InstallationID string
+	// Repo: `owner/name`.
+	Repo string
+	// Path: Path of the file in the repository. Defaults to `.infraenv` in the
+	// editors.
+	Path   string
+	Branch *string
+}
+
+// RepoFile: Read an .infraenv file from a repository
+//
+// The file's text and blob sha on a branch (the default branch when omitted). A
+// file that does not exist yet answers 200 with `content: null`.
+//
+// _Requires permission: `github-issues:read`._
+//
+// GET /api/org/{orgId}/env-files/repo-file
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
+//
+// Raises on 502: Bad gateway: an upstream service failed
+func (n *EnvFilesNamespace) RepoFile(ctx context.Context, params EnvFilesRepoFileParams, opts ...RequestOption) (*InfraenvRepoFile, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/env-files/repo-file")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("installationId", params.InstallationID)
+	r.addQuery("repo", params.Repo)
+	r.addQuery("path", params.Path)
+	r.addQuery("branch", params.Branch)
+	var out *InfraenvRepoFile
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvFilesReposParams holds the parameters for `client.envFiles.repos`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EnvFilesReposParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Repos: List repositories an .infraenv can be read from and committed to
+//
+// Every repository the organization's GitHub App installations can reach.
+//
+// _Requires permission: `github-issues:read`._
+//
+// GET /api/org/{orgId}/env-files/repos
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: The installation has not accepted the permission this needs. An
+// owner of the GitHub account approves it from `manageUrl`.
+//
+// Raises on 502: Bad gateway: an upstream service failed
+func (n *EnvFilesNamespace) Repos(ctx context.Context, params *EnvFilesReposParams, opts ...RequestOption) (*InfraenvRepoList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/env-files/repos")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *InfraenvRepoList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvFilesResolveParams holds the parameters for `client.envFiles.resolve`.
+type EnvFilesResolveParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body InfraenvResolveRequest
+}
+
+// Resolve: Resolve an .infraenv file into .env values
+//
+// Resolves every variable of one environment: literals as written, `resource()`
+// through the resource's provider, `secret()` from the organization's secrets.
+// Returns the values in plaintext along with the generated `.env` text, and
+// records an audit entry naming the variables (never their values). A variable
+// that does not resolve is reported in `problems` and left out. A file with
+// syntax errors answers 400.
+//
+// _Requires permission: `secrets:read`._
+//
+// POST /api/org/{orgId}/env-files/resolve
+//
+// Raises on 400: Bad request
+func (n *EnvFilesNamespace) Resolve(ctx context.Context, params EnvFilesResolveParams, opts ...RequestOption) (*InfraenvResolveResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/env-files/resolve")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *InfraenvResolveResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// EnvFilesSourcesParams holds the parameters for `client.envFiles.sources`.
+//
+// Every field is optional; pass nil to take the defaults.
+type EnvFilesSourcesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Q: Matches the resource's name, id, type or account.
+	Q     *string
+	Limit *string
+}
+
+// Sources: List resources an .infraenv variable can reference
+//
+// Synced resources whose type declares outputs, each with those outputs and,
+// where the type has a secret export template, the variable name it suggests.
+// Backs the editor's picker.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/env-files/sources
+func (n *EnvFilesNamespace) Sources(ctx context.Context, params *EnvFilesSourcesParams, opts ...RequestOption) (*InfraenvSourceList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/env-files/sources")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+		r.addQuery("q", params.Q)
+		r.addQuery("limit", params.Limit)
+	}
+	var out *InfraenvSourceList
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
