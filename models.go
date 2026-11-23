@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.124.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.125.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.124.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.125.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -11524,6 +11524,9 @@ type InfraenvCommitResult struct {
 type InfraenvDescribeRequest struct {
 	// Source: The `.infraenv` file's text.
 	Source string `json:"source"`
+	// Vars: Substitutions laid over the file's `[vars]` and
+	// `[vars.<environment>]`, like the CLI's `--var`.
+	Vars map[string]string `json:"vars,omitempty"`
 }
 
 // InfraenvDescribeResponse is the `InfraenvDescribeResponse` schema.
@@ -11571,6 +11574,9 @@ type InfraenvResolveRequest struct {
 	// Source: The `.infraenv` file's text.
 	Source      string  `json:"source"`
 	Environment *string `json:"environment,omitempty"`
+	// Vars: Substitutions laid over the file's `[vars]` and
+	// `[vars.<environment>]`, like the CLI's `--var`.
+	Vars map[string]string `json:"vars,omitempty"`
 	// SourceName: The file's path, named in the generated `.env` header.
 	// Defaults to `.infraenv`.
 	SourceName *string `json:"sourceName,omitempty"`
@@ -11589,10 +11595,19 @@ type InfraenvResolveResponse struct {
 
 // InfraenvResourceDescription is the `InfraenvResourceDescription` schema.
 type InfraenvResourceDescription struct {
-	ResourceID string `json:"resourceId"`
-	Output     string `json:"output"`
-	// Found: False when the organization has no such resource (deleted, or a
-	// typo).
+	// Ref: client-core `infraenvReferenceKey` of the expanded reference: how an
+	// editor matches a row to its description.
+	Ref string `json:"ref"`
+	// ResourceID: The resource named by id, or the one a by-name reference
+	// found.
+	ResourceID *string                `json:"resourceId,omitempty"`
+	Match      *InfraenvResourceMatch `json:"match,omitempty"`
+	// Matches: For a by-name reference, how many resources matched; only 1
+	// resolves.
+	Matches *int64 `json:"matches,omitempty"`
+	Output  string `json:"output"`
+	// Found: False when the organization has no such resource (deleted, a typo,
+	// or a name that matches several).
 	Found            bool    `json:"found"`
 	DisplayName      *string `json:"displayName,omitempty"`
 	PluginID         *string `json:"pluginId,omitempty"`
@@ -11605,6 +11620,15 @@ type InfraenvResourceDescription struct {
 	// OutputKnown: False when the resource's type does not declare this output.
 	OutputKnown bool `json:"outputKnown"`
 	Sensitive   bool `json:"sensitive"`
+}
+
+// InfraenvResourceMatch: For a by-name reference, what it matched on,
+// substitutions filled in.
+type InfraenvResourceMatch struct {
+	PluginID       string  `json:"pluginId"`
+	ResourceTypeID string  `json:"resourceTypeId"`
+	Name           string  `json:"name"`
+	Account        *string `json:"account,omitempty"`
 }
 
 // InfraenvSecretDescription is the `InfraenvSecretDescription` schema.
@@ -16648,8 +16672,8 @@ type QuotaAccountStatus struct {
 
 // QuotaAlertSettings is the `QuotaAlertSettings` schema.
 type QuotaAlertSettings struct {
-	// Enabled: Whether the poller sends quota alerts for this organization at
-	// all.
+	// Enabled: Whether the poller sends quota and capacity runway alerts for
+	// this organization at all.
 	Enabled bool `json:"enabled"`
 	// Threshold: Utilisation fraction at or above which a quota alerts. Default
 	// 0.8. Bounded below at 0.5 (a lower threshold makes every quota critical)
@@ -16657,6 +16681,13 @@ type QuotaAlertSettings struct {
 	// the alert reports an outage rather than warning about one). Values outside
 	// the range are rejected, not clamped.
 	Threshold float64 `json:"threshold"`
+	// RunwayDays: Capacity runway: alert when a resource will reach its limit
+	// within this many days on a clean trend. Default 14, from 1 to 90.
+	RunwayDays int64 `json:"runwayDays"`
+	// AllowanceThreshold: Capacity runway: alert when a monthly allowance is at
+	// this fraction of its limit, or is projected past the whole of it before
+	// the cycle resets. Default 0.8, from 0.5 to 0.99.
+	AllowanceThreshold float64 `json:"allowanceThreshold"`
 	// LastNotifiedAt: When the organization's quota alert scan last completed,
 	// or null before the first. Owned by the poller's cooldown claim; not
 	// writable through this API.
@@ -16665,8 +16696,10 @@ type QuotaAlertSettings struct {
 
 // QuotaAlertSettingsUpdate is the `QuotaAlertSettingsUpdate` schema.
 type QuotaAlertSettingsUpdate struct {
-	Enabled   *bool    `json:"enabled,omitempty"`
-	Threshold *float64 `json:"threshold,omitempty"`
+	Enabled            *bool    `json:"enabled,omitempty"`
+	Threshold          *float64 `json:"threshold,omitempty"`
+	RunwayDays         *int64   `json:"runwayDays,omitempty"`
+	AllowanceThreshold *float64 `json:"allowanceThreshold,omitempty"`
 }
 
 // QuotaListResponse is the `QuotaListResponse` schema.
@@ -17131,6 +17164,9 @@ type ResourceDetail struct {
 	// HasSchedule: The type flags a field as the schedule it runs on, so a
 	// heartbeat can watch it.
 	HasSchedule *bool `json:"hasSchedule,omitempty"`
+	// HasCapacityRunway: The type declares a usage with a limit, so the resource
+	// has a capacity runway (`GET /api/org/{orgId}/quotas/runway/resource`).
+	HasCapacityRunway *bool `json:"hasCapacityRunway,omitempty"`
 }
 
 // ResourceFieldChange is the `ResourceFieldChange` schema.
@@ -17443,6 +17479,68 @@ type ResourceReportTagFilter struct {
 	// One of "in", "not_in", "exists", "missing".
 	Op     string   `json:"op"`
 	Values []string `json:"values"`
+}
+
+// ResourceRunwayResponse is the `ResourceRunwayResponse` schema.
+type ResourceRunwayResponse struct {
+	Rows []ResourceRunwayRow `json:"rows"`
+	// RunwayDays: The organization's runway alert threshold, in days.
+	RunwayDays int64 `json:"runwayDays"`
+	// AllowanceThreshold: The organization's monthly allowance alert threshold,
+	// as a fraction.
+	AllowanceThreshold float64 `json:"allowanceThreshold"`
+	// WindowDays: How far back the trend looks, in days.
+	WindowDays int64 `json:"windowDays"`
+}
+
+// ResourceRunwayRow is the `ResourceRunwayRow` schema.
+type ResourceRunwayRow struct {
+	// Key: The usage's key within the resource: a field or output key, or
+	// `metric:<series>`.
+	Key            string         `json:"key"`
+	ResourceID     ResourceID     `json:"resourceId"`
+	ResourceName   string         `json:"resourceName"`
+	ResourceTypeID ResourceTypeID `json:"resourceTypeId"`
+	AccountID      string         `json:"accountId"`
+	AccountName    string         `json:"accountName"`
+	PluginID       PluginID       `json:"pluginId"`
+	Label          string         `json:"label"`
+	// Unit: What both numbers count. `bytes` is a byte count; anything else is a
+	// word.
+	Unit  *string `json:"unit"`
+	Used  float64 `json:"used"`
+	Limit float64 `json:"limit"`
+	// Utilization: used / limit, not clamped at 1.
+	Utilization float64 `json:"utilization"`
+	// LimitSource: Whose number the limit is: `provider` (read from the resource
+	// itself, so it follows resizes), `plan` (the provider's published allowance
+	// for the plan in `plan`), or `constant` (a fixed documented ceiling).
+	//
+	// One of "provider", "plan", "constant".
+	LimitSource string  `json:"limitSource"`
+	Plan        *string `json:"plan"`
+	// Kind: `allowance` resets every month; `runway` accumulates until it hits
+	// the limit.
+	//
+	// One of "runway", "allowance".
+	Kind string `json:"kind"`
+	// Source: One of "field", "output", "metric".
+	Source string `json:"source"`
+	// ObservedAt: When the current reading was taken.
+	ObservedAt string         `json:"observedAt"`
+	Forecast   RunwayForecast `json:"forecast"`
+	Cycle      *RunwayCycle   `json:"cycle"`
+	// Status: Where the usage sits: `full` (used >= limit now), `critical`
+	// (alerting: reaches the limit within the organization's runway days on a
+	// clean trend, or a monthly allowance is past the allowance threshold or
+	// projected past its limit before the cycle resets), `watch` (inside the
+	// runway days but the trend is too noisy to alert on), or `ok`.
+	//
+	// One of "full", "critical", "watch", "ok".
+	Status string `json:"status"`
+	// History: The readings the projection used: the trend window for a runway
+	// row, the current cycle for an allowance.
+	History []RunwayPoint `json:"history"`
 }
 
 // ResourceStatus: Normalized status reported by a plugin's
@@ -17914,6 +18012,7 @@ const (
 	ResourceTypeIDFile                           ResourceTypeID = "file"
 	ResourceTypeIDFileSearchDocument             ResourceTypeID = "file-search-document"
 	ResourceTypeIDFileSearchStore                ResourceTypeID = "file-search-store"
+	ResourceTypeIDFilestoreInstance              ResourceTypeID = "filestore-instance"
 	ResourceTypeIDFilesystem                     ResourceTypeID = "filesystem"
 	ResourceTypeIDFineTune                       ResourceTypeID = "fine-tune"
 	ResourceTypeIDFineTuningJob                  ResourceTypeID = "fine-tuning-job"
@@ -19103,6 +19202,109 @@ type RunbookUpdate struct {
 	TagKey          *string            `json:"tagKey,omitempty"`
 	TagValue        *string            `json:"tagValue,omitempty"`
 	Enabled         *bool              `json:"enabled,omitempty"`
+}
+
+// RunwayCycle is the `RunwayCycle` schema.
+type RunwayCycle struct {
+	Start string `json:"start"`
+	// End: When the allowance resets.
+	End string `json:"end"`
+	// ProjectedUsed: Usage projected at the end of the cycle at the current
+	// rate.
+	ProjectedUsed        *float64 `json:"projectedUsed"`
+	ProjectedUtilization *float64 `json:"projectedUtilization"`
+}
+
+// RunwayForecast is the `RunwayForecast` schema.
+type RunwayForecast struct {
+	// PerDay: Change in usage per day, in the row's unit. A Theil-Sen slope (the
+	// median of every pairwise slope) over the recorded readings, or for a
+	// monthly allowance with too few readings this cycle, the average since the
+	// cycle started. Null without a rate.
+	PerDay *float64 `json:"perDay"`
+	// DaysLeft: Days until usage reaches the limit at that rate. Null when flat
+	// or falling, when already full, when the crossing is more than 365 days
+	// out, or (for an allowance) when the cycle resets first.
+	DaysLeft *float64 `json:"daysLeft"`
+	// FullAt: The crossing, when `daysLeft` is set.
+	FullAt *string `json:"fullAt"`
+	// Method: One of "trend", "cycle-average".
+	Method *string `json:"method"`
+	// Confidence: `short`: fewer than 3 readings or less than a day of history,
+	// so no projection. `noisy`: the scatter around the trend is as large as the
+	// change it explains. `ok` otherwise.
+	//
+	// One of "ok", "noisy", "short".
+	Confidence string `json:"confidence"`
+	// Points: Readings the fit used.
+	Points int64 `json:"points"`
+}
+
+// RunwayListResponse is the `RunwayListResponse` schema.
+type RunwayListResponse struct {
+	// Rows: Every declared usage with a reading, soonest to run out first.
+	Rows []RunwayRow `json:"rows"`
+	// RunwayDays: The organization's runway alert threshold, in days.
+	RunwayDays int64 `json:"runwayDays"`
+	// AllowanceThreshold: The organization's monthly allowance alert threshold,
+	// as a fraction.
+	AllowanceThreshold float64 `json:"allowanceThreshold"`
+	// WindowDays: How far back the trend looks, in days.
+	WindowDays int64 `json:"windowDays"`
+}
+
+// RunwayPoint is the `RunwayPoint` schema.
+type RunwayPoint struct {
+	ObservedAt string  `json:"observedAt"`
+	Used       float64 `json:"used"`
+	Limit      float64 `json:"limit"`
+}
+
+// RunwayRow is the `RunwayRow` schema.
+type RunwayRow struct {
+	// Key: The usage's key within the resource: a field or output key, or
+	// `metric:<series>`.
+	Key            string         `json:"key"`
+	ResourceID     ResourceID     `json:"resourceId"`
+	ResourceName   string         `json:"resourceName"`
+	ResourceTypeID ResourceTypeID `json:"resourceTypeId"`
+	AccountID      string         `json:"accountId"`
+	AccountName    string         `json:"accountName"`
+	PluginID       PluginID       `json:"pluginId"`
+	Label          string         `json:"label"`
+	// Unit: What both numbers count. `bytes` is a byte count; anything else is a
+	// word.
+	Unit  *string `json:"unit"`
+	Used  float64 `json:"used"`
+	Limit float64 `json:"limit"`
+	// Utilization: used / limit, not clamped at 1.
+	Utilization float64 `json:"utilization"`
+	// LimitSource: Whose number the limit is: `provider` (read from the resource
+	// itself, so it follows resizes), `plan` (the provider's published allowance
+	// for the plan in `plan`), or `constant` (a fixed documented ceiling).
+	//
+	// One of "provider", "plan", "constant".
+	LimitSource string  `json:"limitSource"`
+	Plan        *string `json:"plan"`
+	// Kind: `allowance` resets every month; `runway` accumulates until it hits
+	// the limit.
+	//
+	// One of "runway", "allowance".
+	Kind string `json:"kind"`
+	// Source: One of "field", "output", "metric".
+	Source string `json:"source"`
+	// ObservedAt: When the current reading was taken.
+	ObservedAt string         `json:"observedAt"`
+	Forecast   RunwayForecast `json:"forecast"`
+	Cycle      *RunwayCycle   `json:"cycle"`
+	// Status: Where the usage sits: `full` (used >= limit now), `critical`
+	// (alerting: reaches the limit within the organization's runway days on a
+	// clean trend, or a monthly allowance is past the allowance threshold or
+	// projected past its limit before the cycle resets), `watch` (inside the
+	// runway days but the trend is too noisy to alert on), or `ok`.
+	//
+	// One of "full", "critical", "watch", "ok".
+	Status string `json:"status"`
 }
 
 // SavedCostFilter is the `SavedCostFilter` schema.

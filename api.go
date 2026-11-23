@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.124.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.125.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.124.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.125.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -16674,9 +16674,10 @@ type EnvFilesDescribeParams struct {
 
 // Describe: Check an .infraenv file
 //
-// Parses the file and looks up every reference it makes: which resource, account
-// and output each `resource()` names, and whether each `secret()` exists.
-// Returns no values and calls no provider.
+// Parses the file and looks up every reference it makes, once per environment
+// with that environment's substitutions filled in: which resource, account and
+// output each `resource()` names or finds by name, and whether each `secret()`
+// exists. Returns no values and calls no provider.
 //
 // _Requires permission: `resources:read`._
 //
@@ -16789,11 +16790,12 @@ type EnvFilesResolveParams struct {
 // Resolve: Resolve an .infraenv file into .env values
 //
 // Resolves every variable of one environment: literals as written, `resource()`
-// through the resource's provider, `secret()` from the organization's secrets.
-// Returns the values in plaintext along with the generated `.env` text, and
-// records an audit entry naming the variables (never their values). A variable
-// that does not resolve is reported in `problems` and left out. A file with
-// syntax errors answers 400.
+// (by id, or by plugin, type and name in this organization, after `${var}`
+// substitution) through the resource's provider, `secret()` from the
+// organization's secrets. Returns the values in plaintext along with the
+// generated `.env` text, and records an audit entry naming the variables (never
+// their values). A variable that does not resolve is reported in `problems` and
+// left out. A file with syntax errors answers 400.
 //
 // _Requires permission: `secrets:read`._
 //
@@ -27871,12 +27873,15 @@ func (n *QueryMonitorsGetNamespace) GetOrgOrgIDQueryMonitorsMonitorID(ctx contex
 type QuotasNamespace struct {
 	t *transport
 
+	// Runway: `client.quotas.runway`.
+	Runway *QuotasRunwayNamespace
 	// Settings: `client.quotas.settings`.
 	Settings *QuotasSettingsNamespace
 }
 
 func newQuotasNamespace(t *transport) *QuotasNamespace {
 	n := &QuotasNamespace{t: t}
+	n.Runway = newQuotasRunwayNamespace(t)
 	n.Settings = newQuotasSettingsNamespace(t)
 	return n
 }
@@ -27917,6 +27922,82 @@ func (n *QuotasNamespace) Get(ctx context.Context, params *QuotasGetParams, opts
 	return out, nil
 }
 
+// QuotasRunwayNamespace is `client.quotas.runway`.
+type QuotasRunwayNamespace struct {
+	t *transport
+}
+
+func newQuotasRunwayNamespace(t *transport) *QuotasRunwayNamespace {
+	n := &QuotasRunwayNamespace{t: t}
+	return n
+}
+
+// QuotasRunwayGetParams holds the parameters for `client.quotas.runway.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type QuotasRunwayGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List capacity runway across the organization's resources
+//
+// Every usage a plugin declares on a resource type (a disk's used bytes against
+// its size, a database against its plan's storage cap, connections against
+// `max_connections`, a monthly allowance of compute hours or sends) with when it
+// reaches its limit at the current rate, soonest first. Monthly allowances
+// report the usage projected at the end of the billing cycle instead of a
+// far-off crossing. A read over stored readings: the sync records each declared
+// usage hourly, so no provider API calls are made here.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/quotas/runway
+func (n *QuotasRunwayNamespace) Get(ctx context.Context, params *QuotasRunwayGetParams, opts ...RequestOption) (*RunwayListResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/quotas/runway")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *RunwayListResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// QuotasRunwayResourceParams holds the parameters for
+// `client.quotas.runway.resource`.
+type QuotasRunwayResourceParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID      *string
+	ResourceID ResourceID
+}
+
+// Resource: Get one resource's capacity runway with its readings
+//
+// The runway rows for one resource, each with the readings the projection used,
+// for the resource page's runway chart. An empty `rows` means the resource's
+// type declares no usage, or no reading with a resolvable limit has been
+// recorded yet.
+//
+// _Requires permission: `resources:read`._
+//
+// GET /api/org/{orgId}/quotas/runway/resource
+func (n *QuotasRunwayNamespace) Resource(ctx context.Context, params QuotasRunwayResourceParams, opts ...RequestOption) (*ResourceRunwayResponse, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/quotas/runway/resource")
+	r.setPath("orgId", params.OrgID)
+	r.addQuery("resourceId", params.ResourceID)
+	var out *ResourceRunwayResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
 // QuotasSettingsNamespace is `client.quotas.settings`.
 type QuotasSettingsNamespace struct {
 	t *transport
@@ -27940,8 +28021,9 @@ type QuotasSettingsGetParams struct {
 // Get: Get the organization's quota alert settings
 //
 // The threshold feeds both the feed's severity buckets and the poller's daily
-// alert scan. An organization that never saved reads the shipped defaults
-// (enabled, 0.8).
+// alert scan; the runway thresholds feed the capacity runway the same way. An
+// organization that never saved reads the shipped defaults (enabled, 0.8, 14
+// days, 0.8).
 //
 // _Requires permission: `org:settings:write`._
 //
