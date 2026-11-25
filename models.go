@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.125.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.126.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.125.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.126.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -14317,6 +14317,281 @@ type ObjectSharingInput struct {
 	Grants    []ObjectSharingInputGrants `json:"grants"`
 }
 
+// Offboarding is the `Offboarding` schema.
+type Offboarding struct {
+	ID string `json:"id"`
+	// Email: Lower-cased.
+	Email string  `json:"email"`
+	Name  *string `json:"name"`
+	// UserID: Their Infrawrench user id, when they had an account.
+	UserID *string `json:"userId"`
+	// Aliases: Handles and other addresses providers know them by, normalized.
+	Aliases []string `json:"aliases"`
+	// Status: `open` while the checklist is being worked through; `completed`
+	// and `canceled` freeze it as evidence (a rescan no longer changes it).
+	//
+	// One of "open", "completed", "canceled".
+	Status string `json:"status"`
+	// Source: `manual` when somebody started it; `directory` when an identity
+	// directory reported the person deprovisioned.
+	//
+	// One of "manual", "directory".
+	Source        string  `json:"source"`
+	SourceDetail  *string `json:"sourceDetail"`
+	StartedByName *string `json:"startedByName"`
+	Note          *string `json:"note"`
+	CreatedAt     string  `json:"createdAt"`
+	UpdatedAt     string  `json:"updatedAt"`
+	CompletedAt   *string `json:"completedAt"`
+	LastScannedAt *string `json:"lastScannedAt"`
+	// ScanTruncated: The last scan matched more synced resources than one scan
+	// reads, so some may be missing.
+	ScanTruncated bool                `json:"scanTruncated"`
+	Progress      OffboardingProgress `json:"progress"`
+	Items         []OffboardingItem   `json:"items"`
+}
+
+// OffboardingActionID: `revoke` runs the plugin's declared revoke action
+// (`principalRole.revokeActionId`); `remove` deletes a principal whose plugin
+// declares `offboardByDelete` (a membership, a personal token); `remove-seat`
+// removes a paid seat through the provider; `transfer-ownership` and
+// `reassign-on-call` need a `targetUserId`.
+//
+// Spec schema: `OffboardingActionId`.
+type OffboardingActionID = string
+
+// The values OffboardingActionID takes.
+const (
+	OffboardingActionIDRevoke             OffboardingActionID = "revoke"
+	OffboardingActionIDRemove             OffboardingActionID = "remove"
+	OffboardingActionIDRemoveSeat         OffboardingActionID = "remove-seat"
+	OffboardingActionIDRemoveMember       OffboardingActionID = "remove-member"
+	OffboardingActionIDRevokeAPIKey       OffboardingActionID = "revoke-api-key"
+	OffboardingActionIDDeleteSSHKey       OffboardingActionID = "delete-ssh-key"
+	OffboardingActionIDTransferOwnership  OffboardingActionID = "transfer-ownership"
+	OffboardingActionIDReassignOnCall     OffboardingActionID = "reassign-on-call"
+	OffboardingActionIDRemoveFromRotation OffboardingActionID = "remove-from-rotation"
+	OffboardingActionIDCancelCover        OffboardingActionID = "cancel-cover"
+	OffboardingActionIDCancelLease        OffboardingActionID = "cancel-lease"
+	OffboardingActionIDRevokeJit          OffboardingActionID = "revoke-jit"
+)
+
+// OffboardingActionInput is the `OffboardingActionInput` schema.
+type OffboardingActionInput struct {
+	Action OffboardingActionID `json:"action"`
+	// TargetUserID: The member taking over, for `transfer-ownership` and
+	// `reassign-on-call`.
+	TargetUserID *string `json:"targetUserId,omitempty"`
+}
+
+// OffboardingActionResult is the `OffboardingActionResult` schema.
+type OffboardingActionResult struct {
+	// Item: The row after the action. A provider that refused leaves it `failed`
+	// with `lastError`; the call itself still answers 200, because the checklist
+	// recorded the outcome.
+	Item OffboardingItem `json:"item"`
+	// Message: What the provider said happens next, when it said anything.
+	Message *string `json:"message"`
+}
+
+// OffboardingCandidate is the `OffboardingCandidate` schema.
+type OffboardingCandidate struct {
+	Key string `json:"key"`
+	// Kind: What the row is: their Infrawrench membership, API key or SSH key; a
+	// cloud principal (an IAM user, a membership, a personal key); a paid seat;
+	// another synced resource that names them or that they own; an on-call
+	// rotation or a cover they have not served; a lease they set; a just-in-time
+	// grant they hold.
+	//
+	// One of "member", "api-key", "ssh-key", "principal", "seat", "resource",
+	// "on-call", "on-call-cover", "lease", "jit-grant".
+	Kind           string  `json:"kind"`
+	Title          string  `json:"title"`
+	Detail         *string `json:"detail"`
+	PluginID       *string `json:"pluginId"`
+	ProviderName   *string `json:"providerName"`
+	AccountID      *string `json:"accountId"`
+	AccountName    *string `json:"accountName"`
+	ResourceID     *string `json:"resourceId"`
+	ResourceTypeID *string `json:"resourceTypeId"`
+	// Confidence: `exact`: their email. `alias`: a handle or address listed on
+	// the offboarding. `possible`: something weaker (the part of the email
+	// before the `@`, the same name at another domain, their full name) that a
+	// person has to confirm before any action is offered.
+	//
+	// One of "exact", "alias", "possible".
+	Confidence  string                `json:"confidence"`
+	MatchReason string                `json:"matchReason"`
+	Actions     []OffboardingActionID `json:"actions"`
+}
+
+// OffboardingItem is the `OffboardingItem` schema.
+type OffboardingItem struct {
+	ID string `json:"id"`
+	// Kind: What the row is: their Infrawrench membership, API key or SSH key; a
+	// cloud principal (an IAM user, a membership, a personal key); a paid seat;
+	// another synced resource that names them or that they own; an on-call
+	// rotation or a cover they have not served; a lease they set; a just-in-time
+	// grant they hold.
+	//
+	// One of "member", "api-key", "ssh-key", "principal", "seat", "resource",
+	// "on-call", "on-call-cover", "lease", "jit-grant".
+	Kind     string  `json:"kind"`
+	Title    string  `json:"title"`
+	Detail   *string `json:"detail"`
+	PluginID *string `json:"pluginId"`
+	// ProviderName: Provider display name; null for Infrawrench's own records.
+	ProviderName   *string `json:"providerName"`
+	AccountID      *string `json:"accountId"`
+	AccountName    *string `json:"accountName"`
+	ResourceID     *string `json:"resourceId"`
+	ResourceTypeID *string `json:"resourceTypeId"`
+	// Confidence: `exact`: their email. `alias`: a handle or address listed on
+	// the offboarding. `possible`: something weaker (the part of the email
+	// before the `@`, the same name at another domain, their full name) that a
+	// person has to confirm before any action is offered.
+	//
+	// One of "exact", "alias", "possible".
+	Confidence string `json:"confidence"`
+	// MatchReason: Why the sweep thinks this is theirs.
+	MatchReason string `json:"matchReason"`
+	// MatchState: `unconfirmed` possible matches offer no action; `rejected`
+	// rows (not them) leave the checklist's progress but stay in the export.
+	//
+	// One of "matched", "unconfirmed", "confirmed", "rejected".
+	MatchState string `json:"matchState"`
+	// Actions: What can be done from Infrawrench. Empty: do it in the provider,
+	// then mark the row done.
+	Actions []OffboardingActionID `json:"actions"`
+	// Status: `gone` means a later scan no longer found the row: removed outside
+	// Infrawrench, or no longer reported by the provider.
+	//
+	// One of "open", "done", "skipped", "failed", "gone".
+	Status string `json:"status"`
+	// Resolution: The action that resolved the row, `"manual"`, or `"gone"`.
+	Resolution     *string `json:"resolution"`
+	LastError      *string `json:"lastError"`
+	Note           *string `json:"note"`
+	ResolvedByName *string `json:"resolvedByName"`
+	ResolvedAt     *string `json:"resolvedAt"`
+	FirstSeenAt    string  `json:"firstSeenAt"`
+	LastSeenAt     string  `json:"lastSeenAt"`
+}
+
+// OffboardingItemPatchInput is the `OffboardingItemPatchInput` schema.
+type OffboardingItemPatchInput struct {
+	// MatchState: One of "confirmed", "rejected", "unconfirmed".
+	MatchState *string `json:"matchState,omitempty"`
+	// Status: One of "done", "skipped", "open".
+	Status *string `json:"status,omitempty"`
+	Note   *string `json:"note,omitempty"`
+}
+
+// OffboardingList is the `OffboardingList` schema.
+type OffboardingList struct {
+	Offboardings []OffboardingSummary `json:"offboardings"`
+}
+
+// OffboardingMember is the `OffboardingMember` schema.
+type OffboardingMember struct {
+	UserID string  `json:"userId"`
+	Name   *string `json:"name"`
+	Email  string  `json:"email"`
+}
+
+// OffboardingMembers is the `OffboardingMembers` schema.
+type OffboardingMembers struct {
+	Members []OffboardingMember `json:"members"`
+}
+
+// OffboardingPatchInput is the `OffboardingPatchInput` schema.
+type OffboardingPatchInput struct {
+	Aliases []string `json:"aliases,omitempty"`
+	Note    *string  `json:"note,omitempty"`
+	// Status: `open` while the checklist is being worked through; `completed`
+	// and `canceled` freeze it as evidence (a rescan no longer changes it).
+	//
+	// One of "open", "completed", "canceled".
+	Status *string `json:"status,omitempty"`
+}
+
+// OffboardingPreview is the `OffboardingPreview` schema.
+type OffboardingPreview struct {
+	Email         string                 `json:"email"`
+	Aliases       []string               `json:"aliases"`
+	Candidates    []OffboardingCandidate `json:"candidates"`
+	ScanTruncated bool                   `json:"scanTruncated"`
+}
+
+// OffboardingPreviewInput is the `OffboardingPreviewInput` schema.
+type OffboardingPreviewInput struct {
+	Email   string   `json:"email"`
+	Aliases []string `json:"aliases,omitempty"`
+}
+
+// OffboardingProgress is the `OffboardingProgress` schema.
+type OffboardingProgress struct {
+	// Total: Rows on the checklist, rejected matches excluded.
+	Total int64 `json:"total"`
+	// Resolved: Done, skipped or gone.
+	Resolved int64 `json:"resolved"`
+	Open     int64 `json:"open"`
+	Failed   int64 `json:"failed"`
+	// Unconfirmed: Possible matches still waiting for a person to confirm or
+	// reject them.
+	Unconfirmed int64 `json:"unconfirmed"`
+}
+
+// OffboardingStartInput is the `OffboardingStartInput` schema.
+type OffboardingStartInput struct {
+	// Email: The email address the person signed in with.
+	Email string `json:"email"`
+	// Aliases: Handles and other addresses providers know them by (a GitHub
+	// login, an old domain).
+	Aliases []string `json:"aliases,omitempty"`
+	Note    *string  `json:"note,omitempty"`
+}
+
+// OffboardingStartResponse is the `OffboardingStartResponse` schema.
+type OffboardingStartResponse struct {
+	Offboarding Offboarding `json:"offboarding"`
+	// Created: False when an open offboarding for this person already existed.
+	Created bool `json:"created"`
+}
+
+// OffboardingSummary is the `OffboardingSummary` schema.
+type OffboardingSummary struct {
+	ID string `json:"id"`
+	// Email: Lower-cased.
+	Email string  `json:"email"`
+	Name  *string `json:"name"`
+	// UserID: Their Infrawrench user id, when they had an account.
+	UserID *string `json:"userId"`
+	// Aliases: Handles and other addresses providers know them by, normalized.
+	Aliases []string `json:"aliases"`
+	// Status: `open` while the checklist is being worked through; `completed`
+	// and `canceled` freeze it as evidence (a rescan no longer changes it).
+	//
+	// One of "open", "completed", "canceled".
+	Status string `json:"status"`
+	// Source: `manual` when somebody started it; `directory` when an identity
+	// directory reported the person deprovisioned.
+	//
+	// One of "manual", "directory".
+	Source        string  `json:"source"`
+	SourceDetail  *string `json:"sourceDetail"`
+	StartedByName *string `json:"startedByName"`
+	Note          *string `json:"note"`
+	CreatedAt     string  `json:"createdAt"`
+	UpdatedAt     string  `json:"updatedAt"`
+	CompletedAt   *string `json:"completedAt"`
+	LastScannedAt *string `json:"lastScannedAt"`
+	// ScanTruncated: The last scan matched more synced resources than one scan
+	// reads, so some may be missing.
+	ScanTruncated bool                `json:"scanTruncated"`
+	Progress      OffboardingProgress `json:"progress"`
+}
+
 // OK is the `Ok` schema.
 //
 // Spec schema: `Ok`.
@@ -21659,12 +21934,12 @@ type TabTarget struct {
 	// "savings", "cost-reports", "resource-reports", "cost-canvases",
 	// "k8s-efficiency", "invoices", "graph", "logs", "changes", "expiring",
 	// "posture", "vulnerabilities", "compliance", "access-review", "jit-access",
-	// "backups", "home", "wallboard", "calendar", "runbooks", "query-monitors",
-	// "dns", "iac", "environment-diff", "environments", "env-files",
-	// "ssh-fanout", "metric-alerts", "probes", "heartbeats", "status-pages",
-	// "quotas", "price-catalog", "migration-estimates", "incidents", "slos",
-	// "services", "delivery", "ci", "workflows", "settings", "chat",
-	// "linux-app".
+	// "offboarding", "backups", "home", "wallboard", "calendar", "runbooks",
+	// "query-monitors", "dns", "iac", "environment-diff", "environments",
+	// "env-files", "ssh-fanout", "metric-alerts", "probes", "heartbeats",
+	// "status-pages", "quotas", "price-catalog", "migration-estimates",
+	// "incidents", "slos", "services", "delivery", "ci", "workflows",
+	// "settings", "chat", "linux-app".
 	Kind           string      `json:"kind"`
 	DashboardID    *string     `json:"dashboardId,omitempty"`
 	AccountID      *string     `json:"accountId,omitempty"`
@@ -21675,6 +21950,7 @@ type TabTarget struct {
 	CanvasID       *string     `json:"canvasId,omitempty"`
 	EstimateID     *string     `json:"estimateId,omitempty"`
 	SloID          *string     `json:"sloId,omitempty"`
+	OffboardingID  *string     `json:"offboardingId,omitempty"`
 	RunID          *string     `json:"runId,omitempty"`
 	ServiceID      *string     `json:"serviceId,omitempty"`
 	// View: One of "details", "ssh", "sftp", "apps", "scorecards".

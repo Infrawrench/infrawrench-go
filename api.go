@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.125.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.126.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.125.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.126.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -215,6 +215,8 @@ type APIV1Client struct {
 	Msteams *MsteamsNamespace
 	// NetworkFlows: `client.networkFlows`.
 	NetworkFlows *NetworkFlowsNamespace
+	// Offboardings: `client.offboardings`.
+	Offboardings *OffboardingsNamespace
 	// OnCall: `client.onCall`.
 	OnCall *OnCallNamespace
 	// Orgs: `client.orgs`.
@@ -425,6 +427,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.Moment = newMomentNamespace(t)
 	c.Msteams = newMsteamsNamespace(t)
 	c.NetworkFlows = newNetworkFlowsNamespace(t)
+	c.Offboardings = newOffboardingsNamespace(t)
 	c.OnCall = newOnCallNamespace(t)
 	c.Orgs = newOrgsNamespace(t)
 	c.Orphans = newOrphansNamespace(t)
@@ -24761,6 +24764,400 @@ func (n *NetworkFlowsSettingsNamespace) Update(ctx context.Context, params Netwo
 	r.setPath("orgId", params.OrgID)
 	r.setJSONBody(params.Body)
 	var out *NetworkFlowSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OffboardingsNamespace is `client.offboardings`.
+type OffboardingsNamespace struct {
+	t *transport
+
+	// Get: `client.offboardings.get`.
+	Get *OffboardingsGetNamespace
+	// Items: `client.offboardings.items`.
+	Items *OffboardingsItemsNamespace
+}
+
+func newOffboardingsNamespace(t *transport) *OffboardingsNamespace {
+	n := &OffboardingsNamespace{t: t}
+	n.Get = newOffboardingsGetNamespace(t)
+	n.Items = newOffboardingsItemsNamespace(t)
+	return n
+}
+
+// OffboardingsCreateParams holds the parameters for
+// `client.offboardings.create`.
+type OffboardingsCreateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body OffboardingStartInput
+}
+
+// Create: Start an offboarding
+//
+// Start the checklist for someone leaving, by email plus any aliases, and sweep
+// for everything tied to them: their Infrawrench membership, API keys and SSH
+// keys; cloud principals and other synced resources that carry their email or an
+// alias in any field or that the ownership records name them owner of; paid
+// seats; on-call rotations and covers; leases they set; just-in-time grants they
+// hold. The sweep reads synced state only and makes no provider calls.
+//
+// Starting again for somebody who already has an open offboarding returns that
+// one, with any new aliases merged in.
+//
+// _Requires permission: `team:remove`._
+//
+// POST /api/org/{orgId}/offboardings
+//
+// Raises on 400: Bad request
+func (n *OffboardingsNamespace) Create(ctx context.Context, params OffboardingsCreateParams, opts ...RequestOption) (*OffboardingStartResponse, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/offboardings")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *OffboardingStartResponse
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OffboardingsExportParams holds the parameters for
+// `client.offboardings.export`.
+type OffboardingsExportParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Format: Defaults to "csv".
+	//
+	// One of "csv", "json".
+	Format *string
+}
+
+// Export: Export an offboarding as evidence
+//
+// The checklist as a download, one row per item, rejected matches included and
+// labelled. CSV cells are all quoted and spreadsheet formulas neutralised.
+// Exports are recorded in the audit log.
+//
+// _Requires permission: `team:remove`._
+//
+// GET /api/org/{orgId}/offboardings/{id}/export
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *OffboardingsNamespace) Export(ctx context.Context, params OffboardingsExportParams, opts ...RequestOption) (*Offboarding, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/offboardings/{id}/export")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.addQuery("format", params.Format)
+	var out *Offboarding
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OffboardingsMembersParams holds the parameters for
+// `client.offboardings.members`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OffboardingsMembersParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Members: Members who can take something over
+//
+// The organization's members, for picking who takes over a resource or an
+// on-call slot.
+//
+// _Requires permission: `team:remove`._
+//
+// GET /api/org/{orgId}/offboardings/members
+func (n *OffboardingsNamespace) Members(ctx context.Context, params *OffboardingsMembersParams, opts ...RequestOption) (*OffboardingMembers, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/offboardings/members")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OffboardingMembers
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OffboardingsPreviewParams holds the parameters for
+// `client.offboardings.preview`.
+type OffboardingsPreviewParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body OffboardingPreviewInput
+}
+
+// Preview: Preview an offboarding sweep
+//
+// What starting an offboarding would find for a person, without saving anything.
+//
+// _Requires permission: `team:remove`._
+//
+// POST /api/org/{orgId}/offboardings/preview
+//
+// Raises on 400: Bad request
+func (n *OffboardingsNamespace) Preview(ctx context.Context, params OffboardingsPreviewParams, opts ...RequestOption) (*OffboardingPreview, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/offboardings/preview")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *OffboardingPreview
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OffboardingsRescanParams holds the parameters for
+// `client.offboardings.rescan`.
+type OffboardingsRescanParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// Rescan: Rescan an offboarding
+//
+// Sweep again. Rows already dealt with keep their outcome; a row no longer found
+// is marked `gone`. A closed offboarding is returned unchanged.
+//
+// _Requires permission: `team:remove`._
+//
+// POST /api/org/{orgId}/offboardings/{id}/rescan
+//
+// Raises on 404: Not found
+func (n *OffboardingsNamespace) Rescan(ctx context.Context, params OffboardingsRescanParams, opts ...RequestOption) (*Offboarding, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/offboardings/{id}/rescan")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *Offboarding
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OffboardingsUpdateParams holds the parameters for
+// `client.offboardings.update`.
+type OffboardingsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+	// Body: the JSON request body.
+	Body OffboardingPatchInput
+}
+
+// Update: Edit an offboarding
+//
+// Change the aliases (which rescans), the note, or the status: `completed` or
+// `canceled` closes the checklist, `open` reopens it.
+//
+// _Requires permission: `team:remove`._
+//
+// PATCH /api/org/{orgId}/offboardings/{id}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *OffboardingsNamespace) Update(ctx context.Context, params OffboardingsUpdateParams, opts ...RequestOption) (*Offboarding, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/offboardings/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setJSONBody(params.Body)
+	var out *Offboarding
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OffboardingsGetNamespace is `client.offboardings.get`.
+type OffboardingsGetNamespace struct {
+	t *transport
+}
+
+func newOffboardingsGetNamespace(t *transport) *OffboardingsGetNamespace {
+	n := &OffboardingsGetNamespace{t: t}
+	return n
+}
+
+// OffboardingsGetGetParams holds the parameters for
+// `client.offboardings.get.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type OffboardingsGetGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: List offboardings
+//
+// Every offboarding checklist, newest first, with progress.
+//
+// _Requires permission: `team:remove`._
+//
+// GET /api/org/{orgId}/offboardings
+func (n *OffboardingsGetNamespace) Get(ctx context.Context, params *OffboardingsGetGetParams, opts ...RequestOption) (*OffboardingList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/offboardings")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *OffboardingList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OffboardingsGetGetOrgOrgIDOffboardingsIDParams holds the parameters for
+// `client.offboardings.get.getOrgOrgIdOffboardingsId`.
+type OffboardingsGetGetOrgOrgIDOffboardingsIDParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	ID    string
+}
+
+// GetOrgOrgIDOffboardingsID: Get an offboarding
+//
+// _Requires permission: `team:remove`._
+//
+// GET /api/org/{orgId}/offboardings/{id}
+//
+// Raises on 404: Not found
+func (n *OffboardingsGetNamespace) GetOrgOrgIDOffboardingsID(ctx context.Context, params OffboardingsGetGetOrgOrgIDOffboardingsIDParams, opts ...RequestOption) (*Offboarding, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/offboardings/{id}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	var out *Offboarding
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OffboardingsItemsNamespace is `client.offboardings.items`.
+type OffboardingsItemsNamespace struct {
+	t *transport
+}
+
+func newOffboardingsItemsNamespace(t *transport) *OffboardingsItemsNamespace {
+	n := &OffboardingsItemsNamespace{t: t}
+	return n
+}
+
+// OffboardingsItemsActionParams holds the parameters for
+// `client.offboardings.items.action`.
+type OffboardingsItemsActionParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID  *string
+	ID     string
+	ItemID string
+	// Body: the JSON request body.
+	Body OffboardingActionInput
+}
+
+// Action: Act on a checklist row
+//
+// Run one of the row's `actions`. Each needs the permission its own surface asks
+// for on top of `team:remove` (403 otherwise), and the ones that reach a
+// provider (`revoke`, `remove`, `remove-seat`, `revoke-jit`) are blocked by an
+// active change freeze (423). Refused (409) for an unconfirmed or rejected
+// match, a closed offboarding, or an action the row does not offer. Every
+// attempt is recorded in the audit log.
+//
+// _Requires permission: `team:remove`._
+//
+// POST /api/org/{orgId}/offboardings/{id}/items/{itemId}/action
+//
+// Raises on 400: Bad request
+//
+// Raises on 403: Forbidden
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+//
+// Raises on 423: Blocked by an active change freeze. Retry with the
+// `x-change-freeze-override: true` header if you hold `freezes:override`; both
+// blocks and overrides are audit-logged.
+func (n *OffboardingsItemsNamespace) Action(ctx context.Context, params OffboardingsItemsActionParams, opts ...RequestOption) (*OffboardingActionResult, error) {
+	r := newRequest(http.MethodPost, "/api/org/{orgId}/offboardings/{id}/items/{itemId}/action")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("itemId", params.ItemID)
+	r.setJSONBody(params.Body)
+	var out *OffboardingActionResult
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// OffboardingsItemsUpdateParams holds the parameters for
+// `client.offboardings.items.update`.
+type OffboardingsItemsUpdateParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID  *string
+	ID     string
+	ItemID string
+	// Body: the JSON request body.
+	Body OffboardingItemPatchInput
+}
+
+// Update: Confirm a match or mark a row by hand
+//
+// Confirm or reject a possible match, mark a row done (handled in the provider)
+// or skipped (not needed), reopen it, or leave a note.
+//
+// _Requires permission: `team:remove`._
+//
+// PATCH /api/org/{orgId}/offboardings/{id}/items/{itemId}
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *OffboardingsItemsNamespace) Update(ctx context.Context, params OffboardingsItemsUpdateParams, opts ...RequestOption) (*OffboardingItem, error) {
+	r := newRequest(http.MethodPatch, "/api/org/{orgId}/offboardings/{id}/items/{itemId}")
+	r.setPath("orgId", params.OrgID)
+	r.setPath("id", params.ID)
+	r.setPath("itemId", params.ItemID)
+	r.setJSONBody(params.Body)
+	var out *OffboardingItem
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
