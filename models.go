@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.133.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.134.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.133.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.134.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -439,21 +439,23 @@ type AgentClaimStarted struct {
 	Interval int64 `json:"interval"`
 }
 
-// AgentGitWork: Terminal sessions only: work on this open pull request of one of
-// the organization's repositories on git.infrawrench.com. The session clones
-// that repository, checks out the pull request's head branch, can push that
-// branch and nothing else (a job token bound to the branch that lasts at most 6
-// hours, renewed when the session is opened), starts the coding tool with the
-// pull request's title and body as its first prompt, and is recorded as the pull
-// request's agent. `repo` is ignored. Needs `git:write`. A pull request that is
-// missing, closed, from a fork or not the organization's is one refusal (400).
+// AgentGitWork: Terminal sessions only: work on this branch of one of the
+// organization's repositories on git.infrawrench.com, whose page is open. The
+// session clones that repository, checks out the branch, can push that branch
+// and nothing else (a job token bound to the branch that lasts at most 6 hours,
+// renewed when the session is opened), starts the coding tool with the page's
+// title and description as its first prompt, and is recorded as the page's
+// agent. `repo` is ignored. Needs `git:write`. A branch page that is missing,
+// closed, from a fork or not the organization's is one refusal (400).
 type AgentGitWork struct {
 	// Owner: The repository's namespace on the forge.
 	Owner string `json:"owner"`
 	// Repo: The repository's name on the forge.
 	Repo string `json:"repo"`
-	// Pull: The pull request's number.
-	Pull int64 `json:"pull"`
+	// Branch: The branch page's key: the branch's name (`work/fix-login`), or
+	// `<name>~<n>` for an earlier page of a name used again, as the forge writes
+	// it in the page's address.
+	Branch string `json:"branch"`
 }
 
 // AgentIdentity is the `AgentIdentity` schema.
@@ -10615,10 +10617,12 @@ type GitForgeRepository struct {
 	IsFork        bool               `json:"isFork"`
 	DefaultBranch string             `json:"defaultBranch"`
 	// PushedAt: Null until something is pushed.
-	PushedAt         *string `json:"pushedAt"`
-	OpenPullRequests int64   `json:"openPullRequests"`
-	OpenIssues       int64   `json:"openIssues"`
-	SizeBytes        float64 `json:"sizeBytes"`
+	PushedAt *string `json:"pushedAt"`
+	// OpenBranches: The repository's open branch pages: its branches under
+	// review, and the ones forks propose to it.
+	OpenBranches int64   `json:"openBranches"`
+	OpenIssues   int64   `json:"openIssues"`
+	SizeBytes    float64 `json:"sizeBytes"`
 	// Ci: The latest CI run of the default branch. Null when CI has not run
 	// there.
 	Ci *GitForgeRepositoryCi `json:"ci"`
