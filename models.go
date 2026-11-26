@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.132.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.133.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.132.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.133.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -437,6 +437,23 @@ type AgentClaimStarted struct {
 	ExpiresAt               string `json:"expires_at"`
 	// Interval: Minimum seconds between status polls.
 	Interval int64 `json:"interval"`
+}
+
+// AgentGitWork: Terminal sessions only: work on this open pull request of one of
+// the organization's repositories on git.infrawrench.com. The session clones
+// that repository, checks out the pull request's head branch, can push that
+// branch and nothing else (a job token bound to the branch that lasts at most 6
+// hours, renewed when the session is opened), starts the coding tool with the
+// pull request's title and body as its first prompt, and is recorded as the pull
+// request's agent. `repo` is ignored. Needs `git:write`. A pull request that is
+// missing, closed, from a fork or not the organization's is one refusal (400).
+type AgentGitWork struct {
+	// Owner: The repository's namespace on the forge.
+	Owner string `json:"owner"`
+	// Repo: The repository's name on the forge.
+	Repo string `json:"repo"`
+	// Pull: The pull request's number.
+	Pull int64 `json:"pull"`
 }
 
 // AgentIdentity is the `AgentIdentity` schema.
@@ -6498,6 +6515,7 @@ type CreateAccountResponse struct {
 // CreateAgentSession is the `CreateAgentSession` schema.
 type CreateAgentSession struct {
 	Repo          *string       `json:"repo,omitempty"`
+	GitWork       *AgentGitWork `json:"gitWork,omitempty"`
 	ProjectName   *string       `json:"projectName,omitempty"`
 	WorkspaceName *string       `json:"workspaceName,omitempty"`
 	Settings      AgentSettings `json:"settings"`
