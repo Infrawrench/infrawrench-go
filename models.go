@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.131.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.132.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.131.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.132.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -10578,6 +10578,9 @@ type GitForgeOverview struct {
 	Plan   string         `json:"plan"`
 	Limits GitForgeLimits `json:"limits"`
 	Usage  GitForgeUsage  `json:"usage"`
+	// ReservedNamesAllowed: The caller may claim a name on the reserved list: a
+	// platform admin, for Infrawrench's own organisation.
+	ReservedNamesAllowed *bool `json:"reservedNamesAllowed,omitempty"`
 }
 
 // GitForgeRepository is the `GitForgeRepository` schema.
