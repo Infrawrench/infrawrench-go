@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.126.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.131.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.126.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.131.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -3629,7 +3629,16 @@ type CiRun struct {
 	Jobs             []CiJobSummary `json:"jobs"`
 	VcpuSeconds      any            `json:"vcpuSeconds"`
 	MemoryGibSeconds any            `json:"memoryGibSeconds"`
-	GithubURL        string         `json:"githubUrl"`
+	// GithubURL: The commit or pull request on the repository's forge: the same
+	// link as `sourceUrl`, under the name it had when GitHub was the only one.
+	GithubURL string `json:"githubUrl"`
+	// Source: Where the repository lives: `github` (reached through the GitHub
+	// App) or `git` (git.infrawrench.com).
+	//
+	// One of "github", "git".
+	Source *string `json:"source,omitempty"`
+	// SourceURL: The commit or pull request on the repository's forge.
+	SourceURL *string `json:"sourceUrl,omitempty"`
 	// RetryOfRunID: The run this one retries: the same repository, commit,
 	// branch and event.
 	RetryOfRunID *string `json:"retryOfRunId,omitempty"`
@@ -3721,7 +3730,8 @@ type CiSSHKeyLending struct {
 // CiStartRun is the `CiStartRun` schema.
 type CiStartRun struct {
 	// InstallationID: The GitHub App installation of the account that runs CI
-	// for the repository.
+	// for the repository, or `0` for a repository on git.infrawrench.com, as
+	// `GET /ci/manual` lists it.
 	InstallationID int64 `json:"installationId"`
 	// RepoFullName: `owner/name`.
 	RepoFullName string `json:"repoFullName"`
@@ -10524,6 +10534,107 @@ type GeneratedSSHKey struct {
 	PrivateKey string `json:"privateKey"`
 }
 
+// GitForgeLimits is the `GitForgeLimits` schema.
+type GitForgeLimits struct {
+	// PrivateRepositories: How many private repositories the plan allows. Null
+	// is no limit.
+	PrivateRepositories *int64 `json:"privateRepositories"`
+	// PrivateStorageBytes: Bytes of private repositories at which pushes to them
+	// are refused.
+	PrivateStorageBytes float64 `json:"privateStorageBytes"`
+	// IncludedStorageBytes: Bytes of private repositories that cost nothing.
+	// Storage between this and `privateStorageBytes` is metered; where the two
+	// are equal nothing is.
+	IncludedStorageBytes float64 `json:"includedStorageBytes"`
+}
+
+// GitForgeNamespace is the `GitForgeNamespace` schema.
+type GitForgeNamespace struct {
+	// Slug: The first path segment of every repository URL, as its owner spelled
+	// it.
+	Slug string `json:"slug"`
+	// URL: The namespace's page on the forge.
+	URL               string             `json:"url"`
+	DefaultVisibility GitForgeVisibility `json:"defaultVisibility"`
+	CreatedAt         string             `json:"createdAt"`
+	RenamedAt         *string            `json:"renamedAt"`
+}
+
+// GitForgeNamespaceInput is the `GitForgeNamespaceInput` schema.
+type GitForgeNamespaceInput struct {
+	// Slug: Letters, digits, dots, dashes and underscores; starts with a letter,
+	// digit or underscore; does not end in `.git`; not one of the forge's
+	// reserved names.
+	Slug string `json:"slug"`
+}
+
+// GitForgeOverview is the `GitForgeOverview` schema.
+type GitForgeOverview struct {
+	// ForgeURL: The forge's origin.
+	ForgeURL string `json:"forgeUrl"`
+	// Namespace: Null until someone with `git:admin` claims one.
+	Namespace *GitForgeNamespace `json:"namespace"`
+	// Plan: One of "free", "paid".
+	Plan   string         `json:"plan"`
+	Limits GitForgeLimits `json:"limits"`
+	Usage  GitForgeUsage  `json:"usage"`
+}
+
+// GitForgeRepository is the `GitForgeRepository` schema.
+type GitForgeRepository struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// FullName: `namespace/name`.
+	FullName string `json:"fullName"`
+	// URL: The repository's page on the forge.
+	URL           string             `json:"url"`
+	Description   *string            `json:"description"`
+	Visibility    GitForgeVisibility `json:"visibility"`
+	Archived      bool               `json:"archived"`
+	IsFork        bool               `json:"isFork"`
+	DefaultBranch string             `json:"defaultBranch"`
+	// PushedAt: Null until something is pushed.
+	PushedAt         *string `json:"pushedAt"`
+	OpenPullRequests int64   `json:"openPullRequests"`
+	OpenIssues       int64   `json:"openIssues"`
+	SizeBytes        float64 `json:"sizeBytes"`
+	// Ci: The latest CI run of the default branch. Null when CI has not run
+	// there.
+	Ci *GitForgeRepositoryCi `json:"ci"`
+}
+
+// GitForgeRepositoryList is the `GitForgeRepositoryList` schema.
+type GitForgeRepositoryList struct {
+	Repositories []GitForgeRepository `json:"repositories"`
+}
+
+// GitForgeSettingsInput is the `GitForgeSettingsInput` schema.
+type GitForgeSettingsInput struct {
+	DefaultVisibility GitForgeVisibility `json:"defaultVisibility"`
+}
+
+// GitForgeUsage is the `GitForgeUsage` schema.
+type GitForgeUsage struct {
+	Repositories        int64 `json:"repositories"`
+	PublicRepositories  int64 `json:"publicRepositories"`
+	PrivateRepositories int64 `json:"privateRepositories"`
+	// StorageBytes: Bytes of every repository's packs.
+	StorageBytes float64 `json:"storageBytes"`
+	// PrivateStorageBytes: The part private repositories hold: what the limits
+	// count.
+	PrivateStorageBytes float64 `json:"privateStorageBytes"`
+}
+
+// GitForgeVisibility: What a new repository starts as, unless its creator says
+// otherwise.
+type GitForgeVisibility = string
+
+// The values GitForgeVisibility takes.
+const (
+	GitForgeVisibilityPublic  GitForgeVisibility = "public"
+	GitForgeVisibilityPrivate GitForgeVisibility = "private"
+)
+
 // GithubAppRepos is the `GithubAppRepos` schema.
 type GithubAppRepos struct {
 	// Repos: Every repository the organization's installations can access, by
@@ -11005,6 +11116,20 @@ type IacImportPlanResponse struct {
 	Unsupported []IacImportPlanResponseUnsupported `json:"unsupported"`
 }
 
+// IacManagedBy is the `IacManagedBy` schema.
+type IacManagedBy struct {
+	// Repository: `<namespace>/<repository>` on git.infrawrench.com.
+	Repository string `json:"repository"`
+	// RootPath: The Terraform root, relative to the repository. Empty for its
+	// top.
+	RootPath  string `json:"rootPath"`
+	Workspace string `json:"workspace"`
+	// Address: The resource's address in that workspace's state.
+	Address string `json:"address"`
+	// URL: The workspace's page on git.infrawrench.com.
+	URL string `json:"url"`
+}
+
 // IacReconciledResource is the `IacReconciledResource` schema.
 type IacReconciledResource struct {
 	ResourceID     string   `json:"resourceId"`
@@ -11056,6 +11181,12 @@ type IacResourceStatusResponse struct {
 	StateLabel       *string `json:"stateLabel"`
 	TerraformAddress *string `json:"terraformAddress"`
 	DriftFieldCount  int64   `json:"driftFieldCount"`
+	// ManagedBy: The Terraform workspaces on git.infrawrench.com whose current
+	// state holds this resource. Independent of `status`, which is about
+	// uploaded state documents. A workspace of a private repository is listed
+	// only for a caller with `git:read` (or more) in the organization. Empty
+	// when none matched, or none the caller may see.
+	ManagedBy []IacManagedBy `json:"managedBy"`
 }
 
 // IacState is the `IacState` schema.
@@ -13256,6 +13387,10 @@ type MeResponse struct {
 	Role           *RoleSummary           `json:"role"`
 	Permissions    []Permission           `json:"permissions"`
 	CostVisibility *CostVisibilitySummary `json:"costVisibility,omitempty"`
+	// GitEnabled: Whether the organisation has Git (git.infrawrench.com) turned
+	// on. While it is false, the `git:` permissions grant nothing and the Git
+	// routes answer 404. Absent means on.
+	GitEnabled *bool `json:"gitEnabled,omitempty"`
 }
 
 // MetricAlertEvent is the `MetricAlertEvent` schema.
@@ -15634,6 +15769,9 @@ const (
 	PermissionCiWrite                Permission = "ci:write"
 	PermissionCiApprove              Permission = "ci:approve"
 	PermissionCiAccessWrite          Permission = "ci-access:write"
+	PermissionGitRead                Permission = "git:read"
+	PermissionGitWrite               Permission = "git:write"
+	PermissionGitAdmin               Permission = "git:admin"
 	PermissionIncidentsRead          Permission = "incidents:read"
 	PermissionIncidentsWrite         Permission = "incidents:write"
 	PermissionTagPolicyOverride      Permission = "tag-policy:override"
@@ -23944,6 +24082,14 @@ type FxFeedRatesRates struct {
 	Currency string `json:"currency"`
 	// Rate: Units of `base` per 1 unit of `currency`.
 	Rate float64 `json:"rate"`
+}
+
+// GitForgeRepositoryCi is an object the spec declares inline.
+type GitForgeRepositoryCi struct {
+	// Status: A CI run status (`passed`, `failed`, `running`, ...).
+	Status string `json:"status"`
+	RunID  string `json:"runId"`
+	Sha    string `json:"sha"`
 }
 
 // GithubAppReposRepos is an object the spec declares inline.

@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.126.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.131.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.126.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.131.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -165,6 +165,8 @@ type APIV1Client struct {
 	Expiring *ExpiringNamespace
 	// ExtendedSupport: `client.extendedSupport`.
 	ExtendedSupport *ExtendedSupportNamespace
+	// Git: `client.git`.
+	Git *GitNamespace
 	// Github: `client.github`.
 	Github *GithubNamespace
 	// GithubIssues: `client.githubIssues`.
@@ -402,6 +404,7 @@ func NewAPIV1Client(opts ...ClientOption) *APIV1Client {
 	c.EventSubscriptions = newEventSubscriptionsNamespace(t)
 	c.Expiring = newExpiringNamespace(t)
 	c.ExtendedSupport = newExtendedSupportNamespace(t)
+	c.Git = newGitNamespace(t)
 	c.Github = newGithubNamespace(t)
 	c.GithubIssues = newGithubIssuesNamespace(t)
 	c.Heartbeats = newHeartbeatsNamespace(t)
@@ -18134,6 +18137,151 @@ func (n *ExtendedSupportSettingsNamespace) Update(ctx context.Context, params *E
 		r.setJSONBody(params.Body)
 	}
 	var out *ExtendedSupportSettings
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GitNamespace is `client.git`.
+type GitNamespace struct {
+	t *transport
+}
+
+func newGitNamespace(t *transport) *GitNamespace {
+	n := &GitNamespace{t: t}
+	return n
+}
+
+// GitGetParams holds the parameters for `client.git.get`.
+//
+// Every field is optional; pass nil to take the defaults.
+type GitGetParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Get: The organisation's namespace on git.infrawrench.com and its usage
+//
+// The namespace (null until claimed), the plan's limits for private repositories
+// and their storage, and what the namespace uses. Public repositories are free
+// and count toward no limit.
+//
+// _Requires permission: `git:read`._
+//
+// GET /api/org/{orgId}/git
+//
+// Raises on 404: Not found
+func (n *GitNamespace) Get(ctx context.Context, params *GitGetParams, opts ...RequestOption) (*GitForgeOverview, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/git")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *GitForgeOverview
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GitNamespaceParams holds the parameters for `client.git.namespace`.
+type GitNamespaceParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body GitForgeNamespaceInput
+}
+
+// Namespace: Claim or rename the organisation's namespace
+//
+// Claims the namespace when the organisation has none, renames it otherwise. A
+// rename moves no repository, and URLs under the old name stop resolving. 400
+// when the name breaks the forge's rules or is reserved, 409 when someone has
+// it.
+//
+// _Requires permission: `git:admin`._
+//
+// PUT /api/org/{orgId}/git/namespace
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+//
+// Raises on 409: Conflict
+func (n *GitNamespace) Namespace(ctx context.Context, params GitNamespaceParams, opts ...RequestOption) (*GitForgeNamespace, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/git/namespace")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *GitForgeNamespace
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GitRepositoriesParams holds the parameters for `client.git.repositories`.
+//
+// Every field is optional; pass nil to take the defaults.
+type GitRepositoriesParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+}
+
+// Repositories: The organisation's repositories on git.infrawrench.com
+//
+// Most recently pushed first, private ones included, each with its open pull
+// requests and the latest CI run of its default branch. At most 500; the forge
+// lists the rest.
+//
+// _Requires permission: `git:read`._
+//
+// GET /api/org/{orgId}/git/repositories
+//
+// Raises on 404: Not found
+func (n *GitNamespace) Repositories(ctx context.Context, params *GitRepositoriesParams, opts ...RequestOption) (*GitForgeRepositoryList, error) {
+	r := newRequest(http.MethodGet, "/api/org/{orgId}/git/repositories")
+	if params != nil {
+		r.setPath("orgId", params.OrgID)
+	}
+	var out *GitForgeRepositoryList
+	if err := n.t.do(ctx, r, &out, opts); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// GitSettingsParams holds the parameters for `client.git.settings`.
+type GitSettingsParams struct {
+	// OrgID: Organization id
+	//
+	// Falls back to the client's `orgId` when omitted.
+	OrgID *string
+	// Body: the JSON request body.
+	Body GitForgeSettingsInput
+}
+
+// Settings: Set what a new repository starts as
+//
+// 404 until the organisation has claimed a namespace.
+//
+// _Requires permission: `git:admin`._
+//
+// PUT /api/org/{orgId}/git/settings
+//
+// Raises on 400: Bad request
+//
+// Raises on 404: Not found
+func (n *GitNamespace) Settings(ctx context.Context, params GitSettingsParams, opts ...RequestOption) (*GitForgeNamespace, error) {
+	r := newRequest(http.MethodPut, "/api/org/{orgId}/git/settings")
+	r.setPath("orgId", params.OrgID)
+	r.setJSONBody(params.Body)
+	var out *GitForgeNamespace
 	if err := n.t.do(ctx, r, &out, opts); err != nil {
 		return out, err
 	}
