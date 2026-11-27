@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.135.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.136.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.135.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.136.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -8167,11 +8167,15 @@ type CiAccountsUpdateParams struct {
 
 // Update: Run CI, or stop running it, for a connected GitHub account
 //
+// Turning CI on takes a paid plan (402 otherwise). Turning it off never does.
+//
 // _Requires permission: `ci:write`._
 //
 // PUT /api/org/{orgId}/ci/accounts/{installationId}
 //
 // Raises on 400: Bad request
+//
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 404: Not found
 func (n *CiAccountsNamespace) Update(ctx context.Context, params CiAccountsUpdateParams, opts ...RequestOption) (*CiAccount, error) {
@@ -8280,7 +8284,7 @@ type CiRunsApproveParams struct {
 	RunID string
 }
 
-// Approve: Approve a fork's pull request commit
+// Approve: Approve a fork's pull request commit (paid plan required)
 //
 // Runs CI for this one commit of a pull request from a fork, without the
 // organization's or repository's secrets. A later commit needs approving again.
@@ -8288,6 +8292,8 @@ type CiRunsApproveParams struct {
 // _Requires permission: `ci:approve`._
 //
 // POST /api/org/{orgId}/ci/runs/{runId}/approve
+//
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 404: Not found
 //
@@ -8347,7 +8353,7 @@ type CiRunsCreateParams struct {
 	Body CiStartRun
 }
 
-// Create: Start a pipeline by hand
+// Create: Start a pipeline by hand (paid plan required)
 //
 // Queues a run of one pipeline with `on.manual`, at the head of a branch of the
 // repository itself, with the inputs given. The pipeline must be listed by `GET
@@ -8361,6 +8367,8 @@ type CiRunsCreateParams struct {
 // POST /api/org/{orgId}/ci/runs
 //
 // Raises on 400: Bad request
+//
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 404: Not found
 //
@@ -8518,7 +8526,7 @@ type CiRunsRetryParams struct {
 	Body CiRunsRetryRequest
 }
 
-// Retry: Run a finished CI run again
+// Retry: Run a finished CI run again (paid plan required)
 //
 // Queues a new run of the same repository, commit, branch and event, linked to
 // this one. A run waiting for approval is approved instead, and a fork's pull
@@ -8527,6 +8535,8 @@ type CiRunsRetryParams struct {
 // _Requires permission: `ci:approve`._
 //
 // POST /api/org/{orgId}/ci/runs/{runId}/retry
+//
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 404: Not found
 //
@@ -8650,13 +8660,15 @@ type CiValuesUpdateParams struct {
 	Body CiValuesUpdateRequest
 }
 
-// Update: Set a CI secret or variable
+// Update: Set a CI secret or variable (paid plan required)
 //
 // _Requires permission: `ci:write`._
 //
 // PUT /api/org/{orgId}/ci/values/{kind}/{name}
 //
 // Raises on 400: Bad request
+//
+// Raises on 402: Payment required: the organization's plan does not include this
 //
 // Raises on 404: Not found
 //
