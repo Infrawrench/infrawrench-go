@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.134.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.135.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.134.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.135.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -18172,8 +18172,6 @@ type GitGetParams struct {
 // _Requires permission: `git:read`._
 //
 // GET /api/org/{orgId}/git
-//
-// Raises on 404: Not found
 func (n *GitNamespace) Get(ctx context.Context, params *GitGetParams, opts ...RequestOption) (*GitForgeOverview, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/git")
 	if params != nil {
@@ -18199,17 +18197,16 @@ type GitNamespaceParams struct {
 // Namespace: Claim or rename the organisation's namespace
 //
 // Claims the namespace when the organisation has none, renames it otherwise. A
-// rename moves no repository, and URLs under the old name stop resolving. 400
-// when the name breaks the forge's rules or is reserved, 409 when someone has
-// it.
+// rename moves no repository, and URLs under the old name stop resolving. A
+// first claim needs a paid plan. 400 when the name breaks the forge's rules or
+// is reserved, or when an organisation that is not on a paid plan claims one;
+// 409 when someone has it.
 //
 // _Requires permission: `git:admin`._
 //
 // PUT /api/org/{orgId}/git/namespace
 //
 // Raises on 400: Bad request
-//
-// Raises on 404: Not found
 //
 // Raises on 409: Conflict
 func (n *GitNamespace) Namespace(ctx context.Context, params GitNamespaceParams, opts ...RequestOption) (*GitForgeNamespace, error) {
@@ -18242,8 +18239,6 @@ type GitRepositoriesParams struct {
 // _Requires permission: `git:read`._
 //
 // GET /api/org/{orgId}/git/repositories
-//
-// Raises on 404: Not found
 func (n *GitNamespace) Repositories(ctx context.Context, params *GitRepositoriesParams, opts ...RequestOption) (*GitForgeRepositoryList, error) {
 	r := newRequest(http.MethodGet, "/api/org/{orgId}/git/repositories")
 	if params != nil {

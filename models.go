@@ -1,7 +1,7 @@
-// github.com/Infrawrench/infrawrench-go v1.134.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
+// github.com/Infrawrench/infrawrench-go v1.135.0 | MIT | Copyright (c) 2026 Infrawrench Services, Inc.
 // https://github.com/Infrawrench/Infrawrench
 //
-// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.134.0).
+// Generated from the Infrawrench API OpenAPI 3.1 spec (API version 1.135.0).
 //
 // DO NOT EDIT. Regenerate with:
 //   pnpm --filter @infrawrench/web generate:sdk
@@ -13412,9 +13412,9 @@ type MeResponse struct {
 	Role           *RoleSummary           `json:"role"`
 	Permissions    []Permission           `json:"permissions"`
 	CostVisibility *CostVisibilitySummary `json:"costVisibility,omitempty"`
-	// GitEnabled: Whether the organisation has Git (git.infrawrench.com) turned
-	// on. While it is false, the `git:` permissions grant nothing and the Git
-	// routes answer 404. Absent means on.
+	// GitEnabled: Deprecated: always true. Git (git.infrawrench.com) is
+	// available to every organisation; the field will be removed in the next
+	// major version.
 	GitEnabled *bool `json:"gitEnabled,omitempty"`
 }
 
